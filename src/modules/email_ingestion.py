@@ -9,6 +9,7 @@ import time
 import logging
 from typing import Any, Dict, List, Optional, Tuple
 from email.message import Message
+from email.header import decode_header, make_header
 from dataclasses import dataclass
 from datetime import datetime
 
