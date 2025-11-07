@@ -223,7 +223,19 @@ def main():
     if not Path(config_file).exists():
         print(f"Error: Configuration file '{config_file}' not found")
         print("Please create a .env file based on .env.example")
+        print("You can run: cp .env.example .env")
         sys.exit(1)
+
+    # Validate that .env is not the example file
+    try:
+        with open(config_file, 'r') as f:
+            content = f.read()
+            if 'your-email@gmail.com' in content or 'your-app-password-here' in content:
+                print("Warning: .env file appears to contain example values.")
+                print("Please update .env with your actual credentials before running.")
+                sys.exit(1)
+    except Exception as e:
+        print(f"Warning: Could not validate .env file: {e}")
 
     # Create and start pipeline
     pipeline = EmailSecurityPipeline(config_file)

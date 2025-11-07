@@ -80,9 +80,12 @@ class IMAPClient:
         if self.connection:
             try:
                 self.connection.logout()
+            except Exception:
+                # Connection may already be closed, ignore
+                pass
+            finally:
+                self.connection = None
                 self.logger.info("Disconnected from IMAP server")
-            except Exception as e:
-                self.logger.error(f"Error during disconnect: {e}")
 
     def list_folders(self) -> List[str]:
         """

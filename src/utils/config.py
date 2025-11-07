@@ -3,10 +3,12 @@ Configuration Management Module
 Handles loading and validation of environment variables and settings
 """
 
+import logging
 import os
 from typing import Dict, List, Optional
 from dataclasses import dataclass
 from dotenv import load_dotenv
+from urllib.parse import urlparse
 
 
 @dataclass
@@ -51,9 +53,9 @@ class AlertConfig:
     webhook_url: Optional[str]
     slack_enabled: bool
     slack_webhook: Optional[str]
-    threat_low: int
-    threat_medium: int
-    threat_high: int
+    threat_low: float
+    threat_medium: float
+    threat_high: float
 
 
 @dataclass
@@ -66,6 +68,7 @@ class SystemConfig:
     rate_limit_delay: int
     database_enabled: bool
     database_path: Optional[str]
+    max_attachment_size_mb: int
 
 
 class Config:
@@ -97,7 +100,7 @@ class Config:
                 imap_server=os.getenv("GMAIL_IMAP_SERVER", "imap.gmail.com"),
                 imap_port=int(os.getenv("GMAIL_IMAP_PORT", "993")),
                 app_password=os.getenv("GMAIL_APP_PASSWORD", ""),
-                folders=self._parse_folders(os.getenv("GMAIL_FOLDERS", "INBOX")),
+                folders=[folder.strip() for folder in os.getenv("GMAIL_FOLDERS", "INBOX").split(",") if folder.strip()],
                 provider="gmail"
             ))
 
@@ -109,7 +112,7 @@ class Config:
                 imap_server=os.getenv("OUTLOOK_IMAP_SERVER", "outlook.office365.com"),
                 imap_port=int(os.getenv("OUTLOOK_IMAP_PORT", "993")),
                 app_password=os.getenv("OUTLOOK_APP_PASSWORD", ""),
-                folders=self._parse_folders(os.getenv("OUTLOOK_FOLDERS", "INBOX")),
+                folders=[folder.strip() for folder in os.getenv("OUTLOOK_FOLDERS", "INBOX").split(",") if folder.strip()],
                 provider="outlook"
             ))
 
@@ -121,7 +124,7 @@ class Config:
                 imap_server=os.getenv("PROTON_IMAP_SERVER", "127.0.0.1"),
                 imap_port=int(os.getenv("PROTON_IMAP_PORT", "1143")),
                 app_password=os.getenv("PROTON_APP_PASSWORD", ""),
-                folders=self._parse_folders(os.getenv("PROTON_FOLDERS", "INBOX")),
+                folders=[folder.strip() for folder in os.getenv("PROTON_FOLDERS", "INBOX").split(",") if folder.strip()],
                 provider="proton"
             ))
 
@@ -152,9 +155,9 @@ class Config:
             webhook_url=os.getenv("ALERT_WEBHOOK_URL"),
             slack_enabled=self._get_bool("ALERT_SLACK_ENABLED", False),
             slack_webhook=os.getenv("ALERT_SLACK_WEBHOOK"),
-            threat_low=int(os.getenv("THREAT_LOW", "30")),
-            threat_medium=int(os.getenv("THREAT_MEDIUM", "60")),
-            threat_high=int(os.getenv("THREAT_HIGH", "80"))
+            threat_low=float(os.getenv("THREAT_LOW", "30.0")),
+            threat_medium=float(os.getenv("THREAT_MEDIUM", "60.0")),
+            threat_high=float(os.getenv("THREAT_HIGH", "80.0"))
         )
 
     def _load_system_config(self) -> SystemConfig:
@@ -166,27 +169,23 @@ class Config:
             max_emails_per_batch=int(os.getenv("MAX_EMAILS_PER_BATCH", "50")),
             rate_limit_delay=int(os.getenv("RATE_LIMIT_DELAY", "1")),
             database_enabled=self._get_bool("DATABASE_ENABLED", False),
-            database_path=os.getenv("DATABASE_PATH")
+            database_path=os.getenv("DATABASE_PATH"),
+            max_attachment_size_mb=int(os.getenv("MAX_ATTACHMENT_SIZE_MB", "25"))
         )
-
-    @staticmethod
-    def _parse_folders(value: str) -> List[str]:
-        """Normalize folder string into a clean list."""
-        if not value:
-            return ["INBOX"]
-
-        folders = [
-            folder.strip()
-            for folder in value.replace("\n", ",").split(",")
-            if folder.strip()
-        ]
-        return folders or ["INBOX"]
 
     @staticmethod
     def _get_bool(key: str, default: bool = False) -> bool:
         """Convert environment variable to boolean"""
         value = os.getenv(key, str(default)).lower()
         return value in ('true', '1', 'yes', 'on')
+
+    @staticmethod
+    def _is_https_url(value: str) -> bool:
+        try:
+            parsed = urlparse(value)
+        except ValueError:
+            return False
+        return parsed.scheme == "https" and bool(parsed.netloc)
 
     def validate(self) -> bool:
         """
@@ -204,11 +203,35 @@ class Config:
         for account in self.email_accounts:
             if not account.email or not account.app_password:
                 raise ValueError(f"Missing credentials for {account.provider} account")
+            if not account.folders:
+                raise ValueError(f"No folders configured for {account.provider} account")
+            if account.imap_port <= 0:
+                raise ValueError(f"Invalid IMAP port for {account.provider} account")
 
-        if self.alerts.webhook_enabled and not self.alerts.webhook_url:
-            raise ValueError("Webhook enabled but no URL provided")
+        if self.alerts.webhook_enabled:
+            if not self.alerts.webhook_url:
+                raise ValueError("Webhook enabled but no URL provided")
+            if not self._is_https_url(self.alerts.webhook_url):
+                raise ValueError("Webhook URL must use HTTPS")
 
-        if self.alerts.slack_enabled and not self.alerts.slack_webhook:
-            raise ValueError("Slack alerts enabled but no webhook URL provided")
+        if self.alerts.slack_enabled:
+            if not self.alerts.slack_webhook:
+                raise ValueError("Slack alerts enabled but no webhook URL provided")
+            if not self._is_https_url(self.alerts.slack_webhook):
+                raise ValueError("Slack webhook URL must use HTTPS")
+            if "hooks.slack.com" not in self.alerts.slack_webhook:
+                raise ValueError("Slack webhook URL must be a valid Slack hooks endpoint")
+
+        if self.system.max_attachment_size_mb <= 0:
+            raise ValueError("MAX_ATTACHMENT_SIZE_MB must be greater than zero")
+
+        if getattr(logging, self.system.log_level.upper(), None) is None:
+            raise ValueError(f"Invalid log level: {self.system.log_level}")
+
+        if not (self.alerts.threat_low < self.alerts.threat_medium < self.alerts.threat_high):
+            raise ValueError(
+                f"Threat thresholds must satisfy LOW < MEDIUM < HIGH. "
+                f"Got: LOW={self.alerts.threat_low}, MEDIUM={self.alerts.threat_medium}, HIGH={self.alerts.threat_high}"
+            )
 
         return True

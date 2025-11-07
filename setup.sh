@@ -4,6 +4,13 @@
 
 set -e  # Exit on error
 
+# Check if running on macOS or Linux
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    SED_CMD="sed -i ''"
+else
+    SED_CMD="sed -i"
+fi
+
 echo "===================================="
 echo "Email Security Pipeline Setup"
 echo "===================================="
@@ -43,13 +50,16 @@ echo
 
 if [[ $REPLY =~ ^[Yy]$ ]]; then
     read -p "Enter your Gmail address: " gmail_email
-    read -p "Enter your Gmail app password: " gmail_password
-    
-    # Update .env file
-    sed -i.bak "s/GMAIL_EMAIL=.*/GMAIL_EMAIL=$gmail_email/" .env
-    sed -i.bak "s/GMAIL_APP_PASSWORD=.*/GMAIL_APP_PASSWORD=$gmail_password/" .env
-    rm .env.bak
-    
+    read -sp "Enter your Gmail app password (hidden): " gmail_password
+    echo ""
+
+    # Update .env file (using OS-appropriate sed command)
+    $SED_CMD "s|GMAIL_EMAIL=.*|GMAIL_EMAIL=$gmail_email|" .env
+    $SED_CMD "s|GMAIL_APP_PASSWORD=.*|GMAIL_APP_PASSWORD=$gmail_password|" .env
+
+    # Clear password from memory (basic security measure)
+    gmail_password=""
+
     echo -e "${GREEN}Gmail credentials configured!${NC}"
 fi
 
@@ -68,15 +78,15 @@ echo ""
 
 if [[ $REPLY == "1" ]]; then
     echo "Building Docker image..."
-    
+
     if ! command -v docker &> /dev/null; then
         echo -e "${RED}Error: Docker is not installed${NC}"
         echo "Please install Docker and try again"
         exit 1
     fi
-    
+
     docker-compose build
-    
+
     echo ""
     echo -e "${GREEN}Docker image built successfully!${NC}"
     echo ""
@@ -88,22 +98,22 @@ if [[ $REPLY == "1" ]]; then
     echo ""
     echo "To stop the pipeline:"
     echo "  docker-compose down"
-    
+
 elif [[ $REPLY == "2" ]]; then
     echo "Setting up local Python environment..."
-    
+
     # Check Python version
     python_version=$(python3 --version 2>&1 | awk '{print $2}' | cut -d. -f1,2)
     required_version="3.11"
-    
+
     if ! command -v python3 &> /dev/null; then
         echo -e "${RED}Error: Python 3 is not installed${NC}"
         exit 1
     fi
-    
+
     echo "Installing Python dependencies..."
     python3 -m pip install -r requirements.txt
-    
+
     echo ""
     echo -e "${GREEN}Setup complete!${NC}"
     echo ""
@@ -112,7 +122,7 @@ elif [[ $REPLY == "2" ]]; then
     echo ""
     echo "To view logs (in another terminal):"
     echo "  tail -f logs/email_security.log"
-    
+
 else
     echo -e "${RED}Invalid choice${NC}"
     exit 1
