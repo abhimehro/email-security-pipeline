@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  email-security-pipeline:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: email-security-pipeline
+    restart: unless-stopped
+    
+    # Environment file
+    env_file:
+      - .env
+    
+    # Volumes for persistent data and logs
+    volumes:
+      - ./logs:/app/logs
+      - ./data:/app/data
+    
+    # Security options
+    security_opt:
+      - no-new-privileges:true
+    
+    # Read-only root filesystem (except for volumes)
+    read_only: true
+    
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    
+    # Logging
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    
+    # Health check
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import sys; sys.exit(0)"]
+      interval: 5m
+      timeout: 3s
+      start_period: 30s
+      retries: 3
+    
+    # Network
+    networks:
+      - email-security-net
+
+networks:
+  email-security-net:
+    driver: bridge
