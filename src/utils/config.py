@@ -100,7 +100,7 @@ class Config:
                 imap_server=os.getenv("GMAIL_IMAP_SERVER", "imap.gmail.com"),
                 imap_port=int(os.getenv("GMAIL_IMAP_PORT", "993")),
                 app_password=os.getenv("GMAIL_APP_PASSWORD", ""),
-                folders=[folder.strip() for folder in os.getenv("GMAIL_FOLDERS", "INBOX").split(",") if folder.strip()],
+                folders=self._parse_folders(os.getenv("GMAIL_FOLDERS", "INBOX")),
                 provider="gmail"
             ))
 
@@ -112,7 +112,7 @@ class Config:
                 imap_server=os.getenv("OUTLOOK_IMAP_SERVER", "outlook.office365.com"),
                 imap_port=int(os.getenv("OUTLOOK_IMAP_PORT", "993")),
                 app_password=os.getenv("OUTLOOK_APP_PASSWORD", ""),
-                folders=[folder.strip() for folder in os.getenv("OUTLOOK_FOLDERS", "INBOX").split(",") if folder.strip()],
+                folders=self._parse_folders(os.getenv("OUTLOOK_FOLDERS", "INBOX")),
                 provider="outlook"
             ))
 
@@ -124,7 +124,7 @@ class Config:
                 imap_server=os.getenv("PROTON_IMAP_SERVER", "127.0.0.1"),
                 imap_port=int(os.getenv("PROTON_IMAP_PORT", "1143")),
                 app_password=os.getenv("PROTON_APP_PASSWORD", ""),
-                folders=[folder.strip() for folder in os.getenv("PROTON_FOLDERS", "INBOX").split(",") if folder.strip()],
+                folders=self._parse_folders(os.getenv("PROTON_FOLDERS", "INBOX")),
                 provider="proton"
             ))
 
@@ -172,6 +172,29 @@ class Config:
             database_path=os.getenv("DATABASE_PATH"),
             max_attachment_size_mb=int(os.getenv("MAX_ATTACHMENT_SIZE_MB", "25"))
         )
+
+    @staticmethod
+    def _parse_folders(value: str) -> List[str]:
+        """
+        Normalize folder string into a clean list.
+        Supports both comma-separated and newline-separated folder lists.
+
+        Args:
+            value: Folder string (comma or newline separated)
+
+        Returns:
+            List of folder names, defaulting to ["INBOX"] if empty
+        """
+        if not value:
+            return ["INBOX"]
+
+        # Replace newlines with commas, then split and clean
+        folders = [
+            folder.strip()
+            for folder in value.replace("\n", ",").split(",")
+            if folder.strip()
+        ]
+        return folders or ["INBOX"]
 
     @staticmethod
     def _get_bool(key: str, default: bool = False) -> bool:
