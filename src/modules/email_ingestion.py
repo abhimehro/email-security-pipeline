@@ -9,6 +9,7 @@ import time
 import logging
 from typing import Any, Dict, List, Optional, Tuple
 from email.message import Message
+from email.header import decode_header, make_header
 from dataclasses import dataclass
 from datetime import datetime
 
@@ -79,9 +80,12 @@ class IMAPClient:
         if self.connection:
             try:
                 self.connection.logout()
+            except Exception:
+                # Connection may already be closed, ignore
+                pass
+            finally:
+                self.connection = None
                 self.logger.info("Disconnected from IMAP server")
-            except Exception as e:
-                self.logger.error(f"Error during disconnect: {e}")
 
     def list_folders(self) -> List[str]:
         """

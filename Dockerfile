@@ -30,7 +30,6 @@ COPY --from=builder /root/.local /home/emailsec/.local
 
 # Copy application code
 COPY --chown=emailsec:emailsec src/ ./src/
-COPY --chown=emailsec:emailsec .env.example ./.env.example
 
 # Set environment variables
 ENV PATH=/home/emailsec/.local/bin:$PATH \
@@ -42,7 +41,7 @@ USER emailsec
 
 # Health check
 HEALTHCHECK --interval=5m --timeout=3s --start-period=30s \
-    CMD python3 -c "import sys; sys.exit(0)" || exit 1
+    CMD python3 -c "import sys, os; sys.exit(0 if os.path.exists('/app/logs') else 1)" || exit 1
 
 # Run the application
 CMD ["python3", "src/main.py"]
