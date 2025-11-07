@@ -5,11 +5,13 @@
 ### Run the Pipeline
 
 **Using Virtual Environment (Recommended for Testing):**
+
 ```bash
 ./venv/bin/python3 src/main.py
 ```
 
 **Using Docker (Recommended for Production):**
+
 ```bash
 docker-compose up -d
 docker-compose logs -f
@@ -18,11 +20,13 @@ docker-compose logs -f
 ### Stop the Pipeline
 
 **Virtual Environment:**
+
 ```bash
 # Press Ctrl+C in the terminal
 ```
 
 **Docker:**
+
 ```bash
 docker-compose down
 ```
@@ -30,11 +34,13 @@ docker-compose down
 ## 🧪 Testing
 
 ### Run Configuration Tests
+
 ```bash
 ./venv/bin/python3 test_config.py
 ```
 
 ### Test IMAP Connections
+
 ```bash
 ./venv/bin/python3 test_config.py --test-connections
 ```
@@ -42,6 +48,7 @@ docker-compose down
 ## 📊 Monitoring
 
 ### View Logs
+
 ```bash
 # Real-time logs
 tail -f logs/email_security.log
@@ -54,6 +61,7 @@ grep ERROR logs/email_security.log
 ```
 
 ### Docker Logs
+
 ```bash
 # All logs
 docker-compose logs
@@ -68,6 +76,7 @@ docker-compose logs --tail=100
 ## ⚙️ Configuration
 
 ### Edit Configuration
+
 ```bash
 nano .env
 # or
@@ -75,12 +84,14 @@ vim .env
 ```
 
 ### Key Settings
+
 - `CHECK_INTERVAL`: How often to check for emails (seconds)
 - `THREAT_LOW/MEDIUM/HIGH`: Threat score thresholds
 - `LOG_LEVEL`: DEBUG, INFO, WARNING, ERROR
 - `ALERT_CONSOLE`: Enable/disable console alerts
 
 ### Update Credentials
+
 ```bash
 # Edit .env file
 nano .env
@@ -92,16 +103,19 @@ nano .env
 ## 🔧 Troubleshooting
 
 ### Connection Issues
+
 - Check credentials in `.env` file
 - Verify IMAP is enabled for your email provider
 - Test connection: `./venv/bin/python3 test_config.py --test-connections`
 
 ### Outlook Issues
+
 - See `OUTLOOK_TROUBLESHOOTING.md` for detailed steps
 - Verify app password is correct
 - Check IMAP is enabled in Outlook settings
 
 ### Log Analysis
+
 ```bash
 # View recent errors
 grep ERROR logs/email_security.log | tail -20
@@ -124,12 +138,14 @@ grep "SECURITY ALERT" logs/email_security.log
 ## 🎯 Common Tasks
 
 ### Change Check Interval
+
 ```bash
 # Edit .env file
 CHECK_INTERVAL=600  # Check every 10 minutes
 ```
 
 ### Enable Slack Alerts
+
 ```bash
 # Edit .env file
 ALERT_SLACK_ENABLED=true
@@ -137,6 +153,7 @@ ALERT_SLACK_WEBHOOK=https://hooks.slack.com/services/YOUR/WEBHOOK/URL
 ```
 
 ### Adjust Threat Thresholds
+
 ```bash
 # Edit .env file
 THREAT_LOW=20
@@ -145,6 +162,7 @@ THREAT_HIGH=75
 ```
 
 ### Disable an Email Account
+
 ```bash
 # Edit .env file
 OUTLOOK_ENABLED=false  # Disable Outlook

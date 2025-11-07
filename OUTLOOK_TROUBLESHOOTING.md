@@ -5,6 +5,7 @@
 **Issue:** Outlook IMAP connection is failing with "LOGIN failed" error.
 
 **Working Accounts:**
+
 - ✅ Gmail (abhimhrtr@gmail.com) - Connected successfully
 - ✅ Proton Mail (AbhiMhrtr@pm.me) - Connected successfully
 - ❌ Outlook (abhimehro@outlook.com) - Connection failing
@@ -14,6 +15,7 @@
 ### Step 1: Verify App Password
 
 1. **Check App Password Generation:**
+
    - Go to: https://account.microsoft.com/security
    - Navigate to: Security → Advanced security options → App passwords
    - Verify the app password was created for "Mail" or "Other (Custom name)"
@@ -28,6 +30,7 @@
 ### Step 2: Enable IMAP in Outlook
 
 1. **Check IMAP Settings:**
+
    - Go to: https://outlook.live.com/mail/
    - Click Settings (gear icon) → View all Outlook settings
    - Go to: Mail → Sync email
@@ -40,6 +43,7 @@
 ### Step 3: Check Two-Factor Authentication
 
 1. **Verify 2FA is Enabled:**
+
    - Go to: https://account.microsoft.com/security
    - Check if Two-factor authentication is enabled
    - App passwords only work if 2FA is enabled
@@ -51,6 +55,7 @@
 ### Step 4: Account Security Settings
 
 1. **Check Security Defaults:**
+
    - Some Microsoft accounts have "Security defaults" enabled
    - This may block app password authentication
    - You may need to disable security defaults (if you have admin access)
@@ -76,6 +81,7 @@ openssl s_client -connect outlook.office365.com:993 -quiet
 If app passwords continue to fail, consider:
 
 1. **OAuth2 Authentication:**
+
    - More secure than app passwords
    - Requires application registration with Microsoft
    - Better long-term solution
@@ -98,6 +104,7 @@ OUTLOOK_FOLDERS=INBOX,Junk
 ```
 
 **Important:**
+
 - No spaces in the app password
 - Server is `outlook.office365.com` (not `imap-mail.outlook.com`)
 - Port is `993` (SSL/TLS)
@@ -107,6 +114,7 @@ OUTLOOK_FOLDERS=INBOX,Junk
 ### Issue: "LOGIN failed" Error
 
 **Possible Causes:**
+
 1. App password is incorrect or expired
 2. IMAP is not enabled for the account
 3. 2FA is not enabled
@@ -114,6 +122,7 @@ OUTLOOK_FOLDERS=INBOX,Junk
 5. Password has extra spaces or characters
 
 **Solutions:**
+
 1. Generate a new app password
 2. Enable IMAP in Outlook settings
 3. Enable 2FA if not already enabled
@@ -123,11 +132,13 @@ OUTLOOK_FOLDERS=INBOX,Junk
 ### Issue: "Connection Timeout"
 
 **Possible Causes:**
+
 1. Firewall blocking port 993
 2. Network connectivity issues
 3. Outlook server is down
 
 **Solutions:**
+
 1. Check firewall settings
 2. Test network connectivity
 3. Verify Outlook service status
@@ -135,11 +146,13 @@ OUTLOOK_FOLDERS=INBOX,Junk
 ### Issue: "SSL Certificate Error"
 
 **Possible Causes:**
+
 1. System clock is incorrect
 2. SSL certificate issues
 3. Proxy interference
 
 **Solutions:**
+
 1. Sync system clock
 2. Check SSL certificate validity
 3. Configure proxy settings if needed
@@ -165,6 +178,7 @@ After making changes, test the connection:
 The pipeline works perfectly with Gmail and Proton Mail. You can:
 
 1. **Disable Outlook temporarily:**
+
    ```env
    OUTLOOK_ENABLED=false
    ```
