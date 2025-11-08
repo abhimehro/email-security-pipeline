@@ -346,10 +346,10 @@ MAX_RETRIES=3
 
 ### Version 2.0 Roadmap
 
-1. **Q1 2024**: Enhanced ML models, Database integration
-2. **Q2 2024**: Web dashboard, Real-time API
-3. **Q3 2024**: Threat intelligence, Automated responses
-4. **Q4 2024**: Enterprise features, Advanced analytics
+1. **Q1 2025**: Enhanced ML models, Database integration
+2. **Q2 2025**: Web dashboard, Real-time API
+3. **Q3 2025**: Threat intelligence, Automated responses
+4. **Q4 2025**: Enterprise features, Advanced analytics
 
 ### Breaking Changes
 
