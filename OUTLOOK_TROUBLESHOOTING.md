@@ -99,7 +99,7 @@ OUTLOOK_ENABLED=true
 OUTLOOK_EMAIL=abhimehro@outlook.com
 OUTLOOK_IMAP_SERVER=outlook.office365.com
 OUTLOOK_IMAP_PORT=993
-OUTLOOK_APP_PASSWORD=nirdbafuavmzgfmj
+OUTLOOK_APP_PASSWORD=your-16-char-app-password
 OUTLOOK_FOLDERS=INBOX,Junk
 ```
 
