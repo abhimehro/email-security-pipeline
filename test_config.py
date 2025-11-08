@@ -130,6 +130,13 @@ def test_analyzer_initialization():
 
         media_analyzer = MediaAuthenticityAnalyzer(config.analysis)
         print("✓ MediaAuthenticityAnalyzer initialized")
+        # Use media_analyzer to avoid unused variable warning
+        if hasattr(media_analyzer, "status"):
+            print(f"    MediaAuthenticityAnalyzer status: {media_analyzer.status()}")
+        elif hasattr(media_analyzer, "is_enabled"):
+            print(f"    MediaAuthenticityAnalyzer enabled: {media_analyzer.is_enabled()}")
+        else:
+            print(f"    MediaAuthenticityAnalyzer object: {media_analyzer}")
 
         alert_system = AlertSystem(config.alerts)
         print("✓ AlertSystem initialized")
