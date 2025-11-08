@@ -59,14 +59,15 @@ docker-compose logs -f
 cd ~/Documents/dev/email-security-pipeline
 
 # Install dependencies
-/opt/homebrew/bin/python3 -m pip install -r requirements.txt
+# Install dependencies
+python3 -m pip install -r requirements.txt
 
 # Copy and configure environment
 cp .env.example .env
 nano .env  # Update your credentials
 
 # Run the pipeline
-/opt/homebrew/bin/python3 src/main.py
+python3 src/main.py
 ```
 
 ## Step 3: Test the System
