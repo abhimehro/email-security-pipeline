@@ -133,7 +133,7 @@ def test_analyzer_initialization():
         else:
             print(f"    SpamAnalyzer object: {spam_analyzer}")
 
-        nlp_analyzer = NLPThreatAnalyzer(config.analysis)
+        NLPThreatAnalyzer(config.analysis)
         print("✓ NLPThreatAnalyzer initialized")
         # Use nlp_analyzer to avoid unused variable warning
         if hasattr(nlp_analyzer, "status"):
