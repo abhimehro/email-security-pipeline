@@ -24,42 +24,42 @@ class MediaAnalysisResult:
 
 class MediaAuthenticityAnalyzer:
     """Analyzes media attachments for authenticity and threats"""
-    
+
     # Dangerous file extensions
     DANGEROUS_EXTENSIONS = [
         '.exe', '.bat', '.cmd', '.com', '.pif', '.scr', '.vbs', '.js',
         '.jar', '.msi', '.dll', '.hta', '.wsf', '.ps1', '.sh', '.app'
     ]
-    
+
     # Suspicious file extensions (commonly used for disguise)
     SUSPICIOUS_EXTENSIONS = [
         '.pdf.exe', '.doc.exe', '.jpg.exe', '.zip.exe',
         '.docm', '.xlsm', '.pptm', '.dotm'  # Macro-enabled Office files
     ]
-    
+
     # Audio/video file extensions for deepfake detection
     MEDIA_EXTENSIONS = [
         '.mp4', '.avi', '.mov', '.wmv', '.flv', '.mkv',
         '.mp3', '.wav', '.aac', '.flac', '.ogg', '.m4a'
     ]
-    
+
     def __init__(self, config):
         """
         Initialize media analyzer
-        
+
         Args:
             config: AnalysisConfig object
         """
         self.config = config
         self.logger = logging.getLogger("MediaAuthenticityAnalyzer")
-    
+
     def analyze(self, email_data: EmailData) -> MediaAnalysisResult:
         """
         Analyze email attachments for threats
-        
+
         Args:
             email_data: Email with attachments to analyze
-            
+
         Returns:
             MediaAnalysisResult
         """
@@ -72,24 +72,28 @@ class MediaAuthenticityAnalyzer:
                 potential_deepfakes=[],
                 risk_level="low"
             )
-        
+
         threat_score = 0.0
         suspicious_attachments = []
         file_type_warnings = []
         size_anomalies = []
         potential_deepfakes = []
-        
+
         for attachment in email_data.attachments:
             filename = attachment.get('filename', '')
             content_type = attachment.get('content_type', '')
             size = attachment.get('size', 0)
             data = attachment.get('data', b'')
-            
+            truncated = attachment.get('truncated', False)
+
+            if truncated:
+                size_anomalies.append(f"Attachment truncated for scanning: {filename}")
+
             # Check file extension
             ext_score, ext_warnings = self._check_file_extension(filename)
             threat_score += ext_score
             file_type_warnings.extend(ext_warnings)
-            
+
             # Check content type mismatch
             mismatch_score, mismatch_warnings = self._check_content_type_mismatch(
                 filename, content_type, data
@@ -97,13 +101,13 @@ class MediaAuthenticityAnalyzer:
             threat_score += mismatch_score
             if mismatch_warnings:
                 suspicious_attachments.append(f"{filename}: {mismatch_warnings}")
-            
+
             # Check file size anomalies
             size_score, size_warning = self._check_size_anomaly(filename, size)
             threat_score += size_score
             if size_warning:
                 size_anomalies.append(size_warning)
-            
+
             # Check for potential deepfakes
             if self.config.deepfake_detection_enabled:
                 deepfake_score, deepfake_indicators = self._check_deepfake_indicators(
@@ -111,15 +115,15 @@ class MediaAuthenticityAnalyzer:
                 )
                 threat_score += deepfake_score
                 potential_deepfakes.extend(deepfake_indicators)
-        
+
         # Calculate risk level
         risk_level = self._calculate_risk_level(threat_score)
-        
+
         self.logger.debug(
             f"Media analysis complete: {len(email_data.attachments)} attachments, "
             f"score={threat_score:.2f}, risk={risk_level}"
         )
-        
+
         return MediaAnalysisResult(
             threat_score=threat_score,
             suspicious_attachments=suspicious_attachments,
@@ -128,41 +132,41 @@ class MediaAuthenticityAnalyzer:
             potential_deepfakes=potential_deepfakes,
             risk_level=risk_level
         )
-    
+
     def _check_file_extension(self, filename: str) -> Tuple[float, List[str]]:
         """Check if file extension is dangerous"""
         score = 0.0
         warnings = []
-        
+
         filename_lower = filename.lower()
-        
+
         # Check for dangerous extensions
         for ext in self.DANGEROUS_EXTENSIONS:
             if filename_lower.endswith(ext):
                 score += 5.0  # Very high score for dangerous files
                 warnings.append(f"Dangerous file type: {filename}")
                 break
-        
+
         # Check for suspicious extensions
         for ext in self.SUSPICIOUS_EXTENSIONS:
             if ext in filename_lower:
                 score += 3.0
                 warnings.append(f"Suspicious file extension: {filename}")
                 break
-        
+
         # Check for double extensions
         parts = filename_lower.split('.')
         if len(parts) > 2:
             score += 1.5
             warnings.append(f"Multiple extensions detected: {filename}")
-        
+
         return score, warnings
-    
+
     def _check_content_type_mismatch(self, filename: str, content_type: str, data: bytes) -> Tuple[float, str]:
         """Check if actual file content matches declared content type"""
         if not data or len(data) < 4:
             return 0.0, ""
-        
+
         # Magic bytes for common file types
         magic_bytes = {
             'pdf': b'%PDF',
@@ -173,22 +177,22 @@ class MediaAuthenticityAnalyzer:
             'exe': b'MZ',
             'doc': b'\xd0\xcf\x11\xe0',
         }
-        
+
         # Detect actual file type from magic bytes
         actual_type = None
         for file_type, magic in magic_bytes.items():
             if data.startswith(magic):
                 actual_type = file_type
                 break
-        
+
         if actual_type:
             # Check if extension matches detected type
             filename_lower = filename.lower()
-            
+
             # Special case for executables disguised as documents
             if actual_type == 'exe' and not filename_lower.endswith('.exe'):
                 return 5.0, "Executable disguised as another file type"
-            
+
             # Check for general mismatches
             expected_extensions = {
                 'pdf': ['.pdf'],
@@ -199,67 +203,67 @@ class MediaAuthenticityAnalyzer:
                 'doc': ['.doc', '.xls', '.ppt'],
                 'exe': ['.exe', '.dll', '.com']
             }
-            
+
             if actual_type in expected_extensions:
                 expected_exts = expected_extensions[actual_type]
                 if not any(filename_lower.endswith(ext) for ext in expected_exts):
                     return 2.0, f"File type mismatch: {filename}"
-        
+
         return 0.0, ""
-    
+
     def _check_size_anomaly(self, filename: str, size: int) -> Tuple[float, str]:
         """Check for unusual file sizes"""
         score = 0.0
         warning = ""
-        
+
         # Very large attachments (potential data exfiltration)
         if size > 25 * 1024 * 1024:  # 25MB
             score += 1.5
             warning = f"Unusually large attachment: {filename} ({size / (1024*1024):.1f}MB)"
-        
+
         # Suspiciously small media files
         filename_lower = filename.lower()
         if any(filename_lower.endswith(ext) for ext in self.MEDIA_EXTENSIONS):
             if size < 1024:  # Less than 1KB
                 score += 1.0
                 warning = f"Suspiciously small media file: {filename} ({size} bytes)"
-        
+
         return score, warning
-    
+
     def _check_deepfake_indicators(self, filename: str, data: bytes, content_type: str) -> Tuple[float, List[str]]:
         """
         Check for potential deepfake indicators
-        
+
         Note: This is a placeholder for more sophisticated deepfake detection
         Real deepfake detection would require ML models and is computationally expensive
         """
         score = 0.0
         indicators = []
-        
+
         filename_lower = filename.lower()
-        
+
         # Check if file is audio/video
         is_media = any(filename_lower.endswith(ext) for ext in self.MEDIA_EXTENSIONS)
-        
+
         if not is_media:
             return score, indicators
-        
+
         # Basic heuristics (in production, use specialized deepfake detection models)
-        
+
         # Check for very small video files (often low quality deepfakes)
         if filename_lower.endswith(('.mp4', '.avi', '.mov')):
             size = len(data)
             if size < 100 * 1024:  # Less than 100KB
                 score += 0.5
                 indicators.append(f"Suspicious video size: {filename}")
-        
+
         # In a real implementation, you would:
         # 1. Extract frames from video
         # 2. Analyze for facial inconsistencies
         # 3. Check audio-visual synchronization
         # 4. Look for compression artifacts typical of deepfakes
         # 5. Use specialized deepfake detection models
-        
+
         # Placeholder for future ML-based detection
         if self.config.deepfake_detection_enabled:
             # deepfake_probability = self._run_deepfake_model(data, content_type)
@@ -267,17 +271,17 @@ class MediaAuthenticityAnalyzer:
             #     score += 3.0
             #     indicators.append(f"High deepfake probability: {filename}")
             pass
-        
+
         return score, indicators
-    
+
     def _run_deepfake_model(self, data: bytes, content_type: str) -> float:
         """
         Run deepfake detection model (placeholder for future enhancement)
-        
+
         Args:
             data: File data
             content_type: MIME type
-            
+
         Returns:
             Probability of deepfake (0.0 to 1.0)
         """
@@ -286,10 +290,10 @@ class MediaAuthenticityAnalyzer:
         # - Microsoft Video Authenticator
         # - Sensity AI
         # - FaceForensics++ detector
-        
+
         self.logger.debug("Deepfake detection model not yet implemented")
         return 0.0
-    
+
     def _calculate_risk_level(self, score: float) -> str:
         """Calculate risk level based on media threat score"""
         if score >= 5.0:

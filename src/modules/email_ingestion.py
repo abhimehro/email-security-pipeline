@@ -9,9 +9,10 @@ import time
 import logging
 from typing import Any, Dict, List, Optional, Tuple
 from email.message import Message
-from email.header import decode_header, make_header
 from dataclasses import dataclass
 from datetime import datetime
+from email.header import decode_header, make_header
+from email.utils import getaddresses
 
 from ..utils.config import EmailAccountConfig
 
@@ -36,16 +37,23 @@ class EmailData:
 class IMAPClient:
     """IMAP client for connecting to email servers"""
 
-    def __init__(self, config: EmailAccountConfig, rate_limit_delay: int = 1):
+    def __init__(
+        self,
+        config: EmailAccountConfig,
+        rate_limit_delay: int = 1,
+        max_attachment_bytes: int = 25 * 1024 * 1024,
+    ):
         """
         Initialize IMAP client
 
         Args:
             config: Email account configuration
             rate_limit_delay: Delay between operations (seconds)
+            max_attachment_bytes: Maximum attachment bytes retained for analysis
         """
         self.config = config
         self.rate_limit_delay = rate_limit_delay
+        self.max_attachment_bytes = max_attachment_bytes
         self.connection: Optional[imaplib.IMAP4_SSL] = None
         self.logger = logging.getLogger(f"IMAPClient.{config.provider}")
 
@@ -75,17 +83,31 @@ class IMAPClient:
             self.logger.error(f"Unexpected connection error: {e}")
             return False
 
+    def ensure_connection(self) -> bool:
+        """Ensure the IMAP connection is alive, reconnecting if necessary."""
+        if not self.connection:
+            return self.connect()
+        try:
+            self.connection.noop()
+            return True
+        except Exception as exc:
+            self.logger.warning(f"IMAP connection lost ({exc}), attempting reconnect")
+            self.disconnect()
+            return self.connect()
+
     def disconnect(self):
         """Close IMAP connection"""
-        if self.connection:
-            try:
-                self.connection.logout()
-            except Exception:
-                # Connection may already be closed, ignore
-                pass
-            finally:
-                self.connection = None
-                self.logger.info("Disconnected from IMAP server")
+        if not self.connection:
+            return
+
+        try:
+            self.connection.logout()
+            self.logger.info("Disconnected from IMAP server")
+        except Exception:
+            # Connection may already be closed, ignore
+            self.logger.debug("Connection was already closed or logout failed")
+        finally:
+            self.connection = None
 
     def list_folders(self) -> List[str]:
         """
@@ -176,8 +198,12 @@ class IMAPClient:
 
                 try:
                     status, data = self.connection.fetch(email_id, "(RFC822)")
-                    if status == "OK":
-                        emails.append((email_id.decode(), data[0][1]))
+                    if status == "OK" and isinstance(data, list) and len(data) > 0 and data[0]:
+                        raw_bytes = data[0][1]
+                        if isinstance(raw_bytes, bytes):
+                            emails.append((email_id.decode(), raw_bytes))
+                        else:
+                            self.logger.warning(f"Unexpected payload type for email {email_id}: {type(raw_bytes)}")
                 except Exception as e:
                     self.logger.error(f"Error fetching email {email_id}: {e}")
 
@@ -203,9 +229,11 @@ class IMAPClient:
             msg = email.message_from_bytes(raw_email)
 
             # Extract headers
-            headers = {}
-            for key, value in msg.items():
-                headers[key] = value
+            headers = {key: self._decode_header_value(value) for key, value in msg.items()}
+
+            subject = self._decode_header_value(msg.get("Subject", ""))
+            sender = self._format_addresses(msg.get("From", ""))
+            recipient = self._format_addresses(msg.get("To", ""))
 
             # Extract body
             body_text = ""
@@ -219,27 +247,33 @@ class IMAPClient:
 
                     # Extract text body
                     if content_type == "text/plain" and "attachment" not in content_disposition:
-                        try:
-                            body_text += part.get_payload(decode=True).decode(errors='ignore')
-                        except Exception:
-                            pass
+                        body_text += self._decode_part_payload(part)
 
                     # Extract HTML body
                     elif content_type == "text/html" and "attachment" not in content_disposition:
-                        try:
-                            body_html += part.get_payload(decode=True).decode(errors='ignore')
-                        except Exception:
-                            pass
+                        body_html += self._decode_part_payload(part)
 
                     # Extract attachments
                     elif "attachment" in content_disposition:
-                        filename = part.get_filename()
+                        filename = self._decode_header_value(part.get_filename() or "")
                         if filename:
+                            payload = part.get_payload(decode=True) or b""
+                            original_size = len(payload)
+                            truncated = False
+                            if self.max_attachment_bytes > 0 and original_size > self.max_attachment_bytes:
+                                self.logger.warning(
+                                    "Attachment %s exceeds max size (%d bytes); truncating for analysis",
+                                    filename,
+                                    original_size,
+                                )
+                                payload = payload[:self.max_attachment_bytes]
+                                truncated = True
                             attachments.append({
                                 "filename": filename,
                                 "content_type": content_type,
-                                "size": len(part.get_payload(decode=True) or b""),
-                                "data": part.get_payload(decode=True)
+                                "size": original_size,
+                                "data": payload,
+                                "truncated": truncated,
                             })
             else:
                 # Single part message
@@ -247,7 +281,7 @@ class IMAPClient:
                 try:
                     payload = msg.get_payload(decode=True)
                     if payload:
-                        decoded = payload.decode(errors='ignore')
+                        decoded = self._decode_bytes(payload, msg.get_content_charset())
                         if content_type == "text/html":
                             body_html = decoded
                         else:
@@ -264,9 +298,9 @@ class IMAPClient:
 
             return EmailData(
                 message_id=msg.get("Message-ID", email_id),
-                subject=msg.get("Subject", ""),
-                sender=msg.get("From", ""),
-                recipient=msg.get("To", ""),
+                subject=subject,
+                sender=sender,
+                recipient=recipient,
                 date=date,
                 body_text=body_text,
                 body_html=body_html,
@@ -281,20 +315,66 @@ class IMAPClient:
             self.logger.error(f"Error parsing email {email_id}: {e}")
             return None
 
+    @staticmethod
+    def _decode_header_value(value: str) -> str:
+        if not value:
+            return ""
+        try:
+            return str(make_header(decode_header(value)))
+        except Exception:
+            return value
+
+    @classmethod
+    def _format_addresses(cls, header_value: str) -> str:
+        if not header_value:
+            return ""
+        formatted = []
+        for name, address in getaddresses([header_value]):
+            name_clean = cls._decode_header_value(name)
+            if name_clean and address:
+                formatted.append(f"{name_clean} <{address}>")
+            elif address:
+                formatted.append(address)
+            elif name_clean:
+                formatted.append(name_clean)
+        return ", ".join(formatted)
+
+    @staticmethod
+    def _decode_part_payload(part: Message) -> str:
+        payload = part.get_payload(decode=True)
+        if not payload:
+            return ""
+        return IMAPClient._decode_bytes(payload, part.get_content_charset())
+
+    @staticmethod
+    def _decode_bytes(data: bytes, charset: Optional[str]) -> str:
+        encoding = charset or "utf-8"
+        try:
+            return data.decode(encoding, errors="replace")
+        except LookupError:
+            return data.decode("utf-8", errors="replace")
+
 
 class EmailIngestionManager:
     """Manages email ingestion from multiple accounts"""
 
-    def __init__(self, accounts: List[EmailAccountConfig], rate_limit_delay: int = 1):
+    def __init__(
+        self,
+        accounts: List[EmailAccountConfig],
+        rate_limit_delay: int = 1,
+        max_attachment_bytes: int = 25 * 1024 * 1024,
+    ):
         """
         Initialize ingestion manager
 
         Args:
             accounts: List of email account configurations
             rate_limit_delay: Delay between operations
+            max_attachment_bytes: Maximum attachment bytes retained for analysis
         """
         self.accounts = accounts
         self.rate_limit_delay = rate_limit_delay
+        self.max_attachment_bytes = max_attachment_bytes
         self.clients: Dict[str, IMAPClient] = {}
         self.logger = logging.getLogger("EmailIngestionManager")
 
@@ -311,7 +391,7 @@ class EmailIngestionManager:
             if not account.enabled:
                 continue
 
-            client = IMAPClient(account, self.rate_limit_delay)
+            client = IMAPClient(account, self.rate_limit_delay, self.max_attachment_bytes)
             if client.connect():
                 self.clients[account.email] = client
                 success_count += 1
@@ -344,6 +424,10 @@ class EmailIngestionManager:
             client = self.clients[account.email]
 
             for folder in account.folders:
+                if not client.ensure_connection():
+                    self.logger.error(f"Unable to reconnect to {account.email}; skipping remaining folders")
+                    break
+
                 self.logger.info(f"Fetching from {account.email}/{folder}")
 
                 raw_emails = client.fetch_unseen_emails(folder, max_per_folder)

@@ -61,24 +61,15 @@ class EmailSecurityPipeline:
         log_path = Path(self.config.system.log_file)
         log_path.parent.mkdir(parents=True, exist_ok=True)
 
-        # Resolve log level with safe fallback
-        level_name = str(self.config.system.log_level).upper()
-        level = logging._nameToLevel.get(level_name, logging.INFO)
-
+        # Configure logging
         logging.basicConfig(
-            level=level,
+            level=getattr(logging, self.config.system.log_level.upper()),
             format=log_format,
             handlers=[
                 logging.FileHandler(self.config.system.log_file),
                 logging.StreamHandler(sys.stdout)
             ]
         )
-
-        if level_name not in logging._nameToLevel:
-            logging.getLogger("EmailSecurityPipeline").warning(
-                "Invalid log level '%s'; defaulting to INFO",
-                self.config.system.log_level
-            )
 
     def start(self):
         """Start the pipeline"""
@@ -201,7 +192,7 @@ class EmailSecurityPipeline:
 def signal_handler(signum, frame):
     """Handle shutdown signals"""
     print("\nReceived shutdown signal, stopping gracefully...")
-    sys.exit(0)
+    raise KeyboardInterrupt
 
 
 def main():
@@ -230,7 +221,7 @@ def main():
     try:
         with open(config_file, 'r') as f:
             content = f.read()
-            if 'your-email@gmail.com' in content or 'your-app-password-here' in content:
+            if 'your-email@gmail.com' in content or 'your-app-password-here' in content or 'your-email@outlook.com' in content or 'your-bridge-password-here' in content:
                 print("Warning: .env file appears to contain example values.")
                 print("Please update .env with your actual credentials before running.")
                 sys.exit(1)

@@ -297,6 +297,6 @@ All identified issues have been addressed, and the codebase is now more robust, 
 
 ---
 
-**Report Generated:** $(date)
+**Report Generated:** <GENERATION_DATE>
 **Analysis By:** CodePilot AI Assistant
 **Project:** Email Security Pipeline
