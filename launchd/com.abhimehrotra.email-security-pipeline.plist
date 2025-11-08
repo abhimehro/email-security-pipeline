@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.abhimehrotra.email-security-pipeline</string>
+    
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+        <key>HOME</key>
+        <string>/Users/abhimehrotra</string>
+    </dict>
+    
+    <key>ProgramArguments</key>
+    <array>
+        <string>/opt/homebrew/bin/python3</string>
+        <string>/Users/abhimehrotra/Documents/dev/email-security-pipeline/src/main.py</string>
+    </array>
+    
+    <key>WorkingDirectory</key>
+    <string>/Users/abhimehrotra/Documents/dev/email-security-pipeline</string>
+    
+    <key>StandardOutPath</key>
+    <string>/Users/abhimehrotra/Library/Logs/email-security-pipeline/pipeline.out</string>
+    
+    <key>StandardErrorPath</key>
+    <string>/Users/abhimehrotra/Library/Logs/email-security-pipeline/pipeline.err</string>
+    
+    <!-- Keep the pipeline running continuously -->
+    <key>KeepAlive</key>
+    <dict>
+        <!-- Restart if it crashes -->
+        <key>SuccessfulExit</key>
+        <false/>
+        <!-- Don't restart on clean exits (manual stop) -->
+        <key>Crashed</key>
+        <true/>
+    </dict>
+    
+    <!-- Start automatically on login -->
+    <key>RunAtLoad</key>
+    <true/>
+    
+    <!-- Throttle restarts to prevent rapid restart loops -->
+    <key>ThrottleInterval</key>
+    <integer>60</integer>
+    
+    <!-- Nice priority (lower = less CPU priority) -->
+    <key>Nice</key>
+    <integer>5</integer>
+</dict>
+</plist>

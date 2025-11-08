@@ -15,7 +15,29 @@ Email Security Analysis Pipeline - A self-hosted, containerized email security a
 
 ### Running the Pipeline
 
-**Local development:**
+**Background service (recommended):**
+```bash
+# Install as a launchd daemon (runs automatically on login)
+./install_daemon.sh
+
+# Check service status
+launchctl list | grep email-security-pipeline
+
+# View logs in real-time
+tail -f ~/Library/Logs/email-security-pipeline/pipeline.out
+tail -f logs/email_security.log
+
+# Stop the service
+launchctl stop com.abhimehrotra.email-security-pipeline
+
+# Start the service
+launchctl start com.abhimehrotra.email-security-pipeline
+
+# Uninstall the service
+./uninstall_daemon.sh
+```
+
+**Local development (manual):**
 ```bash
 # Activate virtual environment (if using)
 source venv/bin/activate  # or ./venv/bin/python3
@@ -190,6 +212,9 @@ email-security-pipeline/
 │   │   └── alert_system.py        # Alert & notification system
 │   └── utils/
 │       └── config.py               # Configuration management
+├── launchd/                        # Background service configuration
+│   ├── com.abhimehrotra.email-security-pipeline.plist  # Launch agent
+│   └── README.md                  # Daemon documentation
 ├── logs/                           # Runtime logs (created automatically)
 ├── data/                           # Optional database storage
 ├── tests/                          # Test files (currently empty)
@@ -198,9 +223,147 @@ email-security-pipeline/
 ├── requirements.txt                # Python dependencies
 ├── test_config.py                  # Configuration test suite
 ├── setup.sh                        # Interactive setup script
+├── install_daemon.sh               # Daemon installer
+├── uninstall_daemon.sh             # Daemon uninstaller
 ├── Dockerfile                      # Multi-stage Docker build
 └── docker-compose.yml              # Docker Compose configuration
 ```
+
+## Daemon Setup (Recommended)
+
+The pipeline can run as a background service using macOS's native `launchd` system. This provides automatic startup on login and restart on crashes.
+
+### Installation
+
+**Prerequisites:**
+- Valid `.env` configuration
+- Passing configuration tests (`python3 test_config.py`)
+
+**Install the daemon:**
+```bash
+./install_daemon.sh
+```
+
+The installer will:
+1. Validate your configuration
+2. Create log directory at `~/Library/Logs/email-security-pipeline/`
+3. Install launch agent to `~/Library/LaunchAgents/`
+4. Start the service automatically
+
+### Daemon Features
+
+**Automatic behavior:**
+- ✅ Starts automatically on login
+- ✅ Restarts automatically if it crashes
+- ✅ Runs with lower CPU priority (nice level 5)
+- ✅ Throttled restart (60 second minimum between restarts)
+- ✅ Won't restart on clean exits (manual stop)
+
+**Benefits over manual execution:**
+- No need to keep terminal open
+- Survives system reboots
+- Automatic crash recovery
+- Centralized log management
+- Lower resource priority (doesn't impact system performance)
+
+### Managing the Daemon
+
+**Check status:**
+```bash
+launchctl list | grep email-security-pipeline
+# Output shows: PID, status code, label
+```
+
+**View logs:**
+```bash
+# Live monitoring
+tail -f ~/Library/Logs/email-security-pipeline/pipeline.out
+tail -f ~/Library/Logs/email-security-pipeline/pipeline.err
+tail -f logs/email_security.log
+
+# View recent logs
+cat ~/Library/Logs/email-security-pipeline/pipeline.out
+```
+
+**Control the service:**
+```bash
+# Stop (manual, won't auto-restart)
+launchctl stop com.abhimehrotra.email-security-pipeline
+
+# Start
+launchctl start com.abhimehrotra.email-security-pipeline
+
+# Restart (reload configuration)
+launchctl kickstart -k gui/$(id -u)/com.abhimehrotra.email-security-pipeline
+
+# Disable (won't start on login)
+launchctl unload ~/Library/LaunchAgents/com.abhimehrotra.email-security-pipeline.plist
+
+# Re-enable
+launchctl load ~/Library/LaunchAgents/com.abhimehrotra.email-security-pipeline.plist
+```
+
+**Uninstall:**
+```bash
+./uninstall_daemon.sh
+# Stops service and removes launch agent
+# Logs are preserved for review
+```
+
+### Daemon Configuration
+
+The launch agent is configured via: `launchd/com.abhimehrotra.email-security-pipeline.plist`
+
+**Key settings:**
+- **Label**: `com.abhimehrotra.email-security-pipeline`
+- **Working Directory**: `/Users/abhimehrotra/Documents/dev/email-security-pipeline`
+- **Python**: `/opt/homebrew/bin/python3`
+- **Logs**: `~/Library/Logs/email-security-pipeline/`
+- **Auto-start**: Enabled (`RunAtLoad`)
+- **Auto-restart**: On crash only (`KeepAlive`)
+- **Throttle**: 60 seconds between restart attempts
+- **Priority**: Nice level 5 (lower than normal processes)
+
+### Troubleshooting Daemon
+
+**Service won't start:**
+```bash
+# Check error logs
+cat ~/Library/Logs/email-security-pipeline/pipeline.err
+
+# Test configuration manually
+python3 test_config.py --test-connections
+
+# Verify plist syntax
+plutil ~/Library/LaunchAgents/com.abhimehrotra.email-security-pipeline.plist
+```
+
+**Service keeps restarting:**
+```bash
+# Check for errors in logs
+tail -50 ~/Library/Logs/email-security-pipeline/pipeline.err
+
+# Check for connection issues
+tail -50 logs/email_security.log | grep -i error
+
+# Verify .env credentials are valid
+python3 test_config.py --test-connections
+```
+
+**Configuration changes not taking effect:**
+```bash
+# Restart the service to reload .env
+launchctl kickstart -k gui/$(id -u)/com.abhimehrotra.email-security-pipeline
+
+# Or stop and start
+launchctl stop com.abhimehrotra.email-security-pipeline
+launchctl start com.abhimehrotra.email-security-pipeline
+```
+
+**Compare with maintenance system:**
+- Your maintenance scripts use similar launchd configuration
+- Located at: `/Users/abhimehrotra/Documents/dev/personal-config/maintenance/launchd/`
+- Pattern follows your existing `com.abhimehrotra.maintenance.*` services
 
 ## Configuration Guidelines
 
@@ -228,17 +391,30 @@ email-security-pipeline/
 1. Enable IMAP: Settings → Forwarding and POP/IMAP
 2. Generate app password: Google Account → Security → App passwords
 3. Use 16-character app password (NOT regular password)
+4. Status: ✅ Fully supported and working
 
 **Outlook:**
-1. Enable IMAP: Settings → Sync email → Let devices use IMAP
-2. Generate app password: Account security → App passwords
-3. Known issue: Outlook connections may require additional troubleshooting (see OUTLOOK_TROUBLESHOOTING.md)
+
+**⚠️ CRITICAL UPDATE (November 2024):**
+
+Microsoft discontinued app password support for personal Outlook accounts (outlook.com, hotmail.com, live.com, msn.com) as of October 1, 2024.
+
+- ❌ **Personal Outlook accounts**: App passwords NO LONGER WORK with IMAP
+- ✅ **Microsoft 365 Business accounts**: May still work (depends on tenant configuration)
+- ℹ️ **Current status**: Personal Outlook is NOT SUPPORTED by this pipeline
+- 🔧 **Alternative**: OAuth2 implementation required (not yet available)
+
+**Recommended action:** Use Gmail or Proton Mail instead. Set `OUTLOOK_ENABLED=false` in `.env`.
+
+See `OUTLOOK_TROUBLESHOOTING.md` for complete details.
 
 **Proton Mail:**
-1. Requires Proton Mail Bridge application running locally
+1. Install and run Proton Mail Bridge application
 2. Bridge provides localhost IMAP server (127.0.0.1:1143)
-3. Use Bridge-generated password, NOT your Proton account password
+3. Use Bridge-generated password from Bridge interface, NOT your Proton account password
 4. Bridge must be running whenever pipeline is active
+5. Status: ✅ Fully supported and working
+6. Configuration: Server is `127.0.0.1`, Port is `1143`
 
 ### Security Requirements
 
@@ -380,7 +556,9 @@ Run `test_config.py` before first use to validate:
 
 **Rate limiting:** IMAP servers enforce rate limits. Default `RATE_LIMIT_DELAY=1` prevents throttling. Increase if experiencing connection issues.
 
-**Proton Mail:** Requires Bridge application. Bridge cannot run in Docker without additional host networking configuration.
+**Outlook:** Personal Outlook accounts (outlook.com, hotmail.com, live.com) are NOT supported due to Microsoft's discontinuation of app password authentication (October 2024). OAuth2 implementation is required but not yet available.
+
+**Proton Mail:** Requires Bridge application running locally. Bridge provides localhost IMAP server (127.0.0.1:1143). Works perfectly when Bridge is active.
 
 **ML models:** Transformer models (NLP) are optional but recommended for production. Without them, rule-based heuristics are used.
 
@@ -390,13 +568,28 @@ Run `test_config.py` before first use to validate:
 
 ## Quick Reference
 
-**Start pipeline:** `python3 src/main.py` (local) or `docker-compose up -d` (Docker)
+**Install as daemon (recommended):** `./install_daemon.sh`
 
-**View logs:** `tail -f logs/email_security.log` or `docker-compose logs -f`
+**Start pipeline:** 
+- Daemon: `launchctl start com.abhimehrotra.email-security-pipeline`
+- Manual: `python3 src/main.py`
+- Docker: `docker-compose up -d`
+
+**View logs:** 
+- Daemon: `tail -f ~/Library/Logs/email-security-pipeline/pipeline.out`
+- Pipeline: `tail -f logs/email_security.log`
+- Docker: `docker-compose logs -f`
+
+**Check status:** `launchctl list | grep email-security-pipeline`
 
 **Test config:** `python3 test_config.py`
 
-**Stop pipeline:** Ctrl+C (local) or `docker-compose down` (Docker)
+**Stop pipeline:** 
+- Daemon: `launchctl stop com.abhimehrotra.email-security-pipeline`
+- Manual: Ctrl+C
+- Docker: `docker-compose down`
+
+**Uninstall daemon:** `./uninstall_daemon.sh`
 
 **Config location:** `.env` (root directory)
 
