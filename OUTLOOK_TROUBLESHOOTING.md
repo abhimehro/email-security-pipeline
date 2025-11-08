@@ -8,7 +8,7 @@
 
 - ✅ Gmail (user@gmail.com) - Connected successfully
 - ✅ Proton Mail (user@pm.me) - Connected successfully
-- ❌ Outlook (user@outlook.com) - Connection failing
+- ❌ Outlook (your-email@outlook.com) - Connection failing
 
 ## Troubleshooting Steps
 
