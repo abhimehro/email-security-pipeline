@@ -124,6 +124,7 @@ def test_analyzer_initialization():
         # Initialize analyzers
         spam_analyzer = SpamAnalyzer(config.analysis)
         print("✓ SpamAnalyzer initialized")
+        print(f"    SpamAnalyzer config: {spam_analyzer}")
         # Use spam_analyzer to avoid unused variable warning
         if hasattr(spam_analyzer, "status"):
             print(f"    SpamAnalyzer status: {spam_analyzer.status()}")
