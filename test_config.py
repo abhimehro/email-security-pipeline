@@ -124,6 +124,13 @@ def test_analyzer_initialization():
         # Initialize analyzers
         spam_analyzer = SpamAnalyzer(config.analysis)
         print("✓ SpamAnalyzer initialized")
+        # Use spam_analyzer to avoid unused variable warning
+        if hasattr(spam_analyzer, "status"):
+            print(f"    SpamAnalyzer status: {spam_analyzer.status()}")
+        elif hasattr(spam_analyzer, "is_enabled"):
+            print(f"    SpamAnalyzer enabled: {spam_analyzer.is_enabled()}")
+        else:
+            print(f"    SpamAnalyzer object: {spam_analyzer}")
 
         nlp_analyzer = NLPThreatAnalyzer(config.analysis)
         print("✓ NLPThreatAnalyzer initialized")
