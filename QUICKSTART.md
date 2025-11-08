@@ -12,11 +12,19 @@ Get your Email Security Pipeline up and running in 5 minutes!
 5. Save the 16-character password
 
 ### Outlook/Hotmail
+
+**⚠️ WARNING: Personal Outlook accounts (outlook.com, hotmail.com, live.com) do NOT support app passwords as of October 2024.**
+
+**Skip this section** unless you have a Microsoft 365 Business account. Use Gmail or Proton Mail instead.
+
+**For Microsoft 365 Business accounts only:**
 1. Go to https://account.microsoft.com/security
 2. Go to "Advanced security options"
 3. Under "App passwords", create new password
 4. Select "Mail" as the app
 5. Save the generated password
+
+See `OUTLOOK_TROUBLESHOOTING.md` for more information.
 
 ## Step 2: Setup the Pipeline
 

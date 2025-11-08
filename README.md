@@ -131,6 +131,13 @@ A self-hosted, containerized email security analysis system that monitors IMAP f
    ```
 
 #### Outlook/Hotmail
+
+**⚠️ CRITICAL: Personal Outlook accounts (outlook.com, hotmail.com, live.com, msn.com) NO LONGER support app passwords as of October 1, 2024.**
+
+- **Personal Accounts**: App passwords do NOT work. Requires OAuth2 (not currently supported).
+- **Microsoft 365 Business**: May still work with app passwords (depends on tenant configuration).
+
+**For Microsoft 365 Business accounts only:**
 1. Enable IMAP: Settings → Sync email → Let devices use IMAP
 2. Generate App Password: Account security → Advanced security options → App passwords
 3. Update `.env`:
@@ -139,6 +146,10 @@ A self-hosted, containerized email security analysis system that monitors IMAP f
    OUTLOOK_EMAIL=your-email@outlook.com
    OUTLOOK_APP_PASSWORD=your-app-password
    ```
+
+**Recommendation:** Use Gmail or Proton Mail instead of personal Outlook accounts.
+
+See `OUTLOOK_TROUBLESHOOTING.md` for more details.
 
 #### Proton Mail
 1. Install Proton Mail Bridge: https://proton.me/mail/bridge
@@ -345,13 +356,15 @@ def _custom_alert(self, report: ThreatReport):
 
 ## Limitations
 
-- **Proton Mail**: Requires Bridge application (not available in Docker without additional setup)
+- **Personal Outlook Accounts**: Not supported due to Microsoft's discontinuation of app password authentication (October 2024). Only OAuth2 is supported, which is not yet implemented.
+- **Proton Mail**: Requires Bridge application running locally (Bridge provides localhost IMAP server)
 - **Deepfake Detection**: Basic heuristics only; ML models not included
 - **Transformer Models**: Not enabled by default (requires additional dependencies)
-- **IMAP Only**: Does not support POP3 or proprietary APIs
+- **IMAP Only**: Does not support POP3 or proprietary APIs (e.g., Microsoft Graph)
 
 ## Future Enhancements
 
+- [ ] **OAuth2 Authentication** for personal Outlook/Microsoft accounts (high priority)
 - [ ] Full transformer model integration for NLP analysis
 - [ ] Advanced deepfake detection using specialized ML models
 - [ ] Database persistence for threat history

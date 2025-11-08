@@ -1,18 +1,75 @@
 # Outlook IMAP Connection Troubleshooting Guide
 
-## Current Status
+## ⚠️ CRITICAL UPDATE (November 2024)
 
-**Issue:** Outlook IMAP connection is failing with "LOGIN failed" error.
+**Microsoft has discontinued app password support for personal Outlook accounts (outlook.com, hotmail.com, live.com, msn.com) as of October 1, 2024.**
 
-**Working Accounts:**
+### What This Means:
 
-- ✅ Gmail (user@gmail.com) - Connected successfully
-- ✅ Proton Mail (user@pm.me) - Connected successfully
-- ❌ Outlook (your-email@outlook.com) - Connection failing
+- ❌ **Personal Outlook accounts**: App passwords NO LONGER WORK with IMAP
+- ✅ **Microsoft 365 Business/Enterprise accounts**: May still support app passwords (depends on tenant configuration)
+- ℹ️ **New requirement**: Personal Outlook accounts now require OAuth2 authentication only
 
-## Troubleshooting Steps
+### Current Pipeline Status:
 
-### Step 1: Verify App Password
+- ✅ Gmail - Fully supported with app passwords
+- ✅ Proton Mail - Fully supported via Proton Bridge
+- ❌ Personal Outlook - **NOT SUPPORTED** (requires OAuth2 implementation)
+- ⚠️ Microsoft 365 Business - May work with app passwords (needs testing)
+
+## Why Outlook Stopped Working
+
+**Timeline:**
+- Before October 1, 2024: App passwords worked fine
+- After October 1, 2024: App passwords fail with "LOGIN failed" error
+- Current: OAuth2-only authentication for personal accounts
+
+**Sources:**
+- Microsoft Q&A community reports: Multiple users confirmed the change
+- Microsoft Learn documentation: References modern authentication requirements
+- Tech community forums: Widespread reports of the same issue
+
+## Your Options
+
+### Option 1: Disable Outlook (Simplest - Recommended)
+
+The pipeline works perfectly with Gmail and Proton Mail. Simply disable Outlook:
+
+```env
+OUTLOOK_ENABLED=false
+```
+
+This is the **recommended approach** unless you need Outlook monitoring specifically.
+
+### Option 2: Implement OAuth2 (Complex - Not Yet Supported)
+
+To support personal Outlook accounts, the pipeline would need:
+
+1. **OAuth2 Flow Implementation:**
+   - Interactive browser-based authentication
+   - Token refresh mechanism
+   - Secure token storage
+
+2. **Required Code Changes:**
+   - New OAuth2 authentication module
+   - Microsoft Azure app registration
+   - Token management system
+
+3. **Estimated Effort:** 20-30 hours of development
+
+**Status:** Not currently implemented. Consider this for future enhancements.
+
+### Option 3: Use Microsoft 365 Business Account (If Available)
+
+If you have a Microsoft 365 Business/Enterprise account:
+
+1. Check with your IT administrator if app passwords are enabled
+2. Your tenant may have modern authentication configured differently
+3. Test with the troubleshooting steps below
+
+## Troubleshooting Steps (For Microsoft 365 Business Only)
+
+### Step 1: Verify App Password (Business Accounts Only)
 
 1. **Check App Password Generation:**
 
@@ -195,4 +252,4 @@ The pipeline works perfectly with Gmail and Proton Mail. You can:
 
 ---
 
-**Last Updated:** 2024-11-07
+**Last Updated:** 2025-11-08
