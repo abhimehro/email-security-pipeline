@@ -6,9 +6,9 @@
 
 **Working Accounts:**
 
-- ✅ Gmail (abhimhrtr@gmail.com) - Connected successfully
-- ✅ Proton Mail (AbhiMhrtr@pm.me) - Connected successfully
-- ❌ Outlook (abhimehro@outlook.com) - Connection failing
+- ✅ Gmail (user@gmail.com) - Connected successfully
+- ✅ Proton Mail (user@pm.me) - Connected successfully
+- ❌ Outlook (user@outlook.com) - Connection failing
 
 ## Troubleshooting Steps
 
