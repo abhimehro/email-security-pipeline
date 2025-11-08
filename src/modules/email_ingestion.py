@@ -260,13 +260,13 @@ class IMAPClient:
                             payload = part.get_payload(decode=True) or b""
                             original_size = len(payload)
                             truncated = False
-                            if self.max_attachment_bytes and original_size > self.max_attachment_bytes:
+                            if self.max_attachment_bytes > 0 and original_size > self.max_attachment_bytes:
                                 self.logger.warning(
                                     "Attachment %s exceeds max size (%d bytes); truncating for analysis",
                                     filename,
                                     original_size,
                                 )
-                                payload = payload[: self.max_attachment_bytes]
+                                payload = payload[:self.max_attachment_bytes]
                                 truncated = True
                             attachments.append({
                                 "filename": filename,
