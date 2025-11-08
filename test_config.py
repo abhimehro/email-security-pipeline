@@ -5,7 +5,6 @@ Tests the email security pipeline configuration and basic functionality
 """
 
 import sys
-import os
 from pathlib import Path
 
 # Add project root to path
