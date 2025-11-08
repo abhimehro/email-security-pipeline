@@ -133,6 +133,13 @@ def test_analyzer_initialization():
 
         alert_system = AlertSystem(config.alerts)
         print("✓ AlertSystem initialized")
+        # Use alert_system to avoid unused variable warning
+        if hasattr(alert_system, "status"):
+            print(f"    AlertSystem status: {alert_system.status()}")
+        elif hasattr(alert_system, "is_enabled"):
+            print(f"    AlertSystem enabled: {alert_system.is_enabled()}")
+        else:
+            print(f"    AlertSystem object: {alert_system}")
 
         print("\n✓ Analyzer initialization test PASSED")
         return True
