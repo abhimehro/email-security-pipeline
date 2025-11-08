@@ -63,7 +63,7 @@ class EmailSecurityPipeline:
 
         # Configure logging
         logging.basicConfig(
-            level=getattr(logging, self.config.system.log_level),
+            level=getattr(logging, self.config.system.log_level.upper()),
             format=log_format,
             handlers=[
                 logging.FileHandler(self.config.system.log_file),
