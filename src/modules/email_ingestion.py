@@ -423,7 +423,7 @@ class EmailIngestionManager:
 
             client = self.clients[account.email]
 
-            for folder in [f for f in account.folders if f]:
+            for folder in account.folders:
                 if not client.ensure_connection():
                     self.logger.error(f"Unable to reconnect to {account.email}; skipping remaining folders")
                     break
