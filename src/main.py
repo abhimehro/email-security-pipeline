@@ -221,7 +221,7 @@ def main():
     try:
         with open(config_file, 'r') as f:
             content = f.read()
-            if 'your-email@gmail.com' in content or 'your-app-password-here' in content:
+            if 'your-email@gmail.com' in content or 'your-app-password-here' in content or 'your-email@outlook.com' in content or 'your-bridge-password-here' in content:
                 print("Warning: .env file appears to contain example values.")
                 print("Please update .env with your actual credentials before running.")
                 sys.exit(1)
