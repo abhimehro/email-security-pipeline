@@ -192,7 +192,7 @@ class EmailSecurityPipeline:
 def signal_handler(signum, frame):
     """Handle shutdown signals"""
     print("\nReceived shutdown signal, stopping gracefully...")
-    sys.exit(0)
+    raise KeyboardInterrupt
 
 
 def main():
