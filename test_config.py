@@ -134,6 +134,13 @@ def test_analyzer_initialization():
 
         nlp_analyzer = NLPThreatAnalyzer(config.analysis)
         print("✓ NLPThreatAnalyzer initialized")
+        # Use nlp_analyzer to avoid unused variable warning
+        if hasattr(nlp_analyzer, "status"):
+            print(f"    NLPThreatAnalyzer status: {nlp_analyzer.status()}")
+        elif hasattr(nlp_analyzer, "is_enabled"):
+            print(f"    NLPThreatAnalyzer enabled: {nlp_analyzer.is_enabled()}")
+        else:
+            print(f"    NLPThreatAnalyzer object: {nlp_analyzer}")
 
         media_analyzer = MediaAuthenticityAnalyzer(config.analysis)
         print("✓ MediaAuthenticityAnalyzer initialized")
