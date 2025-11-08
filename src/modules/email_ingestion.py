@@ -198,7 +198,7 @@ class IMAPClient:
 
                 try:
                     status, data = self.connection.fetch(email_id, "(RFC822)")
-                    if status == "OK" and data and data[0]:
+                    if status == "OK" and isinstance(data, list) and len(data) > 0 and data[0]:
                         raw_bytes = data[0][1]
                         if isinstance(raw_bytes, bytes):
                             emails.append((email_id.decode(), raw_bytes))
