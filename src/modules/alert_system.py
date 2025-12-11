@@ -14,6 +14,7 @@ from .email_ingestion import EmailData
 from .spam_analyzer import SpamAnalysisResult
 from .nlp_analyzer import NLPAnalysisResult
 from .media_analyzer import MediaAnalysisResult
+from ..utils.colors import Colors
 
 
 @dataclass
@@ -72,45 +73,47 @@ class AlertSystem:
     
     def _console_alert(self, report: ThreatReport):
         """Print alert to console"""
-        print("\n" + "="*80)
-        print(f"🚨 SECURITY ALERT - {report.risk_level.upper()} RISK")
-        print("="*80)
-        print(f"Timestamp: {report.timestamp}")
-        print(f"Subject: {report.subject}")
-        print(f"From: {report.sender}")
-        print(f"To: {report.recipient}")
-        print(f"Threat Score: {report.overall_threat_score:.2f}")
-        print(f"Risk Level: {report.risk_level.upper()}")
+        risk_color = Colors.get_risk_color(report.risk_level)
         
-        print("\n--- SPAM ANALYSIS ---")
+        print("\n" + Colors.bold("="*80))
+        print(f"{risk_color}{Colors.bold('🚨 SECURITY ALERT')} - {risk_color}{report.risk_level.upper()} RISK{Colors.RESET}")
+        print(Colors.bold("="*80))
+
+        print(f"{Colors.bold('Timestamp:')} {report.timestamp}")
+        print(f"{Colors.bold('Subject:')}   {report.subject}")
+        print(f"{Colors.bold('From:')}      {report.sender}")
+        print(f"{Colors.bold('To:')}        {report.recipient}")
+        print(f"{Colors.bold('Score:')}     {risk_color}{report.overall_threat_score:.2f}{Colors.RESET}")
+
+        print(f"\n{Colors.bold(Colors.BLUE + '--- SPAM ANALYSIS ---' + Colors.RESET)}")
         spam = report.spam_analysis
         if spam.get('indicators'):
             for indicator in spam['indicators'][:5]:  # Show first 5
                 print(f"  • {indicator}")
         
-        print("\n--- NLP THREAT ANALYSIS ---")
+        print(f"\n{Colors.bold(Colors.BLUE + '--- NLP THREAT ANALYSIS ---' + Colors.RESET)}")
         nlp = report.nlp_analysis
         if nlp.get('social_engineering_indicators'):
-            print("  Social Engineering:")
+            print(f"  {Colors.bold('Social Engineering:')}")
             for indicator in nlp['social_engineering_indicators'][:3]:
                 print(f"    • {indicator}")
         if nlp.get('authority_impersonation'):
-            print("  Authority Impersonation:")
+            print(f"  {Colors.bold('Authority Impersonation:')}")
             for indicator in nlp['authority_impersonation'][:3]:
                 print(f"    • {indicator}")
         
-        print("\n--- MEDIA ANALYSIS ---")
+        print(f"\n{Colors.bold(Colors.BLUE + '--- MEDIA ANALYSIS ---' + Colors.RESET)}")
         media = report.media_analysis
         if media.get('file_type_warnings'):
-            print("  File Warnings:")
+            print(f"  {Colors.bold('File Warnings:')}")
             for warning in media['file_type_warnings'][:3]:
                 print(f"    • {warning}")
         
-        print("\n--- RECOMMENDATIONS ---")
+        print(f"\n{Colors.bold(Colors.BLUE + '--- RECOMMENDATIONS ---' + Colors.RESET)}")
         for rec in report.recommendations:
-            print(f"  ► {rec}")
+            print(f"  ► {Colors.YELLOW}{rec}{Colors.RESET}")
         
-        print("="*80 + "\n")
+        print(Colors.bold("="*80) + "\n")
     
     def _webhook_alert(self, report: ThreatReport):
         """Send alert via webhook"""
