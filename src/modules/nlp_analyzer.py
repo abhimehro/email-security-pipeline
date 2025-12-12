@@ -93,6 +93,23 @@ class NLPThreatAnalyzer:
         self.model = None
         self.tokenizer = None
         
+        # Optimization: Pre-compile regex patterns
+        # Group 1: Social Engineering
+        self.compiled_social = [(re.compile(p, re.IGNORECASE), d) for p, d in self.SOCIAL_ENGINEERING_PATTERNS]
+
+        # Group 2: Urgency
+        self.compiled_urgency = [(re.compile(p, re.IGNORECASE), d) for p, d in self.URGENCY_PATTERNS]
+
+        # Group 3: Authority
+        self.compiled_authority = [(re.compile(p, re.IGNORECASE), d) for p, d in self.AUTHORITY_PATTERNS]
+
+        # Group 4: Psychological
+        self.compiled_psycho = [(re.compile(p, re.IGNORECASE), d) for p, d in self.PSYCHOLOGICAL_PATTERNS]
+
+        # Other patterns
+        self.compiled_caps = re.compile(r'\b[A-Z]{4,}\b')
+        self.compiled_domain_capture = re.compile(r'@([\w\.-]+)')
+
         # Initialize model if needed
         if self._should_use_ml_model():
             self._initialize_model()
@@ -178,8 +195,8 @@ class NLPThreatAnalyzer:
         score = 0.0
         indicators = []
         
-        for pattern, description in self.SOCIAL_ENGINEERING_PATTERNS:
-            matches = re.findall(pattern, text, re.IGNORECASE)
+        for compiled_pattern, description in self.compiled_social:
+            matches = compiled_pattern.findall(text)
             if matches:
                 score += len(matches) * 2.0  # High weight for social engineering
                 indicators.append(f"{description} ({len(matches)} occurrences)")
@@ -191,8 +208,8 @@ class NLPThreatAnalyzer:
         score = 0.0
         indicators = []
         
-        for pattern, description in self.URGENCY_PATTERNS:
-            matches = re.findall(pattern, text, re.IGNORECASE)
+        for compiled_pattern, description in self.compiled_urgency:
+            matches = compiled_pattern.findall(text)
             if matches:
                 score += len(matches) * 1.5
                 indicators.append(f"{description} ({len(matches)} occurrences)")
@@ -204,7 +221,7 @@ class NLPThreatAnalyzer:
             indicators.append(f"Excessive exclamation marks ({exclamation_count})")
         
         # Check for all caps words (shouting)
-        caps_words = re.findall(r'\b[A-Z]{4,}\b', text)
+        caps_words = self.compiled_caps.findall(text)
         if len(caps_words) > 3:
             score += len(caps_words) * 0.3
             indicators.append(f"Excessive caps words ({len(caps_words)})")
@@ -218,15 +235,15 @@ class NLPThreatAnalyzer:
         
         sender_lower = sender.lower()
         
-        for pattern, description in self.AUTHORITY_PATTERNS:
-            matches = re.findall(pattern, text, re.IGNORECASE)
+        for compiled_pattern, description in self.compiled_authority:
+            matches = compiled_pattern.findall(text)
             if matches:
                 # Check if authority claim matches sender domain
                 authority_mismatch = False
                 
                 for match in matches:
                     # Extract sender domain
-                    domain_match = re.search(r'@([\w\.-]+)', sender_lower)
+                    domain_match = self.compiled_domain_capture.search(sender_lower)
                     if domain_match:
                         sender_domain = domain_match.group(1)
                         
@@ -249,8 +266,8 @@ class NLPThreatAnalyzer:
         score = 0.0
         indicators = []
         
-        for pattern, description in self.PSYCHOLOGICAL_PATTERNS:
-            matches = re.findall(pattern, text, re.IGNORECASE)
+        for compiled_pattern, description in self.compiled_psycho:
+            matches = compiled_pattern.findall(text)
             if matches:
                 score += len(matches) * 1.0
                 indicators.append(f"{description} ({len(matches)} occurrences)")

@@ -55,6 +55,18 @@ class SpamAnalyzer:
         """
         self.config = config
         self.logger = logging.getLogger("SpamAnalyzer")
+
+        # Optimization: Pre-compile regex patterns
+        # Using zip to keep original string for reporting but using compiled pattern for matching
+        self.compiled_spam_keywords = [(p, re.compile(p)) for p in self.SPAM_KEYWORDS]
+        self.compiled_url_patterns = [re.compile(p) for p in self.SUSPICIOUS_URL_PATTERNS]
+        self.compiled_money = re.compile(r'\$\d+|\d+\s*(dollar|usd|euro)')
+        self.compiled_urls = re.compile(r'https?://[^\s<>"]+')
+        self.compiled_links = re.compile(r'https?://')
+        self.compiled_hidden_text = re.compile(r'font-size:\s*[0-2]px|color:\s*#fff.*background.*#fff')
+        self.compiled_email = re.compile(r'[\w\.-]+@[\w\.-]+')
+        self.compiled_email_capture = re.compile(r'[\w\.-]+@([\w\.-]+)')
+        self.compiled_display_name = re.compile(r'^([^<]+)<')
     
     def analyze(self, email_data: EmailData) -> SpamAnalysisResult:
         """
@@ -138,13 +150,13 @@ class SpamAnalyzer:
             indicators.append("Excessive exclamation marks")
         
         # Check spam keywords
-        for pattern in self.SPAM_KEYWORDS:
-            if re.search(pattern, subject_lower):
+        for original_pattern, compiled_pattern in self.compiled_spam_keywords:
+            if compiled_pattern.search(subject_lower):
                 score += 1.5
-                indicators.append(f"Spam keyword in subject: {pattern}")
+                indicators.append(f"Spam keyword in subject: {original_pattern}")
         
         # Check for numbers indicating money
-        if re.search(r'\$\d+|\d+\s*(dollar|usd|euro)', subject_lower):
+        if self.compiled_money.search(subject_lower):
             score += 0.5
             indicators.append("Money mentioned in subject")
         
@@ -159,8 +171,8 @@ class SpamAnalyzer:
         
         # Check spam keywords
         keyword_matches = 0
-        for pattern in self.SPAM_KEYWORDS:
-            matches = len(re.findall(pattern, body))
+        for _, compiled_pattern in self.compiled_spam_keywords:
+            matches = len(compiled_pattern.findall(body))
             if matches > 0:
                 keyword_matches += matches
                 score += matches * 0.5
@@ -169,7 +181,7 @@ class SpamAnalyzer:
             indicators.append(f"Found {keyword_matches} spam keyword matches")
         
         # Check for excessive links
-        link_count = len(re.findall(r'https?://', body))
+        link_count = len(self.compiled_links.findall(body))
         if link_count > 10:
             score += 1.0
             indicators.append(f"Excessive links ({link_count})")
@@ -184,7 +196,7 @@ class SpamAnalyzer:
         # Check for hidden text (common spam technique)
         if html_body:
             # Look for text with very small font or matching background color
-            if re.search(r'font-size:\s*[0-2]px|color:\s*#fff.*background.*#fff', html_body):
+            if self.compiled_hidden_text.search(html_body):
                 score += 2.0
                 indicators.append("Hidden text detected")
         
@@ -196,7 +208,7 @@ class SpamAnalyzer:
         suspicious = []
         
         # Extract URLs
-        urls = re.findall(r'https?://[^\s<>"]+', content)
+        urls = self.compiled_urls.findall(content)
         
         for url in urls:
             try:
@@ -204,8 +216,8 @@ class SpamAnalyzer:
                 domain = parsed.netloc
                 
                 # Check against suspicious patterns
-                for pattern in self.SUSPICIOUS_URL_PATTERNS:
-                    if re.search(pattern, domain):
+                for compiled_pattern in self.compiled_url_patterns:
+                    if compiled_pattern.search(domain):
                         score += 0.5
                         suspicious.append(url)
                         break
@@ -262,8 +274,8 @@ class SpamAnalyzer:
         return_path = headers.get('Return-Path', '').lower()
         if return_path and from_header:
             # Extract email addresses
-            from_email = re.search(r'[\w\.-]+@[\w\.-]+', from_header)
-            return_email = re.search(r'[\w\.-]+@[\w\.-]+', return_path)
+            from_email = self.compiled_email.search(from_header)
+            return_email = self.compiled_email.search(return_path)
             
             if from_email and return_email:
                 if from_email.group() != return_email.group():
@@ -286,7 +298,7 @@ class SpamAnalyzer:
         ]
         
         # Extract domain from sender
-        email_match = re.search(r'[\w\.-]+@([\w\.-]+)', sender_lower)
+        email_match = self.compiled_email_capture.search(sender_lower)
         if email_match:
             domain = email_match.group(1)
             
@@ -297,7 +309,7 @@ class SpamAnalyzer:
                     indicators.append("Corporate title with freemail provider")
         
         # Check for display name mismatch
-        display_name_match = re.search(r'^([^<]+)<', sender)
+        display_name_match = self.compiled_display_name.search(sender)
         if display_name_match:
             display_name = display_name_match.group(1).strip().lower()
             
