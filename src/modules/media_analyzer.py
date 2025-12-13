@@ -403,7 +403,7 @@ class MediaAuthenticityAnalyzer:
              frame_count = cap.get(cv2.CAP_PROP_FRAME_COUNT)
 
              if fps > 0 and frame_count > 0:
-                 duration = frame_count / fps
+                duration = frame_count / fps
                  # If duration is very short but file size is large, might be suspicious
                  file_size = os.path.getsize(video_path)
                  if duration < 1.0 and file_size > 5 * 1024 * 1024:
