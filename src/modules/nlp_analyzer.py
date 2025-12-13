@@ -101,16 +101,15 @@ class NLPThreatAnalyzer:
         """Check if ML model should be loaded"""
         # For now, we'll use pattern-based analysis
         # Set to True when transformer models are needed
-        return False
+        return True
     
     def _initialize_model(self):
-        """Initialize transformer model (placeholder for future enhancement)"""
+        """Initialize transformer model"""
         try:
-            # Uncomment when needed:
-            # from transformers import AutoTokenizer, AutoModelForSequenceClassification
-            # self.tokenizer = AutoTokenizer.from_pretrained(self.config.nlp_model)
-            # self.model = AutoModelForSequenceClassification.from_pretrained(self.config.nlp_model)
-            self.logger.info("ML model initialized (placeholder)")
+            from transformers import AutoTokenizer, AutoModelForSequenceClassification
+            self.tokenizer = AutoTokenizer.from_pretrained(self.config.nlp_model)
+            self.model = AutoModelForSequenceClassification.from_pretrained(self.config.nlp_model)
+            self.logger.info("ML model initialized")
         except Exception as e:
             self.logger.warning(f"Could not load ML model: {e}")
     
@@ -270,7 +269,7 @@ class NLPThreatAnalyzer:
     
     def analyze_with_transformer(self, text: str) -> Dict:
         """
-        Analyze text using transformer model (future enhancement)
+        Analyze text using transformer model
         
         Args:
             text: Text to analyze
@@ -282,15 +281,20 @@ class NLPThreatAnalyzer:
             return {"error": "Model not loaded"}
         
         try:
+            import torch
             # Tokenize and predict
-            # inputs = self.tokenizer(text, return_tensors="pt", truncation=True, max_length=512)
-            # outputs = self.model(**inputs)
-            # predictions = torch.softmax(outputs.logits, dim=-1)
+            inputs = self.tokenizer(text, return_tensors="pt", truncation=True, max_length=512)
+            outputs = self.model(**inputs)
+            predictions = torch.softmax(outputs.logits, dim=-1)
             
+            # Assuming binary classification where index 1 is threat
+            threat_probability = float(predictions[0][1]) if predictions.shape[-1] > 1 else float(predictions[0][0])
+            confidence = float(torch.max(predictions))
+
             # Return results
             return {
-                "threat_probability": 0.0,  # Placeholder
-                "confidence": 0.0
+                "threat_probability": threat_probability,
+                "confidence": confidence
             }
         except Exception as e:
             self.logger.error(f"Transformer analysis error: {e}")
