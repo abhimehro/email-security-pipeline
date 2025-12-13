@@ -466,13 +466,13 @@ class MediaAuthenticityAnalyzer:
         # This is a heuristic proxy.
 
         avg_scores = []
-        for f in frames:
+        for frame in frames:
             # Convert to float
-            f_float = f.astype(float)
+            frame_float = frame.astype(float)
             # Calculate standard deviation of color channels (saturation variance)
-            std_dev = np.std(f_float)
+            std_dev = np.std(frame_float)
             # Calculate edge density using Canny
-            edges = cv2.Canny(f, 100, 200)
+            edges = cv2.Canny(frame, 100, 200)
             edge_density = np.sum(edges) / edges.size
 
             # Synthetic score combination
