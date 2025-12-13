@@ -289,8 +289,17 @@ class NLPThreatAnalyzer:
                 outputs = self.model(**inputs)
                 predictions = torch.softmax(outputs.logits, dim=-1)
             
-            # Assuming binary classification where index 1 is threat
-            threat_probability = float(predictions[0][1]) if predictions.shape[-1] > 1 else float(predictions[0][0])
+            # Expecting a 2-class softmax output: [non-threat probability, threat probability]
+            # Index 0 = non-threat, Index 1 = threat. If model output does not match this, raise an error.
+            if predictions.shape[-1] != 2:
+                self.logger.error(
+                    f"Expected model output with 2 classes ([non-threat, threat]), but got shape {predictions.shape}. "
+                    "Please ensure the model is a binary classifier with [non-threat, threat] class order."
+                )
+                return {
+                    "error": f"Model output shape {predictions.shape} is not supported. Expected 2-class output ([non-threat, threat])."
+                }
+            threat_probability = float(predictions[0][1])
             predicted_class = torch.argmax(predictions, dim=-1).item()
             confidence = float(predictions[0][predicted_class])
 
