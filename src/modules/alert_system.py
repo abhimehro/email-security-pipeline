@@ -76,7 +76,7 @@ class AlertSystem:
         risk_color = Colors.get_risk_color(report.risk_level)
         
         print("\n" + Colors.bold("="*80))
-        print(f"{risk_color}{Colors.bold('🚨 SECURITY ALERT')} - {risk_color}{report.risk_level.upper()} RISK{Colors.RESET}")
+        print(f"{Colors.BOLD}{risk_color}🚨 SECURITY ALERT - {report.risk_level.upper()} RISK{Colors.RESET}")
         print(Colors.bold("="*80))
 
         print(f"{Colors.bold('Timestamp:')} {report.timestamp}")
