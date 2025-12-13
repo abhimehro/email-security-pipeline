@@ -292,12 +292,12 @@ class NLPThreatAnalyzer:
                 outputs = self.model(**inputs)
                 predictions = torch.softmax(outputs.logits, dim=-1)
 
-            # Assuming binary classification (0: Safe, 1: Threat) or (0: Negative, 1: Positive)
-            # For sst-2, 1 is positive (safe/good) and 0 is negative (bad)
-            # We might want to use a specific threat detection model later
-            # For now, let's assume the second class is the "positive" class for whatever the model predicts.
-            # NOTE: Ideally we would use a dedicated threat detection model. This is a placeholder logic
-            # where "positive" sentiment/class is mapped to probability for demonstration.
+            # NOTE: The current model is a binary sentiment classifier (e.g., SST-2), where
+            # 0 = negative sentiment, 1 = positive sentiment.
+            # This is NOT a threat detection model. For demonstration purposes, we are
+            # using the probability of the "positive" class (index 1) as a placeholder
+            # for "threat probability". This mapping is arbitrary and should be replaced
+            # with a dedicated threat detection model in production.
 
             # If using a specific threat model, adjust index accordingly
             # For SST-2, class 0 (negative) is mapped to threat probability
