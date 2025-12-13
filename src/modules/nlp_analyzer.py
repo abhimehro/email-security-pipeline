@@ -297,7 +297,8 @@ class NLPThreatAnalyzer:
             # where "positive" sentiment/class is mapped to probability for demonstration.
 
             # If using a specific threat model, adjust index accordingly
-            threat_prob = predictions[0][1].item()
+            # For SST-2, class 0 (negative) is mapped to threat probability
+            threat_prob = predictions[0][0].item()
             confidence = max(predictions[0]).item()
             
             # Return results
