@@ -309,12 +309,21 @@ class NLPThreatAnalyzer:
             outputs = self.model(**inputs)
             predictions = torch.softmax(outputs.logits, dim=-1)
             
-            # Assuming binary classification where index 1 is threat
-            # If the model has different labels, this logic needs adjustment
-            if predictions.shape[1] >= 2:
-                 threat_probability = predictions[0][1].item()
-            else:
-                 threat_probability = predictions[0][0].item() # Fallback for single output
+            # Dynamically determine which index corresponds to the 'threat' label
+            id2label = getattr(self.model.config, "id2label", None)
+            threat_index = None
+            if id2label:
+                for idx, label in id2label.items():
+                    if label.strip().lower() == "threat":
+                        threat_index = int(idx)
+                        break
+            # Fallback: if not found, use index 1 if available, else 0
+            if threat_index is None:
+                if predictions.shape[1] >= 2:
+                    threat_index = 1
+                else:
+                    threat_index = 0
+            threat_probability = predictions[0][threat_index].item()
 
             confidence = torch.max(predictions).item()
 
