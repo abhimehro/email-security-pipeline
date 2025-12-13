@@ -1,0 +1,28 @@
+# Label PRs based on changed file paths (actions/labeler v5+)
+
+documentation:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '**/*.md'
+          - 'docs/**'
+
+configuration:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '**/*.yml'
+          - '**/*.yaml'
+          - 'launchd/**'
+          - '.github/**'
+          - 'Dockerfile'
+
+scripts:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '**/*.sh'
+          - '**/*.bash'
+          - 'scripts/**'
+
+python:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '**/*.py'
