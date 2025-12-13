@@ -17,7 +17,16 @@ class Colors:
 
     @staticmethod
     def colorize(text: str, color: str) -> str:
-        """Apply color to text"""
+        """
+        Apply color to text.
+
+        Args:
+            text (str): Text to colorize.
+            color (str): ANSI color code (e.g., Colors.RED, Colors.BLUE).
+
+        Returns:
+            str: Text wrapped with color and reset codes.
+        """
         return f"{color}{text}{Colors.RESET}"
 
     @staticmethod
