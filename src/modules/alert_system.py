@@ -142,9 +142,14 @@ class AlertSystem:
         # Replace newlines and tabs with spaces
         sanitized = text.replace('\n', ' ').replace('\r', ' ').replace('\t', ' ')
 
-        # Remove non-printable characters (except basic ASCII)
-        # Keeping readable characters: 0x20-0x7E
-        sanitized = ''.join(c for c in sanitized if 32 <= ord(c) <= 126)
+        # Remove control characters (0x00-0x1F and 0x7F-0x9F), preserve printable Unicode
+        sanitized = ''.join(
+            c for c in sanitized
+            if not (
+                (0 <= ord(c) <= 31) or
+                (127 <= ord(c) <= 159)
+            )
+        )
 
         return sanitized
 
