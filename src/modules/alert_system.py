@@ -10,6 +10,7 @@ from typing import Dict, List
 from dataclasses import dataclass, asdict
 from datetime import datetime
 
+from ..utils.sanitization import sanitize_for_logging
 from .email_ingestion import EmailData
 from .spam_analyzer import SpamAnalysisResult
 from .nlp_analyzer import NLPAnalysisResult
@@ -72,13 +73,18 @@ class AlertSystem:
     
     def _console_alert(self, report: ThreatReport):
         """Print alert to console"""
+        # Sanitize output fields
+        safe_subject = sanitize_for_logging(report.subject, max_length=100)
+        safe_sender = sanitize_for_logging(report.sender, max_length=100)
+        safe_recipient = sanitize_for_logging(report.recipient, max_length=100)
+
         print("\n" + "="*80)
         print(f"🚨 SECURITY ALERT - {report.risk_level.upper()} RISK")
         print("="*80)
         print(f"Timestamp: {report.timestamp}")
-        print(f"Subject: {report.subject}")
-        print(f"From: {report.sender}")
-        print(f"To: {report.recipient}")
+        print(f"Subject: {safe_subject}")
+        print(f"From: {safe_sender}")
+        print(f"To: {safe_recipient}")
         print(f"Threat Score: {report.overall_threat_score:.2f}")
         print(f"Risk Level: {report.risk_level.upper()}")
         
