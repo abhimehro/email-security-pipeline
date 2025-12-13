@@ -187,9 +187,9 @@ class NLPThreatAnalyzer:
 
                 # If the probability suggests a threat (>0.5), we increase the score.
                 if ml_threat_prob > 0.5:
-                     ml_score = (ml_threat_prob - 0.5) * 20 # Map 0.5-1.0 to 0-10 points
-                     threat_score += ml_score
-                     social_engineering.append(f"ML Model detected high threat probability: {ml_threat_prob:.2f}")
+                    ml_score = (ml_threat_prob - 0.5) * 20 # Map 0.5-1.0 to 0-10 points
+                    threat_score += ml_score
+                    social_engineering.append(f"ML Model detected high threat probability: {ml_threat_prob:.2f}")
 
         
         # Calculate risk level
