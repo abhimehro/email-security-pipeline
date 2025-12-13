@@ -9,8 +9,8 @@ documentation:
 configuration:
   - changed-files:
       - any-glob-to-any-file:
-          - '*.yml'
-          - '*.yaml'
+          - '**/*.yml'
+          - '**/*.yaml'
           - 'launchd/**'
           - '.github/**'
           - 'Dockerfile'
