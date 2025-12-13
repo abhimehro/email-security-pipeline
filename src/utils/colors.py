@@ -25,11 +25,6 @@ class Colors:
             color (str): ANSI color code (e.g., Colors.RED, Colors.BLUE).
 
         Returns:
-            str: Text wrapped with color and reset codes.
-        """
-        return f"{color}{text}{Colors.RESET}"
-
-    @staticmethod
     def bold(text: str) -> str:
         """
         Apply bold style to text.
