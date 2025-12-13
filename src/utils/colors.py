@@ -22,7 +22,15 @@ class Colors:
 
     @staticmethod
     def bold(text: str) -> str:
-        """Apply bold style to text"""
+        """
+        Apply bold style to text.
+
+        Args:
+            text (str): Text to make bold.
+
+        Returns:
+            str: Text wrapped with bold and reset codes.
+        """
         return f"{Colors.BOLD}{text}{Colors.RESET}"
 
     @staticmethod
