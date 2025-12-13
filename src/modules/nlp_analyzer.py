@@ -284,8 +284,10 @@ class NLPThreatAnalyzer:
             import torch
             # Tokenize and predict
             inputs = self.tokenizer(text, return_tensors="pt", truncation=True, max_length=512)
-            outputs = self.model(**inputs)
-            predictions = torch.softmax(outputs.logits, dim=-1)
+            self.model.eval()
+            with torch.no_grad():
+                outputs = self.model(**inputs)
+                predictions = torch.softmax(outputs.logits, dim=-1)
             
             # Assuming binary classification where index 1 is threat
             threat_probability = float(predictions[0][1]) if predictions.shape[-1] > 1 else float(predictions[0][0])
