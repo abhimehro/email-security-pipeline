@@ -8,7 +8,7 @@ from unittest.mock import MagicMock
 sys.path.insert(0, os.getcwd())
 
 # Import using src package to resolve relative imports correctly
-from src.modules.media_analyzer import MediaAuthenticityAnalyzer, MediaAnalysisResult
+from src.modules.media_analyzer import MediaAuthenticityAnalyzer
 from src.modules.email_ingestion import EmailData
 from src.utils.config import AnalysisConfig
 
