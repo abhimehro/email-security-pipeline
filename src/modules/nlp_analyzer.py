@@ -158,7 +158,20 @@ class NLPThreatAnalyzer:
         threat_score += score
         psychological_triggers.extend(indicators)
 
-        # Transformer Analysis Integration
+        # Integration of Transformer Model Predictions into Threat Scoring
+        # ---------------------------------------------------------------
+        # If a transformer model and tokenizer are available, we analyze the email text using the model.
+        # The model is expected to output a "threat probability" (between 0 and 1).
+        # If the probability exceeds a threshold (0.5), we map the excess probability (ml_threat_prob - 0.5)
+        # to a threat score increment (scaled to a maximum of 10 points for ml_threat_prob=1.0).
+        # This is done via: ml_score = (ml_threat_prob - 0.5) * 20
+        # The ML-derived score is then added to the overall threat_score.
+        # 
+        # Assumptions and Caveats:
+        # - The default model ('distilbert-base-uncased') is not fine-tuned for threat detection,
+        #   so its predictions may not be meaningful. The weighting is kept low and the logic is
+        #   structured to allow for future use of a fine-tuned model.
+        # - If a high threat probability is detected, an indicator is appended to the results.
         if self.model and self.tokenizer:
             transformer_results = self.analyze_with_transformer(text)
             if "error" not in transformer_results:
