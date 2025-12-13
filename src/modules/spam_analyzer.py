@@ -57,7 +57,7 @@ class SpamAnalyzer:
         self.logger = logging.getLogger("SpamAnalyzer")
 
         # Optimization: Pre-compile regex patterns
-        # Using zip to keep original string for reporting but using compiled pattern for matching
+        # Using a list comprehension to pair each original string with its compiled pattern for reporting and matching
         self.compiled_spam_keywords = [(p, re.compile(p)) for p in self.SPAM_KEYWORDS]
         self.compiled_url_patterns = [re.compile(p) for p in self.SUSPICIOUS_URL_PATTERNS]
         self.compiled_money = re.compile(r'\$\d+|\d+\s*(dollar|usd|euro)')
