@@ -138,7 +138,8 @@ class MediaAuthenticityAnalyzer:
         score = 0.0
         warnings = []
 
-        filename_lower = filename.lower()
+        # Sanitize filename (strip whitespace and null bytes for check)
+        filename_lower = filename.lower().strip().replace('\0', '')
 
         # Check for dangerous extensions
         for ext in self.DANGEROUS_EXTENSIONS:

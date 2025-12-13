@@ -1,4 +1,4 @@
-## 2025-02-17 - [Log Injection Fix]
-**Vulnerability:** Untrusted email headers (Subject, Sender, Recipient) were printed directly to the console in AlertSystem. This allowed attackers to use newlines to spoof log entries or ANSI escape codes to manipulate the terminal.
-**Learning:** Console logs are an often-overlooked injection vector. Simple print statements trust the input format.
-**Prevention:** Always sanitize untrusted input before logging. For console output, stripping control characters and normalizing whitespace is effective.
+## 2025-05-15 - [Extension Bypass Vulnerability]
+**Vulnerability:** File extension checks could be bypassed using trailing whitespace (e.g., 'virus.exe ') because the check used 'endswith' without stripping whitespace.
+**Learning:** Python's string methods are precise; Windows filenames are forgiving. Always sanitize filenames before security checks.
+**Prevention:** Use .strip() and .replace('\0', '') before checking file extensions.
