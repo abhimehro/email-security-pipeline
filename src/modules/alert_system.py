@@ -109,7 +109,7 @@ class AlertSystem:
             for warning in media['file_type_warnings'][:3]:
                 print(f"    • {warning}")
         
-        print(f"\n{Colors.bold(Colors.BLUE + '--- RECOMMENDATIONS ---' + Colors.RESET)}")
+        print(f"\n{Colors.BLUE}{Colors.bold('--- RECOMMENDATIONS ---')}{Colors.RESET}")
         for rec in report.recommendations:
             print(f"  ► {Colors.YELLOW}{rec}{Colors.RESET}")
         
