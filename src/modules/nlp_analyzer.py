@@ -107,7 +107,7 @@ class NLPThreatAnalyzer:
         try:
             from transformers import AutoTokenizer, AutoModelForSequenceClassification
 
-            model_name = getattr(self.config, 'nlp_model', 'distilbert-base-uncased-finetuned-sst-2-english')
+            model_name = getattr(self.config, 'nlp_model', 'distilbert-base-uncased')
             self.tokenizer = AutoTokenizer.from_pretrained(model_name)
             self.model = AutoModelForSequenceClassification.from_pretrained(model_name)
             self.logger.info(f"ML model initialized with {model_name}")
