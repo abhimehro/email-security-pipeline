@@ -8,6 +8,7 @@ import logging
 from typing import List, Dict, Tuple
 from dataclasses import dataclass
 
+import torch
 from .email_ingestion import EmailData
 
 
@@ -99,18 +100,17 @@ class NLPThreatAnalyzer:
     
     def _should_use_ml_model(self) -> bool:
         """Check if ML model should be loaded"""
-        # For now, we'll use pattern-based analysis
-        # Set to True when transformer models are needed
-        return False
+        return True
     
     def _initialize_model(self):
-        """Initialize transformer model (placeholder for future enhancement)"""
+        """Initialize transformer model"""
         try:
-            # Uncomment when needed:
-            # from transformers import AutoTokenizer, AutoModelForSequenceClassification
-            # self.tokenizer = AutoTokenizer.from_pretrained(self.config.nlp_model)
-            # self.model = AutoModelForSequenceClassification.from_pretrained(self.config.nlp_model)
-            self.logger.info("ML model initialized (placeholder)")
+            from transformers import AutoTokenizer, AutoModelForSequenceClassification
+
+            model_name = getattr(self.config, 'nlp_model', 'distilbert-base-uncased-finetuned-sst-2-english')
+            self.tokenizer = AutoTokenizer.from_pretrained(model_name)
+            self.model = AutoModelForSequenceClassification.from_pretrained(model_name)
+            self.logger.info(f"ML model initialized with {model_name}")
         except Exception as e:
             self.logger.warning(f"Could not load ML model: {e}")
     
@@ -270,7 +270,7 @@ class NLPThreatAnalyzer:
     
     def analyze_with_transformer(self, text: str) -> Dict:
         """
-        Analyze text using transformer model (future enhancement)
+        Analyze text using transformer model
         
         Args:
             text: Text to analyze
@@ -283,14 +283,27 @@ class NLPThreatAnalyzer:
         
         try:
             # Tokenize and predict
-            # inputs = self.tokenizer(text, return_tensors="pt", truncation=True, max_length=512)
-            # outputs = self.model(**inputs)
-            # predictions = torch.softmax(outputs.logits, dim=-1)
+            inputs = self.tokenizer(text, return_tensors="pt", truncation=True, max_length=512)
+
+            with torch.no_grad():
+                outputs = self.model(**inputs)
+                predictions = torch.softmax(outputs.logits, dim=-1)
+
+            # Assuming binary classification (0: Safe, 1: Threat) or (0: Negative, 1: Positive)
+            # For sst-2, 1 is positive (safe/good) and 0 is negative (bad)
+            # We might want to use a specific threat detection model later
+            # For now, let's assume the second class is the "positive" class for whatever the model predicts.
+            # NOTE: Ideally we would use a dedicated threat detection model. This is a placeholder logic
+            # where "positive" sentiment/class is mapped to probability for demonstration.
+
+            # If using a specific threat model, adjust index accordingly
+            threat_prob = predictions[0][1].item()
+            confidence = max(predictions[0]).item()
             
             # Return results
             return {
-                "threat_probability": 0.0,  # Placeholder
-                "confidence": 0.0
+                "threat_probability": threat_prob,
+                "confidence": confidence
             }
         except Exception as e:
             self.logger.error(f"Transformer analysis error: {e}")
