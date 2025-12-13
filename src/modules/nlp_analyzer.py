@@ -110,6 +110,7 @@ class NLPThreatAnalyzer:
             model_name = getattr(self.config, 'nlp_model', 'distilbert-base-uncased')
             self.tokenizer = AutoTokenizer.from_pretrained(model_name)
             self.model = AutoModelForSequenceClassification.from_pretrained(model_name)
+            self.model.eval()
             self.logger.info(f"ML model initialized with {model_name}")
         except Exception as e:
             self.logger.warning(f"Could not load ML model: {e}")
