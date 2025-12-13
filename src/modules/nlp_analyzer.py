@@ -291,7 +291,8 @@ class NLPThreatAnalyzer:
             
             # Assuming binary classification where index 1 is threat
             threat_probability = float(predictions[0][1]) if predictions.shape[-1] > 1 else float(predictions[0][0])
-            confidence = float(torch.max(predictions))
+            predicted_class = torch.argmax(predictions, dim=-1).item()
+            confidence = float(predictions[0][predicted_class])
 
             # Return results
             return {
