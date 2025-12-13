@@ -76,9 +76,9 @@ class AlertSystem:
         print(f"🚨 SECURITY ALERT - {report.risk_level.upper()} RISK")
         print("="*80)
         print(f"Timestamp: {report.timestamp}")
-        print(f"Subject: {report.subject}")
-        print(f"From: {report.sender}")
-        print(f"To: {report.recipient}")
+        print(f"Subject: {self._sanitize_text(report.subject)}")
+        print(f"From: {self._sanitize_text(report.sender)}")
+        print(f"To: {self._sanitize_text(report.recipient)}")
         print(f"Threat Score: {report.overall_threat_score:.2f}")
         print(f"Risk Level: {report.risk_level.upper()}")
         
@@ -131,6 +131,28 @@ class AlertSystem:
         except Exception as e:
             self.logger.error(f"Failed to send webhook alert: {e}")
     
+    def _sanitize_text(self, text: str) -> str:
+        """
+        Sanitize text for safe console output.
+        Removes control characters and normalizes whitespace.
+        """
+        if not text:
+            return ""
+
+        # Replace newlines and tabs with spaces
+        sanitized = text.replace('\n', ' ').replace('\r', ' ').replace('\t', ' ')
+
+        # Remove control characters (0x00-0x1F and 0x7F-0x9F), preserve printable Unicode
+        sanitized = ''.join(
+            c for c in sanitized
+            if not (
+                (0 <= ord(c) <= 31) or
+                (127 <= ord(c) <= 159)
+            )
+        )
+
+        return sanitized
+
     def _slack_alert(self, report: ThreatReport):
         """Send alert to Slack"""
         try:

@@ -154,15 +154,34 @@ See `OUTLOOK_TROUBLESHOOTING.md` for more details.
 #### Proton Mail
 1. Install Proton Mail Bridge: https://proton.me/mail/bridge
 2. Configure Bridge and get credentials
-3. Update `.env`:
+3. Update `.env` (Bridge ports as currently configured):
    ```env
    PROTON_ENABLED=true
-   PROTON_EMAIL=your-email@pm.me
+   PROTON_EMAIL=abhimehro@pm.me
    PROTON_IMAP_SERVER=127.0.0.1
-   PROTON_IMAP_PORT=1143
+   PROTON_IMAP_PORT=143      # Bridge local IMAP; use 1143 if your Bridge expects STARTTLS
    PROTON_APP_PASSWORD=your-bridge-password
+   PROTON_FOLDERS=INBOX
    ```
-   **Note:** Proton Mail requires the Bridge application running locally
+   **Note:** Proton Mail requires the Bridge application running locally; adjust the IMAP port if your Bridge uses 1143/STARTTLS instead of 143/SSL.
+
+#### Connectivity sanity checks (Bridge + Gmail)
+```bash
+# Proton IMAP (adjust port if needed)
+openssl s_client -connect 127.0.0.1:143 -quiet </dev/null | head -5
+
+# Gmail IMAP
+openssl s_client -connect imap.gmail.com:993 -quiet </dev/null | head -5
+```
+
+### IMAP/SMTP quick check CLI
+- Script: `scripts/check_mail_connectivity.py`
+- Prereq: `.env` populated (GMAIL_* / PROTON_* vars).
+- Run:
+  ```bash
+  python scripts/check_mail_connectivity.py
+  ```
+- It issues NOOP on IMAP/SMTP for Gmail and Proton Bridge using your .env settings; no messages are fetched or sent.
 
 ### Analysis Configuration
 
