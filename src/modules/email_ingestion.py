@@ -7,6 +7,8 @@ import imaplib
 import email
 import time
 import logging
+import socket
+import ssl
 from typing import Any, Dict, List, Optional, Tuple
 from email.message import Message
 from dataclasses import dataclass
@@ -315,6 +317,73 @@ class IMAPClient:
             self.logger.error(f"Error parsing email {email_id}: {e}")
             return None
 
+    def diagnose_connection_issues(self, account: EmailAccountConfig) -> Dict[str, Any]:
+        """Diagnose IMAP connection issues"""
+        diagnostics = {
+            "server_reachable": self._check_server_reachability(account),
+            "port_open": self._check_port_open(account),
+            "ssl_valid": self._check_ssl_certificate(account),
+            "credentials_valid": self._check_credentials(account),
+        }
+        return diagnostics
+
+    def _check_server_reachability(self, account: EmailAccountConfig) -> Dict[str, Any]:
+        """Check if the IMAP server is reachable via DNS and responds to ping."""
+        result = {"host_resolved": None, "resolves_to": None, "error": None}
+        try:
+            ip_address = socket.gethostbyname(account.imap_server)
+            result["host_resolved"] = True
+            result["resolves_to"] = ip_address
+        except socket.gaierror as e:
+            result["host_resolved"] = False
+            result["error"] = f"DNS lookup failed: {e}"
+        return result
+
+    def _check_port_open(self, account: EmailAccountConfig) -> Dict[str, Any]:
+        """Check if the IMAP port is open and accepting connections."""
+        result = {"open": False, "error": None}
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+            sock.settimeout(5)
+            try:
+                if sock.connect_ex((account.imap_server, account.imap_port)) == 0:
+                    result["open"] = True
+            except Exception as e:
+                result["error"] = f"Port check failed: {e}"
+        return result
+
+    def _check_ssl_certificate(self, account: EmailAccountConfig) -> Dict[str, Any]:
+        """Validate the SSL certificate of the IMAP server."""
+        result = {"valid": False, "expires_in_days": None, "error": None}
+        try:
+            context = ssl.create_default_context()
+            with socket.create_connection((account.imap_server, account.imap_port), timeout=5) as sock:
+                with context.wrap_socket(sock, server_hostname=account.imap_server) as ssock:
+                    cert = ssock.getpeercert()
+                    if cert:
+                        result["valid"] = True
+                        expiry_date = datetime.strptime(cert["notAfter"], "%b %d %H:%M:%S %Y %Z")
+                        delta = expiry_date - datetime.now()
+                        result["expires_in_days"] = delta.days
+        except ssl.SSLCertVerificationError as e:
+            result["error"] = f"SSL certificate verification failed: {e}"
+        except Exception as e:
+            result["error"] = f"SSL check failed: {e}"
+        return result
+
+    def _check_credentials(self, account: EmailAccountConfig) -> Dict[str, Any]:
+        """Attempt a login to verify credentials."""
+        result = {"valid": False, "error": None}
+        try:
+            conn = imaplib.IMAP4_SSL(account.imap_server, account.imap_port)
+            conn.login(account.email, account.app_password)
+            result["valid"] = True
+            conn.logout()
+        except imaplib.IMAP4.error as e:
+            result["error"] = f"IMAP login failed: {e}"
+        except Exception as e:
+            result["error"] = f"Credential check failed with unexpected error: {e}"
+        return result
+
     @staticmethod
     def _decode_header_value(value: str) -> str:
         if not value:
@@ -446,3 +515,27 @@ class EmailIngestionManager:
             client.disconnect()
         self.clients.clear()
         self.logger.info("All connections closed")
+
+    def diagnose_account_connection(self, email_address: str) -> Optional[Dict[str, Any]]:
+        """
+        Diagnose connection issues for a specific email account.
+
+        Args:
+            email_address: The email address of the account to diagnose.
+
+        Returns:
+            A dictionary with diagnostic results, or None if the account is not found.
+        """
+        account_to_diagnose = None
+        for acc in self.accounts:
+            if acc.email == email_address:
+                account_to_diagnose = acc
+                break
+
+        if not account_to_diagnose:
+            self.logger.error(f"Account '{email_address}' not found in configuration.")
+            return None
+
+        self.logger.info(f"Running diagnostics for {email_address}...")
+        client = IMAPClient(account_to_diagnose, self.rate_limit_delay, self.max_attachment_bytes)
+        return client.diagnose_connection_issues(account_to_diagnose)
