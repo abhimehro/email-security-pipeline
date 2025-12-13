@@ -306,6 +306,9 @@ class NLPThreatAnalyzer:
         try:
             # Tokenize and predict
             inputs = self.tokenizer(text, return_tensors="pt", truncation=True, max_length=512)
+            # Move input tensors to the same device as the model
+            device = next(self.model.parameters()).device
+            inputs = {k: v.to(device) for k, v in inputs.items()}
             outputs = self.model(**inputs)
             predictions = torch.softmax(outputs.logits, dim=-1)
             
