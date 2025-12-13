@@ -410,7 +410,7 @@ class MediaAuthenticityAnalyzer:
                      score += 0.5
                      issues.append("Video duration vs file size mismatch (potential stream embedding issue)")
 
-             cap.release()
+            cap.release()
         except Exception as e:
             self.logger.warning(f"Error in A/V sync check: {e}")
 
