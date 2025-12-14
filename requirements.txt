@@ -1,17 +1,5 @@
 # Core dependencies
-python-dotenv==1.0.0
-requests==2.32.4
+python-dotenv>=1.0.0
 
-# Optional: NLP and ML (uncomment when needed)
-# transformers==4.35.0
-# torch==2.1.0
-# sentencepiece==0.1.99
-
-# Optional: Database support
-# sqlite3  # Built-in to Python
-
-# Development dependencies (optional)
-# pytest==7.4.3
-# pytest-cov==4.1.0
-# black==23.11.0
-# flake8==6.1.0
+# Testing
+pytest>=7.0.0
