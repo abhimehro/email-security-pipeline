@@ -100,7 +100,8 @@ class NLPThreatAnalyzer:
     
     def _should_use_ml_model(self) -> bool:
         """Check if ML model should be loaded"""
-        # We can now proceed with loading the transformer model
+        # For now, we'll use pattern-based analysis
+        # Set to True when transformer models are needed
         return True
     
     def _initialize_model(self):
@@ -109,7 +110,7 @@ class NLPThreatAnalyzer:
             from transformers import AutoTokenizer, AutoModelForSequenceClassification
             self.tokenizer = AutoTokenizer.from_pretrained(self.config.nlp_model)
             self.model = AutoModelForSequenceClassification.from_pretrained(self.config.nlp_model)
-            self.logger.info(f"ML model initialized: {self.config.nlp_model}")
+            self.logger.info("ML model initialized")
         except Exception as e:
             self.logger.warning(f"Could not load ML model: {e}")
             self.model = None
@@ -317,32 +318,27 @@ class NLPThreatAnalyzer:
             return {"error": "Model not loaded"}
         
         try:
+            import torch
             # Tokenize and predict
             inputs = self.tokenizer(text, return_tensors="pt", truncation=True, max_length=512)
-            # Move input tensors to the same device as the model
-            device = next(self.model.parameters()).device
-            inputs = {k: v.to(device) for k, v in inputs.items()}
-            outputs = self.model(**inputs)
-            predictions = torch.softmax(outputs.logits, dim=-1)
-            
-            # Dynamically determine which index corresponds to the 'threat' label
-            id2label = getattr(self.model.config, "id2label", None)
-            threat_index = None
-            if id2label:
-                for idx, label in id2label.items():
-                    if label.strip().lower() == "threat":
+            self.model.eval()
             with torch.no_grad():
                 outputs = self.model(**inputs)
                 predictions = torch.softmax(outputs.logits, dim=-1)
             
-                # Assuming binary classification where index 1 is threat
-                # If the model has different labels, this logic needs adjustment
-                if predictions.shape[1] >= 2:
-                     threat_probability = predictions[0][1].item()
-                else:
-                     threat_probability = predictions[0][0].item() # Fallback for single output
-
-                confidence = torch.max(predictions).item()
+            # Expecting a 2-class softmax output: [non-threat probability, threat probability]
+            # Index 0 = non-threat, Index 1 = threat. If model output does not match this, raise an error.
+            if predictions.shape[-1] != 2:
+                self.logger.error(
+                    f"Expected model output with 2 classes ([non-threat, threat]), but got shape {predictions.shape}. "
+                    "Please ensure the model is a binary classifier with [non-threat, threat] class order."
+                )
+                return {
+                    "error": f"Model output shape {predictions.shape} is not supported. Expected 2-class output ([non-threat, threat])."
+                }
+            threat_probability = float(predictions[0][1])
+            predicted_class = torch.argmax(predictions, dim=-1).item()
+            confidence = float(predictions[0][predicted_class])
 
             # Return results
             return {
