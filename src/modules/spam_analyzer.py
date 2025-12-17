@@ -45,6 +45,7 @@ class SpamAnalyzer:
         r'bit\.ly',
         r'tinyurl',
         r't\.co',
+        r'goo\.gl',
         r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}',  # IP addresses
         r'[a-z0-9\-]{30,}',  # Very long subdomain/path
     ]
@@ -62,6 +63,9 @@ class SpamAnalyzer:
     # Compile suspicious URL patterns
     COMPILED_SUSPICIOUS_URL_PATTERNS = [re.compile(p, re.IGNORECASE) for p in SUSPICIOUS_URL_PATTERNS]
     
+    # Pre-compiled combined pattern for performance
+    COMBINED_URL_PATTERN = re.compile('|'.join(SUSPICIOUS_URL_PATTERNS), re.IGNORECASE)
+
     def __init__(self, config):
         """
         Initialize spam analyzer
@@ -239,8 +243,7 @@ class SpamAnalyzer:
                 # Check for URL shorteners
                 if any(shortener in domain for shortener in ['bit.ly', 'tinyurl', 't.co', 'goo.gl']):
                     score += 0.5
-                    if url not in suspicious:
-                        suspicious.append(url)
+                    suspicious.append(url)
                 
                 # Check for mismatched display text and actual URL
                 # This would require more context from HTML parsing

@@ -10,6 +10,7 @@ from typing import Dict, List
 from dataclasses import dataclass, asdict
 from datetime import datetime
 
+from ..utils.colors import Colors
 from .email_ingestion import EmailData
 from .spam_analyzer import SpamAnalysisResult
 from .nlp_analyzer import NLPAnalysisResult
@@ -72,45 +73,52 @@ class AlertSystem:
     
     def _console_alert(self, report: ThreatReport):
         """Print alert to console"""
-        print("\n" + "="*80)
-        print(f"🚨 SECURITY ALERT - {report.risk_level.upper()} RISK")
-        print("="*80)
-        print(f"Timestamp: {report.timestamp}")
-        print(f"Subject: {self._sanitize_text(report.subject)}")
-        print(f"From: {self._sanitize_text(report.sender)}")
-        print(f"To: {self._sanitize_text(report.recipient)}")
-        print(f"Threat Score: {report.overall_threat_score:.2f}")
-        print(f"Risk Level: {report.risk_level.upper()}")
+        risk_color = Colors.GREEN
+        if report.risk_level == "high":
+            risk_color = Colors.RED
+        elif report.risk_level == "medium":
+            risk_color = Colors.YELLOW
+
+        print("\n" + Colors.BOLD + "="*80 + Colors.ENDC)
+        print(f"{risk_color}{Colors.BOLD}🚨 SECURITY ALERT - {report.risk_level.upper()} RISK{Colors.ENDC}")
+        print(Colors.BOLD + "="*80 + Colors.ENDC)
+
+        print(f"{Colors.CYAN}Timestamp:{Colors.ENDC} {report.timestamp}")
+        print(f"{Colors.CYAN}Subject:{Colors.ENDC}   {self._sanitize_text(report.subject)}")
+        print(f"{Colors.CYAN}From:{Colors.ENDC}      {self._sanitize_text(report.sender)}")
+        print(f"{Colors.CYAN}To:{Colors.ENDC}        {self._sanitize_text(report.recipient)}")
+        print(f"{Colors.CYAN}Threat Score:{Colors.ENDC} {risk_color}{report.overall_threat_score:.2f}{Colors.ENDC}")
+        print(f"{Colors.CYAN}Risk Level:{Colors.ENDC}   {risk_color}{report.risk_level.upper()}{Colors.ENDC}")
         
-        print("\n--- SPAM ANALYSIS ---")
-        spam = report.spam_analysis
-        if spam.get('indicators'):
-            for indicator in spam['indicators'][:5]:  # Show first 5
+        if report.spam_analysis.get('indicators'):
+            print(f"\n{Colors.BOLD}--- SPAM ANALYSIS ---{Colors.ENDC}")
+            for indicator in report.spam_analysis['indicators'][:5]:  # Show first 5
                 print(f"  • {indicator}")
         
-        print("\n--- NLP THREAT ANALYSIS ---")
         nlp = report.nlp_analysis
-        if nlp.get('social_engineering_indicators'):
-            print("  Social Engineering:")
-            for indicator in nlp['social_engineering_indicators'][:3]:
-                print(f"    • {indicator}")
-        if nlp.get('authority_impersonation'):
-            print("  Authority Impersonation:")
-            for indicator in nlp['authority_impersonation'][:3]:
-                print(f"    • {indicator}")
+        if nlp.get('social_engineering_indicators') or nlp.get('authority_impersonation'):
+            print(f"\n{Colors.BOLD}--- NLP THREAT ANALYSIS ---{Colors.ENDC}")
+            if nlp.get('social_engineering_indicators'):
+                print(f"  {Colors.UNDERLINE}Social Engineering:{Colors.ENDC}")
+                for indicator in nlp['social_engineering_indicators'][:3]:
+                    print(f"    • {indicator}")
+            if nlp.get('authority_impersonation'):
+                print(f"  {Colors.UNDERLINE}Authority Impersonation:{Colors.ENDC}")
+                for indicator in nlp['authority_impersonation'][:3]:
+                    print(f"    • {indicator}")
         
-        print("\n--- MEDIA ANALYSIS ---")
         media = report.media_analysis
         if media.get('file_type_warnings'):
-            print("  File Warnings:")
+            print(f"\n{Colors.BOLD}--- MEDIA ANALYSIS ---{Colors.ENDC}")
+            print(f"  {Colors.UNDERLINE}File Warnings:{Colors.ENDC}")
             for warning in media['file_type_warnings'][:3]:
                 print(f"    • {warning}")
         
-        print("\n--- RECOMMENDATIONS ---")
+        print(f"\n{Colors.BOLD}--- RECOMMENDATIONS ---{Colors.ENDC}")
         for rec in report.recommendations:
-            print(f"  ► {rec}")
+            print(f"  {Colors.YELLOW}► {rec}{Colors.ENDC}")
         
-        print("="*80 + "\n")
+        print(Colors.BOLD + "="*80 + Colors.ENDC + "\n")
     
     def _webhook_alert(self, report: ThreatReport):
         """Send alert via webhook"""
