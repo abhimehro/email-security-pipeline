@@ -6,7 +6,7 @@ opencv-python-headless>=4.8.0
 
 # Optional: NLP and ML (uncomment when needed)
 transformers==4.35.0
-torch==2.1.0
+torch==2.2.0
 sentencepiece==0.1.99
 
 # Optional: Database support
