@@ -10,7 +10,7 @@ from typing import Dict, List
 from dataclasses import dataclass, asdict
 from datetime import datetime
 
-from ..utils.colors import Colors
+from ..utils.sanitization import sanitize_for_logging
 from .email_ingestion import EmailData
 from .spam_analyzer import SpamAnalysisResult
 from .nlp_analyzer import NLPAnalysisResult
@@ -73,22 +73,20 @@ class AlertSystem:
     
     def _console_alert(self, report: ThreatReport):
         """Print alert to console"""
-        risk_color = Colors.GREEN
-        if report.risk_level == "high":
-            risk_color = Colors.RED
-        elif report.risk_level == "medium":
-            risk_color = Colors.YELLOW
+        # Sanitize output fields
+        safe_subject = sanitize_for_logging(report.subject, max_length=100)
+        safe_sender = sanitize_for_logging(report.sender, max_length=100)
+        safe_recipient = sanitize_for_logging(report.recipient, max_length=100)
 
-        print("\n" + Colors.BOLD + "="*80 + Colors.ENDC)
-        print(f"{risk_color}{Colors.BOLD}🚨 SECURITY ALERT - {report.risk_level.upper()} RISK{Colors.ENDC}")
-        print(Colors.BOLD + "="*80 + Colors.ENDC)
-
-        print(f"{Colors.CYAN}Timestamp:{Colors.ENDC} {report.timestamp}")
-        print(f"{Colors.CYAN}Subject:{Colors.ENDC}   {self._sanitize_text(report.subject)}")
-        print(f"{Colors.CYAN}From:{Colors.ENDC}      {self._sanitize_text(report.sender)}")
-        print(f"{Colors.CYAN}To:{Colors.ENDC}        {self._sanitize_text(report.recipient)}")
-        print(f"{Colors.CYAN}Threat Score:{Colors.ENDC} {risk_color}{report.overall_threat_score:.2f}{Colors.ENDC}")
-        print(f"{Colors.CYAN}Risk Level:{Colors.ENDC}   {risk_color}{report.risk_level.upper()}{Colors.ENDC}")
+        print("\n" + "="*80)
+        print(f"🚨 SECURITY ALERT - {report.risk_level.upper()} RISK")
+        print("="*80)
+        print(f"Timestamp: {report.timestamp}")
+        print(f"Subject: {safe_subject}")
+        print(f"From: {safe_sender}")
+        print(f"To: {safe_recipient}")
+        print(f"Threat Score: {report.overall_threat_score:.2f}")
+        print(f"Risk Level: {report.risk_level.upper()}")
         
         if report.spam_analysis.get('indicators'):
             print(f"\n{Colors.BOLD}--- SPAM ANALYSIS ---{Colors.ENDC}")
