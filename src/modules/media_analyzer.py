@@ -264,34 +264,92 @@ class MediaAuthenticityAnalyzer:
         # 4. Look for compression artifacts typical of deepfakes
         # 5. Use specialized deepfake detection models
 
-        # Placeholder for future ML-based detection
         if self.config.deepfake_detection_enabled:
-            # deepfake_probability = self._run_deepfake_model(data, content_type)
-            # if deepfake_probability > 0.7:
-            #     score += 3.0
-            #     indicators.append(f"High deepfake probability: {filename}")
-            pass
+            deepfake_probability = self._run_deepfake_model(filename, data, content_type)
+            if deepfake_probability > 0.7:
+                score += 3.0
+                indicators.append(f"High deepfake probability: {filename} ({deepfake_probability:.2f})")
+            elif deepfake_probability > 0.4:
+                score += 1.0
+                indicators.append(f"Possible deepfake content: {filename} ({deepfake_probability:.2f})")
 
         return score, indicators
 
-    def _run_deepfake_model(self, data: bytes, content_type: str) -> float:
+    def _run_deepfake_model(self, filename: str, data: bytes, content_type: str) -> float:
         """
-        Run deepfake detection model (placeholder for future enhancement)
+        Run deepfake detection model based on configured provider
 
         Args:
+            filename: Name of the file
             data: File data
             content_type: MIME type
 
         Returns:
             Probability of deepfake (0.0 to 1.0)
         """
-        # This would integrate with models like:
-        # - Deepware Scanner
-        # - Microsoft Video Authenticator
-        # - Sensity AI
-        # - FaceForensics++ detector
+        provider = self.config.deepfake_provider
 
-        self.logger.debug("Deepfake detection model not yet implemented")
+        if provider == "simulator":
+            return self._scan_simulator(filename, data)
+        elif provider == "microsoft":
+            return self._scan_microsoft(data)
+        elif provider == "sensity":
+            return self._scan_sensity(data)
+        elif provider == "faceforensics":
+            return self._scan_faceforensics(data)
+        else:
+            self.logger.warning(f"Unknown deepfake provider: {provider}")
+            return 0.0
+
+    def _scan_simulator(self, filename: str, data: bytes) -> float:
+        """
+        Simulate deepfake detection for testing purposes
+        """
+        # Simulate high probability for specific filenames
+        if "deepfake" in filename.lower() or "synthetic" in filename.lower():
+            self.logger.info(f"Simulator: Detected synthetic content in {filename}")
+            return 0.85
+
+        # Simulate medium probability
+        if "suspicious" in filename.lower():
+            return 0.5
+
+        return 0.0
+
+    def _scan_microsoft(self, data: bytes) -> float:
+        """
+        Placeholder for Microsoft Video Authenticator integration
+        """
+        if not self.config.deepfake_api_key:
+            self.logger.warning("Microsoft Video Authenticator API key not configured")
+            return 0.0
+
+        # TODO: Implement actual API call
+        self.logger.info("Microsoft Video Authenticator scan requested (not implemented)")
+        return 0.0
+
+    def _scan_sensity(self, data: bytes) -> float:
+        """
+        Placeholder for Sensity AI integration
+        """
+        if not self.config.deepfake_api_key:
+            self.logger.warning("Sensity AI API key not configured")
+            return 0.0
+
+        # TODO: Implement actual API call
+        self.logger.info("Sensity AI scan requested (not implemented)")
+        return 0.0
+
+    def _scan_faceforensics(self, data: bytes) -> float:
+        """
+        Placeholder for FaceForensics++ model integration
+        """
+        if not self.config.deepfake_model_path:
+            self.logger.warning("FaceForensics++ model path not configured")
+            return 0.0
+
+        # TODO: Load model and run inference
+        self.logger.info("FaceForensics++ model scan requested (not implemented)")
         return 0.0
 
     def _calculate_risk_level(self, score: float) -> str:

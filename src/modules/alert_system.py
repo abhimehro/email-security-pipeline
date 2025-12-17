@@ -88,35 +88,35 @@ class AlertSystem:
         print(f"Threat Score: {report.overall_threat_score:.2f}")
         print(f"Risk Level: {report.risk_level.upper()}")
         
-        print("\n--- SPAM ANALYSIS ---")
-        spam = report.spam_analysis
-        if spam.get('indicators'):
-            for indicator in spam['indicators'][:5]:  # Show first 5
+        if report.spam_analysis.get('indicators'):
+            print(f"\n{Colors.BOLD}--- SPAM ANALYSIS ---{Colors.ENDC}")
+            for indicator in report.spam_analysis['indicators'][:5]:  # Show first 5
                 print(f"  • {indicator}")
         
-        print("\n--- NLP THREAT ANALYSIS ---")
         nlp = report.nlp_analysis
-        if nlp.get('social_engineering_indicators'):
-            print("  Social Engineering:")
-            for indicator in nlp['social_engineering_indicators'][:3]:
-                print(f"    • {indicator}")
-        if nlp.get('authority_impersonation'):
-            print("  Authority Impersonation:")
-            for indicator in nlp['authority_impersonation'][:3]:
-                print(f"    • {indicator}")
+        if nlp.get('social_engineering_indicators') or nlp.get('authority_impersonation'):
+            print(f"\n{Colors.BOLD}--- NLP THREAT ANALYSIS ---{Colors.ENDC}")
+            if nlp.get('social_engineering_indicators'):
+                print(f"  {Colors.UNDERLINE}Social Engineering:{Colors.ENDC}")
+                for indicator in nlp['social_engineering_indicators'][:3]:
+                    print(f"    • {indicator}")
+            if nlp.get('authority_impersonation'):
+                print(f"  {Colors.UNDERLINE}Authority Impersonation:{Colors.ENDC}")
+                for indicator in nlp['authority_impersonation'][:3]:
+                    print(f"    • {indicator}")
         
-        print("\n--- MEDIA ANALYSIS ---")
         media = report.media_analysis
         if media.get('file_type_warnings'):
-            print("  File Warnings:")
+            print(f"\n{Colors.BOLD}--- MEDIA ANALYSIS ---{Colors.ENDC}")
+            print(f"  {Colors.UNDERLINE}File Warnings:{Colors.ENDC}")
             for warning in media['file_type_warnings'][:3]:
                 print(f"    • {warning}")
         
-        print("\n--- RECOMMENDATIONS ---")
+        print(f"\n{Colors.BOLD}--- RECOMMENDATIONS ---{Colors.ENDC}")
         for rec in report.recommendations:
-            print(f"  ► {rec}")
+            print(f"  {Colors.YELLOW}► {rec}{Colors.ENDC}")
         
-        print("="*80 + "\n")
+        print(Colors.BOLD + "="*80 + Colors.ENDC + "\n")
     
     def _webhook_alert(self, report: ThreatReport):
         """Send alert via webhook"""
@@ -137,6 +137,28 @@ class AlertSystem:
         except Exception as e:
             self.logger.error(f"Failed to send webhook alert: {e}")
     
+    def _sanitize_text(self, text: str) -> str:
+        """
+        Sanitize text for safe console output.
+        Removes control characters and normalizes whitespace.
+        """
+        if not text:
+            return ""
+
+        # Replace newlines and tabs with spaces
+        sanitized = text.replace('\n', ' ').replace('\r', ' ').replace('\t', ' ')
+
+        # Remove control characters (0x00-0x1F and 0x7F-0x9F), preserve printable Unicode
+        sanitized = ''.join(
+            c for c in sanitized
+            if not (
+                (0 <= ord(c) <= 31) or
+                (127 <= ord(c) <= 159)
+            )
+        )
+
+        return sanitized
+
     def _slack_alert(self, report: ThreatReport):
         """Send alert to Slack"""
         try:

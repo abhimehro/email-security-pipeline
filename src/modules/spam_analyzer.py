@@ -37,15 +37,22 @@ class SpamAnalyzer:
         r'\b(casino|poker|gambling)\b',
     ]
     
+    # Pre-compiled combined pattern for performance
+    COMBINED_SPAM_PATTERN = re.compile('|'.join(SPAM_KEYWORDS), re.IGNORECASE)
+
     # Suspicious URL patterns
     SUSPICIOUS_URL_PATTERNS = [
         r'bit\.ly',
         r'tinyurl',
         r't\.co',
+        r'goo\.gl',
         r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}',  # IP addresses
         r'[a-z0-9\-]{30,}',  # Very long subdomain/path
     ]
     
+    # Pre-compiled combined pattern for performance
+    COMBINED_URL_PATTERN = re.compile('|'.join(SUSPICIOUS_URL_PATTERNS), re.IGNORECASE)
+
     def __init__(self, config):
         """
         Initialize spam analyzer
@@ -155,28 +162,39 @@ class SpamAnalyzer:
         score = 0.0
         indicators = []
         
-        body = (text_body + " " + html_body).lower()
+        # Optimization: Avoid large string concatenation and lowercasing
+        # Instead, scan text and html separately with compiled regex
         
-        # Check spam keywords
         keyword_matches = 0
-        for pattern in self.SPAM_KEYWORDS:
-            matches = len(re.findall(pattern, body))
-            if matches > 0:
-                keyword_matches += matches
-                score += matches * 0.5
         
+        # Check spam keywords in text body
+        if text_body:
+            keyword_matches += len(self.COMBINED_SPAM_PATTERN.findall(text_body))
+
+        # Check spam keywords in html body
+        if html_body:
+            keyword_matches += len(self.COMBINED_SPAM_PATTERN.findall(html_body))
+
         if keyword_matches > 0:
+            score += keyword_matches * 0.5
             indicators.append(f"Found {keyword_matches} spam keyword matches")
         
         # Check for excessive links
-        link_count = len(re.findall(r'https?://', body))
+        link_regex = re.compile(r'https?://', re.IGNORECASE)
+        link_count = 0
+        if text_body:
+            link_count += len(link_regex.findall(text_body))
+        if html_body:
+            link_count += len(link_regex.findall(html_body))
+
         if link_count > 10:
             score += 1.0
             indicators.append(f"Excessive links ({link_count})")
         
         # Check for image-only emails (common in spam)
         if html_body and len(text_body.strip()) < 50:
-            img_count = body.count('<img')
+            # Only check HTML for img tags, case-insensitive
+            img_count = len(re.findall(r'<img\b', html_body, re.IGNORECASE))
             if img_count > 2:
                 score += 1.0
                 indicators.append("Image-heavy email with little text")
@@ -184,7 +202,7 @@ class SpamAnalyzer:
         # Check for hidden text (common spam technique)
         if html_body:
             # Look for text with very small font or matching background color
-            if re.search(r'font-size:\s*[0-2]px|color:\s*#fff.*background.*#fff', html_body):
+            if re.search(r'font-size:\s*[0-2]px|color:\s*#fff.*background.*#fff', html_body, re.IGNORECASE):
                 score += 2.0
                 indicators.append("Hidden text detected")
         
@@ -203,18 +221,10 @@ class SpamAnalyzer:
                 parsed = urlparse(url)
                 domain = parsed.netloc
                 
-                # Check against suspicious patterns
-                for pattern in self.SUSPICIOUS_URL_PATTERNS:
-                    if re.search(pattern, domain):
-                        score += 0.5
-                        suspicious.append(url)
-                        break
-                
-                # Check for URL shorteners
-                if any(shortener in domain for shortener in ['bit.ly', 'tinyurl', 't.co', 'goo.gl']):
+                # Check against suspicious patterns using compiled regex
+                if self.COMBINED_URL_PATTERN.search(domain):
                     score += 0.5
-                    if url not in suspicious:
-                        suspicious.append(url)
+                    suspicious.append(url)
                 
                 # Check for mismatched display text and actual URL
                 # This would require more context from HTML parsing
