@@ -9,6 +9,7 @@ from typing import List, Dict, Tuple
 from dataclasses import dataclass
 import torch
 
+import torch
 from .email_ingestion import EmailData
 
 
@@ -100,17 +101,18 @@ class NLPThreatAnalyzer:
     
     def _should_use_ml_model(self) -> bool:
         """Check if ML model should be loaded"""
-        # For now, we'll use pattern-based analysis
-        # Set to True when transformer models are needed
         return True
     
     def _initialize_model(self):
         """Initialize transformer model"""
         try:
             from transformers import AutoTokenizer, AutoModelForSequenceClassification
-            self.tokenizer = AutoTokenizer.from_pretrained(self.config.nlp_model)
-            self.model = AutoModelForSequenceClassification.from_pretrained(self.config.nlp_model)
-            self.logger.info("ML model initialized")
+
+            model_name = getattr(self.config, 'nlp_model', 'distilbert-base-uncased')
+            self.tokenizer = AutoTokenizer.from_pretrained(model_name)
+            self.model = AutoModelForSequenceClassification.from_pretrained(model_name)
+            self.model.eval()
+            self.logger.info(f"ML model initialized with {model_name}")
         except Exception as e:
             self.logger.warning(f"Could not load ML model: {e}")
             self.model = None
@@ -321,7 +323,31 @@ class NLPThreatAnalyzer:
             import torch
             # Tokenize and predict
             inputs = self.tokenizer(text, return_tensors="pt", truncation=True, max_length=512)
-            self.model.eval()
+            device = next(self.model.parameters()).device
+            inputs = {k: v.to(device) for k, v in inputs.items()}
+
+            with torch.no_grad():
+                outputs = self.model(**inputs)
+                predictions = torch.softmax(outputs.logits, dim=-1)
+
+            # NOTE: The current model is a binary sentiment classifier (e.g., SST-2), where
+            # 0 = negative sentiment, 1 = positive sentiment.
+            # This is NOT a threat detection model. For demonstration purposes, we are
+            # using the probability of the "positive" class (index 1) as a placeholder
+            # for "threat probability". This mapping is arbitrary and should be replaced
+            # with a dedicated threat detection model in production.
+
+            # If using a specific threat model, adjust index accordingly
+            # For SST-2, class 0 (negative) is mapped to threat probability
+            threat_prob = predictions[0][0].item()
+            confidence = max(predictions[0]).item()
+            
+            # Dynamically determine which index corresponds to the 'threat' label
+            id2label = getattr(self.model.config, "id2label", None)
+            threat_index = None
+            if id2label:
+                for idx, label in id2label.items():
+                    if label.strip().lower() == "threat":
             with torch.no_grad():
                 outputs = self.model(**inputs)
                 predictions = torch.softmax(outputs.logits, dim=-1)
@@ -342,7 +368,7 @@ class NLPThreatAnalyzer:
 
             # Return results
             return {
-                "threat_probability": threat_probability,
+                "threat_probability": threat_prob,
                 "confidence": confidence
             }
         except Exception as e:
