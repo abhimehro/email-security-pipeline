@@ -14,6 +14,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src.utils.config import Config
+from src.utils.sanitization import sanitize_for_logging
 from src.modules.email_ingestion import EmailIngestionManager
 from src.modules.spam_analyzer import SpamAnalyzer
 from src.modules.nlp_analyzer import NLPThreatAnalyzer
@@ -146,7 +147,8 @@ class EmailSecurityPipeline:
             email_data: EmailData object
         """
         try:
-            self.logger.info(f"Analyzing email: {email_data.subject[:50]}...")
+            safe_subject = sanitize_for_logging(email_data.subject, max_length=50)
+            self.logger.info(f"Analyzing email: {safe_subject}...")
 
             # Layer 1: Spam Analysis
             spam_result = self.spam_analyzer.analyze(email_data)
