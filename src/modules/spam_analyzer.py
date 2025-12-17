@@ -56,7 +56,23 @@ class SpamAnalyzer:
         re.compile(r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}'),  # IP addresses
         re.compile(r'[a-z0-9\-]{30,}'),  # Very long subdomain/path
     ]
+
+    # Pre-compiled regex patterns
+    MONEY_REGEX = re.compile(r'\$\d+|\d+\s*(dollar|usd|euro)', re.IGNORECASE)
+    LINK_REGEX = re.compile(r'https?://', re.IGNORECASE)
+    IMG_TAG_REGEX = re.compile(r'<img\b', re.IGNORECASE)
+    HIDDEN_TEXT_REGEX = re.compile(r'font-size:\s*[0-2]px|color:\s*#fff.*background.*#fff', re.IGNORECASE)
+    URL_EXTRACT_REGEX = re.compile(r'https?://[^\s<>"]+', re.IGNORECASE)
+    EMAIL_REGEX = re.compile(r'[\w\.-]+@[\w\.-]+')
+    SENDER_EMAIL_REGEX = re.compile(r'[\w\.-]+@([\w\.-]+)', re.IGNORECASE)
+    DISPLAY_NAME_REGEX = re.compile(r'^([^<]+)<', re.IGNORECASE)
+
+    # Compile suspicious URL patterns
+    COMPILED_SUSPICIOUS_URL_PATTERNS = [re.compile(p, re.IGNORECASE) for p in SUSPICIOUS_URL_PATTERNS]
     
+    # Pre-compiled combined pattern for performance
+    COMBINED_URL_PATTERN = re.compile('|'.join(SUSPICIOUS_URL_PATTERNS), re.IGNORECASE)
+
     def __init__(self, config):
         """
         Initialize spam analyzer
@@ -240,8 +256,7 @@ class SpamAnalyzer:
                 # Check for URL shorteners
                 if any(shortener in domain for shortener in ['bit.ly', 'tinyurl', 't.co', 'goo.gl']):
                     score += 0.5
-                    if url not in suspicious:
-                        suspicious.append(url)
+                    suspicious.append(url)
                 
                 # Check for mismatched display text and actual URL
                 # This would require more context from HTML parsing

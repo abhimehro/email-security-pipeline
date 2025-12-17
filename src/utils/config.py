@@ -43,6 +43,10 @@ class AnalysisConfig:
     check_media_attachments: bool
     deepfake_detection_enabled: bool
     media_analysis_timeout: int
+    deepfake_provider: str
+    deepfake_api_key: Optional[str]
+    deepfake_api_url: Optional[str]
+    deepfake_model_path: Optional[str]
 
 
 @dataclass
@@ -144,7 +148,11 @@ class Config:
             check_authority_impersonation=self._get_bool("CHECK_AUTHORITY_IMPERSONATION", True),
             check_media_attachments=self._get_bool("CHECK_MEDIA_ATTACHMENTS", True),
             deepfake_detection_enabled=self._get_bool("DEEPFAKE_DETECTION_ENABLED", True),
-            media_analysis_timeout=int(os.getenv("MEDIA_ANALYSIS_TIMEOUT", "60"))
+            media_analysis_timeout=int(os.getenv("MEDIA_ANALYSIS_TIMEOUT", "60")),
+            deepfake_provider=os.getenv("DEEPFAKE_PROVIDER", "simulator"),
+            deepfake_api_key=os.getenv("DEEPFAKE_API_KEY"),
+            deepfake_api_url=os.getenv("DEEPFAKE_API_URL"),
+            deepfake_model_path=os.getenv("DEEPFAKE_MODEL_PATH")
         )
 
     def _load_alert_config(self) -> AlertConfig:

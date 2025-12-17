@@ -7,6 +7,7 @@ import re
 import logging
 from typing import List, Dict, Tuple
 from dataclasses import dataclass
+import torch
 
 from .email_ingestion import EmailData
 
@@ -101,18 +102,19 @@ class NLPThreatAnalyzer:
         """Check if ML model should be loaded"""
         # For now, we'll use pattern-based analysis
         # Set to True when transformer models are needed
-        return False
+        return True
     
     def _initialize_model(self):
-        """Initialize transformer model (placeholder for future enhancement)"""
+        """Initialize transformer model"""
         try:
-            # Uncomment when needed:
-            # from transformers import AutoTokenizer, AutoModelForSequenceClassification
-            # self.tokenizer = AutoTokenizer.from_pretrained(self.config.nlp_model)
-            # self.model = AutoModelForSequenceClassification.from_pretrained(self.config.nlp_model)
-            self.logger.info("ML model initialized (placeholder)")
+            from transformers import AutoTokenizer, AutoModelForSequenceClassification
+            self.tokenizer = AutoTokenizer.from_pretrained(self.config.nlp_model)
+            self.model = AutoModelForSequenceClassification.from_pretrained(self.config.nlp_model)
+            self.logger.info("ML model initialized")
         except Exception as e:
             self.logger.warning(f"Could not load ML model: {e}")
+            self.model = None
+            self.tokenizer = None
     
     def analyze(self, email_data: EmailData) -> NLPAnalysisResult:
         """
@@ -156,6 +158,40 @@ class NLPThreatAnalyzer:
         score, indicators = self._detect_psychological_triggers(text_lower)
         threat_score += score
         psychological_triggers.extend(indicators)
+
+        # Integration of Transformer Model Predictions into Threat Scoring
+        # ---------------------------------------------------------------
+        # If a transformer model and tokenizer are available, we analyze the email text using the model.
+        # The model is expected to output a "threat probability" (between 0 and 1).
+        # If the probability exceeds a threshold (0.5), we map the excess probability (ml_threat_prob - 0.5)
+        # to a threat score increment (scaled to a maximum of 10 points for ml_threat_prob=1.0).
+        # This is done via: ml_score = (ml_threat_prob - 0.5) * 20
+        # The ML-derived score is then added to the overall threat_score.
+        # 
+        # Assumptions and Caveats:
+        # - The default model ('distilbert-base-uncased') is not fine-tuned for threat detection,
+        #   so its predictions may not be meaningful. The weighting is kept low and the logic is
+        #   structured to allow for future use of a fine-tuned model.
+        # - If a high threat probability is detected, an indicator is appended to the results.
+        if self.model and self.tokenizer:
+            transformer_results = self.analyze_with_transformer(text)
+            if "error" not in transformer_results:
+                ml_threat_prob = transformer_results.get("threat_probability", 0.0)
+                # Weighted addition of ML score
+                # Scale probability (0-1) to threat score points (0-10 roughly)
+                # Assuming ML is more accurate, we might give it significant weight
+                # However, since the default model is not fine-tuned, we keep the weight low or handle it carefully.
+
+                # NOTE: Without a fine-tuned model, predictions from 'distilbert-base-uncased'
+                # (default config) might not be meaningful for "threat" specifically.
+                # Assuming the user will provide a proper model or this is a structure setup.
+
+                # If the probability suggests a threat (>0.5), we increase the score.
+                if ml_threat_prob > 0.5:
+                    ml_score = (ml_threat_prob - 0.5) * 20 # Map 0.5-1.0 to 0-10 points
+                    threat_score += ml_score
+                    social_engineering.append(f"ML Model detected high threat probability: {ml_threat_prob:.2f}")
+
         
         # Calculate risk level
         risk_level = self._calculate_risk_level(threat_score)
@@ -270,7 +306,7 @@ class NLPThreatAnalyzer:
     
     def analyze_with_transformer(self, text: str) -> Dict:
         """
-        Analyze text using transformer model (future enhancement)
+        Analyze text using transformer model
         
         Args:
             text: Text to analyze
@@ -282,15 +318,32 @@ class NLPThreatAnalyzer:
             return {"error": "Model not loaded"}
         
         try:
+            import torch
             # Tokenize and predict
-            # inputs = self.tokenizer(text, return_tensors="pt", truncation=True, max_length=512)
-            # outputs = self.model(**inputs)
-            # predictions = torch.softmax(outputs.logits, dim=-1)
+            inputs = self.tokenizer(text, return_tensors="pt", truncation=True, max_length=512)
+            self.model.eval()
+            with torch.no_grad():
+                outputs = self.model(**inputs)
+                predictions = torch.softmax(outputs.logits, dim=-1)
             
+            # Expecting a 2-class softmax output: [non-threat probability, threat probability]
+            # Index 0 = non-threat, Index 1 = threat. If model output does not match this, raise an error.
+            if predictions.shape[-1] != 2:
+                self.logger.error(
+                    f"Expected model output with 2 classes ([non-threat, threat]), but got shape {predictions.shape}. "
+                    "Please ensure the model is a binary classifier with [non-threat, threat] class order."
+                )
+                return {
+                    "error": f"Model output shape {predictions.shape} is not supported. Expected 2-class output ([non-threat, threat])."
+                }
+            threat_probability = float(predictions[0][1])
+            predicted_class = torch.argmax(predictions, dim=-1).item()
+            confidence = float(predictions[0][predicted_class])
+
             # Return results
             return {
-                "threat_probability": 0.0,  # Placeholder
-                "confidence": 0.0
+                "threat_probability": threat_probability,
+                "confidence": confidence
             }
         except Exception as e:
             self.logger.error(f"Transformer analysis error: {e}")
