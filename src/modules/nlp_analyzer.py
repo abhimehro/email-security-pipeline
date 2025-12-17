@@ -7,6 +7,7 @@ import re
 import logging
 from typing import List, Dict, Tuple
 from dataclasses import dataclass
+import torch
 
 import torch
 from .email_ingestion import EmailData
@@ -114,6 +115,8 @@ class NLPThreatAnalyzer:
             self.logger.info(f"ML model initialized with {model_name}")
         except Exception as e:
             self.logger.warning(f"Could not load ML model: {e}")
+            self.model = None
+            self.tokenizer = None
     
     def analyze(self, email_data: EmailData) -> NLPAnalysisResult:
         """
@@ -157,6 +160,40 @@ class NLPThreatAnalyzer:
         score, indicators = self._detect_psychological_triggers(text_lower)
         threat_score += score
         psychological_triggers.extend(indicators)
+
+        # Integration of Transformer Model Predictions into Threat Scoring
+        # ---------------------------------------------------------------
+        # If a transformer model and tokenizer are available, we analyze the email text using the model.
+        # The model is expected to output a "threat probability" (between 0 and 1).
+        # If the probability exceeds a threshold (0.5), we map the excess probability (ml_threat_prob - 0.5)
+        # to a threat score increment (scaled to a maximum of 10 points for ml_threat_prob=1.0).
+        # This is done via: ml_score = (ml_threat_prob - 0.5) * 20
+        # The ML-derived score is then added to the overall threat_score.
+        # 
+        # Assumptions and Caveats:
+        # - The default model ('distilbert-base-uncased') is not fine-tuned for threat detection,
+        #   so its predictions may not be meaningful. The weighting is kept low and the logic is
+        #   structured to allow for future use of a fine-tuned model.
+        # - If a high threat probability is detected, an indicator is appended to the results.
+        if self.model and self.tokenizer:
+            transformer_results = self.analyze_with_transformer(text)
+            if "error" not in transformer_results:
+                ml_threat_prob = transformer_results.get("threat_probability", 0.0)
+                # Weighted addition of ML score
+                # Scale probability (0-1) to threat score points (0-10 roughly)
+                # Assuming ML is more accurate, we might give it significant weight
+                # However, since the default model is not fine-tuned, we keep the weight low or handle it carefully.
+
+                # NOTE: Without a fine-tuned model, predictions from 'distilbert-base-uncased'
+                # (default config) might not be meaningful for "threat" specifically.
+                # Assuming the user will provide a proper model or this is a structure setup.
+
+                # If the probability suggests a threat (>0.5), we increase the score.
+                if ml_threat_prob > 0.5:
+                    ml_score = (ml_threat_prob - 0.5) * 20 # Map 0.5-1.0 to 0-10 points
+                    threat_score += ml_score
+                    social_engineering.append(f"ML Model detected high threat probability: {ml_threat_prob:.2f}")
+
         
         # Calculate risk level
         risk_level = self._calculate_risk_level(threat_score)
@@ -304,6 +341,25 @@ class NLPThreatAnalyzer:
             threat_prob = predictions[0][0].item()
             confidence = max(predictions[0]).item()
             
+            # Dynamically determine which index corresponds to the 'threat' label
+            id2label = getattr(self.model.config, "id2label", None)
+            threat_index = None
+            if id2label:
+                for idx, label in id2label.items():
+                    if label.strip().lower() == "threat":
+            with torch.no_grad():
+                outputs = self.model(**inputs)
+                predictions = torch.softmax(outputs.logits, dim=-1)
+            
+                # Assuming binary classification where index 1 is threat
+                # If the model has different labels, this logic needs adjustment
+                if predictions.shape[1] >= 2:
+                     threat_probability = predictions[0][1].item()
+                else:
+                     threat_probability = predictions[0][0].item() # Fallback for single output
+
+                confidence = torch.max(predictions).item()
+
             # Return results
             return {
                 "threat_probability": threat_prob,
