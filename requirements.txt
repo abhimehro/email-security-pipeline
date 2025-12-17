@@ -3,9 +3,9 @@ python-dotenv==1.0.0
 requests==2.32.4
 
 # Optional: NLP and ML (uncomment when needed)
-# transformers==4.35.0
-# torch==2.1.0
-# sentencepiece==0.1.99
+transformers==4.35.0
+torch==2.1.0
+sentencepiece==0.1.99
 
 # Optional: Database support
 # sqlite3  # Built-in to Python
