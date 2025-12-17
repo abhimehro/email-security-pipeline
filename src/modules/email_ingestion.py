@@ -195,19 +195,48 @@ class IMAPClient:
             self.logger.info(f"Found {len(email_ids)} unseen emails in {folder}")
 
             emails = []
-            for email_id in email_ids:
-                time.sleep(self.rate_limit_delay)  # Rate limiting
+            batch_size = 10  # Process in small batches to respect rate limits while improving speed
+
+            for i in range(0, len(email_ids), batch_size):
+                if i > 0:
+                    time.sleep(self.rate_limit_delay)  # Rate limiting between batches
+
+                batch_ids = email_ids[i : i + batch_size]
+                # Join IDs with comma (b"1,2,3")
+                ids_str = b",".join(batch_ids)
 
                 try:
-                    status, data = self.connection.fetch(email_id, "(RFC822)")
-                    if status == "OK" and isinstance(data, list) and len(data) > 0 and data[0]:
-                        raw_bytes = data[0][1]
-                        if isinstance(raw_bytes, bytes):
-                            emails.append((email_id.decode(), raw_bytes))
-                        else:
-                            self.logger.warning(f"Unexpected payload type for email {email_id}: {type(raw_bytes)}")
+                    status, data = self.connection.fetch(ids_str, "(RFC822)")
+                    if status == "OK" and isinstance(data, list):
+                        for item in data:
+                            if isinstance(item, tuple):
+                                # item is (header, body)
+                                # header is typically b'seq (RFC822 {size}'
+                                header = item[0]
+                                raw_bytes = item[1]
+
+                                # Extract sequence number from header
+                                # e.g. b'123 (RFC822 {456}' -> b'123'
+                                try:
+                                    msg_seq = header.split()[0]
+                                    if isinstance(raw_bytes, bytes):
+                                        emails.append((msg_seq.decode(), raw_bytes))
+                                    else:
+                                        self.logger.warning(
+                                            f"Unexpected payload type for email {msg_seq}: {type(raw_bytes)}"
+                                        )
+                                except Exception as parse_err:
+                                    self.logger.error(
+                                        f"Error parsing email header {header}: {parse_err}"
+                                    )
+
+                    else:
+                        self.logger.warning(
+                            f"Failed to fetch batch {ids_str}: {status}"
+                        )
+
                 except Exception as e:
-                    self.logger.error(f"Error fetching email {email_id}: {e}")
+                    self.logger.error(f"Error fetching email batch {ids_str}: {e}")
 
             return emails
 
