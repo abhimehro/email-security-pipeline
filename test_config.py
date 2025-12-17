@@ -230,6 +230,10 @@ def test_imap_connections(test_connections=True):
         return False
 
 
+import subprocess
+import json
+from pathlib import Path
+
 def test_folder_parsing():
     """Test folder parsing functionality"""
     print("\n" + "=" * 60)
@@ -270,6 +274,81 @@ def test_folder_parsing():
         return False
 
 
+def test_diagnostics_script():
+    """Test the connectivity diagnostics script"""
+    print("\n" + "=" * 60)
+    print("Test 6: Connectivity Diagnostics Script")
+    print("=" * 60)
+
+    try:
+        from src.utils.config import Config
+        config = Config(".env")
+
+        if not config.email_accounts:
+            print("⚠️ No email accounts configured, skipping diagnostics script test")
+            return True
+
+        # Find the first enabled email account to test
+        test_account_email = None
+        for acc in config.email_accounts:
+            if acc.enabled:
+                test_account_email = acc.email
+                break
+
+        if not test_account_email:
+            print("⚠️ No enabled email accounts found, skipping diagnostics script test")
+            return True
+
+        print(f"Testing diagnostics for: {test_account_email}")
+
+        script_path = "./scripts/diagnose_connectivity.py"
+        if not Path(script_path).exists():
+             print(f"❌ ERROR: Diagnostics script not found at {script_path}")
+             return False
+
+        result = subprocess.run(
+            ["python3", script_path, test_account_email],
+            capture_output=True,
+            text=True,
+            check=False
+        )
+
+        if result.returncode != 0:
+            print(f"❌ Script failed with return code {result.returncode}")
+            print(f"   Stderr: {result.stderr}")
+            return False
+
+        try:
+            output = json.loads(result.stdout)
+            print("✓ Script produced valid JSON output")
+
+            required_keys = ["server_reachable", "port_open", "ssl_valid", "credentials_valid"]
+            if all(key in output for key in required_keys):
+                print("✓ JSON output contains all required keys")
+                # Basic check on a nested value
+                if "host_resolved" in output.get("server_reachable", {}):
+                     print("✓ Nested structure appears correct")
+                     print("\n✓ Diagnostics script test PASSED")
+                     return True
+                else:
+                     print("❌ Nested structure is incorrect")
+                     return False
+            else:
+                print(f"❌ JSON output missing required keys. Found: {list(output.keys())}")
+                return False
+
+        except json.JSONDecodeError:
+            print("❌ Script output is not valid JSON")
+            print(f"   Stdout: {result.stdout}")
+            return False
+
+    except Exception as e:
+        print(f"❌ ERROR: {e}")
+        import traceback
+        traceback.print_exc()
+        return False
+
+
 def main():
     """Run all tests"""
     print("\n" + "=" * 60)
@@ -288,6 +367,7 @@ def main():
     results.append(("Analyzer Initialization", test_analyzer_initialization()))
     results.append(("Folder Parsing", test_folder_parsing()))
     results.append(("IMAP Connections", test_imap_connections(test_connections)))
+    results.append(("Diagnostics Script", test_diagnostics_script()))
 
     # Summary
     print("\n" + "=" * 60)
