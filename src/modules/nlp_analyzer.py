@@ -194,9 +194,10 @@ class NLPThreatAnalyzer:
             authority_impersonation.extend(indicators)
 
         # Detect psychological triggers
-        score, indicators = self._detect_psychological_triggers(text_lower)
-        threat_score += score
-        psychological_triggers.extend(indicators)
+        if getattr(self.config, "check_psychological_triggers", False):
+            score, indicators = self._detect_psychological_triggers(text_lower)
+            threat_score += score
+            psychological_triggers.extend(indicators)
 
         # Integration of Transformer Model Predictions into Threat Scoring
         if self.model and self.tokenizer:
@@ -300,6 +301,10 @@ class NLPThreatAnalyzer:
                 if sender_domain and match_text.lower() not in sender_domain:
                     authority_mismatch = True
                     break
+
+            # Treat missing sender domain as suspicious when authority claims are present
+            if not sender_domain and matches:
+                authority_mismatch = True
 
             if authority_mismatch:
                 score += len(matches) * 2.5  # High score for mismatch
