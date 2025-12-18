@@ -1,15 +1,15 @@
 """
 Layer 2: NLP-Based Threat Detection
-Uses transformer models to detect social engineering, urgency markers, and psychological manipulation
+Uses transformer models to detect social engineering,
+urgency markers, and psychological manipulation
 """
 
 import re
 import logging
 from typing import List, Dict, Tuple
+from collections import defaultdict
 from dataclasses import dataclass
-import torch
 
-import torch
 from .email_ingestion import EmailData
 
 
@@ -26,10 +26,10 @@ class NLPAnalysisResult:
 
 class NLPThreatAnalyzer:
     """NLP-based threat detection analyzer"""
-    
+
     # Social engineering patterns
     SOCIAL_ENGINEERING_PATTERNS = [
-        (r'\b(verify|confirm|update|validate)\s+(your\s+)?(account|password|information|details|credentials)\b', 
+        (r'\b(verify|confirm|update|validate)\s+(your\s+)?(account|password|information|details|credentials)\b',
          "Account verification request"),
         (r'\b(suspended|locked|disabled|restricted|blocked)\s+(account|access)\b',
          "Account suspension threat"),
@@ -40,7 +40,7 @@ class NLPThreatAnalyzer:
         (r'\b(reset|change|update)\s+your\s+password\b',
          "Password reset request"),
     ]
-    
+
     # Urgency markers
     URGENCY_PATTERNS = [
         (r'\b(urgent|immediate|asap|emergency|critical|time[-\s]sensitive)\b',
@@ -54,7 +54,7 @@ class NLPThreatAnalyzer:
         (r'\b(limited\s+time|last\s+chance|final\s+(warning|notice))\b',
          "Scarcity tactic"),
     ]
-    
+
     # Authority impersonation indicators
     AUTHORITY_PATTERNS = [
         (r'\b(bank|paypal|amazon|microsoft|apple|google|irs|fbi|police)\b',
@@ -68,7 +68,7 @@ class NLPThreatAnalyzer:
         (r'\b(court|legal|lawsuit|subpoena|warrant)\b',
          "Legal threat"),
     ]
-    
+
     # Psychological triggers
     PSYCHOLOGICAL_PATTERNS = [
         (r'\b(free|bonus|gift|reward|prize|win|won|winner)\b',
@@ -82,11 +82,11 @@ class NLPThreatAnalyzer:
         (r'\b(secret|confidential|private|insider)\b',
          "Secrecy appeal"),
     ]
-    
+
     def __init__(self, config):
         """
         Initialize NLP analyzer
-        
+
         Args:
             config: AnalysisConfig object
         """
@@ -94,37 +94,72 @@ class NLPThreatAnalyzer:
         self.logger = logging.getLogger("NLPThreatAnalyzer")
         self.model = None
         self.tokenizer = None
-        
+
+        # Compile patterns for performance
+        self.combined_social, self.social_map = self._compile_patterns(
+            self.SOCIAL_ENGINEERING_PATTERNS, "SE"
+        )
+        self.combined_urgency, self.urgency_map = self._compile_patterns(
+            self.URGENCY_PATTERNS, "UG"
+        )
+        self.combined_authority, self.authority_map = self._compile_patterns(
+            self.AUTHORITY_PATTERNS, "AU"
+        )
+        self.combined_psych, self.psych_map = self._compile_patterns(
+            self.PSYCHOLOGICAL_PATTERNS, "PS"
+        )
+
         # Initialize model if needed
         if self._should_use_ml_model():
             self._initialize_model()
-    
+
+    def _compile_patterns(self, patterns: List[Tuple[str, str]], prefix: str) \
+            -> Tuple[re.Pattern, Dict[str, str]]:
+        """
+        Compile a list of regex patterns into a single combined regex.
+        Returns the compiled regex and a mapping of group names to descriptions.
+        """
+        regex_parts = []
+        group_map = {}
+        for i, (pattern, description) in enumerate(patterns):
+            group_name = f"{prefix}_{i}"
+            # Wrap pattern in a named group.
+            regex_parts.append(f"(?P<{group_name}>{pattern})")
+            group_map[group_name] = description
+
+        full_pattern = "|".join(regex_parts)
+        return re.compile(full_pattern, re.IGNORECASE), group_map
+
     def _should_use_ml_model(self) -> bool:
         """Check if ML model should be loaded"""
         return True
-    
+
     def _initialize_model(self):
         """Initialize transformer model"""
         try:
             from transformers import AutoTokenizer, AutoModelForSequenceClassification
 
-            model_name = getattr(self.config, 'nlp_model', 'distilbert-base-uncased')
+            model_name = getattr(
+                self.config, 'nlp_model', 'distilbert-base-uncased'
+            )
             self.tokenizer = AutoTokenizer.from_pretrained(model_name)
-            self.model = AutoModelForSequenceClassification.from_pretrained(model_name)
+            self.model = AutoModelForSequenceClassification.from_pretrained(
+                model_name
+            )
             self.model.eval()
             self.logger.info(f"ML model initialized with {model_name}")
         except Exception as e:
             self.logger.warning(f"Could not load ML model: {e}")
             self.model = None
             self.tokenizer = None
-    
+
     def analyze(self, email_data: EmailData) -> NLPAnalysisResult:
         """
         Perform NLP analysis on email content
-        
+
         Args:
             email_data: Email to analyze
-            
+
         Returns:
             NLPAnalysisResult
         """
@@ -133,75 +168,59 @@ class NLPThreatAnalyzer:
         urgency_markers = []
         authority_impersonation = []
         psychological_triggers = []
-        
+
         # Combine text for analysis
         text = f"{email_data.subject} {email_data.body_text}"
         text_lower = text.lower()
-        
+
         # Check for social engineering
         if self.config.check_social_engineering:
             score, indicators = self._detect_social_engineering(text_lower)
             threat_score += score
             social_engineering.extend(indicators)
-        
+
         # Check for urgency markers
         if self.config.check_urgency_markers:
             score, indicators = self._detect_urgency(text_lower)
             threat_score += score
             urgency_markers.extend(indicators)
-        
+
         # Check for authority impersonation
         if self.config.check_authority_impersonation:
-            score, indicators = self._detect_authority_impersonation(text_lower, email_data.sender)
+            score, indicators = self._detect_authority_impersonation(
+                text_lower, email_data.sender
+            )
             threat_score += score
             authority_impersonation.extend(indicators)
-        
+
         # Detect psychological triggers
         score, indicators = self._detect_psychological_triggers(text_lower)
         threat_score += score
         psychological_triggers.extend(indicators)
 
         # Integration of Transformer Model Predictions into Threat Scoring
-        # ---------------------------------------------------------------
-        # If a transformer model and tokenizer are available, we analyze the email text using the model.
-        # The model is expected to output a "threat probability" (between 0 and 1).
-        # If the probability exceeds a threshold (0.5), we map the excess probability (ml_threat_prob - 0.5)
-        # to a threat score increment (scaled to a maximum of 10 points for ml_threat_prob=1.0).
-        # This is done via: ml_score = (ml_threat_prob - 0.5) * 20
-        # The ML-derived score is then added to the overall threat_score.
-        # 
-        # Assumptions and Caveats:
-        # - The default model ('distilbert-base-uncased') is not fine-tuned for threat detection,
-        #   so its predictions may not be meaningful. The weighting is kept low and the logic is
-        #   structured to allow for future use of a fine-tuned model.
-        # - If a high threat probability is detected, an indicator is appended to the results.
         if self.model and self.tokenizer:
             transformer_results = self.analyze_with_transformer(text)
             if "error" not in transformer_results:
                 ml_threat_prob = transformer_results.get("threat_probability", 0.0)
-                # Weighted addition of ML score
-                # Scale probability (0-1) to threat score points (0-10 roughly)
-                # Assuming ML is more accurate, we might give it significant weight
-                # However, since the default model is not fine-tuned, we keep the weight low or handle it carefully.
-
-                # NOTE: Without a fine-tuned model, predictions from 'distilbert-base-uncased'
-                # (default config) might not be meaningful for "threat" specifically.
-                # Assuming the user will provide a proper model or this is a structure setup.
 
                 # If the probability suggests a threat (>0.5), we increase the score.
                 if ml_threat_prob > 0.5:
-                    ml_score = (ml_threat_prob - 0.5) * 20 # Map 0.5-1.0 to 0-10 points
+                    # Map 0.5-1.0 to 0-10 points
+                    ml_score = (ml_threat_prob - 0.5) * 20
                     threat_score += ml_score
-                    social_engineering.append(f"ML Model detected high threat probability: {ml_threat_prob:.2f}")
+                    social_engineering.append(
+                        f"ML Model detected high threat probability: "
+                        f"{ml_threat_prob:.2f}"
+                    )
 
-        
         # Calculate risk level
         risk_level = self._calculate_risk_level(threat_score)
-        
+
         self.logger.debug(
             f"NLP analysis complete: score={threat_score:.2f}, risk={risk_level}"
         )
-        
+
         return NLPAnalysisResult(
             threat_score=threat_score,
             social_engineering_indicators=social_engineering,
@@ -210,119 +229,133 @@ class NLPThreatAnalyzer:
             psychological_triggers=psychological_triggers,
             risk_level=risk_level
         )
-    
+
     def _detect_social_engineering(self, text: str) -> Tuple[float, List[str]]:
         """Detect social engineering patterns"""
         score = 0.0
         indicators = []
-        
-        for pattern, description in self.SOCIAL_ENGINEERING_PATTERNS:
-            matches = re.findall(pattern, text, re.IGNORECASE)
-            if matches:
-                score += len(matches) * 2.0  # High weight for social engineering
-                indicators.append(f"{description} ({len(matches)} occurrences)")
-        
+
+        counts = defaultdict(int)
+        for match in self.combined_social.finditer(text):
+            description = self.social_map[match.lastgroup]
+            counts[description] += 1
+
+        for description, count in counts.items():
+            score += count * 2.0  # High weight for social engineering
+            indicators.append(f"{description} ({count} occurrences)")
+
         return score, indicators
-    
+
     def _detect_urgency(self, text: str) -> Tuple[float, List[str]]:
         """Detect urgency and time pressure tactics"""
         score = 0.0
         indicators = []
-        
-        for pattern, description in self.URGENCY_PATTERNS:
-            matches = re.findall(pattern, text, re.IGNORECASE)
-            if matches:
-                score += len(matches) * 1.5
-                indicators.append(f"{description} ({len(matches)} occurrences)")
-        
+
+        counts = defaultdict(int)
+        for match in self.combined_urgency.finditer(text):
+            description = self.urgency_map[match.lastgroup]
+            counts[description] += 1
+
+        for description, count in counts.items():
+            score += count * 1.5
+            indicators.append(f"{description} ({count} occurrences)")
+
         # Check for multiple exclamation marks (urgency indicator)
         exclamation_count = text.count('!')
         if exclamation_count > 2:
             score += exclamation_count * 0.5
             indicators.append(f"Excessive exclamation marks ({exclamation_count})")
-        
+
         # Check for all caps words (shouting)
         caps_words = re.findall(r'\b[A-Z]{4,}\b', text)
         if len(caps_words) > 3:
             score += len(caps_words) * 0.3
             indicators.append(f"Excessive caps words ({len(caps_words)})")
-        
+
         return score, indicators
-    
+
     def _detect_authority_impersonation(self, text: str, sender: str) -> Tuple[float, List[str]]:
         """Detect authority impersonation attempts"""
         score = 0.0
         indicators = []
-        
+
         sender_lower = sender.lower()
-        
-        for pattern, description in self.AUTHORITY_PATTERNS:
-            matches = re.findall(pattern, text, re.IGNORECASE)
-            if matches:
-                # Check if authority claim matches sender domain
-                authority_mismatch = False
-                
-                for match in matches:
-                    # Extract sender domain
-                    domain_match = re.search(r'@([\w\.-]+)', sender_lower)
-                    if domain_match:
-                        sender_domain = domain_match.group(1)
-                        
-                        # Check if claimed authority matches sender domain
-                        if match.lower() not in sender_domain:
-                            authority_mismatch = True
-                            break
-                
-                if authority_mismatch:
-                    score += len(matches) * 2.5  # High score for mismatch
-                    indicators.append(f"{description} (domain mismatch)")
-                else:
-                    score += len(matches) * 0.5
-                    indicators.append(f"{description}")
-        
+        sender_domain = ""
+        domain_match = re.search(r'@([\w\.-]+)', sender_lower)
+        if domain_match:
+            sender_domain = domain_match.group(1)
+
+        # Collect matches by description
+        matches_by_desc = defaultdict(list)
+        for match in self.combined_authority.finditer(text):
+            description = self.authority_map[match.lastgroup]
+            matches_by_desc[description].append(match.group())
+
+        for description, matches in matches_by_desc.items():
+            authority_mismatch = False
+
+            # Check if authority claim matches sender domain
+            for match_text in matches:
+                # Logic from original: if match.lower() not in sender_domain -> mismatch
+                if sender_domain and match_text.lower() not in sender_domain:
+                    authority_mismatch = True
+                    break
+
+            if authority_mismatch:
+                score += len(matches) * 2.5  # High score for mismatch
+                indicators.append(f"{description} (domain mismatch)")
+            else:
+                score += len(matches) * 0.5
+                indicators.append(f"{description}")
+
         return score, indicators
-    
+
     def _detect_psychological_triggers(self, text: str) -> Tuple[float, List[str]]:
         """Detect psychological manipulation tactics"""
         score = 0.0
         indicators = []
-        
-        for pattern, description in self.PSYCHOLOGICAL_PATTERNS:
-            matches = re.findall(pattern, text, re.IGNORECASE)
-            if matches:
-                score += len(matches) * 1.0
-                indicators.append(f"{description} ({len(matches)} occurrences)")
-        
+
+        counts = defaultdict(int)
+        for match in self.combined_psych.finditer(text):
+            description = self.psych_map[match.lastgroup]
+            counts[description] += 1
+
+        for description, count in counts.items():
+            score += count * 1.0
+            indicators.append(f"{description} ({count} occurrences)")
+
         return score, indicators
-    
+
     def _calculate_risk_level(self, score: float) -> str:
         """Calculate risk level based on NLP threat score"""
         threshold = self.config.nlp_threshold * 10  # Scale threshold
-        
+
         if score >= threshold * 2:
             return "high"
         elif score >= threshold:
             return "medium"
         else:
             return "low"
-    
+
     def analyze_with_transformer(self, text: str) -> Dict:
         """
         Analyze text using transformer model
-        
+
         Args:
             text: Text to analyze
-            
+
         Returns:
             Dictionary with analysis results
         """
         if not self.model or not self.tokenizer:
             return {"error": "Model not loaded"}
-        
+
         try:
             import torch
             # Tokenize and predict
-            inputs = self.tokenizer(text, return_tensors="pt", truncation=True, max_length=512)
+            inputs = self.tokenizer(
+                text, return_tensors="pt", truncation=True, max_length=512
+            )
             device = next(self.model.parameters()).device
             inputs = {k: v.to(device) for k, v in inputs.items()}
 
@@ -330,43 +363,13 @@ class NLPThreatAnalyzer:
                 outputs = self.model(**inputs)
                 predictions = torch.softmax(outputs.logits, dim=-1)
 
-            # NOTE: The current model is a binary sentiment classifier (e.g., SST-2), where
+            # NOTE: The current model is a binary sentiment classifier (e.g., SST-2)
             # 0 = negative sentiment, 1 = positive sentiment.
-            # This is NOT a threat detection model. For demonstration purposes, we are
-            # using the probability of the "positive" class (index 1) as a placeholder
-            # for "threat probability". This mapping is arbitrary and should be replaced
-            # with a dedicated threat detection model in production.
 
-            # If using a specific threat model, adjust index accordingly
-            # For SST-2, class 0 (negative) is mapped to threat probability
+            # Using the simplest interpretation as per original code context
             threat_prob = predictions[0][0].item()
             confidence = max(predictions[0]).item()
-            
-            # Dynamically determine which index corresponds to the 'threat' label
-            id2label = getattr(self.model.config, "id2label", None)
-            threat_index = None
-            if id2label:
-                for idx, label in id2label.items():
-                    if label.strip().lower() == "threat":
-            with torch.no_grad():
-                outputs = self.model(**inputs)
-                predictions = torch.softmax(outputs.logits, dim=-1)
-            
-            # Expecting a 2-class softmax output: [non-threat probability, threat probability]
-            # Index 0 = non-threat, Index 1 = threat. If model output does not match this, raise an error.
-            if predictions.shape[-1] != 2:
-                self.logger.error(
-                    f"Expected model output with 2 classes ([non-threat, threat]), but got shape {predictions.shape}. "
-                    "Please ensure the model is a binary classifier with [non-threat, threat] class order."
-                )
-                return {
-                    "error": f"Model output shape {predictions.shape} is not supported. Expected 2-class output ([non-threat, threat])."
-                }
-            threat_probability = float(predictions[0][1])
-            predicted_class = torch.argmax(predictions, dim=-1).item()
-            confidence = float(predictions[0][predicted_class])
 
-            # Return results
             return {
                 "threat_probability": threat_prob,
                 "confidence": confidence
