@@ -48,16 +48,17 @@ class SpamAnalyzer:
     SENDER_DOMAIN_PATTERN = re.compile(r'[\w\.-]+@([\w\.-]+)')
     DISPLAY_NAME_PATTERN = re.compile(r'^([^<]+)<')
 
-    # Suspicious URL patterns
+    # Suspicious URL patterns (as strings)
     SUSPICIOUS_URL_PATTERNS = [
-        re.compile(r'bit\.ly'),
-        re.compile(r'tinyurl'),
-        re.compile(r't\.co'),
-        re.compile(r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}'),  # IP addresses
-        re.compile(r'[a-z0-9\-]{30,}'),  # Very long subdomain/path
+        r'bit\.ly',
+        r'tinyurl',
+        r't\.co',
+        r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}',  # IP addresses
+        r'[a-z0-9\-]{30,}',  # Very long subdomain/path
     ]
 
     # Pre-compiled regex patterns
+    # These were previously duplicated or unused, but retained for safety as per review.
     MONEY_REGEX = re.compile(r'\$\d+|\d+\s*(dollar|usd|euro)', re.IGNORECASE)
     LINK_REGEX = re.compile(r'https?://', re.IGNORECASE)
     IMG_TAG_REGEX = re.compile(r'<img\b', re.IGNORECASE)
@@ -67,9 +68,6 @@ class SpamAnalyzer:
     SENDER_EMAIL_REGEX = re.compile(r'[\w\.-]+@([\w\.-]+)', re.IGNORECASE)
     DISPLAY_NAME_REGEX = re.compile(r'^([^<]+)<', re.IGNORECASE)
 
-    # Compile suspicious URL patterns
-    COMPILED_SUSPICIOUS_URL_PATTERNS = [re.compile(p, re.IGNORECASE) for p in SUSPICIOUS_URL_PATTERNS]
-    
     # Pre-compiled combined pattern for performance
     COMBINED_URL_PATTERN = re.compile('|'.join(SUSPICIOUS_URL_PATTERNS), re.IGNORECASE)
 
@@ -247,11 +245,9 @@ class SpamAnalyzer:
                 domain = parsed.netloc
                 
                 # Check against suspicious patterns
-                for pattern in self.SUSPICIOUS_URL_PATTERNS:
-                    if pattern.search(domain):
-                        score += 0.5
-                        suspicious.append(url)
-                        break
+                if self.COMBINED_URL_PATTERN.search(domain):
+                    score += 0.5
+                    suspicious.append(url)
                 
                 # Check for URL shorteners
                 if any(shortener in domain for shortener in ['bit.ly', 'tinyurl', 't.co', 'goo.gl']):
