@@ -17,3 +17,8 @@ This pattern should be applied to ALL user inputs before they touch logs or the 
 **Vulnerability:** Untrusted email headers (Subject, Sender, Recipient) were printed directly to the console in AlertSystem. This allowed attackers to use newlines to spoof log entries or ANSI escape codes to manipulate the terminal.
 **Learning:** Console logs are an often-overlooked injection vector. Simple print statements trust the input format.
 **Prevention:** Always sanitize untrusted input before logging. For console output, stripping control characters and normalizing whitespace is effective.
+
+## 2025-05-21 - [DoS Prevention in Email Ingestion]
+**Vulnerability:** Email ingestion was vulnerable to resource exhaustion (DoS) via "zip bomb" style attacks or excessive attachments, as there were no limits on the total number or size of attachments per email.
+**Learning:** Processing external input (emails) requires strict limits on all dimensions (count, size, depth) to prevent resource exhaustion.
+**Prevention:** Implemented strict limits on total attachment count and total attachment size per email in `IMAPClient`.

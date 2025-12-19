@@ -44,6 +44,8 @@ class IMAPClient:
         config: EmailAccountConfig,
         rate_limit_delay: int = 1,
         max_attachment_bytes: int = 25 * 1024 * 1024,
+        max_total_attachment_bytes: int = 100 * 1024 * 1024,
+        max_attachment_count: int = 10,
     ):
         """
         Initialize IMAP client
@@ -52,10 +54,14 @@ class IMAPClient:
             config: Email account configuration
             rate_limit_delay: Delay between operations (seconds)
             max_attachment_bytes: Maximum attachment bytes retained for analysis
+            max_total_attachment_bytes: Maximum total size of all attachments per email
+            max_attachment_count: Maximum number of attachments per email
         """
         self.config = config
         self.rate_limit_delay = rate_limit_delay
         self.max_attachment_bytes = max_attachment_bytes
+        self.max_total_attachment_bytes = max_total_attachment_bytes
+        self.max_attachment_count = max_attachment_count
         self.connection: Optional[imaplib.IMAP4_SSL] = None
         self.logger = logging.getLogger(f"IMAPClient.{config.provider}")
 
@@ -270,6 +276,7 @@ class IMAPClient:
             body_text = ""
             body_html = ""
             attachments = []
+            current_total_size = 0
 
             if msg.is_multipart():
                 for part in msg.walk():
@@ -286,10 +293,25 @@ class IMAPClient:
 
                     # Extract attachments
                     elif "attachment" in content_disposition:
+                        # Check attachment count limit
+                        if len(attachments) >= self.max_attachment_count:
+                            self.logger.warning(
+                                f"Max attachment count ({self.max_attachment_count}) reached for email {email_id}. Skipping remaining attachments."
+                            )
+                            continue
+
                         filename = self._decode_header_value(part.get_filename() or "")
                         if filename:
                             payload = part.get_payload(decode=True) or b""
                             original_size = len(payload)
+
+                            # Check total size limit before adding
+                            if self.max_total_attachment_bytes > 0 and (current_total_size + original_size) > self.max_total_attachment_bytes:
+                                self.logger.warning(
+                                    f"Max total attachment size ({self.max_total_attachment_bytes}) exceeded for email {email_id}. Skipping attachment {filename}."
+                                )
+                                continue
+
                             truncated = False
                             if self.max_attachment_bytes > 0 and original_size > self.max_attachment_bytes:
                                 self.logger.warning(
@@ -299,6 +321,7 @@ class IMAPClient:
                                 )
                                 payload = payload[:self.max_attachment_bytes]
                                 truncated = True
+
                             attachments.append({
                                 "filename": filename,
                                 "content_type": content_type,
@@ -306,6 +329,7 @@ class IMAPClient:
                                 "data": payload,
                                 "truncated": truncated,
                             })
+                            current_total_size += len(payload)
             else:
                 # Single part message
                 content_type = msg.get_content_type()
@@ -461,6 +485,8 @@ class EmailIngestionManager:
         accounts: List[EmailAccountConfig],
         rate_limit_delay: int = 1,
         max_attachment_bytes: int = 25 * 1024 * 1024,
+        max_total_attachment_bytes: int = 100 * 1024 * 1024,
+        max_attachment_count: int = 10,
     ):
         """
         Initialize ingestion manager
@@ -469,10 +495,14 @@ class EmailIngestionManager:
             accounts: List of email account configurations
             rate_limit_delay: Delay between operations
             max_attachment_bytes: Maximum attachment bytes retained for analysis
+            max_total_attachment_bytes: Maximum total size of all attachments per email
+            max_attachment_count: Maximum number of attachments per email
         """
         self.accounts = accounts
         self.rate_limit_delay = rate_limit_delay
         self.max_attachment_bytes = max_attachment_bytes
+        self.max_total_attachment_bytes = max_total_attachment_bytes
+        self.max_attachment_count = max_attachment_count
         self.clients: Dict[str, IMAPClient] = {}
         self.logger = logging.getLogger("EmailIngestionManager")
 
@@ -489,7 +519,13 @@ class EmailIngestionManager:
             if not account.enabled:
                 continue
 
-            client = IMAPClient(account, self.rate_limit_delay, self.max_attachment_bytes)
+            client = IMAPClient(
+                account,
+                self.rate_limit_delay,
+                self.max_attachment_bytes,
+                self.max_total_attachment_bytes,
+                self.max_attachment_count
+            )
             if client.connect():
                 self.clients[account.email] = client
                 success_count += 1

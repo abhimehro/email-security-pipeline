@@ -50,11 +50,11 @@ class SpamAnalyzer:
 
     # Suspicious URL patterns
     SUSPICIOUS_URL_PATTERNS = [
-        re.compile(r'bit\.ly'),
-        re.compile(r'tinyurl'),
-        re.compile(r't\.co'),
-        re.compile(r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}'),  # IP addresses
-        re.compile(r'[a-z0-9\-]{30,}'),  # Very long subdomain/path
+        r'bit\.ly',
+        r'tinyurl',
+        r't\.co',
+        r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}',  # IP addresses
+        r'[a-z0-9\-]{30,}',  # Very long subdomain/path
     ]
 
     # Pre-compiled regex patterns
