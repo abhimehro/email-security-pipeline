@@ -15,11 +15,41 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src.utils.config import Config
 from src.utils.sanitization import sanitize_for_logging
+from src.utils.colors import Colors
 from src.modules.email_ingestion import EmailIngestionManager
 from src.modules.spam_analyzer import SpamAnalyzer
 from src.modules.nlp_analyzer import NLPThreatAnalyzer
 from src.modules.media_analyzer import MediaAuthenticityAnalyzer
 from src.modules.alert_system import AlertSystem, generate_threat_report
+
+
+class ColorFormatter(logging.Formatter):
+    """Custom formatter to add colors to log levels"""
+
+    FORMAT = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+
+    LEVEL_COLORS = {
+        logging.DEBUG: Colors.GREY,
+        logging.INFO: Colors.GREEN,
+        logging.WARNING: Colors.YELLOW,
+        logging.ERROR: Colors.RED,
+        logging.CRITICAL: Colors.MAGENTA + Colors.BOLD,
+    }
+
+    def format(self, record):
+        log_fmt = self.FORMAT
+        if record.levelno in self.LEVEL_COLORS:
+            # Colorize the level name
+            levelname = record.levelname
+            color = self.LEVEL_COLORS[record.levelno]
+            record.levelname = f"{color}{levelname}{Colors.RESET}"
+
+            # For errors, also colorize the message
+            if record.levelno >= logging.ERROR:
+                record.msg = f"{color}{record.msg}{Colors.RESET}"
+
+        formatter = logging.Formatter(log_fmt)
+        return formatter.format(record)
 
 
 class EmailSecurityPipeline:
@@ -62,14 +92,17 @@ class EmailSecurityPipeline:
         log_path = Path(self.config.system.log_file)
         log_path.parent.mkdir(parents=True, exist_ok=True)
 
+        # Set up handlers
+        file_handler = logging.FileHandler(self.config.system.log_file)
+        file_handler.setFormatter(logging.Formatter(log_format))
+
+        console_handler = logging.StreamHandler(sys.stdout)
+        console_handler.setFormatter(ColorFormatter())
+
         # Configure logging
         logging.basicConfig(
             level=getattr(logging, self.config.system.log_level.upper()),
-            format=log_format,
-            handlers=[
-                logging.FileHandler(self.config.system.log_file),
-                logging.StreamHandler(sys.stdout)
-            ]
+            handlers=[file_handler, console_handler]
         )
 
     def start(self):

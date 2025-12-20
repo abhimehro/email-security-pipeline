@@ -19,7 +19,11 @@ class TestMediaAnalyzerSecurity(unittest.TestCase):
             check_authority_impersonation=True,
             check_media_attachments=True,
             deepfake_detection_enabled=True,
-            media_analysis_timeout=60
+            media_analysis_timeout=60,
+            deepfake_provider="simulator",
+            deepfake_api_key=None,
+            deepfake_api_url=None,
+            deepfake_model_path=None
         )
         self.analyzer = MediaAuthenticityAnalyzer(self.config)
 
