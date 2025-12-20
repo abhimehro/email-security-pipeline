@@ -16,7 +16,7 @@ class TestAlertSystemSecurity(unittest.TestCase):
 
         self.alert_system = AlertSystem(self.config)
 
-    @patch('requests.post')
+    @patch('src.modules.alert_system.requests.post')
     def test_slack_injection_prevention(self, mock_post):
         # Create a threat report with malicious content in subject and sender
         report = ThreatReport(
@@ -43,7 +43,7 @@ class TestAlertSystemSecurity(unittest.TestCase):
         args, kwargs = mock_post.call_args
         payload = kwargs.get('json', {})
         attachments = payload.get('attachments', [])
-        self.assertTrue(len(attachments) > 0)
+        self.assertGreater(len(attachments), 0)
         fields = attachments[0].get('fields', [])
 
         subject_field = next((f for f in fields if f['title'] == 'Subject'), None)
@@ -62,6 +62,43 @@ class TestAlertSystemSecurity(unittest.TestCase):
         # We expect HTML entity encoding or removal of control chars
         self.assertIn("&lt;", subject_field['value'])
         self.assertIn("&gt;", subject_field['value'])
+        self.assertIn("&amp;", subject_field['value'])
+
+    @patch('src.modules.alert_system.requests.post')
+    def test_slack_sanitization_edge_cases(self, mock_post):
+        # Test None, empty string, and only special chars
+        test_cases = [
+            (None, ""),
+            ("", ""),
+            ("<>&", "&lt;&gt;&amp;")
+        ]
+
+        for input_str, expected in test_cases:
+            report = ThreatReport(
+                email_id="123",
+                subject=input_str if input_str is not None else "", # report.subject usually expects str
+                sender="sender",
+                recipient="recipient",
+                date="2023-01-01",
+                overall_threat_score=90.0,
+                risk_level="high",
+                spam_analysis={},
+                nlp_analysis={},
+                media_analysis={},
+                recommendations=[],
+                timestamp="2023-01-01"
+            )
+            # We are testing the _sanitize_for_slack method which is internal,
+            # but we can test via send_alert or by accessing the method if we want unit test specificity.
+            # Let's test via send_alert for integration behavior.
+
+            # Note: The AlertSystem handles None in _sanitize_text by returning ""
+            # But the ThreatReport dataclass type hint says subject: str.
+            # However, if we pass None to dataclass it might accept it at runtime.
+            # Let's check _sanitize_for_slack directly to be precise about the edge cases.
+
+            sanitized = self.alert_system._sanitize_for_slack(input_str)
+            self.assertEqual(sanitized, expected, f"Failed for input: {input_str}")
 
 if __name__ == '__main__':
     unittest.main()
