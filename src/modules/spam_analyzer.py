@@ -245,9 +245,11 @@ class SpamAnalyzer:
                 domain = parsed.netloc
                 
                 # Check against suspicious patterns
-                if self.COMBINED_URL_PATTERN.search(domain):
-                    score += 0.5
-                    suspicious.append(url)
+                for pattern in self.COMPILED_SUSPICIOUS_URL_PATTERNS:
+                    if pattern.search(domain):
+                        score += 0.5
+                        suspicious.append(url)
+                        break
                 
                 # Check for URL shorteners
                 if any(shortener in domain for shortener in ['bit.ly', 'tinyurl', 't.co', 'goo.gl']):
