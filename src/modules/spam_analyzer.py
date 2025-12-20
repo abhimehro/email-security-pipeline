@@ -58,7 +58,7 @@ class SpamAnalyzer:
     ]
 
     # Pre-compiled regex patterns
-    # These were previously duplicated or unused, but retained for safety as per review.
+    # Backward-compatibility aliases duplicating the patterns above; retained for legacy callers.
     MONEY_REGEX = re.compile(r'\$\d+|\d+\s*(dollar|usd|euro)', re.IGNORECASE)
     LINK_REGEX = re.compile(r'https?://', re.IGNORECASE)
     IMG_TAG_REGEX = re.compile(r'<img\b', re.IGNORECASE)
