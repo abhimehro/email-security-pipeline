@@ -159,6 +159,21 @@ class AlertSystem:
 
         return sanitized
 
+    def _sanitize_for_slack(self, text: str) -> str:
+        """
+        Sanitize text for Slack to prevent injection and spoofing.
+        Escapes &, <, > and sanitizes control characters.
+        """
+        if not text:
+            return ""
+
+        # First sanitize control characters using the existing method
+        text = self._sanitize_text(text)
+
+        # Escape Slack special characters
+        # Reference: https://api.slack.com/reference/surfaces/formatting#escaping
+        return text.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
+
     def _slack_alert(self, report: ThreatReport):
         """Send alert to Slack"""
         try:
@@ -175,12 +190,12 @@ class AlertSystem:
                 "fields": [
                     {
                         "title": "Subject",
-                        "value": report.subject,
+                        "value": self._sanitize_for_slack(report.subject),
                         "short": False
                     },
                     {
                         "title": "From",
-                        "value": report.sender,
+                        "value": self._sanitize_for_slack(report.sender),
                         "short": True
                     },
                     {

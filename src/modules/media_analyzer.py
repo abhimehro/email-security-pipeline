@@ -392,24 +392,24 @@ class MediaAuthenticityAnalyzer:
         issues = []
 
         try:
-             cap = cv2.VideoCapture(video_path)
-             if not cap.isOpened():
-                 return score, issues
+            cap = cv2.VideoCapture(video_path)
+            if not cap.isOpened():
+                return score, issues
 
-             # Check if we can get duration info (depends on container)
-             # OpenCV doesn't handle audio well directly without ffmpeg backend support explicitly
-             # So we focus on checking if video stream is consistent
+            # Check if we can get duration info (depends on container)
+            # OpenCV doesn't handle audio well directly without ffmpeg backend support explicitly
+            # So we focus on checking if video stream is consistent
 
-             fps = cap.get(cv2.CAP_PROP_FPS)
-             frame_count = cap.get(cv2.CAP_PROP_FRAME_COUNT)
+            fps = cap.get(cv2.CAP_PROP_FPS)
+            frame_count = cap.get(cv2.CAP_PROP_FRAME_COUNT)
 
-             if fps > 0 and frame_count > 0:
+            if fps > 0 and frame_count > 0:
                 duration = frame_count / fps
-                 # If duration is very short but file size is large, might be suspicious
-                 file_size = os.path.getsize(video_path)
-                 if duration < 1.0 and file_size > 5 * 1024 * 1024:
-                     score += 0.5
-                     issues.append("Video duration vs file size mismatch (potential stream embedding issue)")
+                # If duration is very short but file size is large, might be suspicious
+                file_size = os.path.getsize(video_path)
+                if duration < 1.0 and file_size > 5 * 1024 * 1024:
+                    score += 0.5
+                    issues.append("Video duration vs file size mismatch (potential stream embedding issue)")
 
             cap.release()
         except Exception as e:

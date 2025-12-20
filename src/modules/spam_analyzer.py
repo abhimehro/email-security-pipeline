@@ -68,10 +68,13 @@ class SpamAnalyzer:
     DISPLAY_NAME_REGEX = re.compile(r'^([^<]+)<', re.IGNORECASE)
 
     # Compile suspicious URL patterns
-    COMPILED_SUSPICIOUS_URL_PATTERNS = [re.compile(p, re.IGNORECASE) for p in SUSPICIOUS_URL_PATTERNS]
+    # SUSPICIOUS_URL_PATTERNS contains compiled regex objects, so we shouldn't recompile them
+    # But wait, SUSPICIOUS_URL_PATTERNS above (lines 51-57) ARE compiled regex objects.
+    # So we don't need to recompile them.
     
     # Pre-compiled combined pattern for performance
-    COMBINED_URL_PATTERN = re.compile('|'.join(SUSPICIOUS_URL_PATTERNS), re.IGNORECASE)
+    # To join them, we need the pattern strings
+    COMBINED_URL_PATTERN = re.compile('|'.join(p.pattern for p in SUSPICIOUS_URL_PATTERNS), re.IGNORECASE)
 
     def __init__(self, config):
         """
