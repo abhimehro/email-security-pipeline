@@ -409,6 +409,15 @@ class IMAPClient:
         result = {"valid": False, "expires_in_days": None, "error": None}
         try:
             context = ssl.create_default_context()
+            # Enforce a minimum TLS version of 1.2 to avoid insecure protocol versions.
+            if hasattr(ssl, "TLSVersion"):
+                context.minimum_version = ssl.TLSVersion.TLSv1_2
+            else:
+                # Fallback for older Python/OpenSSL versions: disable TLSv1 and TLSv1_1 explicitly.
+                if hasattr(ssl, "OP_NO_TLSv1"):
+                    context.options |= ssl.OP_NO_TLSv1
+                if hasattr(ssl, "OP_NO_TLSv1_1"):
+                    context.options |= ssl.OP_NO_TLSv1_1
             with socket.create_connection((account.imap_server, account.imap_port), timeout=5) as sock:
                 with context.wrap_socket(sock, server_hostname=account.imap_server) as ssock:
                     cert = ssock.getpeercert()
