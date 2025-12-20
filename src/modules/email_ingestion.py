@@ -329,7 +329,7 @@ class IMAPClient:
                                 "data": payload,
                                 "truncated": truncated,
                             })
-                            current_total_size += len(payload)
+                            current_total_size += original_size
             else:
                 # Single part message
                 content_type = msg.get_content_type()

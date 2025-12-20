@@ -247,7 +247,7 @@ class SpamAnalyzer:
                 domain = parsed.netloc
                 
                 # Check against suspicious patterns
-                for pattern in self.SUSPICIOUS_URL_PATTERNS:
+                for pattern in self.COMPILED_SUSPICIOUS_URL_PATTERNS:
                     if pattern.search(domain):
                         score += 0.5
                         suspicious.append(url)
