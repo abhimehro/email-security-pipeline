@@ -48,7 +48,7 @@ class SpamAnalyzer:
     SENDER_DOMAIN_PATTERN = re.compile(r'[\w\.-]+@([\w\.-]+)')
     DISPLAY_NAME_PATTERN = re.compile(r'^([^<]+)<')
 
-    # Suspicious URL patterns
+    # Suspicious URL patterns (as strings)
     SUSPICIOUS_URL_PATTERNS = [
         r'bit\.ly',
         r'tinyurl',
@@ -58,6 +58,7 @@ class SpamAnalyzer:
     ]
 
     # Pre-compiled regex patterns
+    # Backward-compatibility aliases duplicating the patterns above; retained for legacy callers.
     MONEY_REGEX = re.compile(r'\$\d+|\d+\s*(dollar|usd|euro)', re.IGNORECASE)
     LINK_REGEX = re.compile(r'https?://', re.IGNORECASE)
     IMG_TAG_REGEX = re.compile(r'<img\b', re.IGNORECASE)
@@ -67,9 +68,6 @@ class SpamAnalyzer:
     SENDER_EMAIL_REGEX = re.compile(r'[\w\.-]+@([\w\.-]+)', re.IGNORECASE)
     DISPLAY_NAME_REGEX = re.compile(r'^([^<]+)<', re.IGNORECASE)
 
-    # Compile suspicious URL patterns
-    COMPILED_SUSPICIOUS_URL_PATTERNS = [re.compile(p, re.IGNORECASE) for p in SUSPICIOUS_URL_PATTERNS]
-    
     # Pre-compiled combined pattern for performance
     COMBINED_URL_PATTERN = re.compile('|'.join(SUSPICIOUS_URL_PATTERNS), re.IGNORECASE)
 
