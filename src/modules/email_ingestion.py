@@ -416,7 +416,15 @@ class IMAPClient:
                 context.verify_mode = ssl.CERT_REQUIRED
             else:
                 # Fallback for older Python versions without PROTOCOL_TLS_CLIENT.
-                context = ssl.create_default_context()
+                # Use an explicit SSLContext and configure verification explicitly to
+                # ensure consistent behavior across Python/OpenSSL versions.
+                if hasattr(ssl, "PROTOCOL_TLS"):
+                    protocol = ssl.PROTOCOL_TLS
+                else:
+                    protocol = ssl.PROTOCOL_SSLv23
+                context = ssl.SSLContext(protocol)
+                context.check_hostname = True
+                context.verify_mode = ssl.CERT_REQUIRED
             # Enforce a minimum TLS version of 1.2 to avoid insecure protocol versions.
             if hasattr(ssl, "TLSVersion"):
                 context.minimum_version = ssl.TLSVersion.TLSv1_2
