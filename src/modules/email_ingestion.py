@@ -408,7 +408,23 @@ class IMAPClient:
         """Validate the SSL certificate of the IMAP server."""
         result = {"valid": False, "expires_in_days": None, "error": None}
         try:
-            context = ssl.create_default_context()
+            # Create an SSL context that enforces TLS 1.2+ and validates certificates.
+            if hasattr(ssl, "PROTOCOL_TLS_CLIENT"):
+                context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+                context.load_default_certs()
+                context.check_hostname = True
+                context.verify_mode = ssl.CERT_REQUIRED
+            else:
+                # Fallback for older Python versions without PROTOCOL_TLS_CLIENT.
+                # Use an explicit SSLContext and configure verification explicitly to
+                # ensure consistent behavior across Python/OpenSSL versions.
+                if hasattr(ssl, "PROTOCOL_TLS"):
+                    protocol = ssl.PROTOCOL_TLS
+                else:
+                    protocol = ssl.PROTOCOL_SSLv23
+                context = ssl.SSLContext(protocol)
+                context.check_hostname = True
+                context.verify_mode = ssl.CERT_REQUIRED
             # Enforce a minimum TLS version of 1.2 to avoid insecure protocol versions.
             if hasattr(ssl, "TLSVersion"):
                 context.minimum_version = ssl.TLSVersion.TLSv1_2
