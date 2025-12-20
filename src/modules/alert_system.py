@@ -85,7 +85,15 @@ class AlertSystem:
         print(f"{Colors.BOLD}Subject:{Colors.RESET}   {self._sanitize_text(report.subject)}")
         print(f"{Colors.BOLD}From:{Colors.RESET}      {self._sanitize_text(report.sender)}")
         print(f"{Colors.BOLD}To:{Colors.RESET}        {self._sanitize_text(report.recipient)}")
-        print(f"{Colors.BOLD}Score:{Colors.RESET}     {report.overall_threat_score:.2f}")
+
+        # Threat meter
+        score_val = min(max(report.overall_threat_score, 0), 100)
+        meter_len = 20
+        filled_len = int(score_val / 100 * meter_len)
+        bar = "█" * filled_len + "░" * (meter_len - filled_len)
+        meter_color = Colors.get_risk_color(report.risk_level)
+
+        print(f"{Colors.BOLD}Score:{Colors.RESET}     {Colors.colorize(bar, meter_color)} {report.overall_threat_score:.2f}/100")
         print(f"{Colors.BOLD}Risk:{Colors.RESET}      {Colors.colorize(report.risk_level.upper(), risk_color + Colors.BOLD)}")
 
         print(f"\n{Colors.BOLD}--- SPAM ANALYSIS ---{Colors.RESET}")
