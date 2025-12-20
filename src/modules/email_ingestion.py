@@ -411,6 +411,7 @@ class IMAPClient:
             # Create an SSL context that enforces TLS 1.2+ and validates certificates.
             if hasattr(ssl, "PROTOCOL_TLS_CLIENT"):
                 context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+                context.load_default_certs()
                 context.check_hostname = True
                 context.verify_mode = ssl.CERT_REQUIRED
             else:
