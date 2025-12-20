@@ -48,17 +48,16 @@ class SpamAnalyzer:
     SENDER_DOMAIN_PATTERN = re.compile(r'[\w\.-]+@([\w\.-]+)')
     DISPLAY_NAME_PATTERN = re.compile(r'^([^<]+)<')
 
-    # Suspicious URL patterns (as strings)
+    # Suspicious URL patterns
     SUSPICIOUS_URL_PATTERNS = [
-        r'bit\.ly',
-        r'tinyurl',
-        r't\.co',
-        r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}',  # IP addresses
-        r'[a-z0-9\-]{30,}',  # Very long subdomain/path
+        re.compile(r'bit\.ly'),
+        re.compile(r'tinyurl'),
+        re.compile(r't\.co'),
+        re.compile(r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}'),  # IP addresses
+        re.compile(r'[a-z0-9\-]{30,}'),  # Very long subdomain/path
     ]
 
     # Pre-compiled regex patterns
-    # Backward-compatibility aliases duplicating the patterns above; retained for legacy callers.
     MONEY_REGEX = re.compile(r'\$\d+|\d+\s*(dollar|usd|euro)', re.IGNORECASE)
     LINK_REGEX = re.compile(r'https?://', re.IGNORECASE)
     IMG_TAG_REGEX = re.compile(r'<img\b', re.IGNORECASE)
@@ -68,8 +67,12 @@ class SpamAnalyzer:
     SENDER_EMAIL_REGEX = re.compile(r'[\w\.-]+@([\w\.-]+)', re.IGNORECASE)
     DISPLAY_NAME_REGEX = re.compile(r'^([^<]+)<', re.IGNORECASE)
 
+    # Compile suspicious URL patterns
+    # SUSPICIOUS_URL_PATTERNS contains compiled regex objects, so we extract their patterns for the combined pattern.
+    
     # Pre-compiled combined pattern for performance
-    COMBINED_URL_PATTERN = re.compile('|'.join(SUSPICIOUS_URL_PATTERNS), re.IGNORECASE)
+    # To join them, we need the pattern strings
+    COMBINED_URL_PATTERN = re.compile('|'.join(p.pattern for p in SUSPICIOUS_URL_PATTERNS), re.IGNORECASE)
 
     def __init__(self, config):
         """
