@@ -83,6 +83,7 @@ class IMAPClient:
             else:
                 protocol = ssl.PROTOCOL_SSLv23
             context = ssl.SSLContext(protocol)
+            context.load_default_certs()
             context.check_hostname = True
             context.verify_mode = ssl.CERT_REQUIRED
 
