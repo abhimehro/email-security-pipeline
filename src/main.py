@@ -14,6 +14,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src.utils.config import Config
+from src.utils.colors import Colors
 from src.utils.sanitization import sanitize_for_logging
 from src.modules.email_ingestion import EmailIngestionManager
 from src.modules.spam_analyzer import SpamAnalyzer
@@ -204,10 +205,19 @@ def main():
     signal.signal(signal.SIGTERM, signal_handler)
 
     # Print banner
-    print("=" * 80)
-    print("Email Security Analysis Pipeline")
-    print("Multi-layer threat detection for email security")
-    print("=" * 80)
+    print(Colors.colorize("=" * 80, Colors.BLUE))
+    print(Colors.colorize(r"""
+  _______  _______  _______  ___  ___      _______  _______  _______  _______
+ |       ||   _   ||       ||   ||   |    |       ||       ||       ||       |
+ |    _  ||  |_|  ||   _   ||   ||   |    |    ___||_     _||_     _||    ___|
+ |   |_| ||       ||  | |  ||   ||   |    |   |___   |   |    |   |  |   |___
+ |    ___||       ||  |_|  ||   ||   |___ |    ___|  |   |    |   |  |    ___|
+ |   |    |   _   ||       ||   ||       ||   |___   |   |    |   |  |   |___
+ |___|    |__| |__||_______||___||_______||_______|  |___|    |___|  |_______|
+""", Colors.CYAN))
+    print(Colors.colorize("  Email Security Analysis Pipeline", Colors.BOLD + Colors.WHITE))
+    print(Colors.colorize("  Multi-layer threat detection for email security", Colors.GREY))
+    print(Colors.colorize("=" * 80, Colors.BLUE))
     print()
 
     # Check for config file

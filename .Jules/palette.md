@@ -1,5 +1,3 @@
-# Palette's Journal
-
-## 2025-05-15 - Initial Assessment
-**Learning:** This is a backend Python application (Email Security Analysis Pipeline) with no web frontend.
-**Action:** UX improvements will focus on CLI output, log readability, and alert message formatting (the primary user interface for this tool).
+## 2024-05-23 - CLI UX for Security Tools
+**Learning:** Security tools often dump raw text, making it hard to parse critical info. Adding color and structure (like headers and progress bars) significantly reduces cognitive load.
+**Action:** Always wrap critical data (like risk scores) in visual indicators and use clear section headers in console output.
