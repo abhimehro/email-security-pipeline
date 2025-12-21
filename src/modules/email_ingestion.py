@@ -65,6 +65,39 @@ class IMAPClient:
         self.connection: Optional[imaplib.IMAP4_SSL] = None
         self.logger = logging.getLogger(f"IMAPClient.{config.provider}")
 
+    @staticmethod
+    def _create_secure_ssl_context() -> ssl.SSLContext:
+        """
+        Create a secure SSL context with best practices.
+        Enforces TLS 1.2+, verifies certificates, and checks hostnames.
+        """
+        if hasattr(ssl, "PROTOCOL_TLS_CLIENT"):
+            context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+            context.load_default_certs()
+            context.check_hostname = True
+            context.verify_mode = ssl.CERT_REQUIRED
+        else:
+            # Fallback for older Python versions without PROTOCOL_TLS_CLIENT.
+            if hasattr(ssl, "PROTOCOL_TLS"):
+                protocol = ssl.PROTOCOL_TLS
+            else:
+                protocol = ssl.PROTOCOL_SSLv23
+            context = ssl.SSLContext(protocol)
+            context.check_hostname = True
+            context.verify_mode = ssl.CERT_REQUIRED
+
+        # Enforce a minimum TLS version of 1.2
+        if hasattr(ssl, "TLSVersion"):
+            context.minimum_version = ssl.TLSVersion.TLSv1_2
+        else:
+            # Fallback for older Python/OpenSSL versions
+            if hasattr(ssl, "OP_NO_TLSv1"):
+                context.options |= ssl.OP_NO_TLSv1
+            if hasattr(ssl, "OP_NO_TLSv1_1"):
+                context.options |= ssl.OP_NO_TLSv1_1
+
+        return context
+
     def connect(self) -> bool:
         """
         Establish connection to IMAP server
@@ -75,9 +108,11 @@ class IMAPClient:
         try:
             self.logger.info(f"Connecting to {self.config.imap_server}:{self.config.imap_port}")
 
+            context = self._create_secure_ssl_context()
             self.connection = imaplib.IMAP4_SSL(
                 self.config.imap_server,
-                self.config.imap_port
+                self.config.imap_port,
+                ssl_context=context
             )
 
             self.connection.login(self.config.email, self.config.app_password)
@@ -408,32 +443,7 @@ class IMAPClient:
         """Validate the SSL certificate of the IMAP server."""
         result = {"valid": False, "expires_in_days": None, "error": None}
         try:
-            # Create an SSL context that enforces TLS 1.2+ and validates certificates.
-            if hasattr(ssl, "PROTOCOL_TLS_CLIENT"):
-                context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
-                context.load_default_certs()
-                context.check_hostname = True
-                context.verify_mode = ssl.CERT_REQUIRED
-            else:
-                # Fallback for older Python versions without PROTOCOL_TLS_CLIENT.
-                # Use an explicit SSLContext and configure verification explicitly to
-                # ensure consistent behavior across Python/OpenSSL versions.
-                if hasattr(ssl, "PROTOCOL_TLS"):
-                    protocol = ssl.PROTOCOL_TLS
-                else:
-                    protocol = ssl.PROTOCOL_SSLv23
-                context = ssl.SSLContext(protocol)
-                context.check_hostname = True
-                context.verify_mode = ssl.CERT_REQUIRED
-            # Enforce a minimum TLS version of 1.2 to avoid insecure protocol versions.
-            if hasattr(ssl, "TLSVersion"):
-                context.minimum_version = ssl.TLSVersion.TLSv1_2
-            else:
-                # Fallback for older Python/OpenSSL versions: disable TLSv1 and TLSv1_1 explicitly.
-                if hasattr(ssl, "OP_NO_TLSv1"):
-                    context.options |= ssl.OP_NO_TLSv1
-                if hasattr(ssl, "OP_NO_TLSv1_1"):
-                    context.options |= ssl.OP_NO_TLSv1_1
+            context = self._create_secure_ssl_context()
             with socket.create_connection((account.imap_server, account.imap_port), timeout=5) as sock:
                 with context.wrap_socket(sock, server_hostname=account.imap_server) as ssock:
                     cert = ssock.getpeercert()
@@ -452,7 +462,8 @@ class IMAPClient:
         """Attempt a login to verify credentials."""
         result = {"valid": False, "error": None}
         try:
-            conn = imaplib.IMAP4_SSL(account.imap_server, account.imap_port)
+            context = self._create_secure_ssl_context()
+            conn = imaplib.IMAP4_SSL(account.imap_server, account.imap_port, ssl_context=context)
             conn.login(account.email, account.app_password)
             result["valid"] = True
             conn.logout()
