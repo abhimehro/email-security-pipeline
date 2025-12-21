@@ -75,56 +75,64 @@ class AlertSystem:
     def _console_alert(self, report: ThreatReport):
         """Print alert to console"""
         risk_color = Colors.get_risk_color(report.risk_level)
-        header_bar = Colors.colorize("="*80, risk_color)
         
-        print("\n" + header_bar)
-        print(Colors.colorize(f"🚨 SECURITY ALERT - {report.risk_level.upper()} RISK", risk_color + Colors.BOLD))
-        print(header_bar)
+        # Format timestamp
+        try:
+            dt = datetime.fromisoformat(report.timestamp)
+            formatted_date = dt.strftime("%Y-%m-%d %H:%M:%S")
+        except ValueError:
+            formatted_date = report.timestamp
 
-        print(f"{Colors.BOLD}Timestamp:{Colors.RESET} {report.timestamp}")
+        print()
+        print(Colors.colorize("=" * 80, risk_color))
+        print(f" 🚨 {Colors.colorize(f'SECURITY ALERT - {report.risk_level.upper()} RISK', risk_color + Colors.BOLD)}")
+        print(Colors.colorize("=" * 80, risk_color))
+
+        print(f"{Colors.BOLD}Timestamp:{Colors.RESET} {formatted_date}")
         print(f"{Colors.BOLD}Subject:{Colors.RESET}   {self._sanitize_text(report.subject)}")
         print(f"{Colors.BOLD}From:{Colors.RESET}      {self._sanitize_text(report.sender)}")
         print(f"{Colors.BOLD}To:{Colors.RESET}        {self._sanitize_text(report.recipient)}")
+        print(Colors.colorize("-" * 80, Colors.GREY))
 
         # Threat meter
         score_val = min(max(report.overall_threat_score, 0), 100)
-        meter_len = 20
+        meter_len = 30
         filled_len = int(score_val / 100 * meter_len)
         bar = "█" * filled_len + "░" * (meter_len - filled_len)
         meter_color = Colors.get_risk_color(report.risk_level)
 
-        print(f"{Colors.BOLD}Score:{Colors.RESET}     {Colors.colorize(bar, meter_color)} {report.overall_threat_score:.2f}/100")
-        print(f"{Colors.BOLD}Risk:{Colors.RESET}      {Colors.colorize(report.risk_level.upper(), risk_color + Colors.BOLD)}")
+        print(f"{Colors.BOLD}Threat Score:{Colors.RESET} {report.overall_threat_score:5.1f}/100  {Colors.colorize(bar, meter_color)}")
+        print(Colors.colorize("-" * 80, Colors.GREY))
 
-        print(f"\n{Colors.BOLD}--- SPAM ANALYSIS ---{Colors.RESET}")
+        def print_section(title, items, bullet_color=Colors.CYAN):
+            if not items: return
+            print(f"{Colors.BOLD}{title}{Colors.RESET}")
+            for item in items:
+                print(f"   {Colors.colorize('•', bullet_color)} {item}")
+            print()
+
+        # Details
         spam = report.spam_analysis
         if spam.get('indicators'):
-            for indicator in spam['indicators'][:5]:  # Show first 5
-                print(f"  {Colors.colorize('•', Colors.CYAN)} {indicator}")
-        
-        print(f"\n{Colors.BOLD}--- NLP THREAT ANALYSIS ---{Colors.RESET}")
+            print_section("SPAM INDICATORS", spam['indicators'][:5], Colors.CYAN)
+
         nlp = report.nlp_analysis
-        if nlp.get('social_engineering_indicators'):
-            print(f"  {Colors.BOLD}Social Engineering:{Colors.RESET}")
-            for indicator in nlp['social_engineering_indicators'][:3]:
-                print(f"    {Colors.colorize('•', Colors.RED)} {indicator}")
-        if nlp.get('authority_impersonation'):
-            print(f"  {Colors.BOLD}Authority Impersonation:{Colors.RESET}")
-            for indicator in nlp['authority_impersonation'][:3]:
-                print(f"    {Colors.colorize('•', Colors.RED)} {indicator}")
-        
-        print(f"\n{Colors.BOLD}--- MEDIA ANALYSIS ---{Colors.RESET}")
+        nlp_items = []
+        if nlp.get('social_engineering_indicators'): nlp_items.extend(nlp['social_engineering_indicators'][:3])
+        if nlp.get('authority_impersonation'): nlp_items.extend(nlp['authority_impersonation'][:3])
+        print_section("NLP THREAT ANALYSIS", nlp_items, Colors.RED)
+
         media = report.media_analysis
         if media.get('file_type_warnings'):
-            print(f"  {Colors.BOLD}File Warnings:{Colors.RESET}")
-            for warning in media['file_type_warnings'][:3]:
-                print(f"    {Colors.colorize('•', Colors.YELLOW)} {warning}")
+            print_section("MEDIA ANALYSIS", media['file_type_warnings'][:3], Colors.YELLOW)
         
-        print(f"\n{Colors.BOLD}--- RECOMMENDATIONS ---{Colors.RESET}")
+        # Recommendations
+        print(f"{Colors.BOLD}RECOMMENDATIONS{Colors.RESET}")
         for rec in report.recommendations:
-            print(f"  {Colors.colorize('►', Colors.GREEN)} {rec}")
+            print(f"   {Colors.colorize('►', Colors.GREEN)} {rec}")
         
-        print(header_bar + "\n")
+        print(Colors.colorize("=" * 80, risk_color))
+        print()
     
     def _webhook_alert(self, report: ThreatReport):
         """Send alert via webhook"""
