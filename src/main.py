@@ -37,6 +37,10 @@ class ColorFormatter(logging.Formatter):
     }
 
     def format(self, record):
+        # Create a copy of the record to avoid modifying the original
+        # which might be used by other handlers (like FileHandler)
+        record = logging.makeLogRecord(record.__dict__)
+
         log_fmt = self.FORMAT
         if record.levelno in self.LEVEL_COLORS:
             # Colorize the level name
