@@ -109,6 +109,10 @@ class NLPThreatAnalyzer:
             self.PSYCHOLOGICAL_PATTERNS, "PS"
         )
 
+        # Compile static patterns
+        self.caps_pattern = re.compile(r'\b[A-Z]{4,}\b')
+        self.domain_pattern = re.compile(r'@([\w\.-]+)')
+
         # Initialize model if needed
         if self._should_use_ml_model():
             self._initialize_model()
@@ -268,7 +272,7 @@ class NLPThreatAnalyzer:
             indicators.append(f"Excessive exclamation marks ({exclamation_count})")
 
         # Check for all caps words (shouting)
-        caps_words = re.findall(r'\b[A-Z]{4,}\b', text)
+        caps_words = self.caps_pattern.findall(text)
         if len(caps_words) > 3:
             score += len(caps_words) * 0.3
             indicators.append(f"Excessive caps words ({len(caps_words)})")
@@ -282,7 +286,7 @@ class NLPThreatAnalyzer:
 
         sender_lower = sender.lower()
         sender_domain = ""
-        domain_match = re.search(r'@([\w\.-]+)', sender_lower)
+        domain_match = self.domain_pattern.search(sender_lower)
         if domain_match:
             sender_domain = domain_match.group(1)
 
