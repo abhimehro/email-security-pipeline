@@ -8,6 +8,7 @@ import sys
 import time
 import logging
 import signal
+import argparse
 from pathlib import Path
 
 # Add project root to path
@@ -15,6 +16,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src.utils.config import Config
 from src.utils.sanitization import sanitize_for_logging
+from src.utils.colors import Colors
 from src.modules.email_ingestion import EmailIngestionManager
 from src.modules.spam_analyzer import SpamAnalyzer
 from src.modules.nlp_analyzer import NLPThreatAnalyzer
@@ -193,8 +195,32 @@ class EmailSecurityPipeline:
 
 def signal_handler(signum, frame):
     """Handle shutdown signals"""
-    print("\nReceived shutdown signal, stopping gracefully...")
+    print(Colors.colorize("\nReceived shutdown signal, stopping gracefully...", Colors.YELLOW))
     raise KeyboardInterrupt
+
+
+def parse_arguments():
+    """Parse command line arguments"""
+    parser = argparse.ArgumentParser(
+        description=Colors.colorize("Email Security Analysis Pipeline", Colors.BOLD + Colors.CYAN) +
+                    "\nMulti-layer threat detection for email security",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="Example:\n  python3 src/main.py .env.prod"
+    )
+
+    # Support for positional argument (legacy) and named argument
+    parser.add_argument(
+        "config_positional",
+        nargs="?",
+        help="Path to configuration file (legacy positional argument)"
+    )
+
+    parser.add_argument(
+        "-c", "--config",
+        help="Path to configuration file"
+    )
+
+    return parser.parse_args()
 
 
 def main():
@@ -203,20 +229,22 @@ def main():
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGTERM, signal_handler)
 
+    args = parse_arguments()
+
     # Print banner
-    print("=" * 80)
-    print("Email Security Analysis Pipeline")
+    print(Colors.colorize("=" * 80, Colors.BLUE))
+    print(Colors.colorize("Email Security Analysis Pipeline", Colors.BOLD + Colors.CYAN))
     print("Multi-layer threat detection for email security")
-    print("=" * 80)
+    print(Colors.colorize("=" * 80, Colors.BLUE))
     print()
 
-    # Check for config file
-    config_file = sys.argv[1] if len(sys.argv) > 1 else ".env"
+    # Determine config file: prioritize flag, then positional, then default
+    config_file = args.config if args.config else (args.config_positional if args.config_positional else ".env")
 
     if not Path(config_file).exists():
-        print(f"Error: Configuration file '{config_file}' not found")
+        print(Colors.colorize(f"Error: Configuration file '{config_file}' not found", Colors.RED))
         print("Please create a .env file based on .env.example")
-        print("You can run: cp .env.example .env")
+        print(f"You can run: {Colors.colorize('cp .env.example .env', Colors.GREEN)}")
         sys.exit(1)
 
     # Validate that .env is not the example file
@@ -224,11 +252,11 @@ def main():
         with open(config_file, 'r') as f:
             content = f.read()
             if 'your-email@gmail.com' in content or 'your-app-password-here' in content or 'your-email@outlook.com' in content or 'your-bridge-password-here' in content:
-                print("Warning: .env file appears to contain example values.")
+                print(Colors.colorize("Warning: .env file appears to contain example values.", Colors.YELLOW))
                 print("Please update .env with your actual credentials before running.")
                 sys.exit(1)
     except Exception as e:
-        print(f"Warning: Could not validate .env file: {e}")
+        print(Colors.colorize(f"Warning: Could not validate .env file: {e}", Colors.YELLOW))
 
     # Create and start pipeline
     pipeline = EmailSecurityPipeline(config_file)
