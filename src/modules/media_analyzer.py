@@ -55,6 +55,7 @@ class MediaAuthenticityAnalyzer:
         """
         self.config = config
         self.logger = logging.getLogger("MediaAuthenticityAnalyzer")
+        self._face_cascade = None
 
     def analyze(self, email_data: EmailData) -> MediaAnalysisResult:
         """
@@ -341,6 +342,22 @@ class MediaAuthenticityAnalyzer:
 
         return frames
 
+    def _get_face_cascade(self):
+        """Lazy load and cache the Haar cascade classifier"""
+        if self._face_cascade is not None:
+            return self._face_cascade
+
+        try:
+            cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
+            if not cascade.empty():
+                self._face_cascade = cascade
+            else:
+                self.logger.warning("Failed to load Haar cascade classifier")
+        except Exception as e:
+            self.logger.warning(f"Error loading Haar cascade: {e}")
+
+        return self._face_cascade
+
     def _analyze_facial_inconsistencies(self, frames: List[np.ndarray]) -> Tuple[float, List[str]]:
         """
         Analyze frames for facial inconsistencies.
@@ -349,13 +366,11 @@ class MediaAuthenticityAnalyzer:
         score = 0.0
         issues = []
 
-        # Load Haar cascade for face detection
-        # Note: In a real environment, ensure the XML file is available or bundled.
-        # We try to load from default OpenCV path or a local path.
-        face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
+        # Get cached Haar cascade
+        face_cascade = self._get_face_cascade()
 
-        if face_cascade.empty():
-            self.logger.warning("Haar cascade not found. Skipping facial analysis.")
+        if not face_cascade:
+            self.logger.warning("Haar cascade not available. Skipping facial analysis.")
             return 0.0, []
 
         faces_found = 0
