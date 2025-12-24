@@ -20,6 +20,7 @@ from src.modules.spam_analyzer import SpamAnalyzer
 from src.modules.nlp_analyzer import NLPThreatAnalyzer
 from src.modules.media_analyzer import MediaAuthenticityAnalyzer
 from src.modules.alert_system import AlertSystem, generate_threat_report
+from src.utils.colors import Colors
 
 
 class EmailSecurityPipeline:
@@ -193,7 +194,7 @@ class EmailSecurityPipeline:
 
 def signal_handler(signum, frame):
     """Handle shutdown signals"""
-    print("\nReceived shutdown signal, stopping gracefully...")
+    print(Colors.colorize("\nReceived shutdown signal, stopping gracefully...", Colors.YELLOW))
     raise KeyboardInterrupt
 
 
@@ -204,19 +205,20 @@ def main():
     signal.signal(signal.SIGTERM, signal_handler)
 
     # Print banner
-    print("=" * 80)
-    print("Email Security Analysis Pipeline")
-    print("Multi-layer threat detection for email security")
-    print("=" * 80)
+    banner_color = Colors.CYAN + Colors.BOLD
+    print(Colors.colorize("=" * 80, banner_color))
+    print(Colors.colorize("Email Security Analysis Pipeline", banner_color))
+    print(Colors.colorize("Multi-layer threat detection for email security", Colors.CYAN))
+    print(Colors.colorize("=" * 80, banner_color))
     print()
 
     # Check for config file
     config_file = sys.argv[1] if len(sys.argv) > 1 else ".env"
 
     if not Path(config_file).exists():
-        print(f"Error: Configuration file '{config_file}' not found")
+        print(Colors.colorize(f"Error: Configuration file '{config_file}' not found", Colors.RED))
         print("Please create a .env file based on .env.example")
-        print("You can run: cp .env.example .env")
+        print(f"You can run: {Colors.colorize('cp .env.example .env', Colors.GREEN)}")
         sys.exit(1)
 
     # Validate that .env is not the example file
@@ -224,11 +226,11 @@ def main():
         with open(config_file, 'r') as f:
             content = f.read()
             if 'your-email@gmail.com' in content or 'your-app-password-here' in content or 'your-email@outlook.com' in content or 'your-bridge-password-here' in content:
-                print("Warning: .env file appears to contain example values.")
+                print(Colors.colorize("Warning: .env file appears to contain example values.", Colors.YELLOW))
                 print("Please update .env with your actual credentials before running.")
                 sys.exit(1)
     except Exception as e:
-        print(f"Warning: Could not validate .env file: {e}")
+        print(Colors.colorize(f"Warning: Could not validate .env file: {e}", Colors.YELLOW))
 
     # Create and start pipeline
     pipeline = EmailSecurityPipeline(config_file)
