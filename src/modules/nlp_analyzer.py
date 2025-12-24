@@ -6,11 +6,20 @@ urgency markers, and psychological manipulation
 
 import re
 import logging
-from typing import List, Dict, Tuple
+from typing import List, Dict, Tuple, Optional
 from collections import defaultdict
 from dataclasses import dataclass
 
 from .email_ingestion import EmailData
+
+# Optional imports at module level
+try:
+    import torch
+    from transformers import AutoTokenizer, AutoModelForSequenceClassification
+except ImportError:
+    torch = None
+    AutoTokenizer = None
+    AutoModelForSequenceClassification = None
 
 
 @dataclass
@@ -83,6 +92,10 @@ class NLPThreatAnalyzer:
          "Secrecy appeal"),
     ]
 
+    # Pre-compiled patterns for optimization
+    CAPS_WORDS_PATTERN = re.compile(r'\b[A-Z]{4,}\b')
+    SENDER_DOMAIN_PATTERN = re.compile(r'@([\w\.-]+)')
+
     def __init__(self, config):
         """
         Initialize NLP analyzer
@@ -94,6 +107,7 @@ class NLPThreatAnalyzer:
         self.logger = logging.getLogger("NLPThreatAnalyzer")
         self.model = None
         self.tokenizer = None
+        self.device = None
 
         # Compile patterns for performance
         self.combined_social, self.social_map = self._compile_patterns(
@@ -136,9 +150,11 @@ class NLPThreatAnalyzer:
 
     def _initialize_model(self):
         """Initialize transformer model"""
-        try:
-            from transformers import AutoTokenizer, AutoModelForSequenceClassification
+        if not torch:
+            self.logger.warning("Torch/Transformers not installed. ML features disabled.")
+            return
 
+        try:
             model_name = getattr(
                 self.config, 'nlp_model', 'distilbert-base-uncased'
             )
@@ -147,11 +163,13 @@ class NLPThreatAnalyzer:
                 model_name
             )
             self.model.eval()
-            self.logger.info(f"ML model initialized with {model_name}")
+            self.device = next(self.model.parameters()).device
+            self.logger.info(f"ML model initialized with {model_name} on {self.device}")
         except Exception as e:
             self.logger.warning(f"Could not load ML model: {e}")
             self.model = None
             self.tokenizer = None
+            self.device = None
 
     def analyze(self, email_data: EmailData) -> NLPAnalysisResult:
         """
@@ -201,6 +219,8 @@ class NLPThreatAnalyzer:
 
         # Integration of Transformer Model Predictions into Threat Scoring
         if self.model and self.tokenizer:
+            # We pass the original text to the transformer, not lowercased
+            # as some models are case-sensitive (though distilbert-base-uncased isn't)
             transformer_results = self.analyze_with_transformer(text)
             if "error" not in transformer_results:
                 ml_threat_prob = transformer_results.get("threat_probability", 0.0)
@@ -268,7 +288,8 @@ class NLPThreatAnalyzer:
             indicators.append(f"Excessive exclamation marks ({exclamation_count})")
 
         # Check for all caps words (shouting)
-        caps_words = re.findall(r'\b[A-Z]{4,}\b', text)
+        # Using pre-compiled regex for performance
+        caps_words = self.CAPS_WORDS_PATTERN.findall(text)
         if len(caps_words) > 3:
             score += len(caps_words) * 0.3
             indicators.append(f"Excessive caps words ({len(caps_words)})")
@@ -282,7 +303,8 @@ class NLPThreatAnalyzer:
 
         sender_lower = sender.lower()
         sender_domain = ""
-        domain_match = re.search(r'@([\w\.-]+)', sender_lower)
+        # Using pre-compiled regex for performance
+        domain_match = self.SENDER_DOMAIN_PATTERN.search(sender_lower)
         if domain_match:
             sender_domain = domain_match.group(1)
 
@@ -355,13 +377,18 @@ class NLPThreatAnalyzer:
         if not self.model or not self.tokenizer:
             return {"error": "Model not loaded"}
 
+        if not torch:
+            return {"error": "Torch not available"}
+
         try:
-            import torch
             # Tokenize and predict
             inputs = self.tokenizer(
                 text, return_tensors="pt", truncation=True, max_length=512
             )
-            device = next(self.model.parameters()).device
+
+            # Use cached device if available, otherwise fallback
+            device = self.device if self.device else next(self.model.parameters()).device
+
             inputs = {k: v.to(device) for k, v in inputs.items()}
 
             with torch.no_grad():
