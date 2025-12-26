@@ -81,48 +81,62 @@ class AlertSystem:
         print(Colors.colorize(f"🚨 SECURITY ALERT - {report.risk_level.upper()} RISK", risk_color + Colors.BOLD))
         print(header_bar)
 
-        print(f"{Colors.BOLD}Timestamp:{Colors.RESET} {report.timestamp}")
-        print(f"{Colors.BOLD}Subject:{Colors.RESET}   {self._sanitize_text(report.subject)}")
-        print(f"{Colors.BOLD}From:{Colors.RESET}      {self._sanitize_text(report.sender)}")
-        print(f"{Colors.BOLD}To:{Colors.RESET}        {self._sanitize_text(report.recipient)}")
+        # Key Details
+        print(f" {Colors.BOLD}Timestamp:{Colors.RESET} {report.timestamp}")
+        print(f" {Colors.BOLD}Subject:{Colors.RESET}   {self._sanitize_text(report.subject)}")
+        print(f" {Colors.BOLD}From:{Colors.RESET}      {self._sanitize_text(report.sender)}")
+        print(f" {Colors.BOLD}To:{Colors.RESET}        {self._sanitize_text(report.recipient)}")
 
         # Threat meter
         score_val = min(max(report.overall_threat_score, 0), 100)
-        meter_len = 20
+        meter_len = 30
         filled_len = int(score_val / 100 * meter_len)
         bar = "█" * filled_len + "░" * (meter_len - filled_len)
         meter_color = Colors.get_risk_color(report.risk_level)
 
-        print(f"{Colors.BOLD}Score:{Colors.RESET}     {Colors.colorize(bar, meter_color)} {report.overall_threat_score:.2f}/100")
-        print(f"{Colors.BOLD}Risk:{Colors.RESET}      {Colors.colorize(report.risk_level.upper(), risk_color + Colors.BOLD)}")
+        print()
+        print(f" {Colors.BOLD}Threat Score:{Colors.RESET} {Colors.colorize(bar, meter_color)} {report.overall_threat_score:.2f}/100")
+        print(f" {Colors.BOLD}Risk Level:{Colors.RESET}   {Colors.colorize(report.risk_level.upper(), risk_color + Colors.BOLD)}")
 
-        print(f"\n{Colors.BOLD}--- SPAM ANALYSIS ---{Colors.RESET}")
+        # Analysis Sections
+        print(f"\n {Colors.BOLD}SPAM ANALYSIS{Colors.RESET}")
         spam = report.spam_analysis
         if spam.get('indicators'):
             for indicator in spam['indicators'][:5]:  # Show first 5
-                print(f"  {Colors.colorize('•', Colors.CYAN)} {indicator}")
+                print(f"   {Colors.colorize('•', Colors.CYAN)} {indicator}")
+        else:
+            print(f"   {Colors.GREY}No significant indicators found.{Colors.RESET}")
         
-        print(f"\n{Colors.BOLD}--- NLP THREAT ANALYSIS ---{Colors.RESET}")
+        print(f"\n {Colors.BOLD}NLP THREAT ANALYSIS{Colors.RESET}")
         nlp = report.nlp_analysis
+        has_nlp_issues = False
         if nlp.get('social_engineering_indicators'):
-            print(f"  {Colors.BOLD}Social Engineering:{Colors.RESET}")
+            has_nlp_issues = True
+            print(f"   {Colors.BOLD}Social Engineering:{Colors.RESET}")
             for indicator in nlp['social_engineering_indicators'][:3]:
-                print(f"    {Colors.colorize('•', Colors.RED)} {indicator}")
+                print(f"     {Colors.colorize('•', Colors.RED)} {indicator}")
         if nlp.get('authority_impersonation'):
-            print(f"  {Colors.BOLD}Authority Impersonation:{Colors.RESET}")
+            has_nlp_issues = True
+            print(f"   {Colors.BOLD}Authority Impersonation:{Colors.RESET}")
             for indicator in nlp['authority_impersonation'][:3]:
-                print(f"    {Colors.colorize('•', Colors.RED)} {indicator}")
-        
-        print(f"\n{Colors.BOLD}--- MEDIA ANALYSIS ---{Colors.RESET}")
+                print(f"     {Colors.colorize('•', Colors.RED)} {indicator}")
+        if not has_nlp_issues:
+             print(f"   {Colors.GREY}No NLP threats detected.{Colors.RESET}")
+
+        print(f"\n {Colors.BOLD}MEDIA ANALYSIS{Colors.RESET}")
         media = report.media_analysis
+        has_media_issues = False
         if media.get('file_type_warnings'):
-            print(f"  {Colors.BOLD}File Warnings:{Colors.RESET}")
+            has_media_issues = True
+            print(f"   {Colors.BOLD}File Warnings:{Colors.RESET}")
             for warning in media['file_type_warnings'][:3]:
-                print(f"    {Colors.colorize('•', Colors.YELLOW)} {warning}")
+                print(f"     {Colors.colorize('•', Colors.YELLOW)} {warning}")
+        if not has_media_issues:
+            print(f"   {Colors.GREY}No media threats detected.{Colors.RESET}")
         
-        print(f"\n{Colors.BOLD}--- RECOMMENDATIONS ---{Colors.RESET}")
+        print(f"\n {Colors.BOLD}RECOMMENDATIONS{Colors.RESET}")
         for rec in report.recommendations:
-            print(f"  {Colors.colorize('►', Colors.GREEN)} {rec}")
+            print(f"   {Colors.colorize('►', Colors.GREEN)} {rec}")
         
         print(header_bar + "\n")
     
