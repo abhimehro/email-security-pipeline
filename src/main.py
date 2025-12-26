@@ -20,6 +20,7 @@ from src.modules.spam_analyzer import SpamAnalyzer
 from src.modules.nlp_analyzer import NLPThreatAnalyzer
 from src.modules.media_analyzer import MediaAuthenticityAnalyzer
 from src.modules.alert_system import AlertSystem, generate_threat_report
+from src.utils.colors import Colors
 
 
 class EmailSecurityPipeline:
@@ -204,19 +205,19 @@ def main():
     signal.signal(signal.SIGTERM, signal_handler)
 
     # Print banner
-    print("=" * 80)
-    print("Email Security Analysis Pipeline")
-    print("Multi-layer threat detection for email security")
-    print("=" * 80)
+    print(Colors.colorize("=" * 80, Colors.BLUE))
+    print(f"{Colors.BOLD}{Colors.CYAN}Email Security Analysis Pipeline{Colors.RESET}")
+    print(f"{Colors.GREY}Multi-layer threat detection for email security{Colors.RESET}")
+    print(Colors.colorize("=" * 80, Colors.BLUE))
     print()
 
     # Check for config file
     config_file = sys.argv[1] if len(sys.argv) > 1 else ".env"
 
     if not Path(config_file).exists():
-        print(f"Error: Configuration file '{config_file}' not found")
-        print("Please create a .env file based on .env.example")
-        print("You can run: cp .env.example .env")
+        print(Colors.colorize(f"Error: Configuration file '{config_file}' not found", Colors.RED))
+        print(f"Please create a .env file based on {Colors.BOLD}.env.example{Colors.RESET}")
+        print(f"You can run: {Colors.GREEN}cp .env.example .env{Colors.RESET}")
         sys.exit(1)
 
     # Validate that .env is not the example file
