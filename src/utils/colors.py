@@ -20,8 +20,11 @@ class Colors:
 
     @classmethod
     def colorize(cls, text: str, color_code: str) -> str:
-        """Wrap text in color codes"""
-        return f"{color_code}{text}{cls.RESET}"
+        """Wrap text in color codes if stdout is a TTY"""
+        import sys
+        if sys.stdout.isatty():
+            return f"{color_code}{text}{cls.RESET}"
+        return text
 
     @classmethod
     def get_risk_color(cls, risk_level: str) -> str:
