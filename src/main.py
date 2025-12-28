@@ -15,6 +15,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src.utils.config import Config
 from src.utils.sanitization import sanitize_for_logging
+from src.utils.logging_formatter import LogFormatter
 from src.modules.email_ingestion import EmailIngestionManager
 from src.modules.spam_analyzer import SpamAnalyzer
 from src.modules.nlp_analyzer import NLPThreatAnalyzer
@@ -62,13 +63,19 @@ class EmailSecurityPipeline:
         log_path = Path(self.config.system.log_file)
         log_path.parent.mkdir(parents=True, exist_ok=True)
 
+        # Create handlers
+        file_handler = logging.FileHandler(self.config.system.log_file)
+        file_handler.setFormatter(logging.Formatter(log_format))
+
+        console_handler = logging.StreamHandler(sys.stdout)
+        console_handler.setFormatter(LogFormatter())
+
         # Configure logging
         logging.basicConfig(
             level=getattr(logging, self.config.system.log_level.upper()),
-            format=log_format,
             handlers=[
-                logging.FileHandler(self.config.system.log_file),
-                logging.StreamHandler(sys.stdout)
+                file_handler,
+                console_handler
             ]
         )
 
