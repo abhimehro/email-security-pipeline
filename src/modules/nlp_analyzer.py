@@ -83,6 +83,9 @@ class NLPThreatAnalyzer:
          "Secrecy appeal"),
     ]
 
+    # Pre-compiled sender domain pattern
+    SENDER_DOMAIN_PATTERN = re.compile(r'@([\w\.-]+)')
+
     def __init__(self, config):
         """
         Initialize NLP analyzer
@@ -267,11 +270,10 @@ class NLPThreatAnalyzer:
             score += exclamation_count * 0.5
             indicators.append(f"Excessive exclamation marks ({exclamation_count})")
 
-        # Check for all caps words (shouting)
-        caps_words = re.findall(r'\b[A-Z]{4,}\b', text)
-        if len(caps_words) > 3:
-            score += len(caps_words) * 0.3
-            indicators.append(f"Excessive caps words ({len(caps_words)})")
+        # Removed dead code:
+        # Check for all caps words (shouting) was checking `text` which is lowercased.
+        # caps_words = re.findall(r'\b[A-Z]{4,}\b', text)
+        # It would never find anything in lowercased text.
 
         return score, indicators
 
@@ -282,7 +284,7 @@ class NLPThreatAnalyzer:
 
         sender_lower = sender.lower()
         sender_domain = ""
-        domain_match = re.search(r'@([\w\.-]+)', sender_lower)
+        domain_match = self.SENDER_DOMAIN_PATTERN.search(sender_lower)
         if domain_match:
             sender_domain = domain_match.group(1)
 
