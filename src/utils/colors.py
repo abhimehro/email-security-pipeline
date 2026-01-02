@@ -3,6 +3,7 @@ ANSI Color codes for console output formatting.
 Used to improve UX of the CLI and logs without adding external dependencies.
 """
 
+
 class Colors:
     """ANSI color codes"""
     RESET = "\033[0m"

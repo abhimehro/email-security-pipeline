@@ -15,6 +15,8 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src.utils.config import Config
 from src.utils.sanitization import sanitize_for_logging
+from src.utils.colors import Colors
+from src.utils.logging_utils import ColoredFormatter, StripAnsiFormatter
 from src.modules.email_ingestion import EmailIngestionManager
 from src.modules.spam_analyzer import SpamAnalyzer
 from src.modules.nlp_analyzer import NLPThreatAnalyzer
@@ -63,13 +65,17 @@ class EmailSecurityPipeline:
         log_path.parent.mkdir(parents=True, exist_ok=True)
 
         # Configure logging
+        # File handler gets stripped format (removes ANSI codes)
+        file_handler = logging.FileHandler(self.config.system.log_file)
+        file_handler.setFormatter(StripAnsiFormatter(log_format))
+
+        # Stream handler gets colored format
+        stream_handler = logging.StreamHandler(sys.stdout)
+        stream_handler.setFormatter(ColoredFormatter(log_format))
+
         logging.basicConfig(
             level=getattr(logging, self.config.system.log_level.upper()),
-            format=log_format,
-            handlers=[
-                logging.FileHandler(self.config.system.log_file),
-                logging.StreamHandler(sys.stdout)
-            ]
+            handlers=[file_handler, stream_handler]
         )
 
     def start(self):
@@ -110,7 +116,9 @@ class EmailSecurityPipeline:
 
         while self.running:
             iteration += 1
-            self.logger.info(f"=== Monitoring Cycle {iteration} ===")
+            separator = "=" * 20
+            cycle_msg = f"{separator} Monitoring Cycle {iteration} {separator}"
+            self.logger.info(Colors.colorize(cycle_msg, Colors.CYAN))
 
             try:
                 # Fetch emails
@@ -182,9 +190,12 @@ class EmailSecurityPipeline:
             # Send alerts
             self.alert_system.send_alert(threat_report)
 
+            risk_color = Colors.get_risk_color(threat_report.risk_level)
+            risk_msg = f"risk={Colors.colorize(threat_report.risk_level, risk_color)}"
+
             self.logger.info(
                 f"Analysis complete: overall_score={threat_report.overall_threat_score:.2f}, "
-                f"risk={threat_report.risk_level}"
+                f"{risk_msg}"
             )
 
         except Exception as e:
@@ -204,10 +215,11 @@ def main():
     signal.signal(signal.SIGTERM, signal_handler)
 
     # Print banner
-    print("=" * 80)
-    print("Email Security Analysis Pipeline")
-    print("Multi-layer threat detection for email security")
-    print("=" * 80)
+    banner_border = Colors.colorize("=" * 80, Colors.BLUE)
+    print(banner_border)
+    print(Colors.colorize("Email Security Analysis Pipeline", Colors.CYAN + Colors.BOLD))
+    print(Colors.colorize("Multi-layer threat detection for email security", Colors.WHITE))
+    print(banner_border)
     print()
 
     # Check for config file
