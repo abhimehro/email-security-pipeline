@@ -6,6 +6,9 @@ Provides functions to sanitize inputs for safe logging and display.
 import re
 import unicodedata
 
+# Pre-compile regex for performance
+ANSI_ESCAPE_PATTERN = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
+
 def sanitize_for_logging(text: str, max_length: int = 255) -> str:
     """
     Sanitize text for safe logging to prevent Log Injection (CRLF) and terminal manipulation.
@@ -33,8 +36,7 @@ def sanitize_for_logging(text: str, max_length: int = 255) -> str:
     # so we focus on removing non-printable control characters.
 
     # Remove ANSI escape sequences (for terminal colors/cursor movement)
-    ansi_escape = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
-    text = ansi_escape.sub('', text)
+    text = ANSI_ESCAPE_PATTERN.sub('', text)
 
     # Remove other non-printable control characters (ASCII 0-31 except tab)
     # We already handled \n and \r above.
