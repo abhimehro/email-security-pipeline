@@ -69,7 +69,7 @@ class SpamAnalyzer:
 
     # Compile suspicious URL patterns
     # SUSPICIOUS_URL_PATTERNS contains compiled regex objects, so we extract their patterns for the combined pattern.
-    
+
     # Pre-compiled combined pattern for performance
     # To join them, we need the pattern strings
     COMBINED_URL_PATTERN = re.compile('|'.join(p.pattern for p in SUSPICIOUS_URL_PATTERNS), re.IGNORECASE)
@@ -248,7 +248,7 @@ class SpamAnalyzer:
                 domain = parsed.netloc
                 
                 # Check against suspicious patterns
-                for pattern in self.COMPILED_SUSPICIOUS_URL_PATTERNS:
+                for pattern in self.SUSPICIOUS_URL_PATTERNS:
                     if pattern.search(domain):
                         score += 0.5
                         suspicious.append(url)
