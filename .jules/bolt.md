@@ -11,6 +11,3 @@
 ## 2024-05-22 - Caching OpenCV CascadeClassifier
 **Learning:** Loading `cv2.CascadeClassifier` is a surprisingly expensive operation (involving file I/O and XML parsing) that can significantly impact performance if done repeatedly in a loop.
 **Action:** Always cache or lazily load `cv2.CascadeClassifier` (and similar heavy resources) in the `__init__` method or a class-level variable instead of loading it inside the processing method.
-## 2025-11-14 - Resource Initialization in Loops
-**Learning:** Heavy resources like OpenCV CascadeClassifiers were being re-initialized inside analysis loops. This causes significant I/O overhead per request.
-**Action:** Always move static resource loading (models, classifiers, configs) to `__init__` or module level.

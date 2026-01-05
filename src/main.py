@@ -14,7 +14,6 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src.utils.config import Config
-from src.utils.colors import Colors
 from src.utils.sanitization import sanitize_for_logging
 from src.modules.email_ingestion import EmailIngestionManager
 from src.modules.spam_analyzer import SpamAnalyzer
@@ -205,19 +204,19 @@ def main():
     signal.signal(signal.SIGTERM, signal_handler)
 
     # Print banner
-    print(Colors.colorize("=" * 80, Colors.BLUE))
-    print(Colors.colorize("Email Security Analysis Pipeline", Colors.BOLD + Colors.CYAN))
-    print(Colors.colorize("Multi-layer threat detection for email security", Colors.CYAN))
-    print(Colors.colorize("=" * 80, Colors.BLUE))
+    print("=" * 80)
+    print("Email Security Analysis Pipeline")
+    print("Multi-layer threat detection for email security")
+    print("=" * 80)
     print()
 
     # Check for config file
     config_file = sys.argv[1] if len(sys.argv) > 1 else ".env"
 
     if not Path(config_file).exists():
-        print(Colors.colorize(f"Error: Configuration file '{config_file}' not found", Colors.RED))
-        print(Colors.colorize("Please create a .env file based on .env.example", Colors.YELLOW))
-        print(Colors.colorize("You can run: cp .env.example .env", Colors.GREEN))
+        print(f"Error: Configuration file '{config_file}' not found")
+        print("Please create a .env file based on .env.example")
+        print("You can run: cp .env.example .env")
         sys.exit(1)
 
     # Validate that .env is not the example file
@@ -225,11 +224,11 @@ def main():
         with open(config_file, 'r') as f:
             content = f.read()
             if 'your-email@gmail.com' in content or 'your-app-password-here' in content or 'your-email@outlook.com' in content or 'your-bridge-password-here' in content:
-                print(Colors.colorize("Warning: .env file appears to contain example values.", Colors.YELLOW))
-                print(Colors.colorize("Please update .env with your actual credentials before running.", Colors.YELLOW))
+                print("Warning: .env file appears to contain example values.")
+                print("Please update .env with your actual credentials before running.")
                 sys.exit(1)
     except Exception as e:
-        print(Colors.colorize(f"Warning: Could not validate .env file: {e}", Colors.YELLOW))
+        print(f"Warning: Could not validate .env file: {e}")
 
     # Create and start pipeline
     pipeline = EmailSecurityPipeline(config_file)
