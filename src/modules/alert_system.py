@@ -93,49 +93,34 @@ class AlertSystem:
         bar = "█" * filled_len + "░" * (meter_len - filled_len)
         meter_color = Colors.get_risk_color(report.risk_level)
 
-        print(f"{Colors.BOLD}Threat Score:{Colors.RESET} {Colors.colorize(bar, meter_color)} {report.overall_threat_score:.2f}/100 ({Colors.colorize(report.risk_level.upper(), risk_color)})")
+        print(f"{Colors.BOLD}Score:{Colors.RESET}     {Colors.colorize(bar, meter_color)} {report.overall_threat_score:.2f}/100")
+        print(f"{Colors.BOLD}Risk:{Colors.RESET}      {Colors.colorize(report.risk_level.upper(), risk_color + Colors.BOLD)}")
 
-        # Spam Analysis Section
-        print(f"\n{Colors.BOLD}📧 SPAM ANALYSIS{Colors.RESET}")
+        print(f"\n{Colors.BOLD}--- SPAM ANALYSIS ---{Colors.RESET}")
         spam = report.spam_analysis
-        has_spam_issues = False
         if spam.get('indicators'):
-            has_spam_issues = True
             for indicator in spam['indicators'][:5]:  # Show first 5
                 print(f"  {Colors.colorize('•', Colors.CYAN)} {indicator}")
-        if not has_spam_issues:
-             print(f"  {Colors.colorize('✓', Colors.GREEN)} No spam indicators detected")
         
-        # NLP Analysis Section
-        print(f"\n{Colors.BOLD}🧠 NLP THREAT ANALYSIS{Colors.RESET}")
+        print(f"\n{Colors.BOLD}--- NLP THREAT ANALYSIS ---{Colors.RESET}")
         nlp = report.nlp_analysis
-        has_nlp_issues = False
         if nlp.get('social_engineering_indicators'):
-            has_nlp_issues = True
             print(f"  {Colors.BOLD}Social Engineering:{Colors.RESET}")
             for indicator in nlp['social_engineering_indicators'][:3]:
                 print(f"    {Colors.colorize('•', Colors.RED)} {indicator}")
         if nlp.get('authority_impersonation'):
-            has_nlp_issues = True
             print(f"  {Colors.BOLD}Authority Impersonation:{Colors.RESET}")
             for indicator in nlp['authority_impersonation'][:3]:
                 print(f"    {Colors.colorize('•', Colors.RED)} {indicator}")
-        if not has_nlp_issues:
-             print(f"  {Colors.colorize('✓', Colors.GREEN)} No linguistic threats detected")
         
-        # Media Analysis Section
-        print(f"\n{Colors.BOLD}📎 MEDIA ANALYSIS{Colors.RESET}")
+        print(f"\n{Colors.BOLD}--- MEDIA ANALYSIS ---{Colors.RESET}")
         media = report.media_analysis
-        has_media_issues = False
         if media.get('file_type_warnings'):
-            has_media_issues = True
             print(f"  {Colors.BOLD}File Warnings:{Colors.RESET}")
             for warning in media['file_type_warnings'][:3]:
                 print(f"    {Colors.colorize('•', Colors.YELLOW)} {warning}")
-        if not has_media_issues:
-             print(f"  {Colors.colorize('✓', Colors.GREEN)} No media threats detected")
         
-        print(f"\n{Colors.BOLD}🛡️  RECOMMENDED ACTIONS{Colors.RESET}")
+        print(f"\n{Colors.BOLD}--- RECOMMENDATIONS ---{Colors.RESET}")
         for rec in report.recommendations:
             print(f"  {Colors.colorize('►', Colors.GREEN)} {rec}")
         

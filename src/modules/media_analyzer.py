@@ -55,13 +55,7 @@ class MediaAuthenticityAnalyzer:
         """
         self.config = config
         self.logger = logging.getLogger("MediaAuthenticityAnalyzer")
-
-        # Initialize Haar cascade once to avoid repeated file I/O
-        try:
-            self.face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
-        except Exception as e:
-            self.logger.warning(f"Failed to load Haar cascade: {e}")
-            self.face_cascade = None
+        self.face_cascade = None
 
     def analyze(self, email_data: EmailData) -> MediaAnalysisResult:
         """
@@ -356,8 +350,15 @@ class MediaAuthenticityAnalyzer:
         score = 0.0
         issues = []
 
-        if self.face_cascade is None or self.face_cascade.empty():
-            self.logger.warning("Haar cascade not available. Skipping facial analysis.")
+        # Load Haar cascade for face detection (lazy loading with caching)
+        if self.face_cascade is None:
+            # Note: In a real environment, ensure the XML file is available or bundled.
+            # We try to load from default OpenCV path or a local path.
+            cascade_path = cv2.data.haarcascades + 'haarcascade_frontalface_default.xml'
+            self.face_cascade = cv2.CascadeClassifier(cascade_path)
+
+        if self.face_cascade.empty():
+            self.logger.warning("Haar cascade not found. Skipping facial analysis.")
             return 0.0, []
 
         faces_found = 0
