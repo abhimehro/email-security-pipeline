@@ -7,3 +7,7 @@
 ## 2025-11-09 - Regex Compilation and ML Inference
 **Learning:** Sequential `re.findall` on large texts with many patterns is significantly slower than a single pass with a combined regex. Also, legacy code might contain duplicate heavy operations (like ML inference) due to merge conflicts or poor refactoring.
 **Action:** Combine regex patterns into single compiled objects with named groups. Audit expensive function calls for redundancy.
+
+## 2025-11-14 - Resource Initialization in Loops
+**Learning:** Heavy resources like OpenCV CascadeClassifiers were being re-initialized inside analysis loops. This causes significant I/O overhead per request.
+**Action:** Always move static resource loading (models, classifiers, configs) to `__init__` or module level.
