@@ -189,31 +189,30 @@ class NLPThreatAnalyzer:
 
         # Combine text for analysis
         text = f"{email_data.subject} {email_data.body_text}"
-        text_lower = text.lower()
 
         # Check for social engineering
         if self.config.check_social_engineering:
-            score, indicators = self._detect_social_engineering(text_lower)
+            score, indicators = self._detect_social_engineering(text)
             threat_score += score
             social_engineering.extend(indicators)
 
         # Check for urgency markers
         if self.config.check_urgency_markers:
-            score, indicators = self._detect_urgency(text_lower)
+            score, indicators = self._detect_urgency(text)
             threat_score += score
             urgency_markers.extend(indicators)
 
         # Check for authority impersonation
         if self.config.check_authority_impersonation:
             score, indicators = self._detect_authority_impersonation(
-                text_lower, email_data.sender
+                text, email_data.sender
             )
             threat_score += score
             authority_impersonation.extend(indicators)
 
         # Detect psychological triggers
         if getattr(self.config, "check_psychological_triggers", False):
-            score, indicators = self._detect_psychological_triggers(text_lower)
+            score, indicators = self._detect_psychological_triggers(text)
             threat_score += score
             psychological_triggers.extend(indicators)
 

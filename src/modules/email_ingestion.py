@@ -62,6 +62,7 @@ class IMAPClient:
         self.max_attachment_bytes = max_attachment_bytes
         self.max_total_attachment_bytes = max_total_attachment_bytes
         self.max_attachment_count = max_attachment_count
+        self.max_body_size = 1024 * 1024  # Default 1MB, overridden by manager
         self.connection: Optional[imaplib.IMAP4_SSL] = None
         self.logger = logging.getLogger(f"IMAPClient.{config.provider}")
 
@@ -321,11 +322,21 @@ class IMAPClient:
 
                     # Extract text body
                     if content_type == "text/plain" and "attachment" not in content_disposition:
-                        body_text += self._decode_part_payload(part)
+                        text_part = self._decode_part_payload(part)
+                        if len(body_text) < self.max_body_size:
+                            body_text += text_part
+                            if len(body_text) > self.max_body_size:
+                                body_text = body_text[:self.max_body_size]
+                                self.logger.warning(f"Body text truncated to {self.max_body_size} bytes for email {email_id}")
 
                     # Extract HTML body
                     elif content_type == "text/html" and "attachment" not in content_disposition:
-                        body_html += self._decode_part_payload(part)
+                        html_part = self._decode_part_payload(part)
+                        if len(body_html) < self.max_body_size:
+                            body_html += html_part
+                            if len(body_html) > self.max_body_size:
+                                body_html = body_html[:self.max_body_size]
+                                self.logger.warning(f"Body HTML truncated to {self.max_body_size} bytes for email {email_id}")
 
                     # Extract attachments
                     elif "attachment" in content_disposition:
@@ -374,8 +385,14 @@ class IMAPClient:
                     if payload:
                         decoded = self._decode_bytes(payload, msg.get_content_charset())
                         if content_type == "text/html":
+                            if len(decoded) > self.max_body_size:
+                                decoded = decoded[:self.max_body_size]
+                                self.logger.warning(f"Body HTML truncated to {self.max_body_size} bytes for email {email_id}")
                             body_html = decoded
                         else:
+                            if len(decoded) > self.max_body_size:
+                                decoded = decoded[:self.max_body_size]
+                                self.logger.warning(f"Body text truncated to {self.max_body_size} bytes for email {email_id}")
                             body_text = decoded
                 except Exception:
                     pass
@@ -524,6 +541,7 @@ class EmailIngestionManager:
         max_attachment_bytes: int = 25 * 1024 * 1024,
         max_total_attachment_bytes: int = 100 * 1024 * 1024,
         max_attachment_count: int = 10,
+        max_body_size_bytes: int = 1024 * 1024,
     ):
         """
         Initialize ingestion manager
@@ -534,12 +552,14 @@ class EmailIngestionManager:
             max_attachment_bytes: Maximum attachment bytes retained for analysis
             max_total_attachment_bytes: Maximum total size of all attachments per email
             max_attachment_count: Maximum number of attachments per email
+            max_body_size_bytes: Maximum size of email body text/html in bytes
         """
         self.accounts = accounts
         self.rate_limit_delay = rate_limit_delay
         self.max_attachment_bytes = max_attachment_bytes
         self.max_total_attachment_bytes = max_total_attachment_bytes
         self.max_attachment_count = max_attachment_count
+        self.max_body_size = max_body_size_bytes
         self.clients: Dict[str, IMAPClient] = {}
         self.logger = logging.getLogger("EmailIngestionManager")
 
@@ -563,6 +583,7 @@ class EmailIngestionManager:
                 self.max_total_attachment_bytes,
                 self.max_attachment_count
             )
+            client.max_body_size = self.max_body_size
             if client.connect():
                 self.clients[account.email] = client
                 success_count += 1
