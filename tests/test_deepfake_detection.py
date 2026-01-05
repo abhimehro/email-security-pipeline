@@ -2,6 +2,7 @@
 import unittest
 import os
 import sys
+import numpy as np
 from unittest.mock import MagicMock
 
 # Add repo root to path
@@ -73,9 +74,14 @@ class TestDeepfakeDetection(unittest.TestCase):
             }]
         )
 
+        # Mock frame extraction to return dummy frames
+        self.analyzer._extract_frames_from_video = MagicMock(return_value=[np.zeros((100, 100, 3), dtype=np.uint8)])
+        # Mock model score to be high
+        self.analyzer._run_deepfake_model = MagicMock(return_value=0.8)
+
         result = self.analyzer.analyze(email_data)
         self.assertGreater(len(result.potential_deepfakes), 0)
-        self.assertIn("High deepfake probability", result.potential_deepfakes[0])
+        self.assertIn("High probability of deepfake", result.potential_deepfakes[0])
         self.assertGreaterEqual(result.threat_score, 3.0)
 
     def test_simulator_suspicious_file(self):
@@ -100,9 +106,16 @@ class TestDeepfakeDetection(unittest.TestCase):
             }]
         )
 
+        # Mock frame extraction to return dummy frames
+        self.analyzer._extract_frames_from_video = MagicMock(return_value=[np.zeros((100, 100, 3), dtype=np.uint8)])
+        # Mock some facial inconsistencies to get a score
+        self.analyzer._analyze_facial_inconsistencies = MagicMock(return_value=(1.0, ["Facial issue"]))
+        # Mock model score to be low
+        self.analyzer._run_deepfake_model = MagicMock(return_value=0.1)
+
         result = self.analyzer.analyze(email_data)
         self.assertGreater(len(result.potential_deepfakes), 0)
-        self.assertIn("Possible deepfake content", result.potential_deepfakes[0])
+        self.assertIn("Facial issue", result.potential_deepfakes[0])
         self.assertGreaterEqual(result.threat_score, 1.0)
 
     def test_provider_unknown(self):

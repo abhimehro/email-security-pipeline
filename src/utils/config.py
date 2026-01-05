@@ -21,6 +21,8 @@ class EmailAccountConfig:
     app_password: str
     folders: List[str]
     provider: str
+    use_ssl: bool
+    verify_ssl: bool
 
 
 @dataclass
@@ -108,7 +110,9 @@ class Config:
                 imap_port=int(os.getenv("GMAIL_IMAP_PORT", "993")),
                 app_password=os.getenv("GMAIL_APP_PASSWORD", ""),
                 folders=self._parse_folders(os.getenv("GMAIL_FOLDERS", "INBOX")),
-                provider="gmail"
+                provider="gmail",
+                use_ssl=self._get_bool("GMAIL_USE_SSL", True),
+                verify_ssl=self._get_bool("GMAIL_VERIFY_SSL", True)
             ))
 
         # Outlook
@@ -120,7 +124,9 @@ class Config:
                 imap_port=int(os.getenv("OUTLOOK_IMAP_PORT", "993")),
                 app_password=os.getenv("OUTLOOK_APP_PASSWORD", ""),
                 folders=self._parse_folders(os.getenv("OUTLOOK_FOLDERS", "INBOX")),
-                provider="outlook"
+                provider="outlook",
+                use_ssl=self._get_bool("OUTLOOK_USE_SSL", True),
+                verify_ssl=self._get_bool("OUTLOOK_VERIFY_SSL", True)
             ))
 
         # Proton Mail
@@ -132,7 +138,9 @@ class Config:
                 imap_port=int(os.getenv("PROTON_IMAP_PORT", "1143")),
                 app_password=os.getenv("PROTON_APP_PASSWORD", ""),
                 folders=self._parse_folders(os.getenv("PROTON_FOLDERS", "INBOX")),
-                provider="proton"
+                provider="proton",
+                use_ssl=self._get_bool("PROTON_USE_SSL", True),
+                verify_ssl=self._get_bool("PROTON_VERIFY_SSL", True)
             ))
 
         return accounts

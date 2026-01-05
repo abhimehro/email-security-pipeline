@@ -78,8 +78,8 @@ def main():
         check_imap(
             "Proton Bridge",
             os.getenv("PROTON_IMAP_SERVER", "127.0.0.1"),
-            int(os.getenv("PROTON_IMAP_PORT", "143")),
-            True,
+            int(os.getenv("PROTON_IMAP_PORT", "1143")),
+            False,
             os.getenv("PROTON_EMAIL", ""),
             os.getenv("PROTON_APP_PASSWORD", ""),
         )
@@ -87,7 +87,7 @@ def main():
             "Proton Bridge",
             os.getenv("PROTON_SMTP_SERVER", "127.0.0.1"),
             int(os.getenv("PROTON_SMTP_PORT", "1025")),
-            True,
+            False,
             os.getenv("PROTON_EMAIL", ""),
             os.getenv("PROTON_APP_PASSWORD", ""),
         )

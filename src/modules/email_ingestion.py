@@ -67,16 +67,16 @@ class IMAPClient:
         self.logger = logging.getLogger(f"IMAPClient.{config.provider}")
 
     @staticmethod
-    def _create_secure_ssl_context() -> ssl.SSLContext:
+    def _create_secure_ssl_context(verify_ssl: bool = True) -> ssl.SSLContext:
         """
         Create a secure SSL context with best practices.
-        Enforces TLS 1.2+, verifies certificates, and checks hostnames.
+        Enforces TLS 1.2+, and conditionally verifies certificates.
         """
         if hasattr(ssl, "PROTOCOL_TLS_CLIENT"):
             context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
             context.load_default_certs()
-            context.check_hostname = True
-            context.verify_mode = ssl.CERT_REQUIRED
+            context.check_hostname = verify_ssl
+            context.verify_mode = ssl.CERT_REQUIRED if verify_ssl else ssl.CERT_NONE
         else:
             # Fallback for older Python versions without PROTOCOL_TLS_CLIENT.
             if hasattr(ssl, "PROTOCOL_TLS"):
@@ -85,8 +85,8 @@ class IMAPClient:
                 protocol = ssl.PROTOCOL_SSLv23
             context = ssl.SSLContext(protocol)
             context.load_default_certs()
-            context.check_hostname = True
-            context.verify_mode = ssl.CERT_REQUIRED
+            context.check_hostname = verify_ssl
+            context.verify_mode = ssl.CERT_REQUIRED if verify_ssl else ssl.CERT_NONE
 
         # Enforce a minimum TLS version of 1.2
         if hasattr(ssl, "TLSVersion"):
@@ -108,14 +108,22 @@ class IMAPClient:
             True if connection successful
         """
         try:
-            self.logger.info(f"Connecting to {self.config.imap_server}:{self.config.imap_port}")
+            self.logger.info(f"Connecting to {self.config.imap_server}:{self.config.imap_port} (SSL={self.config.use_ssl})")
 
-            context = self._create_secure_ssl_context()
-            self.connection = imaplib.IMAP4_SSL(
-                self.config.imap_server,
-                self.config.imap_port,
-                ssl_context=context
-            )
+            context = self._create_secure_ssl_context(self.config.verify_ssl)
+            
+            if self.config.use_ssl:
+                self.connection = imaplib.IMAP4_SSL(
+                    self.config.imap_server,
+                    self.config.imap_port,
+                    ssl_context=context
+                )
+            else:
+                self.connection = imaplib.IMAP4(
+                    self.config.imap_server,
+                    self.config.imap_port
+                )
+                self.connection.starttls(ssl_context=context)
 
             self.connection.login(self.config.email, self.config.app_password)
             self.logger.info(f"Successfully connected to {self.config.email}")
@@ -461,7 +469,7 @@ class IMAPClient:
         """Validate the SSL certificate of the IMAP server."""
         result = {"valid": False, "expires_in_days": None, "error": None}
         try:
-            context = self._create_secure_ssl_context()
+            context = self._create_secure_ssl_context(self.config.verify_ssl)
             with socket.create_connection((account.imap_server, account.imap_port), timeout=5) as sock:
                 with context.wrap_socket(sock, server_hostname=account.imap_server) as ssock:
                     cert = ssock.getpeercert()
@@ -480,8 +488,13 @@ class IMAPClient:
         """Attempt a login to verify credentials."""
         result = {"valid": False, "error": None}
         try:
-            context = self._create_secure_ssl_context()
-            conn = imaplib.IMAP4_SSL(account.imap_server, account.imap_port, ssl_context=context)
+            context = self._create_secure_ssl_context(self.config.verify_ssl)
+            if account.use_ssl:
+                conn = imaplib.IMAP4_SSL(account.imap_server, account.imap_port, ssl_context=context)
+            else:
+                conn = imaplib.IMAP4(account.imap_server, account.imap_port)
+                conn.starttls(ssl_context=context)
+            
             conn.login(account.email, account.app_password)
             result["valid"] = True
             conn.logout()
