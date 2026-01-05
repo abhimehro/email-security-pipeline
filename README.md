@@ -98,22 +98,28 @@ A self-hosted, containerized email security analysis system that monitors IMAP f
    docker-compose logs -f
    ```
 
-### Option 2: Local Development Setup
+### Option 3: Background Execution (macOS/Darwin)
 
-1. **Install Python dependencies**
+If you are on macOS, you can run the pipeline as a background service (launchd daemon) that starts automatically on login.
+
+1. **Install the daemon**
    ```bash
-   python3 -m pip install -r requirements.txt
+   chmod +x install_daemon.sh
+   ./install_daemon.sh
    ```
 
-2. **Configure environment**
+2. **Manage the service**
    ```bash
-   cp .env.example .env
-   nano .env  # Edit with your credentials
-   ```
-
-3. **Run the pipeline**
-   ```bash
-   python3 src/main.py
+   # View logs
+   tail -f ~/Library/Logs/email-security-pipeline/pipeline.out
+   
+   # Restart service
+   launchctl stop com.abhimehrotra.email-security-pipeline
+   launchctl start com.abhimehrotra.email-security-pipeline
+   
+   # Uninstall daemon
+   chmod +x uninstall_daemon.sh
+   ./uninstall_daemon.sh
    ```
 
 ## Configuration

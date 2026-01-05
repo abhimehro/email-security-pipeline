@@ -10,23 +10,23 @@
         <key>PATH</key>
         <string>/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
         <key>HOME</key>
-        <string>/Users/abhimehrotra</string>
+        <string>/Users/speedybee</string>
     </dict>
     
     <key>ProgramArguments</key>
     <array>
-        <string>/opt/homebrew/bin/python3</string>
-        <string>/Users/abhimehrotra/Documents/dev/email-security-pipeline/src/main.py</string>
+        <string>/Users/speedybee/Documents/dev/email-security-pipeline/venv/bin/python3</string>
+        <string>/Users/speedybee/Documents/dev/email-security-pipeline/src/main.py</string>
     </array>
     
     <key>WorkingDirectory</key>
-    <string>/Users/abhimehrotra/Documents/dev/email-security-pipeline</string>
+    <string>/Users/speedybee/Documents/dev/email-security-pipeline</string>
     
     <key>StandardOutPath</key>
-    <string>/Users/abhimehrotra/Library/Logs/email-security-pipeline/pipeline.out</string>
+    <string>/Users/speedybee/Library/Logs/email-security-pipeline/pipeline.out</string>
     
     <key>StandardErrorPath</key>
-    <string>/Users/abhimehrotra/Library/Logs/email-security-pipeline/pipeline.err</string>
+    <string>/Users/speedybee/Library/Logs/email-security-pipeline/pipeline.err</string>
     
     <!-- Keep the pipeline running continuously -->
     <key>KeepAlive</key>

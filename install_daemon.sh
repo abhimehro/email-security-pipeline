@@ -63,7 +63,7 @@ print_success "Python3 found: $(which python3)"
 
 # Check if pipeline runs
 print_info "Testing pipeline configuration..."
-if ! python3 test_config.py > /dev/null 2>&1; then
+if ! ./venv/bin/python3 src/main.py --help > /dev/null 2>&1; then
     print_warning "Configuration test failed. Continue anyway? (y/n)"
     read -r response
     if [[ ! "$response" =~ ^[Yy]$ ]]; then
