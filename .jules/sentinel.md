@@ -1,4 +1,4 @@
-## 2025-05-23 - [DoS Prevention in Email Parsing]
-**Vulnerability:** Email ingestion was vulnerable to CPU exhaustion (DoS) via excessively large email bodies. Analyzing multi-megabyte text strings with complex regexes in `NLPThreatAnalyzer` caused significant delays (e.g., 26s for 20MB).
-**Learning:** Limiting attachment sizes is not enough. The email body itself (text/html) is untrusted input and must be length-limited before processing.
-**Prevention:** Implemented `MAX_BODY_SIZE_KB` (default 1MB) in `SystemConfig`. `IMAPClient` now truncates body text and HTML to this limit during parsing, logging a warning when truncation occurs.
+## 2025-05-24 - [Media File Processing Bypass Prevention]
+**Vulnerability:** The deepfake detection module previously processed files with dangerous extensions (e.g., `.exe` disguised as `.mp4`) or files where the declared content type mismatched the actual file content (Magic Bytes). This could lead to writing malicious files to disk and processing them with `cv2`, potentially exposing the system to parser vulnerabilities.
+**Learning:** Checking file extensions is not enough. We must ensure that files identified as dangerous or suspicious by other layers (like extension checks or magic byte analysis) are strictly excluded from further processing steps like deepfake analysis.
+**Prevention:** Modified `MediaAuthenticityAnalyzer.analyze` to explicitly skip `_check_deepfake_indicators` if `ext_score` or `mismatch_score` indicates a high threat (>= 5.0).
