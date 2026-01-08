@@ -1,5 +1,6 @@
 
 import unittest
+from unittest.mock import patch
 from datetime import datetime
 from src.modules.media_analyzer import MediaAuthenticityAnalyzer, MediaAnalysisResult
 from src.modules.email_ingestion import EmailData
@@ -132,6 +133,39 @@ class TestMediaAnalyzerSecurity(unittest.TestCase):
                 found_suspicious = True
 
         self.assertTrue(found_suspicious, "Failed to detect double extension")
+
+    def test_skips_deepfake_for_dangerous_files(self):
+        """Test that deepfake detection is skipped for files flagged as dangerous"""
+        email_data = EmailData(
+            message_id="test",
+            subject="Test",
+            sender="sender@example.com",
+            recipient="recipient@example.com",
+            date=datetime.now(),
+            body_text="",
+            body_html="",
+            headers={},
+            attachments=[{
+                "filename": "harmless.mp4",
+                "content_type": "video/mp4",
+                "size": 1000,
+                # Malicious content (MZ header for EXE)
+                "data": b"MZ" + b"\x00" * 100,
+                "truncated": False
+            }],
+            raw_email=None,
+            account_email="me@example.com",
+            folder="INBOX"
+        )
+
+        with patch.object(self.analyzer, '_check_deepfake_indicators') as mock_deepfake:
+            result = self.analyzer.analyze(email_data)
+
+            # Verify high threat score from content mismatch
+            self.assertGreaterEqual(result.threat_score, 5.0)
+
+            # Verify deepfake detection was skipped
+            mock_deepfake.assert_not_called()
 
 if __name__ == '__main__':
     unittest.main()
