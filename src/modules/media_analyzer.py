@@ -113,7 +113,15 @@ class MediaAuthenticityAnalyzer:
                 size_anomalies.append(size_warning)
 
             # Check for potential deepfakes
-            if self.config.deepfake_detection_enabled:
+            # SKIP if file is already identified as dangerous or mismatched content type
+            # This prevents processing of potential malware (e.g. executables disguised as video)
+            skip_deepfake = False
+
+            if ext_score >= 5.0 or mismatch_score >= 5.0:
+                skip_deepfake = True
+                self.logger.warning(f"Skipping deepfake analysis for dangerous/suspicious file: {filename}")
+
+            if self.config.deepfake_detection_enabled and not skip_deepfake:
                 deepfake_score, deepfake_indicators = self._check_deepfake_indicators(
                     filename, data, content_type
                 )
