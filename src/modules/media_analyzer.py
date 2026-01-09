@@ -106,6 +106,12 @@ class MediaAuthenticityAnalyzer:
             if mismatch_warnings:
                 suspicious_attachments.append(f"{filename}: {mismatch_warnings}")
 
+            # Skip deep processing for highly suspicious files (e.g. dangerous extensions or type mismatches)
+            # to prevent potential exploits against media processing libraries (e.g. cv2/ffmpeg)
+            if ext_score >= 5.0 or mismatch_score >= 5.0:
+                self.logger.warning(f"Skipping deepfake analysis for dangerous/mismatched file: {filename}")
+                continue
+
             # Check file size anomalies
             size_score, size_warning = self._check_size_anomaly(filename, size)
             threat_score += size_score
