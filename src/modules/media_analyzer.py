@@ -113,7 +113,9 @@ class MediaAuthenticityAnalyzer:
                 size_anomalies.append(size_warning)
 
             # Check for potential deepfakes
-            if self.config.deepfake_detection_enabled:
+            # Only proceed if the file hasn't already been flagged as dangerous/suspicious (score >= 5.0)
+            # This prevents processing of potentially malicious files (e.g., disguised executables)
+            if self.config.deepfake_detection_enabled and threat_score < 5.0:
                 deepfake_score, deepfake_indicators = self._check_deepfake_indicators(
                     filename, data, content_type
                 )
