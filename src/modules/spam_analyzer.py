@@ -53,6 +53,7 @@ class SpamAnalyzer:
         re.compile(r'bit\.ly'),
         re.compile(r'tinyurl'),
         re.compile(r't\.co'),
+        re.compile(r'goo\.gl'),
         re.compile(r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}'),  # IP addresses
         re.compile(r'[a-z0-9\-]{30,}'),  # Very long subdomain/path
     ]
@@ -247,15 +248,9 @@ class SpamAnalyzer:
                 parsed = urlparse(url)
                 domain = parsed.netloc
                 
-                # Check against suspicious patterns
-                for pattern in self.SUSPICIOUS_URL_PATTERNS:
-                    if pattern.search(domain):
-                        score += 0.5
-                        suspicious.append(url)
-                        break
-                
-                # Check for URL shorteners
-                if any(shortener in domain for shortener in ['bit.ly', 'tinyurl', 't.co', 'goo.gl']):
+                # Check against suspicious patterns using the combined regex
+                # This replaces the loop and the manual check, and avoids double-counting
+                if self.COMBINED_URL_PATTERN.search(domain):
                     score += 0.5
                     suspicious.append(url)
                 

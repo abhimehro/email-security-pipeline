@@ -11,3 +11,7 @@
 ## 2025-11-09 - Regex Compilation and ML Inference
 **Learning:** Sequential `re.findall` on large texts with many patterns is significantly slower than a single pass with a combined regex. Also, legacy code might contain duplicate heavy operations (like ML inference) due to merge conflicts or poor refactoring.
 **Action:** Combine regex patterns into single compiled objects with named groups. Audit expensive function calls for redundancy.
+
+## 2025-11-14 - Case Sensitivity in URL Parsing
+**Learning:** `urllib.parse.urlparse` preserves the case of the `netloc` (domain), which can lead to missed detections if subsequent checks are case-sensitive. Legacy manual string checks often overlook this.
+**Action:** When optimizing URL checks, always use `re.IGNORECASE` or normalize to lowercase to catch obfuscated attacks (e.g., `BIT.LY`), ensuring correctness improves alongside performance.
