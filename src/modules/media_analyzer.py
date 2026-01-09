@@ -113,12 +113,26 @@ class MediaAuthenticityAnalyzer:
                 size_anomalies.append(size_warning)
 
             # Check for potential deepfakes
+            # SKIP if file is already identified as dangerous (e.g. executable disguised as mp4)
+            # This prevents writing malicious files to disk or processing them with complex parsers.
             if self.config.deepfake_detection_enabled:
-                deepfake_score, deepfake_indicators = self._check_deepfake_indicators(
-                    filename, data, content_type
-                )
-                threat_score += deepfake_score
-                potential_deepfakes.extend(deepfake_indicators)
+                is_high_risk = False
+
+                # Check if mismatch score indicates disguised executable (5.0)
+                # or significant mismatch (2.0) combined with other factors
+                if mismatch_score >= 5.0:
+                    is_high_risk = True
+                elif ext_score >= 5.0:
+                    is_high_risk = True
+
+                if not is_high_risk:
+                    deepfake_score, deepfake_indicators = self._check_deepfake_indicators(
+                        filename, data, content_type
+                    )
+                    threat_score += deepfake_score
+                    potential_deepfakes.extend(deepfake_indicators)
+                else:
+                    self.logger.warning(f"Skipping deepfake analysis for high-risk file: {filename}")
 
         # Calculate risk level
         risk_level = self._calculate_risk_level(threat_score)

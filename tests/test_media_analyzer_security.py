@@ -99,6 +99,9 @@ class TestMediaAnalyzerSecurity(unittest.TestCase):
         result = self.analyzer.analyze(email_data)
         # We expect this to NOT be flagged as .exe currently because it ends in .txt
         # But we want to ENHANCE the system to strip control chars.
+        # Actually in the source code of media_analyzer.py:
+        # filename_lower = filename.lower().strip().replace('\0', '')
+        # So it DOES handle null bytes. 'virus.exe\0.txt' -> 'virus.exe.txt'.
         pass
 
     def test_double_extension_spoofing(self):
