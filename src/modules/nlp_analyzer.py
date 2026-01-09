@@ -9,6 +9,7 @@ import logging
 from typing import List, Dict, Tuple, Optional
 from collections import defaultdict
 from dataclasses import dataclass
+from functools import lru_cache
 
 from .email_ingestion import EmailData
 
@@ -363,6 +364,7 @@ class NLPThreatAnalyzer:
         else:
             return "low"
 
+    @lru_cache(maxsize=1024)
     def analyze_with_transformer(self, text: str) -> Dict:
         """
         Analyze text using transformer model
