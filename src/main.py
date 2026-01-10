@@ -14,6 +14,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src.utils.config import Config
+from src.utils.colors import Colors
+from src.utils.logging_utils import ColoredFormatter
 from src.utils.sanitization import sanitize_for_logging
 from src.modules.email_ingestion import EmailIngestionManager
 from src.modules.spam_analyzer import SpamAnalyzer
@@ -66,14 +68,17 @@ class EmailSecurityPipeline:
         log_path = Path(self.config.system.log_file)
         log_path.parent.mkdir(parents=True, exist_ok=True)
 
+        # Configure handlers
+        file_handler = logging.FileHandler(self.config.system.log_file)
+        file_handler.setFormatter(logging.Formatter(log_format))
+
+        stream_handler = logging.StreamHandler(sys.stdout)
+        stream_handler.setFormatter(ColoredFormatter(log_format))
+
         # Configure logging
         logging.basicConfig(
             level=getattr(logging, self.config.system.log_level.upper()),
-            format=log_format,
-            handlers=[
-                logging.FileHandler(self.config.system.log_file),
-                logging.StreamHandler(sys.stdout)
-            ]
+            handlers=[file_handler, stream_handler]
         )
 
     def start(self):
@@ -208,10 +213,10 @@ def main():
     signal.signal(signal.SIGTERM, signal_handler)
 
     # Print banner
-    print("=" * 80)
-    print("Email Security Analysis Pipeline")
-    print("Multi-layer threat detection for email security")
-    print("=" * 80)
+    print(Colors.colorize("=" * 80, Colors.CYAN))
+    print(Colors.colorize("Email Security Analysis Pipeline", Colors.BOLD + Colors.CYAN))
+    print(Colors.colorize("Multi-layer threat detection for email security", Colors.CYAN))
+    print(Colors.colorize("=" * 80, Colors.CYAN))
     print()
 
     # Check for config file
