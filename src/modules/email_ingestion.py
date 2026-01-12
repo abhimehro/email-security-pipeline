@@ -9,6 +9,8 @@ import time
 import logging
 import socket
 import ssl
+import os
+import re
 from typing import Any, Dict, List, Optional, Tuple
 from email.message import Message
 from dataclasses import dataclass
@@ -355,7 +357,9 @@ class IMAPClient:
                             )
                             continue
 
-                        filename = self._decode_header_value(part.get_filename() or "")
+                        raw_filename = self._decode_header_value(part.get_filename() or "")
+                        filename = self._sanitize_filename(raw_filename)
+
                         if filename:
                             payload = part.get_payload(decode=True) or b""
                             original_size = len(payload)
@@ -512,6 +516,31 @@ class IMAPClient:
             return str(make_header(decode_header(value)))
         except Exception:
             return value
+
+    @staticmethod
+    def _sanitize_filename(filename: str) -> str:
+        """
+        Sanitize filename to prevent path traversal and ensure safety.
+        """
+        if not filename:
+            return ""
+
+        # 1. Remove any directory components (basename only)
+        # Handle both forward and backward slashes regardless of OS
+        filename = os.path.basename(filename.replace('\\', '/'))
+
+        # 2. Replace dangerous characters with underscore
+        # Allow alphanumeric, dot, dash, underscore, space
+        filename = re.sub(r'[^a-zA-Z0-9.\-_ ]', '_', filename)
+
+        # 3. Prevent hidden files (starting with dot)
+        while filename.startswith('.'):
+            filename = filename[1:]
+
+        # 4. Collapse multiple dots (e.g., file..exe)
+        filename = re.sub(r'\.+', '.', filename)
+
+        return filename.strip() or "unnamed_attachment"
 
     @classmethod
     def _format_addresses(cls, header_value: str) -> str:

@@ -1,4 +1,8 @@
-## 2025-05-23 - [DoS Prevention in Email Parsing]
-**Vulnerability:** Email ingestion was vulnerable to CPU exhaustion (DoS) via excessively large email bodies. Analyzing multi-megabyte text strings with complex regexes in `NLPThreatAnalyzer` caused significant delays (e.g., 26s for 20MB).
-**Learning:** Limiting attachment sizes is not enough. The email body itself (text/html) is untrusted input and must be length-limited before processing.
-**Prevention:** Implemented `MAX_BODY_SIZE_KB` (default 1MB) in `SystemConfig`. `IMAPClient` now truncates body text and HTML to this limit during parsing, logging a warning when truncation occurs.
+## 2024-03-24 - [Path Traversal in Email Attachments]
+**Vulnerability:** Path traversal vulnerability in email attachment filename handling. `IMAPClient` accepted raw filenames from email headers, which could contain directory traversal sequences (e.g., `../../etc/passwd`).
+**Learning:** `os.path.basename` behavior varies by OS. On Linux, it does not strip Windows-style separators (`\`). Always normalize separators before calling `basename` when handling potentially malicious cross-platform input.
+**Prevention:** Implemented strict filename sanitization:
+1. Normalize separators (`replace('\\', '/')`)
+2. Use `os.path.basename`
+3. Whitelist safe characters (alphanumeric, dot, dash, underscore, space)
+4. Strip leading dots (hidden files)
