@@ -15,6 +15,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src.utils.config import Config
 from src.utils.sanitization import sanitize_for_logging
+from src.utils.colors import Colors
 from src.modules.email_ingestion import EmailIngestionManager
 from src.modules.spam_analyzer import SpamAnalyzer
 from src.modules.nlp_analyzer import NLPThreatAnalyzer
@@ -208,10 +209,10 @@ def main():
     signal.signal(signal.SIGTERM, signal_handler)
 
     # Print banner
-    print("=" * 80)
-    print("Email Security Analysis Pipeline")
-    print("Multi-layer threat detection for email security")
-    print("=" * 80)
+    print(Colors.colorize("=" * 80, Colors.BLUE))
+    print(Colors.colorize("🛡️  Email Security Analysis Pipeline", Colors.BOLD + Colors.CYAN))
+    print(Colors.colorize("   Multi-layer threat detection for email security", Colors.CYAN))
+    print(Colors.colorize("=" * 80, Colors.BLUE))
     print()
 
     # Check for config file
