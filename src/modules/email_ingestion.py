@@ -17,6 +17,7 @@ from email.header import decode_header, make_header
 from email.utils import getaddresses
 
 from ..utils.config import EmailAccountConfig
+from ..utils.sanitization import sanitize_for_logging
 
 
 @dataclass
@@ -202,14 +203,16 @@ class IMAPClient:
 
         try:
             status, data = self.connection.select(folder)
+            safe_folder = sanitize_for_logging(folder)
             if status == "OK":
-                self.logger.debug(f"Selected folder: {folder}")
+                self.logger.debug(f"Selected folder: {safe_folder}")
                 return True
             else:
-                self.logger.warning(f"Could not select folder {folder}: {status}")
+                self.logger.warning(f"Could not select folder {safe_folder}: {status}")
                 return False
         except Exception as e:
-            self.logger.error(f"Error selecting folder {folder}: {e}")
+            safe_folder = sanitize_for_logging(folder)
+            self.logger.error(f"Error selecting folder {safe_folder}: {e}")
             return False
 
     def fetch_unseen_emails(self, folder: str, limit: int = 50) -> List[Tuple[str, bytes]]:
@@ -223,6 +226,7 @@ class IMAPClient:
         Returns:
             List of (email_id, raw_email) tuples
         """
+        safe_folder = sanitize_for_logging(folder)
         if not self.select_folder(folder):
             return []
 
@@ -231,19 +235,19 @@ class IMAPClient:
             status, messages = self.connection.search(None, "UNSEEN")
 
             if status != "OK":
-                self.logger.warning(f"Search failed in {folder}")
+                self.logger.warning(f"Search failed in {safe_folder}")
                 return []
 
             email_ids = messages[0].split()
 
             if not email_ids:
-                self.logger.debug(f"No unseen emails in {folder}")
+                self.logger.debug(f"No unseen emails in {safe_folder}")
                 return []
 
             # Limit number of emails to fetch
             email_ids = email_ids[:limit]
 
-            self.logger.info(f"Found {len(email_ids)} unseen emails in {folder}")
+            self.logger.info(f"Found {len(email_ids)} unseen emails in {safe_folder}")
 
             emails = []
             batch_size = 10  # Process in small batches to respect rate limits while improving speed
@@ -273,8 +277,9 @@ class IMAPClient:
                                     if isinstance(raw_bytes, bytes):
                                         emails.append((msg_seq.decode(), raw_bytes))
                                     else:
+                                        safe_seq = sanitize_for_logging(msg_seq.decode() if isinstance(msg_seq, bytes) else str(msg_seq))
                                         self.logger.warning(
-                                            f"Unexpected payload type for email {msg_seq}: {type(raw_bytes)}"
+                                            f"Unexpected payload type for email {safe_seq}: {type(raw_bytes)}"
                                         )
                                 except Exception as parse_err:
                                     self.logger.error(
@@ -335,7 +340,7 @@ class IMAPClient:
                             body_text += text_part
                             if len(body_text) > self.max_body_size:
                                 body_text = body_text[:self.max_body_size]
-                                self.logger.warning(f"Body text truncated to {self.max_body_size} bytes for email {email_id}")
+                                self.logger.warning(f"Body text truncated to {self.max_body_size} bytes for email {sanitize_for_logging(email_id)}")
 
                     # Extract HTML body
                     elif content_type == "text/html" and "attachment" not in content_disposition:
@@ -344,14 +349,14 @@ class IMAPClient:
                             body_html += html_part
                             if len(body_html) > self.max_body_size:
                                 body_html = body_html[:self.max_body_size]
-                                self.logger.warning(f"Body HTML truncated to {self.max_body_size} bytes for email {email_id}")
+                                self.logger.warning(f"Body HTML truncated to {self.max_body_size} bytes for email {sanitize_for_logging(email_id)}")
 
                     # Extract attachments
                     elif "attachment" in content_disposition:
                         # Check attachment count limit
                         if len(attachments) >= self.max_attachment_count:
                             self.logger.warning(
-                                f"Max attachment count ({self.max_attachment_count}) reached for email {email_id}. Skipping remaining attachments."
+                                f"Max attachment count ({self.max_attachment_count}) reached for email {sanitize_for_logging(email_id)}. Skipping remaining attachments."
                             )
                             continue
 
@@ -363,7 +368,7 @@ class IMAPClient:
                             # Check total size limit before adding
                             if self.max_total_attachment_bytes > 0 and (current_total_size + original_size) > self.max_total_attachment_bytes:
                                 self.logger.warning(
-                                    f"Max total attachment size ({self.max_total_attachment_bytes}) exceeded for email {email_id}. Skipping attachment {filename}."
+                                    f"Max total attachment size ({self.max_total_attachment_bytes}) exceeded for email {sanitize_for_logging(email_id)}. Skipping attachment {sanitize_for_logging(filename)}."
                                 )
                                 continue
 
@@ -371,7 +376,7 @@ class IMAPClient:
                             if self.max_attachment_bytes > 0 and original_size > self.max_attachment_bytes:
                                 self.logger.warning(
                                     "Attachment %s exceeds max size (%d bytes); truncating for analysis",
-                                    filename,
+                                    sanitize_for_logging(filename),
                                     original_size,
                                 )
                                 payload = payload[:self.max_attachment_bytes]
@@ -395,12 +400,12 @@ class IMAPClient:
                         if content_type == "text/html":
                             if len(decoded) > self.max_body_size:
                                 decoded = decoded[:self.max_body_size]
-                                self.logger.warning(f"Body HTML truncated to {self.max_body_size} bytes for email {email_id}")
+                                self.logger.warning(f"Body HTML truncated to {self.max_body_size} bytes for email {sanitize_for_logging(email_id)}")
                             body_html = decoded
                         else:
                             if len(decoded) > self.max_body_size:
                                 decoded = decoded[:self.max_body_size]
-                                self.logger.warning(f"Body text truncated to {self.max_body_size} bytes for email {email_id}")
+                                self.logger.warning(f"Body text truncated to {self.max_body_size} bytes for email {sanitize_for_logging(email_id)}")
                             body_text = decoded
                 except Exception:
                     pass
@@ -428,7 +433,7 @@ class IMAPClient:
             )
 
         except Exception as e:
-            self.logger.error(f"Error parsing email {email_id}: {e}")
+            self.logger.error(f"Error parsing email {sanitize_for_logging(email_id)}: {e}")
             return None
 
     def diagnose_connection_issues(self, account: EmailAccountConfig) -> Dict[str, Any]:
@@ -633,7 +638,7 @@ class EmailIngestionManager:
                     self.logger.error(f"Unable to reconnect to {account.email}; skipping remaining folders")
                     break
 
-                self.logger.info(f"Fetching from {account.email}/{folder}")
+                self.logger.info(f"Fetching from {account.email}/{sanitize_for_logging(folder)}")
 
                 raw_emails = client.fetch_unseen_emails(folder, max_per_folder)
 
