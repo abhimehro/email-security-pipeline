@@ -8,11 +8,13 @@ import sys
 import time
 import logging
 import signal
+import shutil
 from pathlib import Path
 
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
+from src.utils.colors import Colors
 from src.utils.config import Config
 from src.utils.sanitization import sanitize_for_logging
 from src.modules.email_ingestion import EmailIngestionManager
@@ -208,18 +210,37 @@ def main():
     signal.signal(signal.SIGTERM, signal_handler)
 
     # Print banner
-    print("=" * 80)
-    print("Email Security Analysis Pipeline")
-    print("Multi-layer threat detection for email security")
-    print("=" * 80)
+    print(Colors.colorize("=" * 80, Colors.BLUE))
+    print(Colors.colorize("Email Security Analysis Pipeline", Colors.BOLD + Colors.CYAN))
+    print(Colors.colorize("Multi-layer threat detection for email security", Colors.GREY))
+    print(Colors.colorize("=" * 80, Colors.BLUE))
     print()
 
     # Check for config file
     config_file = sys.argv[1] if len(sys.argv) > 1 else ".env"
+    config_path = Path(config_file)
 
-    if not Path(config_file).exists():
-        print(f"Error: Configuration file '{config_file}' not found")
-        print("Please create a .env file based on .env.example")
+    if not config_path.exists():
+        print(f"{Colors.RED}❌ Error: Configuration file '{config_file}' not found{Colors.RESET}")
+
+        # Interactive setup if running in TTY
+        if sys.stdin.isatty():
+            try:
+                response = input(f"{Colors.YELLOW}❓ Would you like to create a config file from the template? [Y/n] {Colors.RESET}")
+                if response.lower() in ('', 'y', 'yes'):
+                    template = Path(__file__).parent.parent / ".env.example"
+                    if template.exists():
+                        shutil.copy(template, config_path)
+                        print(f"\n{Colors.GREEN}✅ Created {config_file} successfully.{Colors.RESET}")
+                        print(f"{Colors.YELLOW}⚠️  Please edit {config_file} with your credentials before restarting.{Colors.RESET}")
+                        sys.exit(0)
+                    else:
+                        print(f"{Colors.RED}❌ Error: Template file .env.example not found.{Colors.RESET}")
+            except (KeyboardInterrupt, EOFError):
+                print()
+                sys.exit(1)
+
+        print(f"\nPlease create a {config_file} file based on .env.example")
         print("You can run: cp .env.example .env")
         sys.exit(1)
 
@@ -228,13 +249,16 @@ def main():
         with open(config_file, 'r') as f:
             content = f.read()
             if 'your-email@gmail.com' in content or 'your-app-password-here' in content or 'your-email@outlook.com' in content or 'your-bridge-password-here' in content:
-                print("Warning: .env file appears to contain example values.")
+                print(f"{Colors.YELLOW}⚠️  Warning: .env file appears to contain example values.{Colors.RESET}")
                 print("Please update .env with your actual credentials before running.")
-                sys.exit(1)
+                # We don't exit here, just warn, as they might be testing
+                print(f"{Colors.GREY}(Press Ctrl+C to stop and edit configuration){Colors.RESET}\n")
+                time.sleep(2)
     except Exception as e:
-        print(f"Warning: Could not validate .env file: {e}")
+        print(f"{Colors.YELLOW}⚠️  Warning: Could not validate .env file: {e}{Colors.RESET}")
 
     # Create and start pipeline
+    print(f"{Colors.GREEN}🚀 Starting pipeline...{Colors.RESET}")
     pipeline = EmailSecurityPipeline(config_file)
     pipeline.start()
 
