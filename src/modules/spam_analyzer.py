@@ -39,9 +39,12 @@ class SpamAnalyzer:
     
     # Pre-compiled regex patterns for performance
     COMBINED_SPAM_PATTERN = re.compile('|'.join(SPAM_KEYWORDS), re.IGNORECASE)
+    # Pre-compile individual keywords for detailed reporting
+    SPAM_KEYWORD_REGEXES = [re.compile(p, re.IGNORECASE) for p in SPAM_KEYWORDS]
+
     LINK_PATTERN = re.compile(r'https?://', re.IGNORECASE)
     URL_EXTRACTION_PATTERN = re.compile(r'https?://[^\s<>"]+')
-    MONEY_PATTERN = re.compile(r'\$\d+|\d+\s*(dollar|usd|euro)')
+    MONEY_PATTERN = re.compile(r'\$\d+|\d+\s*(dollar|usd|euro)', re.IGNORECASE)
     IMG_TAG_PATTERN = re.compile(r'<img\b', re.IGNORECASE)
     HIDDEN_TEXT_PATTERN = re.compile(r'font-size:\s*[0-2]px|color:\s*#fff.*background.*#fff', re.IGNORECASE)
     EMAIL_ADDRESS_PATTERN = re.compile(r'[\w\.-]+@[\w\.-]+')
@@ -57,18 +60,15 @@ class SpamAnalyzer:
         re.compile(r'[a-z0-9\-]{30,}'),  # Very long subdomain/path
     ]
 
-    # Pre-compiled regex patterns
-    MONEY_REGEX = re.compile(r'\$\d+|\d+\s*(dollar|usd|euro)', re.IGNORECASE)
-    LINK_REGEX = re.compile(r'https?://', re.IGNORECASE)
-    IMG_TAG_REGEX = re.compile(r'<img\b', re.IGNORECASE)
-    HIDDEN_TEXT_REGEX = re.compile(r'font-size:\s*[0-2]px|color:\s*#fff.*background.*#fff', re.IGNORECASE)
-    URL_EXTRACT_REGEX = re.compile(r'https?://[^\s<>"]+', re.IGNORECASE)
-    EMAIL_REGEX = re.compile(r'[\w\.-]+@[\w\.-]+')
-    SENDER_EMAIL_REGEX = re.compile(r'[\w\.-]+@([\w\.-]+)', re.IGNORECASE)
-    DISPLAY_NAME_REGEX = re.compile(r'^([^<]+)<', re.IGNORECASE)
-
-    # Compile suspicious URL patterns
-    # SUSPICIOUS_URL_PATTERNS contains compiled regex objects, so we extract their patterns for the combined pattern.
+    # Pre-compiled regex patterns (Legacy names kept for compatibility)
+    MONEY_REGEX = MONEY_PATTERN
+    LINK_REGEX = LINK_PATTERN
+    IMG_TAG_REGEX = IMG_TAG_PATTERN
+    HIDDEN_TEXT_REGEX = HIDDEN_TEXT_PATTERN
+    URL_EXTRACT_REGEX = URL_EXTRACTION_PATTERN
+    EMAIL_REGEX = EMAIL_ADDRESS_PATTERN
+    SENDER_EMAIL_REGEX = SENDER_DOMAIN_PATTERN
+    DISPLAY_NAME_REGEX = DISPLAY_NAME_PATTERN
 
     # Pre-compiled combined pattern for performance
     # To join them, we need the pattern strings
@@ -171,10 +171,10 @@ class SpamAnalyzer:
             # the original list to find WHICH one might be slow if list is long.
             # However, for detailed reporting we need to know which one.
             # Since the original list is short (8 items), we can iterate.
-            for pattern in self.SPAM_KEYWORDS:
-                if re.search(pattern, subject_lower):
+            for pattern_regex in self.SPAM_KEYWORD_REGEXES:
+                if pattern_regex.search(subject_lower):
                     score += 1.5
-                    indicators.append(f"Spam keyword in subject: {pattern}")
+                    indicators.append(f"Spam keyword in subject: {pattern_regex.pattern}")
         
         # Check for numbers indicating money
         if self.MONEY_PATTERN.search(subject_lower):
@@ -242,20 +242,22 @@ class SpamAnalyzer:
         # Using findall here because we need the actual strings to parse
         urls = self.URL_EXTRACTION_PATTERN.findall(content)
         
+        # Patterns to check explicitly for shorteners (some might overlap with regex patterns)
+        shortener_domains = ['bit.ly', 'tinyurl', 't.co', 'goo.gl']
+
         for url in urls:
             try:
                 parsed = urlparse(url)
                 domain = parsed.netloc
                 
-                # Check against suspicious patterns
-                for pattern in self.SUSPICIOUS_URL_PATTERNS:
-                    if pattern.search(domain):
-                        score += 0.5
-                        suspicious.append(url)
-                        break
+                # Check against suspicious patterns using the combined pattern
+                if self.COMBINED_URL_PATTERN.search(domain):
+                    score += 0.5
+                    suspicious.append(url)
                 
                 # Check for URL shorteners
-                if any(shortener in domain for shortener in ['bit.ly', 'tinyurl', 't.co', 'goo.gl']):
+                # We check this separately to preserve original scoring logic (cumulative if both match)
+                if any(shortener in domain for shortener in shortener_domains):
                     score += 0.5
                     suspicious.append(url)
                 
