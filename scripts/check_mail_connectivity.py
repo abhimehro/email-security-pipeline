@@ -7,53 +7,84 @@ minimal capability/NOOP commands.
 """
 
 import os
+import sys
 import ssl
 import imaplib
 import smtplib
+from pathlib import Path
 from dotenv import load_dotenv
+
+# Add project root to path to allow imports from src
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
+try:
+    from src.utils.colors import Colors
+except ImportError:
+    # Fallback if import fails
+    class Colors:
+        RESET = ""
+        BOLD = ""
+        RED = ""
+        GREEN = ""
+        YELLOW = ""
+        BLUE = ""
+        MAGENTA = ""
+        CYAN = ""
+        WHITE = ""
+        GREY = ""
+        @classmethod
+        def colorize(cls, text, color): return text
 
 load_dotenv()
 
 
 def check_imap(label: str, host: str, port: int, use_ssl: bool, user: str, password: str):
-    print(f"== IMAP: {label} ({host}:{port}, SSL={use_ssl}) ==")
+    print(f"\n{Colors.BOLD}Checking IMAP: {label}{Colors.RESET} ({host}:{port}, SSL={use_ssl})...")
     try:
         if use_ssl:
             ctx = ssl.create_default_context()
             with imaplib.IMAP4_SSL(host, port, ssl_context=ctx) as imap:
                 imap.login(user, password)
                 typ, data = imap.noop()
-                print(f"  OK NOOP: {typ} {data}")
+                print(f"  ✅ {Colors.colorize('Connected successfully', Colors.GREEN)}")
+                print(f"     Response: {typ} {data}")
         else:
             with imaplib.IMAP4(host, port) as imap:
                 imap.starttls()
                 imap.login(user, password)
                 typ, data = imap.noop()
-                print(f"  OK NOOP: {typ} {data}")
+                print(f"  ✅ {Colors.colorize('Connected successfully', Colors.GREEN)}")
+                print(f"     Response: {typ} {data}")
     except Exception as e:
-        print(f"  ERROR: {e}")
+        print(f"  ❌ {Colors.colorize('Connection failed', Colors.RED)}")
+        print(f"     Error: {e}")
 
 
 def check_smtp(label: str, host: str, port: int, use_ssl: bool, user: str, password: str):
-    print(f"== SMTP: {label} ({host}:{port}, SSL={use_ssl}) ==")
+    print(f"\n{Colors.BOLD}Checking SMTP: {label}{Colors.RESET} ({host}:{port}, SSL={use_ssl})...")
     try:
         if use_ssl:
             ctx = ssl.create_default_context()
             with smtplib.SMTP_SSL(host, port, context=ctx) as smtp:
                 smtp.login(user, password)
                 smtp.noop()
-                print("  OK NOOP")
+                print(f"  ✅ {Colors.colorize('Connected successfully', Colors.GREEN)}")
         else:
             with smtplib.SMTP(host, port) as smtp:
                 smtp.starttls()
                 smtp.login(user, password)
                 smtp.noop()
-                print("  OK NOOP")
+                print(f"  ✅ {Colors.colorize('Connected successfully', Colors.GREEN)}")
     except Exception as e:
-        print(f"  ERROR: {e}")
+        print(f"  ❌ {Colors.colorize('Connection failed', Colors.RED)}")
+        print(f"     Error: {e}")
 
 
 def main():
+    print(f"{Colors.BOLD}{Colors.BLUE}" + "="*60 + f"{Colors.RESET}")
+    print("Email Connectivity Check")
+    print(f"{Colors.BOLD}{Colors.BLUE}" + "="*60 + f"{Colors.RESET}")
+
     # Gmail
     if os.getenv("GMAIL_ENABLED", "false").lower() == "true":
         check_imap(
@@ -92,7 +123,9 @@ def main():
             os.getenv("PROTON_APP_PASSWORD", ""),
         )
 
+    print(f"\n{Colors.BOLD}{Colors.BLUE}" + "="*60 + f"{Colors.RESET}")
+    print(f"Check complete.{Colors.RESET}")
+
 
 if __name__ == "__main__":
     main()
-
