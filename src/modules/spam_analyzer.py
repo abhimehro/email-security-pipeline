@@ -5,7 +5,7 @@ Traditional spam scoring based on headers, content patterns, and URLs
 
 import re
 import logging
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Union
 from urllib.parse import urlparse
 from dataclasses import dataclass
 
@@ -267,43 +267,70 @@ class SpamAnalyzer:
         
         return score, suspicious
     
-    def _analyze_headers(self, headers: Dict[str, str]) -> Tuple[float, List[str]]:
+    def _analyze_headers(self, headers: Dict[str, Union[str, List[str]]]) -> Tuple[float, List[str]]:
         """Analyze email headers for anomalies"""
         score = 0.0
         issues = []
         
+        # Helper to always get a list
+        def get_header_list(key: str) -> List[str]:
+            val = headers.get(key, [])
+            if isinstance(val, str):
+                return [val]
+            return val
+
         # Check SPF
-        spf = headers.get('Received-SPF', '').lower()
-        if 'fail' in spf:
+        spf_headers = get_header_list('received-spf')
+        spf_fail = False
+        spf_softfail = False
+        for spf in spf_headers:
+            spf_lower = spf.lower()
+            if 'fail' in spf_lower and 'softfail' not in spf_lower:
+                spf_fail = True
+            elif 'softfail' in spf_lower:
+                spf_softfail = True
+
+        if spf_fail:
             score += 2.0
             issues.append("SPF check failed")
-        elif 'softfail' in spf:
+        elif spf_softfail:
             score += 1.0
             issues.append("SPF soft fail")
         
         # Check DKIM
-        dkim = headers.get('DKIM-Signature', '')
+        dkim = get_header_list('dkim-signature')
         if not dkim:
             score += 0.5
             issues.append("Missing DKIM signature")
         
         # Check for missing standard headers
-        required_headers = ['From', 'To', 'Date', 'Message-ID']
+        # We check for lowercased keys
+        required_headers = ['from', 'to', 'date', 'message-id']
         for header in required_headers:
             if header not in headers:
+                # Display original case for readability
+                display_header = header.title().replace('Id', 'ID')
                 score += 0.5
-                issues.append(f"Missing {header} header")
+                issues.append(f"Missing {display_header} header")
         
         # Check for suspicious received headers
-        received_headers = [v for k, v in headers.items() if k == 'Received']
+        received_headers = get_header_list('received')
         if len(received_headers) > 10:
             score += 1.0
             issues.append("Excessive hops in delivery path")
         
         # Check for forged sender
-        from_header = headers.get('From', '').lower()
-        return_path = headers.get('Return-Path', '').lower()
-        if return_path and from_header:
+        from_headers = get_header_list('from')
+        return_path_headers = get_header_list('return-path')
+
+        if len(from_headers) > 1:
+            score += 2.0
+            issues.append("Multiple From headers detected")
+
+        if from_headers and return_path_headers:
+            from_header = from_headers[0].lower()
+            return_path = return_path_headers[0].lower()
+
             # Extract email addresses
             from_email = self.EMAIL_ADDRESS_PATTERN.search(from_header)
             return_email = self.EMAIL_ADDRESS_PATTERN.search(return_path)
@@ -315,7 +342,7 @@ class SpamAnalyzer:
         
         return score, issues
     
-    def _check_sender(self, sender: str, headers: Dict[str, str]) -> Tuple[float, List[str]]:
+    def _check_sender(self, sender: str, headers: Dict[str, Union[str, List[str]]]) -> Tuple[float, List[str]]:
         """Check sender reputation and authenticity"""
         score = 0.0
         indicators = []

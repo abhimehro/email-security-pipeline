@@ -27,13 +27,13 @@ def clean_email():
         body_text="Hi, let's meet tomorrow at 10.",
         body_html="<html><body>Hi, let's meet tomorrow at 10.</body></html>",
         headers={
-            "Received-SPF": "pass",
-            "DKIM-Signature": "v=1; ...",
-            "From": "boss@company.com",
-            "To": "me@company.com",
-            "Date": "...",
-            "Message-ID": "...",
-            "Received": "..."
+            "received-spf": "pass",
+            "dkim-signature": "v=1; ...",
+            "from": "boss@company.com",
+            "to": "me@company.com",
+            "date": "...",
+            "message-id": "...",
+            "received": "..."
         },
         attachments=[],
         raw_email=None,
@@ -52,11 +52,11 @@ def spam_email():
         body_text="CONGRATULATIONS! You are a WINNER. CLICK HERE to claim your FREE MONEY.",
         body_html="<html><body>CONGRATULATIONS! <a href='http://bit.ly/spam'>CLICK HERE</a> to claim. <img src='http://spam.com/pixel'> <img src='http://spam.com/pixel2'> <img src='http://spam.com/pixel3'></body></html>",
         headers={
-            "Received-SPF": "fail",
-            "From": "spammer@example.com",
-            "To": "victim@company.com",
-            "Date": "...",
-            "Message-ID": "..."
+            "received-spf": "fail",
+            "from": "spammer@example.com",
+            "to": "victim@company.com",
+            "date": "...",
+            "message-id": "..."
         },
         attachments=[],
         raw_email=None,

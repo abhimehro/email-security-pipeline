@@ -9,7 +9,7 @@ import time
 import logging
 import socket
 import ssl
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Union
 from email.message import Message
 from dataclasses import dataclass
 from datetime import datetime
@@ -29,7 +29,7 @@ class EmailData:
     date: datetime
     body_text: str
     body_html: str
-    headers: Dict[str, str]
+    headers: Dict[str, Union[str, List[str]]]
     attachments: List[Dict[str, Any]]
     raw_email: Message
     account_email: str
@@ -310,8 +310,20 @@ class IMAPClient:
         try:
             msg = email.message_from_bytes(raw_email)
 
-            # Extract headers
-            headers = {key: self._decode_header_value(value) for key, value in msg.items()}
+            # Extract headers with support for duplicates (e.g., Received)
+            # Keys are normalized to lowercase to prevent case-sensitivity bypasses
+            headers: Dict[str, Union[str, List[str]]] = {}
+            for key, value in msg.items():
+                key_lower = key.lower()
+                decoded_val = self._decode_header_value(value)
+                if key_lower in headers:
+                    existing = headers[key_lower]
+                    if isinstance(existing, list):
+                        existing.append(decoded_val)
+                    else:
+                        headers[key_lower] = [existing, decoded_val]
+                else:
+                    headers[key_lower] = decoded_val
 
             subject = self._decode_header_value(msg.get("Subject", ""))
             sender = self._format_addresses(msg.get("From", ""))
