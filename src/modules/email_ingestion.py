@@ -19,6 +19,10 @@ from email.utils import getaddresses
 from ..utils.config import EmailAccountConfig
 
 
+# Security limits
+MAX_SUBJECT_LENGTH = 1024
+
+
 @dataclass
 class EmailData:
     """Container for email data"""
@@ -314,6 +318,10 @@ class IMAPClient:
             headers = {key: self._decode_header_value(value) for key, value in msg.items()}
 
             subject = self._decode_header_value(msg.get("Subject", ""))
+            if len(subject) > MAX_SUBJECT_LENGTH:
+                subject = subject[:MAX_SUBJECT_LENGTH]
+                self.logger.warning(f"Subject truncated to {MAX_SUBJECT_LENGTH} chars for email {email_id}")
+
             sender = self._format_addresses(msg.get("From", ""))
             recipient = self._format_addresses(msg.get("To", ""))
 

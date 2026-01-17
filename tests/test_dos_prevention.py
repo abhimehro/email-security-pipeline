@@ -15,7 +15,8 @@ class TestDoSPrevention(unittest.TestCase):
             app_password="pass",
             folders=["INBOX"],
             provider="test",
-            use_ssl=True
+            use_ssl=True,
+            verify_ssl=True
         )
         self.client = IMAPClient(self.account_config)
         # Set limit to 1KB for testing
@@ -55,6 +56,24 @@ class TestDoSPrevention(unittest.TestCase):
 
         self.assertIsNotNone(email_data)
         self.assertEqual(len(email_data.body_html), 1024)
+
+    def test_subject_truncation(self):
+        # Create a large subject
+        # Note: We rely on the hardcoded MAX_SUBJECT_LENGTH = 1024 in email_ingestion.py
+        large_subject = "S" * 5000
+
+        msg = EmailMessage()
+        msg["Subject"] = large_subject
+        msg["From"] = "sender@example.com"
+        msg.set_content("body")
+
+        raw_email = msg.as_bytes()
+
+        email_data = self.client.parse_email("125", raw_email, "INBOX")
+
+        self.assertIsNotNone(email_data)
+        self.assertEqual(len(email_data.subject), 1024)
+        self.assertTrue(email_data.subject.startswith("S" * 1024))
 
 if __name__ == '__main__':
     unittest.main()
