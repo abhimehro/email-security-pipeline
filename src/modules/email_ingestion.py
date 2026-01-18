@@ -5,6 +5,8 @@ Handles IMAP connection and email retrieval from multiple providers
 
 import imaplib
 import email
+import os
+import re
 import time
 import logging
 import socket
@@ -116,7 +118,7 @@ class IMAPClient:
             self.logger.info(f"Connecting to {self.config.imap_server}:{self.config.imap_port} (SSL={self.config.use_ssl})")
 
             context = self._create_secure_ssl_context(self.config.verify_ssl)
-            
+
             if self.config.use_ssl:
                 self.connection = imaplib.IMAP4_SSL(
                     self.config.imap_server,
@@ -383,8 +385,10 @@ class IMAPClient:
                             )
                             continue
 
-                        filename = self._decode_header_value(part.get_filename() or "")
-                        if filename:
+                        raw_filename = self._decode_header_value(part.get_filename() or "")
+                        if raw_filename:
+                            # Sanitize filename to prevent path traversal attacks
+                            filename = self._sanitize_filename(raw_filename)
                             payload = part.get_payload(decode=True) or b""
                             original_size = len(payload)
 
@@ -525,7 +529,7 @@ class IMAPClient:
             else:
                 conn = imaplib.IMAP4(account.imap_server, account.imap_port)
                 conn.starttls(ssl_context=context)
-            
+
             conn.login(account.email, account.app_password)
             result["valid"] = True
             conn.logout()
@@ -543,6 +547,38 @@ class IMAPClient:
             return str(make_header(decode_header(value)))
         except Exception:
             return value
+
+    @staticmethod
+    def _sanitize_filename(filename: str) -> str:
+        """
+        Sanitize filename to prevent path traversal and ensure safety.
+
+        Security: Prevents CWE-22 (Path Traversal) by:
+        1. Normalizing path separators (cross-platform)
+        2. Extracting only the basename (removes directory components)
+        3. Whitelisting safe characters
+        4. Preventing hidden files (leading dots)
+        5. Collapsing multiple dots
+        """
+        if not filename:
+            return ""
+
+        # 1. Remove any directory components (basename only)
+        # Handle both forward and backward slashes regardless of OS
+        filename = os.path.basename(filename.replace('\\', '/'))
+
+        # 2. Replace dangerous characters with underscore
+        # Allow alphanumeric, dot, dash, underscore, space
+        filename = re.sub(r'[^a-zA-Z0-9.\-_ ]', '_', filename)
+
+        # 3. Prevent hidden files (starting with dot)
+        while filename.startswith('.'):
+            filename = filename[1:]
+
+        # 4. Collapse multiple dots (e.g., file..exe)
+        filename = re.sub(r'\.+', '.', filename)
+
+        return filename.strip() or "unnamed_attachment"
 
     @classmethod
     def _format_addresses(cls, header_value: str) -> str:
@@ -664,7 +700,7 @@ class EmailIngestionManager:
                     self.logger.error(f"Unable to reconnect to {account.email}; skipping remaining folders")
                     break
 
-                self.logger.info(f"Fetching from {account.email}/{folder}")
+                self.logger.info(f"Fetching from {account.email}/{sanitize_for_logging(folder)}")
 
                 raw_emails = client.fetch_unseen_emails(folder, max_per_folder)
 
