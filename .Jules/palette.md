@@ -7,3 +7,7 @@
 ## 2025-05-20 - Interactive CLI Onboarding
 **Learning:** CLI tools often exit abruptly when configuration is missing, forcing users to context-switch to shell commands.
 **Action:** Detect missing config and offer to create it interactively from a template within the application flow itself.
+
+## 2025-10-27 - Positive Reinforcement in Security CLIs
+**Learning:** Security tools often default to "silence is golden," but explicit "No issues detected" feedback builds trust and reduces anxiety for users interpreting logs.
+**Action:** Always include success/clean states in report summaries, not just failure/threat states.
