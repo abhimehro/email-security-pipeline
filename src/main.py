@@ -15,6 +15,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src.utils.config import Config
+from src.utils.colors import Colors
+from src.utils.logging_utils import ColoredFormatter
 from src.utils.sanitization import sanitize_for_logging
 from src.modules.email_ingestion import EmailIngestionManager
 from src.modules.spam_analyzer import SpamAnalyzer
@@ -67,14 +69,17 @@ class EmailSecurityPipeline:
         log_path = Path(self.config.system.log_file)
         log_path.parent.mkdir(parents=True, exist_ok=True)
 
+        # Configure handlers
+        file_handler = logging.FileHandler(self.config.system.log_file)
+        file_handler.setFormatter(logging.Formatter(log_format))
+
+        stream_handler = logging.StreamHandler(sys.stdout)
+        stream_handler.setFormatter(ColoredFormatter(log_format))
+
         # Configure logging
         logging.basicConfig(
             level=getattr(logging, self.config.system.log_level.upper()),
-            format=log_format,
-            handlers=[
-                logging.FileHandler(self.config.system.log_file),
-                logging.StreamHandler(sys.stdout)
-            ]
+            handlers=[file_handler, stream_handler]
         )
 
     def start(self):
@@ -209,10 +214,10 @@ def main():
     signal.signal(signal.SIGTERM, signal_handler)
 
     # Print banner
-    print("=" * 80)
-    print("Email Security Analysis Pipeline")
-    print("Multi-layer threat detection for email security")
-    print("=" * 80)
+    print(Colors.colorize("=" * 80, Colors.CYAN))
+    print(Colors.colorize("Email Security Analysis Pipeline", Colors.BOLD + Colors.CYAN))
+    print(Colors.colorize("Multi-layer threat detection for email security", Colors.GREY))
+    print(Colors.colorize("=" * 80, Colors.CYAN))
     print()
 
     # Check for config file
@@ -251,13 +256,15 @@ def main():
         with open(config_file, 'r') as f:
             content = f.read()
             if 'your-email@gmail.com' in content or 'your-app-password-here' in content or 'your-email@outlook.com' in content or 'your-bridge-password-here' in content:
-                print("Warning: .env file appears to contain example values.")
+                print(f"{Colors.YELLOW}⚠️  Warning: .env file appears to contain example values.{Colors.RESET}")
                 print("Please update .env with your actual credentials before running.")
-                sys.exit(1)
+                print(f"{Colors.GREY}(Press Ctrl+C to stop and edit configuration){Colors.RESET}\n")
+                time.sleep(2)
     except Exception as e:
         print(f"Warning: Could not validate .env file: {e}")
 
     # Create and start pipeline
+    print(f"{Colors.GREEN}🚀 Starting pipeline...{Colors.RESET}")
     pipeline = EmailSecurityPipeline(config_file)
     pipeline.start()
 
