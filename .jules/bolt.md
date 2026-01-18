@@ -11,3 +11,7 @@
 ## 2025-11-09 - Regex Compilation and ML Inference
 **Learning:** Sequential `re.findall` on large texts with many patterns is significantly slower than a single pass with a combined regex. Also, legacy code might contain duplicate heavy operations (like ML inference) due to merge conflicts or poor refactoring.
 **Action:** Combine regex patterns into single compiled objects with named groups. Audit expensive function calls for redundancy.
+
+## 2025-11-13 - URL Deduplication in Analysis
+**Learning:** Analyzing duplicated entities (like URLs in spam) individually causes O(N) cost for expensive operations like parsing. Using `Counter` or `set` to deduplicate before processing reduces this to O(unique), while preserving scoring logic.
+**Action:** Deduplicate repetitive inputs before expensive processing loops.
