@@ -1,0 +1,295 @@
+diff --git a/.jules/sentinel.md b/.jules/sentinel.md
+index 0c3ce3a..c7f7cbc 100644
+--- a/.jules/sentinel.md
++++ b/.jules/sentinel.md
+@@ -2,3 +2,8 @@
+ **Vulnerability:** Email ingestion was vulnerable to CPU exhaustion (DoS) via excessively large email bodies. Analyzing multi-megabyte text strings with complex regexes in `NLPThreatAnalyzer` caused significant delays (e.g., 26s for 20MB).
+ **Learning:** Limiting attachment sizes is not enough. The email body itself (text/html) is untrusted input and must be length-limited before processing.
+ **Prevention:** Implemented `MAX_BODY_SIZE_KB` (default 1MB) in `SystemConfig`. `IMAPClient` now truncates body text and HTML to this limit during parsing, logging a warning when truncation occurs.
++
++## 2025-05-24 - [Header Injection/Bypass in Email Parsing]
++**Vulnerability:** `EmailData` stored headers as a simple dictionary `Dict[str, str]`, causing duplicate headers (like `Received`, `Received-SPF`, `DKIM-Signature`, `From`) to be overwritten. This allowed attackers to bypass security checks (e.g., hop count limit, SPF validation) by injecting fake headers that overwrote legitimate ones.
++**Learning:** RFC 5322 allows multiple headers of the same name. Storing them in a dictionary where keys are unique results in data loss and potential security bypasses.
++**Prevention:** Updated `EmailData` to `Dict[str, Union[str, List[str]]]` and modified `IMAPClient` to collect all values. Updated `SpamAnalyzer` to validate against all occurrences of critical headers.
+diff --git a/src/modules/email_ingestion.py b/src/modules/email_ingestion.py
+index fcd44c1..8010b2b 100644
+--- a/src/modules/email_ingestion.py
++++ b/src/modules/email_ingestion.py
+@@ -9,7 +9,7 @@ import time
+ import logging
+ import socket
+ import ssl
+-from typing import Any, Dict, List, Optional, Tuple
++from typing import Any, Dict, List, Optional, Tuple, Union
+ from email.message import Message
+ from dataclasses import dataclass
+ from datetime import datetime
+@@ -29,7 +29,7 @@ class EmailData:
+     date: datetime
+     body_text: str
+     body_html: str
+-    headers: Dict[str, str]
++    headers: Dict[str, Union[str, List[str]]]
+     attachments: List[Dict[str, Any]]
+     raw_email: Message
+     account_email: str
+@@ -310,8 +310,20 @@ class IMAPClient:
+         try:
+             msg = email.message_from_bytes(raw_email)
+ 
+-            # Extract headers
+-            headers = {key: self._decode_header_value(value) for key, value in msg.items()}
++            # Extract headers with support for duplicates (e.g., Received)
++            # Keys are normalized to lowercase to prevent case-sensitivity bypasses
++            headers: Dict[str, Union[str, List[str]]] = {}
++            for key, value in msg.items():
++                key_lower = key.lower()
++                decoded_val = self._decode_header_value(value)
++                if key_lower in headers:
++                    existing = headers[key_lower]
++                    if isinstance(existing, list):
++                        existing.append(decoded_val)
++                    else:
++                        headers[key_lower] = [existing, decoded_val]
++                else:
++                    headers[key_lower] = decoded_val
+ 
+             subject = self._decode_header_value(msg.get("Subject", ""))
+             sender = self._format_addresses(msg.get("From", ""))
+diff --git a/src/modules/spam_analyzer.py b/src/modules/spam_analyzer.py
+index cca4a49..ee68f6d 100644
+--- a/src/modules/spam_analyzer.py
++++ b/src/modules/spam_analyzer.py
+@@ -5,7 +5,7 @@ Traditional spam scoring based on headers, content patterns, and URLs
+ 
+ import re
+ import logging
+-from typing import Dict, List, Tuple
++from typing import Dict, List, Tuple, Union
+ from urllib.parse import urlparse
+ from dataclasses import dataclass
+ 
+@@ -267,43 +267,70 @@ class SpamAnalyzer:
+         
+         return score, suspicious
+     
+-    def _analyze_headers(self, headers: Dict[str, str]) -> Tuple[float, List[str]]:
++    def _analyze_headers(self, headers: Dict[str, Union[str, List[str]]]) -> Tuple[float, List[str]]:
+         """Analyze email headers for anomalies"""
+         score = 0.0
+         issues = []
+         
++        # Helper to always get a list
++        def get_header_list(key: str) -> List[str]:
++            val = headers.get(key, [])
++            if isinstance(val, str):
++                return [val]
++            return val
++
+         # Check SPF
+-        spf = headers.get('Received-SPF', '').lower()
+-        if 'fail' in spf:
++        spf_headers = get_header_list('received-spf')
++        spf_fail = False
++        spf_softfail = False
++        for spf in spf_headers:
++            spf_lower = spf.lower()
++            if 'fail' in spf_lower and 'softfail' not in spf_lower:
++                spf_fail = True
++            elif 'softfail' in spf_lower:
++                spf_softfail = True
++
++        if spf_fail:
+             score += 2.0
+             issues.append("SPF check failed")
+-        elif 'softfail' in spf:
++        elif spf_softfail:
+             score += 1.0
+             issues.append("SPF soft fail")
+         
+         # Check DKIM
+-        dkim = headers.get('DKIM-Signature', '')
++        dkim = get_header_list('dkim-signature')
+         if not dkim:
+             score += 0.5
+             issues.append("Missing DKIM signature")
+         
+         # Check for missing standard headers
+-        required_headers = ['From', 'To', 'Date', 'Message-ID']
++        # We check for lowercased keys
++        required_headers = ['from', 'to', 'date', 'message-id']
+         for header in required_headers:
+             if header not in headers:
++                # Display original case for readability
++                display_header = header.title().replace('Id', 'ID')
+                 score += 0.5
+-                issues.append(f"Missing {header} header")
++                issues.append(f"Missing {display_header} header")
+         
+         # Check for suspicious received headers
+-        received_headers = [v for k, v in headers.items() if k == 'Received']
++        received_headers = get_header_list('received')
+         if len(received_headers) > 10:
+             score += 1.0
+             issues.append("Excessive hops in delivery path")
+         
+         # Check for forged sender
+-        from_header = headers.get('From', '').lower()
+-        return_path = headers.get('Return-Path', '').lower()
+-        if return_path and from_header:
++        from_headers = get_header_list('from')
++        return_path_headers = get_header_list('return-path')
++
++        if len(from_headers) > 1:
++            score += 2.0
++            issues.append("Multiple From headers detected")
++
++        if from_headers and return_path_headers:
++            from_header = from_headers[0].lower()
++            return_path = return_path_headers[0].lower()
++
+             # Extract email addresses
+             from_email = self.EMAIL_ADDRESS_PATTERN.search(from_header)
+             return_email = self.EMAIL_ADDRESS_PATTERN.search(return_path)
+@@ -315,7 +342,7 @@ class SpamAnalyzer:
+         
+         return score, issues
+     
+-    def _check_sender(self, sender: str, headers: Dict[str, str]) -> Tuple[float, List[str]]:
++    def _check_sender(self, sender: str, headers: Dict[str, Union[str, List[str]]]) -> Tuple[float, List[str]]:
+         """Check sender reputation and authenticity"""
+         score = 0.0
+         indicators = []
+diff --git a/tests/test_header_security.py b/tests/test_header_security.py
+new file mode 100644
+index 0000000..52996e6
+--- /dev/null
++++ b/tests/test_header_security.py
+@@ -0,0 +1,85 @@
++
++import pytest
++from src.modules.spam_analyzer import SpamAnalyzer, SpamAnalysisResult
++from src.modules.email_ingestion import EmailData
++from src.utils.config import AnalysisConfig
++from datetime import datetime
++
++# Mock config
++class MockConfig:
++    spam_threshold = 5.0
++    spam_check_headers = True
++    spam_check_urls = True
++
++@pytest.fixture
++def spam_analyzer():
++    config = MockConfig()
++    return SpamAnalyzer(config)
++
++def test_multiple_received_headers(spam_analyzer):
++    # Create headers with multiple Received entries (simulating list)
++    headers = {
++        "received": [f"hop{i}" for i in range(15)], # 15 hops
++        "from": "sender@example.com",
++        "to": "recipient@example.com",
++        "date": "...",
++        "message-id": "...",
++        "dkim-signature": "pass"
++    }
++
++    email_data = EmailData(
++        message_id="1", subject="Test", sender="sender", recipient="recip",
++        date=datetime.now(), body_text="", body_html="",
++        headers=headers, attachments=[], raw_email=None,
++        account_email="", folder=""
++    )
++
++    result = spam_analyzer.analyze(email_data)
++
++    assert "Excessive hops in delivery path" in result.header_issues
++    assert result.score >= 1.0
++
++def test_multiple_from_headers(spam_analyzer):
++    # Multiple From headers
++    headers = {
++        "from": ["sender1@example.com", "sender2@example.com"],
++        "to": "recipient@example.com",
++        "date": "...",
++        "message-id": "...",
++        "dkim-signature": "pass"
++    }
++
++    email_data = EmailData(
++        message_id="1", subject="Test", sender="sender", recipient="recip",
++        date=datetime.now(), body_text="", body_html="",
++        headers=headers, attachments=[], raw_email=None,
++        account_email="", folder=""
++    )
++
++    result = spam_analyzer.analyze(email_data)
++
++    assert "Multiple From headers detected" in result.header_issues
++    assert result.score >= 2.0
++
++def test_spf_fail_mixed(spam_analyzer):
++    # One pass, one fail in SPF
++    headers = {
++        "received-spf": ["pass", "fail"],
++        "from": "sender@example.com",
++        "to": "recipient@example.com",
++        "date": "...",
++        "message-id": "...",
++        "dkim-signature": "pass"
++    }
++
++    email_data = EmailData(
++        message_id="1", subject="Test", sender="sender", recipient="recip",
++        date=datetime.now(), body_text="", body_html="",
++        headers=headers, attachments=[], raw_email=None,
++        account_email="", folder=""
++    )
++
++    result = spam_analyzer.analyze(email_data)
++
++    assert "SPF check failed" in result.header_issues
++    assert result.score >= 2.0
+diff --git a/tests/test_spam_analyzer.py b/tests/test_spam_analyzer.py
+index 077f00b..337632a 100644
+--- a/tests/test_spam_analyzer.py
++++ b/tests/test_spam_analyzer.py
+@@ -27,13 +27,13 @@ def clean_email():
+         body_text="Hi, let's meet tomorrow at 10.",
+         body_html="<html><body>Hi, let's meet tomorrow at 10.</body></html>",
+         headers={
+-            "Received-SPF": "pass",
+-            "DKIM-Signature": "v=1; ...",
+-            "From": "boss@company.com",
+-            "To": "me@company.com",
+-            "Date": "...",
+-            "Message-ID": "...",
+-            "Received": "..."
++            "received-spf": "pass",
++            "dkim-signature": "v=1; ...",
++            "from": "boss@company.com",
++            "to": "me@company.com",
++            "date": "...",
++            "message-id": "...",
++            "received": "..."
+         },
+         attachments=[],
+         raw_email=None,
+@@ -52,11 +52,11 @@ def spam_email():
+         body_text="CONGRATULATIONS! You are a WINNER. CLICK HERE to claim your FREE MONEY.",
+         body_html="<html><body>CONGRATULATIONS! <a href='http://bit.ly/spam'>CLICK HERE</a> to claim. <img src='http://spam.com/pixel'> <img src='http://spam.com/pixel2'> <img src='http://spam.com/pixel3'></body></html>",
+         headers={
+-            "Received-SPF": "fail",
+-            "From": "spammer@example.com",
+-            "To": "victim@company.com",
+-            "Date": "...",
+-            "Message-ID": "..."
++            "received-spf": "fail",
++            "from": "spammer@example.com",
++            "to": "victim@company.com",
++            "date": "...",
++            "message-id": "..."
+         },
+         attachments=[],
+         raw_email=None,

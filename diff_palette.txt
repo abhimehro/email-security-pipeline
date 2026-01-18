@@ -1,0 +1,61 @@
+diff --git a/.Jules/palette.md b/.Jules/palette.md
+index abfd6b6..7b02029 100644
+--- a/.Jules/palette.md
++++ b/.Jules/palette.md
+@@ -3,3 +3,7 @@
+ ## 2025-05-15 - Initial Assessment
+ **Learning:** This is a backend Python application (Email Security Analysis Pipeline) with no web frontend.
+ **Action:** UX improvements will focus on CLI output, log readability, and alert message formatting (the primary user interface for this tool).
++
++## 2025-05-20 - Interactive CLI Onboarding
++**Learning:** CLI tools often exit abruptly when configuration is missing, forcing users to context-switch to shell commands.
++**Action:** Detect missing config and offer to create it interactively from a template within the application flow itself.
+diff --git a/src/main.py b/src/main.py
+index 0ea0437..888fda8 100644
+--- a/src/main.py
++++ b/src/main.py
+@@ -8,6 +8,7 @@ import sys
+ import time
+ import logging
+ import signal
++import shutil
+ from pathlib import Path
+ 
+ # Add project root to path
+@@ -218,10 +219,32 @@ def main():
+     config_file = sys.argv[1] if len(sys.argv) > 1 else ".env"
+ 
+     if not Path(config_file).exists():
+-        print(f"Error: Configuration file '{config_file}' not found")
+-        print("Please create a .env file based on .env.example")
+-        print("You can run: cp .env.example .env")
+-        sys.exit(1)
++        if Path(".env.example").exists() and sys.stdin.isatty():
++            print(f"Configuration file '{config_file}' not found.")
++            try:
++                response = input(f"Would you like to create it from '.env.example'? [Y/n] ").strip().lower()
++                if response in ('', 'y', 'yes'):
++                    try:
++                        shutil.copy(".env.example", config_file)
++                        print(f"Created '{config_file}' from '.env.example'.")
++                        print("IMPORTANT: Please edit .env with your actual credentials before proceeding.")
++                        sys.exit(0)
++                    except Exception as e:
++                        print(f"Error creating file: {e}")
++                        sys.exit(1)
++                else:
++                    print("Please create a .env file based on .env.example")
++                    sys.exit(1)
++            except EOFError:
++                # Handle case where input stream is closed
++                pass
++
++        # Fallback for non-interactive mode or missing template
++        if not Path(config_file).exists():
++            print(f"Error: Configuration file '{config_file}' not found")
++            print("Please create a .env file based on .env.example")
++            print("You can run: cp .env.example .env")
++            sys.exit(1)
+ 
+     # Validate that .env is not the example file
+     try:

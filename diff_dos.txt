@@ -1,0 +1,77 @@
+diff --git a/.jules/sentinel.md b/.jules/sentinel.md
+index 0c3ce3a..1ab219c 100644
+--- a/.jules/sentinel.md
++++ b/.jules/sentinel.md
+@@ -2,3 +2,8 @@
+ **Vulnerability:** Email ingestion was vulnerable to CPU exhaustion (DoS) via excessively large email bodies. Analyzing multi-megabyte text strings with complex regexes in `NLPThreatAnalyzer` caused significant delays (e.g., 26s for 20MB).
+ **Learning:** Limiting attachment sizes is not enough. The email body itself (text/html) is untrusted input and must be length-limited before processing.
+ **Prevention:** Implemented `MAX_BODY_SIZE_KB` (default 1MB) in `SystemConfig`. `IMAPClient` now truncates body text and HTML to this limit during parsing, logging a warning when truncation occurs.
++
++## 2026-01-17 - [DoS Prevention in Headers]
++**Vulnerability:** While email bodies were size-limited, email headers (specifically `Subject`) were not. A multi-megabyte subject line could cause excessive memory usage and processing delays in downstream analyzers (Regex/NLP).
++**Learning:** Input validation must apply to ALL user-controlled inputs, including headers, not just the main content body. Inconsistent validation boundaries are a common security gap.
++**Prevention:** Implemented `MAX_SUBJECT_LENGTH` (1024 chars) in `IMAPClient`. Subjects exceeding this limit are now truncated before further processing.
+diff --git a/src/modules/email_ingestion.py b/src/modules/email_ingestion.py
+index fcd44c1..d1c2358 100644
+--- a/src/modules/email_ingestion.py
++++ b/src/modules/email_ingestion.py
+@@ -19,6 +19,10 @@ from email.utils import getaddresses
+ from ..utils.config import EmailAccountConfig
+ 
+ 
++# Security limits
++MAX_SUBJECT_LENGTH = 1024
++
++
+ @dataclass
+ class EmailData:
+     """Container for email data"""
+@@ -314,6 +318,10 @@ class IMAPClient:
+             headers = {key: self._decode_header_value(value) for key, value in msg.items()}
+ 
+             subject = self._decode_header_value(msg.get("Subject", ""))
++            if len(subject) > MAX_SUBJECT_LENGTH:
++                subject = subject[:MAX_SUBJECT_LENGTH]
++                self.logger.warning(f"Subject truncated to {MAX_SUBJECT_LENGTH} chars for email {email_id}")
++
+             sender = self._format_addresses(msg.get("From", ""))
+             recipient = self._format_addresses(msg.get("To", ""))
+ 
+diff --git a/tests/test_dos_prevention.py b/tests/test_dos_prevention.py
+index 452e021..9eb2ffb 100644
+--- a/tests/test_dos_prevention.py
++++ b/tests/test_dos_prevention.py
+@@ -15,7 +15,8 @@ class TestDoSPrevention(unittest.TestCase):
+             app_password="pass",
+             folders=["INBOX"],
+             provider="test",
+-            use_ssl=True
++            use_ssl=True,
++            verify_ssl=True
+         )
+         self.client = IMAPClient(self.account_config)
+         # Set limit to 1KB for testing
+@@ -56,5 +57,23 @@ class TestDoSPrevention(unittest.TestCase):
+         self.assertIsNotNone(email_data)
+         self.assertEqual(len(email_data.body_html), 1024)
+ 
++    def test_subject_truncation(self):
++        # Create a large subject
++        # Note: We rely on the hardcoded MAX_SUBJECT_LENGTH = 1024 in email_ingestion.py
++        large_subject = "S" * 5000
++
++        msg = EmailMessage()
++        msg["Subject"] = large_subject
++        msg["From"] = "sender@example.com"
++        msg.set_content("body")
++
++        raw_email = msg.as_bytes()
++
++        email_data = self.client.parse_email("125", raw_email, "INBOX")
++
++        self.assertIsNotNone(email_data)
++        self.assertEqual(len(email_data.subject), 1024)
++        self.assertTrue(email_data.subject.startswith("S" * 1024))
++
+ if __name__ == '__main__':
+     unittest.main()
