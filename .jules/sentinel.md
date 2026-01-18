@@ -7,3 +7,8 @@
 **Vulnerability:** `EmailData` stored headers as a simple dictionary `Dict[str, str]`, causing duplicate headers (like `Received`, `Received-SPF`, `DKIM-Signature`, `From`) to be overwritten. This allowed attackers to bypass security checks (e.g., hop count limit, SPF validation) by injecting fake headers that overwrote legitimate ones.
 **Learning:** RFC 5322 allows multiple headers of the same name. Storing them in a dictionary where keys are unique results in data loss and potential security bypasses.
 **Prevention:** Updated `EmailData` to `Dict[str, Union[str, List[str]]]` and modified `IMAPClient` to collect all values. Updated `SpamAnalyzer` to validate against all occurrences of critical headers.
+
+## 2026-01-17 - [DoS Prevention in Headers]
+**Vulnerability:** While email bodies were size-limited, email headers (specifically `Subject`) were not. A multi-megabyte subject line could cause excessive memory usage and processing delays in downstream analyzers (Regex/NLP).
+**Learning:** Input validation must apply to ALL user-controlled inputs, including headers, not just the main content body. Inconsistent validation boundaries are a common security gap.
+**Prevention:** Implemented `MAX_SUBJECT_LENGTH` (1024 chars) in `IMAPClient`. Subjects exceeding this limit are now truncated before further processing.
