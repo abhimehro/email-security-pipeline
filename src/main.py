@@ -8,6 +8,7 @@ import sys
 import time
 import logging
 import signal
+import shutil
 from pathlib import Path
 
 # Add project root to path
@@ -218,10 +219,32 @@ def main():
     config_file = sys.argv[1] if len(sys.argv) > 1 else ".env"
 
     if not Path(config_file).exists():
-        print(f"Error: Configuration file '{config_file}' not found")
-        print("Please create a .env file based on .env.example")
-        print("You can run: cp .env.example .env")
-        sys.exit(1)
+        if Path(".env.example").exists() and sys.stdin.isatty():
+            print(f"Configuration file '{config_file}' not found.")
+            try:
+                response = input(f"Would you like to create it from '.env.example'? [Y/n] ").strip().lower()
+                if response in ('', 'y', 'yes'):
+                    try:
+                        shutil.copy(".env.example", config_file)
+                        print(f"Created '{config_file}' from '.env.example'.")
+                        print("IMPORTANT: Please edit .env with your actual credentials before proceeding.")
+                        sys.exit(0)
+                    except Exception as e:
+                        print(f"Error creating file: {e}")
+                        sys.exit(1)
+                else:
+                    print("Please create a .env file based on .env.example")
+                    sys.exit(1)
+            except EOFError:
+                # Handle case where input stream is closed
+                pass
+
+        # Fallback for non-interactive mode or missing template
+        if not Path(config_file).exists():
+            print(f"Error: Configuration file '{config_file}' not found")
+            print("Please create a .env file based on .env.example")
+            print("You can run: cp .env.example .env")
+            sys.exit(1)
 
     # Validate that .env is not the example file
     try:

@@ -3,3 +3,7 @@
 ## 2025-05-15 - Initial Assessment
 **Learning:** This is a backend Python application (Email Security Analysis Pipeline) with no web frontend.
 **Action:** UX improvements will focus on CLI output, log readability, and alert message formatting (the primary user interface for this tool).
+
+## 2025-05-20 - Interactive CLI Onboarding
+**Learning:** CLI tools often exit abruptly when configuration is missing, forcing users to context-switch to shell commands.
+**Action:** Detect missing config and offer to create it interactively from a template within the application flow itself.
