@@ -2,7 +2,6 @@
 import time
 import sys
 import logging
-from typing import List, Dict, Union, Any
 from datetime import datetime
 
 # Fix path to include current directory so we can import src
