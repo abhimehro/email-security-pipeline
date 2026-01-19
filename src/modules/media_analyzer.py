@@ -285,8 +285,8 @@ class MediaAuthenticityAnalyzer:
                     # Note: 5.0 is intentionally chosen to fail the `threat_score < 5.0` gate (see earlier check),
                     # so that invalid media never reaches the deepfake/OpenCV processing pipeline.
                     if ext in critical_media_exts:
-                        return 5.0, f"Invalid file signature for {ext} (expected {type_desc})"
-                    return 2.0, f"Invalid file signature for {ext} (expected {type_desc})"
+                        return 5.0, f"Invalid file signature for {ext}: expected {type_desc} signature but none found"
+                    return 2.0, f"Invalid file signature for {ext}: expected {type_desc} signature but none found"
 
         return 0.0, ""
 
