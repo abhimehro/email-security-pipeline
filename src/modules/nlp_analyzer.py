@@ -111,7 +111,7 @@ class NLPThreatAnalyzer:
         self.device = None
 
         # Compile combined master pattern for performance
-        # We combine all patterns into a single regex to scan the text only once
+        # We combine all regex patterns into a single master regex to scan the text
         all_patterns = []
         for p, d in self.SOCIAL_ENGINEERING_PATTERNS:
             all_patterns.append((p, "SE", d))
