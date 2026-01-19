@@ -12,3 +12,8 @@
 **Vulnerability:** While email bodies were size-limited, email headers (specifically `Subject`) were not. A multi-megabyte subject line could cause excessive memory usage and processing delays in downstream analyzers (Regex/NLP).
 **Learning:** Input validation must apply to ALL user-controlled inputs, including headers, not just the main content body. Inconsistent validation boundaries are a common security gap.
 **Prevention:** Implemented `MAX_SUBJECT_LENGTH` (1024 chars) in `IMAPClient`. Subjects exceeding this limit are now truncated before further processing.
+
+## 2026-02-13 - [Media Processing Exploit Prevention]
+**Vulnerability:** `MediaAuthenticityAnalyzer` passed files with valid extensions (e.g., `.mp4`) to `cv2.VideoCapture` without verifying their content type (magic bytes). This could allow attackers to trigger vulnerabilities in the underlying media libraries (ffmpeg/OpenCV) using malformed or disguised files.
+**Learning:** File extensions are user-controlled and untrustworthy. Detection logic must default to "Fail Closed": if a file claims to be a specific type but its signature cannot be verified, it should be treated as high-risk, not processed blindly.
+**Prevention:** Implemented strict magic byte verification for media files in `MediaAuthenticityAnalyzer`. Files with media extensions but missing/invalid signatures now trigger a critical threat score and bypass deepfake processing.

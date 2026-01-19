@@ -171,26 +171,47 @@ class MediaAuthenticityAnalyzer:
 
     def _check_content_type_mismatch(self, filename: str, content_type: str, data: bytes) -> Tuple[float, str]:
         """Check if actual file content matches declared content type"""
-        if not data or len(data) < 4:
+        if not data or len(data) < 12:
             return 0.0, ""
-
-        # Magic bytes for common file types
-        magic_bytes = {
-            'pdf': b'%PDF',
-            'zip': b'PK\x03\x04',
-            'jpeg': b'\xff\xd8\xff',
-            'png': b'\x89PNG',
-            'gif': b'GIF8',
-            'exe': b'MZ',
-            'doc': b'\xd0\xcf\x11\xe0',
-        }
 
         # Detect actual file type from magic bytes
         actual_type = None
-        for file_type, magic in magic_bytes.items():
-            if data.startswith(magic):
-                actual_type = file_type
-                break
+
+        # Check RIFF container (AVI, WAV, WEBP)
+        if data.startswith(b'RIFF'):
+            if len(data) >= 12:
+                format_type = data[8:12]
+                if format_type == b'AVI ':
+                    actual_type = 'avi'
+                elif format_type == b'WAVE':
+                    actual_type = 'wav'
+                elif format_type == b'WEBP':
+                    actual_type = 'webp'
+
+        # Check other signatures
+        if not actual_type:
+            # Format: (offset, signature, type_name)
+            signatures = [
+                (0, b'%PDF', 'pdf'),
+                (0, b'PK\x03\x04', 'zip'),
+                (0, b'\xff\xd8\xff', 'jpeg'),
+                (0, b'\x89PNG', 'png'),
+                (0, b'GIF8', 'gif'),
+                (0, b'MZ', 'exe'),
+                (0, b'\xd0\xcf\x11\xe0', 'doc'),
+                (4, b'ftyp', 'mp4'),  # Common for MP4/MOV
+                (0, b'\x1a\x45\xdf\xa3', 'mkv'),
+                (0, b'ID3', 'mp3'),
+                (0, b'\xff\xfb', 'mp3'),
+                (0, b'\xff\xf3', 'mp3'),
+                (0, b'\xff\xf2', 'mp3'),
+            ]
+
+            for offset, sig, name in signatures:
+                if len(data) >= offset + len(sig):
+                    if data[offset:offset+len(sig)] == sig:
+                        actual_type = name
+                        break
 
         if actual_type:
             # Check if extension matches detected type
@@ -203,18 +224,52 @@ class MediaAuthenticityAnalyzer:
             # Check for general mismatches
             expected_extensions = {
                 'pdf': ['.pdf'],
-                'zip': ['.zip', '.docx', '.xlsx', '.pptx'],
+                'zip': ['.zip', '.docx', '.xlsx', '.pptx', '.jar'],
                 'jpeg': ['.jpg', '.jpeg'],
                 'png': ['.png'],
                 'gif': ['.gif'],
-                'doc': ['.doc', '.xls', '.ppt'],
-                'exe': ['.exe', '.dll', '.com']
+                'doc': ['.doc', '.xls', '.ppt', '.msi'],
+                'exe': ['.exe', '.dll', '.com', '.scr'],
+                'mp4': ['.mp4', '.mov', '.m4a', '.3gp'],
+                'avi': ['.avi'],
+                'wav': ['.wav'],
+                'mp3': ['.mp3'],
+                'mkv': ['.mkv', '.webm'],
+                'webp': ['.webp'],
             }
 
             if actual_type in expected_extensions:
                 expected_exts = expected_extensions[actual_type]
                 if not any(filename_lower.endswith(ext) for ext in expected_exts):
-                    return 2.0, f"File type mismatch: {filename}"
+                    return 2.0, f"File type mismatch: {filename} (detected {actual_type})"
+
+        else:
+            # Type not detected. Validate that if extension claims a known type, it matches.
+            # This prevents processing invalid/corrupt media files.
+            filename_lower = filename.lower()
+
+            # Map extensions to their expected descriptions for error messages
+            strict_validation_exts = {
+                '.exe': 'executable',
+                '.dll': 'executable',
+                '.zip': 'archive',
+                '.pdf': 'PDF',
+                '.png': 'PNG image',
+                '.jpg': 'JPEG image',
+                '.jpeg': 'JPEG image',
+                '.gif': 'GIF image',
+                '.mp4': 'MP4 video',
+                '.avi': 'AVI video',
+                '.mkv': 'MKV video',
+            }
+
+            for ext, type_desc in strict_validation_exts.items():
+                if filename_lower.endswith(ext):
+                    # Return 5.0 (Critical) for media files to ensure they don't reach deepfake analysis
+                    # which could trigger vulnerabilities in processing libraries (e.g., OpenCV)
+                    if ext in ['.mp4', '.avi', '.mkv']:
+                        return 5.0, f"Invalid file signature for {ext} (expected {type_desc})"
+                    return 2.0, f"Invalid file signature for {ext} (expected {type_desc})"
 
         return 0.0, ""
 
