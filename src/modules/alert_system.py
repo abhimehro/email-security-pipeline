@@ -77,11 +77,18 @@ class AlertSystem:
         risk_color = Colors.get_risk_color(report.risk_level)
         header_bar = Colors.colorize("="*80, risk_color)
         
+        # Format timestamp nicely
+        try:
+            dt = datetime.fromisoformat(report.timestamp)
+            formatted_time = dt.strftime("%b %d, %Y at %H:%M:%S")
+        except ValueError:
+            formatted_time = report.timestamp
+
         print("\n" + header_bar)
         print(Colors.colorize(f"🚨 SECURITY ALERT - {report.risk_level.upper()} RISK", risk_color + Colors.BOLD))
         print(header_bar)
 
-        print(f"{Colors.BOLD}Timestamp:{Colors.RESET} {report.timestamp}")
+        print(f"{Colors.BOLD}Timestamp:{Colors.RESET} {formatted_time}")
         print(f"{Colors.BOLD}Subject:{Colors.RESET}   {self._sanitize_text(report.subject)}")
         print(f"{Colors.BOLD}From:{Colors.RESET}      {self._sanitize_text(report.sender)}")
         print(f"{Colors.BOLD}To:{Colors.RESET}        {self._sanitize_text(report.recipient)}")
@@ -96,31 +103,52 @@ class AlertSystem:
         print(f"{Colors.BOLD}Score:{Colors.RESET}     {Colors.colorize(bar, meter_color)} {report.overall_threat_score:.2f}/100")
         print(f"{Colors.BOLD}Risk:{Colors.RESET}      {Colors.colorize(report.risk_level.upper(), risk_color + Colors.BOLD)}")
 
-        print(f"\n{Colors.BOLD}--- SPAM ANALYSIS ---{Colors.RESET}")
+        # Spam Analysis Section
+        print(f"\n{Colors.BOLD}📧 SPAM ANALYSIS{Colors.RESET}")
         spam = report.spam_analysis
+        has_spam_indicators = False
         if spam.get('indicators'):
+            has_spam_indicators = True
             for indicator in spam['indicators'][:5]:  # Show first 5
                 print(f"  {Colors.colorize('•', Colors.CYAN)} {indicator}")
         
-        print(f"\n{Colors.BOLD}--- NLP THREAT ANALYSIS ---{Colors.RESET}")
+        if not has_spam_indicators:
+            print(f"  {Colors.colorize('✓', Colors.GREEN)} No suspicious patterns detected")
+
+        # NLP Analysis Section
+        print(f"\n{Colors.BOLD}🧠 NLP THREAT ANALYSIS{Colors.RESET}")
         nlp = report.nlp_analysis
+        has_nlp_issues = False
+
         if nlp.get('social_engineering_indicators'):
+            has_nlp_issues = True
             print(f"  {Colors.BOLD}Social Engineering:{Colors.RESET}")
             for indicator in nlp['social_engineering_indicators'][:3]:
                 print(f"    {Colors.colorize('•', Colors.RED)} {indicator}")
+
         if nlp.get('authority_impersonation'):
+            has_nlp_issues = True
             print(f"  {Colors.BOLD}Authority Impersonation:{Colors.RESET}")
             for indicator in nlp['authority_impersonation'][:3]:
                 print(f"    {Colors.colorize('•', Colors.RED)} {indicator}")
+
+        if not has_nlp_issues:
+            print(f"  {Colors.colorize('✓', Colors.GREEN)} No psychological triggers or impersonation detected")
         
-        print(f"\n{Colors.BOLD}--- MEDIA ANALYSIS ---{Colors.RESET}")
+        # Media Analysis Section
+        print(f"\n{Colors.BOLD}📎 MEDIA ANALYSIS{Colors.RESET}")
         media = report.media_analysis
+        has_media_issues = False
         if media.get('file_type_warnings'):
+            has_media_issues = True
             print(f"  {Colors.BOLD}File Warnings:{Colors.RESET}")
             for warning in media['file_type_warnings'][:3]:
                 print(f"    {Colors.colorize('•', Colors.YELLOW)} {warning}")
+
+        if not has_media_issues:
+            print(f"  {Colors.colorize('✓', Colors.GREEN)} Attachments appear safe")
         
-        print(f"\n{Colors.BOLD}--- RECOMMENDATIONS ---{Colors.RESET}")
+        print(f"\n{Colors.BOLD}🛡️  RECOMMENDATIONS{Colors.RESET}")
         for rec in report.recommendations:
             print(f"  {Colors.colorize('►', Colors.GREEN)} {rec}")
         
