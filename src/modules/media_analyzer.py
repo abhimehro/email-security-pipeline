@@ -261,13 +261,22 @@ class MediaAuthenticityAnalyzer:
                 '.mp4': 'MP4 video',
                 '.avi': 'AVI video',
                 '.mkv': 'MKV video',
+                '.wav': 'WAV audio',
+            }
+
+            # Treat all known media extensions (and WAV) as critical when their signatures are invalid,
+            # to prevent them from reaching deepfake/OpenCV processing.
+            media_exts = getattr(self, 'MEDIA_EXTENSIONS', [])
+            critical_media_exts = {
+                ext for ext in strict_validation_exts.keys()
+                if ext in media_exts or ext == '.wav'
             }
 
             for ext, type_desc in strict_validation_exts.items():
                 if filename_lower.endswith(ext):
                     # Return 5.0 (Critical) for media files to ensure they don't reach deepfake analysis
                     # which could trigger vulnerabilities in processing libraries (e.g., OpenCV)
-                    if ext in ['.mp4', '.avi', '.mkv']:
+                    if ext in critical_media_exts:
                         return 5.0, f"Invalid file signature for {ext} (expected {type_desc})"
                     return 2.0, f"Invalid file signature for {ext} (expected {type_desc})"
 
