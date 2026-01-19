@@ -43,7 +43,16 @@ def print_header(text):
     print(f"\n{Colors.BOLD}{Colors.colorize(text, Colors.BLUE)}{Colors.RESET}")
 
 
+def print_pending(protocol, host, port, use_ssl):
+    ssl_str = "SSL" if use_ssl else "STARTTLS"
+    print(f"  ⏳ {protocol:<4} ({host}:{port}, {ssl_str}) ...", end="\r")
+    sys.stdout.flush()
+
+
 def print_status(protocol, host, port, use_ssl, success, message=None):
+    # Clear line to prevent artifacts
+    print(" " * 80, end="\r")
+
     symbol = "✅" if success else "❌"
     color = Colors.GREEN if success else Colors.RED
     status = Colors.colorize("OK", color) if success else Colors.colorize("ERROR", color)
@@ -56,6 +65,7 @@ def print_status(protocol, host, port, use_ssl, success, message=None):
 
 
 def check_imap(host: str, port: int, use_ssl: bool, user: str, password: str):
+    print_pending("IMAP", host, port, use_ssl)
     try:
         if use_ssl:
             ctx = ssl.create_default_context()
@@ -74,6 +84,7 @@ def check_imap(host: str, port: int, use_ssl: bool, user: str, password: str):
 
 
 def check_smtp(host: str, port: int, use_ssl: bool, user: str, password: str):
+    print_pending("SMTP", host, port, use_ssl)
     try:
         if use_ssl:
             ctx = ssl.create_default_context()

@@ -11,3 +11,7 @@
 ## 2025-10-27 - Positive Reinforcement in Security CLIs
 **Learning:** Security tools often default to "silence is golden," but explicit "No issues detected" feedback builds trust and reduces anxiety for users interpreting logs.
 **Action:** Always include success/clean states in report summaries, not just failure/threat states.
+
+## 2025-11-20 - Visual Feedback for Blocking Operations
+**Learning:** Users running connectivity checks often face "hanging" states where it's unclear if the tool is working or frozen, especially with network timeouts.
+**Action:** Implement immediate visual feedback (e.g., "⏳ Checking...") before blocking network operations in CLI tools, using carriage returns (`\r`) to update status in-place.
