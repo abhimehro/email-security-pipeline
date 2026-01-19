@@ -136,8 +136,11 @@ class NLPThreatAnalyzer:
         """
         regex_parts = []
         group_map = {}
-        for i, (pattern, prefix, description) in enumerate(patterns):
-            group_name = f"{prefix}_{i}"
+        prefix_counts: Dict[str, int] = defaultdict(int)
+        for pattern, prefix, description in patterns:
+            index = prefix_counts[prefix]
+            prefix_counts[prefix] += 1
+            group_name = f"{prefix}_{index}"
             # Wrap pattern in a named group.
             regex_parts.append(f"(?P<{group_name}>{pattern})")
             group_map[group_name] = (prefix, description)
