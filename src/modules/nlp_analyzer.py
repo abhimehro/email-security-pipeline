@@ -110,37 +110,37 @@ class NLPThreatAnalyzer:
         self.tokenizer = None
         self.device = None
 
-        # Compile patterns for performance
-        self.combined_social, self.social_map = self._compile_patterns(
-            self.SOCIAL_ENGINEERING_PATTERNS, "SE"
-        )
-        self.combined_urgency, self.urgency_map = self._compile_patterns(
-            self.URGENCY_PATTERNS, "UG"
-        )
-        self.combined_authority, self.authority_map = self._compile_patterns(
-            self.AUTHORITY_PATTERNS, "AU"
-        )
-        self.combined_psych, self.psych_map = self._compile_patterns(
-            self.PSYCHOLOGICAL_PATTERNS, "PS"
-        )
+        # Compile combined master pattern for performance
+        # We combine all patterns into a single regex to scan the text only once
+        all_patterns = []
+        for p, d in self.SOCIAL_ENGINEERING_PATTERNS:
+            all_patterns.append((p, "SE", d))
+        for p, d in self.URGENCY_PATTERNS:
+            all_patterns.append((p, "UG", d))
+        for p, d in self.AUTHORITY_PATTERNS:
+            all_patterns.append((p, "AU", d))
+        for p, d in self.PSYCHOLOGICAL_PATTERNS:
+            all_patterns.append((p, "PS", d))
+
+        self.master_pattern, self.master_map = self._compile_master_pattern(all_patterns)
 
         # Initialize model if needed
         if self._should_use_ml_model():
             self._initialize_model()
 
-    def _compile_patterns(self, patterns: List[Tuple[str, str]], prefix: str) \
-            -> Tuple[re.Pattern, Dict[str, str]]:
+    def _compile_master_pattern(self, patterns: List[Tuple[str, str, str]]) \
+            -> Tuple[re.Pattern, Dict[str, Tuple[str, str]]]:
         """
         Compile a list of regex patterns into a single combined regex.
-        Returns the compiled regex and a mapping of group names to descriptions.
+        Returns the compiled regex and a mapping of group names to (prefix, description).
         """
         regex_parts = []
         group_map = {}
-        for i, (pattern, description) in enumerate(patterns):
+        for i, (pattern, prefix, description) in enumerate(patterns):
             group_name = f"{prefix}_{i}"
             # Wrap pattern in a named group.
             regex_parts.append(f"(?P<{group_name}>{pattern})")
-            group_map[group_name] = description
+            group_map[group_name] = (prefix, description)
 
         full_pattern = "|".join(regex_parts)
         return re.compile(full_pattern, re.IGNORECASE), group_map
@@ -191,29 +191,46 @@ class NLPThreatAnalyzer:
         # Combine text for analysis
         text = f"{email_data.subject} {email_data.body_text}"
 
+        # Single pass scan
+        matches_by_category = {
+            "SE": defaultdict(int),
+            "UG": defaultdict(int),
+            "AU": defaultdict(list), # Authority needs the actual match strings
+            "PS": defaultdict(int)
+        }
+
+        for match in self.master_pattern.finditer(text):
+            group_name = match.lastgroup
+            if group_name and group_name in self.master_map:
+                prefix, description = self.master_map[group_name]
+                if prefix == "AU":
+                    matches_by_category[prefix][description].append(match.group())
+                else:
+                    matches_by_category[prefix][description] += 1
+
         # Check for social engineering
         if self.config.check_social_engineering:
-            score, indicators = self._detect_social_engineering(text)
+            score, indicators = self._detect_social_engineering(matches_by_category["SE"])
             threat_score += score
             social_engineering.extend(indicators)
 
         # Check for urgency markers
         if self.config.check_urgency_markers:
-            score, indicators = self._detect_urgency(text)
+            score, indicators = self._detect_urgency(text, matches_by_category["UG"])
             threat_score += score
             urgency_markers.extend(indicators)
 
         # Check for authority impersonation
         if self.config.check_authority_impersonation:
             score, indicators = self._detect_authority_impersonation(
-                text, email_data.sender
+                email_data.sender, matches_by_category["AU"]
             )
             threat_score += score
             authority_impersonation.extend(indicators)
 
         # Detect psychological triggers
         if getattr(self.config, "check_psychological_triggers", False):
-            score, indicators = self._detect_psychological_triggers(text)
+            score, indicators = self._detect_psychological_triggers(matches_by_category["PS"])
             threat_score += score
             psychological_triggers.extend(indicators)
 
@@ -251,15 +268,10 @@ class NLPThreatAnalyzer:
             risk_level=risk_level
         )
 
-    def _detect_social_engineering(self, text: str) -> Tuple[float, List[str]]:
+    def _detect_social_engineering(self, counts: Dict[str, int]) -> Tuple[float, List[str]]:
         """Detect social engineering patterns"""
         score = 0.0
         indicators = []
-
-        counts = defaultdict(int)
-        for match in self.combined_social.finditer(text):
-            description = self.social_map[match.lastgroup]
-            counts[description] += 1
 
         for description, count in counts.items():
             score += count * 2.0  # High weight for social engineering
@@ -267,15 +279,10 @@ class NLPThreatAnalyzer:
 
         return score, indicators
 
-    def _detect_urgency(self, text: str) -> Tuple[float, List[str]]:
+    def _detect_urgency(self, text: str, counts: Dict[str, int]) -> Tuple[float, List[str]]:
         """Detect urgency and time pressure tactics"""
         score = 0.0
         indicators = []
-
-        counts = defaultdict(int)
-        for match in self.combined_urgency.finditer(text):
-            description = self.urgency_map[match.lastgroup]
-            counts[description] += 1
 
         for description, count in counts.items():
             score += count * 1.5
@@ -296,7 +303,7 @@ class NLPThreatAnalyzer:
 
         return score, indicators
 
-    def _detect_authority_impersonation(self, text: str, sender: str) -> Tuple[float, List[str]]:
+    def _detect_authority_impersonation(self, sender: str, matches_by_desc: Dict[str, List[str]]) -> Tuple[float, List[str]]:
         """Detect authority impersonation attempts"""
         score = 0.0
         indicators = []
@@ -307,12 +314,6 @@ class NLPThreatAnalyzer:
         domain_match = self.SENDER_DOMAIN_PATTERN.search(sender_lower)
         if domain_match:
             sender_domain = domain_match.group(1)
-
-        # Collect matches by description
-        matches_by_desc = defaultdict(list)
-        for match in self.combined_authority.finditer(text):
-            description = self.authority_map[match.lastgroup]
-            matches_by_desc[description].append(match.group())
 
         for description, matches in matches_by_desc.items():
             authority_mismatch = False
@@ -337,15 +338,10 @@ class NLPThreatAnalyzer:
 
         return score, indicators
 
-    def _detect_psychological_triggers(self, text: str) -> Tuple[float, List[str]]:
+    def _detect_psychological_triggers(self, counts: Dict[str, int]) -> Tuple[float, List[str]]:
         """Detect psychological manipulation tactics"""
         score = 0.0
         indicators = []
-
-        counts = defaultdict(int)
-        for match in self.combined_psych.finditer(text):
-            description = self.psych_map[match.lastgroup]
-            counts[description] += 1
 
         for description, count in counts.items():
             score += count * 1.0
