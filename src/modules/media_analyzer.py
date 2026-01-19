@@ -203,6 +203,7 @@ class MediaAuthenticityAnalyzer:
                 (0, b'\xd0\xcf\x11\xe0', 'doc'),
                 (4, b'ftyp', 'mp4'),  # Common for MP4/MOV
                 (0, b'\x1a\x45\xdf\xa3', 'mkv'),
+                # ID3 at offset 0 indicates an ID3v2 tag at the beginning of an MP3 file
                 (0, b'ID3', 'mp3'),
                 (0, b'\xff\xfb', 'mp3'),
                 (0, b'\xff\xf3', 'mp3'),
