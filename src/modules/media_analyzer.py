@@ -276,6 +276,8 @@ class MediaAuthenticityAnalyzer:
                 if filename_lower.endswith(ext):
                     # Return 5.0 (Critical) for media files to ensure they don't reach deepfake analysis
                     # which could trigger vulnerabilities in processing libraries (e.g., OpenCV)
+                    # Note: 5.0 is intentionally chosen to fail the `threat_score < 5.0` gate (see earlier check),
+                    # so that invalid media never reaches the deepfake/OpenCV processing pipeline.
                     if ext in critical_media_exts:
                         return 5.0, f"Invalid file signature for {ext} (expected {type_desc})"
                     return 2.0, f"Invalid file signature for {ext} (expected {type_desc})"
