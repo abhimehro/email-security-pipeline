@@ -14,7 +14,7 @@ from src.modules.nlp_analyzer import NLPThreatAnalyzer
 from src.modules.email_ingestion import EmailData
 
 # Setup logging
-logging.basicConfig(level=logging.ERROR) # Reduce noise
+logging.basicConfig(level=logging.ERROR)  # Reduce noise
 
 class MockConfig:
     check_social_engineering = True
