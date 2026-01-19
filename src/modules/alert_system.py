@@ -133,7 +133,7 @@ class AlertSystem:
                 print(f"    {Colors.colorize('•', Colors.RED)} {indicator}")
 
         if not has_nlp_issues:
-             print(f"  {Colors.colorize('✓', Colors.GREEN)} No psychological triggers or impersonation detected")
+            print(f"  {Colors.colorize('✓', Colors.GREEN)} No psychological triggers or impersonation detected")
         
         # Media Analysis Section
         print(f"\n{Colors.BOLD}📎 MEDIA ANALYSIS{Colors.RESET}")
