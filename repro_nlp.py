@@ -1,6 +1,5 @@
 
 import time
-import re
 import sys
 import logging
 from dataclasses import dataclass
