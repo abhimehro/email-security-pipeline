@@ -171,7 +171,9 @@ class MediaAuthenticityAnalyzer:
 
     def _check_content_type_mismatch(self, filename: str, content_type: str, data: bytes) -> Tuple[float, str]:
         """Check if actual file content matches declared content type"""
-        if not data or len(data) < 12:
+        # Require a minimal amount of data for magic-byte checks; RIFF-specific logic below
+        # has its own stricter length guard for accessing bytes 8–12.
+        if not data or len(data) < 4:
             return 0.0, ""
 
         # Detect actual file type from magic bytes
