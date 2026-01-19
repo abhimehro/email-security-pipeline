@@ -8,7 +8,7 @@ import os
 # Add root to path so we can import src
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from src.modules.media_analyzer import MediaAuthenticityAnalyzer, MediaAnalysisResult
+from src.modules.media_analyzer import MediaAuthenticityAnalyzer
 from src.modules.email_ingestion import EmailData
 from src.utils.config import AnalysisConfig
 
