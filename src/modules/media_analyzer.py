@@ -253,6 +253,9 @@ class MediaAuthenticityAnalyzer:
 
             # Map extensions to their expected descriptions for error messages
             strict_validation_exts = {
+                # Note: '.exe' and '.dll' are also handled earlier when a valid PE signature
+                # is detected (actual_type == 'exe'). They are included here as a fallback
+                # for cases where signature detection fails but the extension claims an executable.
                 '.exe': 'executable',
                 '.dll': 'executable',
                 '.zip': 'archive',
