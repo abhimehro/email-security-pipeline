@@ -27,6 +27,9 @@ class TestDeepfakeDetection(unittest.TestCase):
         self.analyzer = MediaAuthenticityAnalyzer(self.config)
 
     def test_simulator_clean_file(self):
+        # Valid ftyp atom for MP4 to pass content type check
+        mp4_sig = b'\x00\x00\x00\x18ftypmp42'
+
         email_data = EmailData(
             message_id="1",
             subject="Clean Video",
@@ -43,7 +46,7 @@ class TestDeepfakeDetection(unittest.TestCase):
                 "filename": "vacation.mp4",
                 "content_type": "video/mp4",
                 "size": 1024 * 1024,
-                "data": b"a" * 1024 * 200,
+                "data": mp4_sig + b"a" * 1024 * 200,
                 "truncated": False
             }]
         )
@@ -53,6 +56,8 @@ class TestDeepfakeDetection(unittest.TestCase):
         self.assertLess(result.threat_score, 1.0)
 
     def test_simulator_deepfake_file(self):
+        mp4_sig = b'\x00\x00\x00\x18ftypmp42'
+
         email_data = EmailData(
             message_id="2",
             subject="Deepfake Video",
@@ -69,7 +74,7 @@ class TestDeepfakeDetection(unittest.TestCase):
                 "filename": "deepfake_video.mp4",
                 "content_type": "video/mp4",
                 "size": 1024 * 1024,
-                "data": b"a" * 1024 * 200,
+                "data": mp4_sig + b"a" * 1024 * 200,
                 "truncated": False
             }]
         )
@@ -85,6 +90,8 @@ class TestDeepfakeDetection(unittest.TestCase):
         self.assertGreaterEqual(result.threat_score, 3.0)
 
     def test_simulator_suspicious_file(self):
+        mp4_sig = b'\x00\x00\x00\x18ftypmp42'
+
         email_data = EmailData(
             message_id="3",
             subject="Suspicious Video",
@@ -101,7 +108,7 @@ class TestDeepfakeDetection(unittest.TestCase):
                 "filename": "suspicious_clip.mp4",
                 "content_type": "video/mp4",
                 "size": 1024 * 1024,
-                "data": b"a" * 1024 * 200,
+                "data": mp4_sig + b"a" * 1024 * 200,
                 "truncated": False
             }]
         )
@@ -119,6 +126,7 @@ class TestDeepfakeDetection(unittest.TestCase):
         self.assertGreaterEqual(result.threat_score, 1.0)
 
     def test_provider_unknown(self):
+        mp4_sig = b'\x00\x00\x00\x18ftypmp42'
         self.config.deepfake_provider = "unknown_provider"
         email_data = EmailData(
             message_id="4",
@@ -136,7 +144,7 @@ class TestDeepfakeDetection(unittest.TestCase):
                 "filename": "deepfake_test.mp4",
                 "content_type": "video/mp4",
                 "size": 1024 * 1024,
-                "data": b"a" * 1024 * 200,
+                "data": mp4_sig + b"a" * 1024 * 200,
                 "truncated": False
             }]
         )

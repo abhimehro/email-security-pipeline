@@ -6,6 +6,7 @@ Handles threat notifications and alerting across multiple channels
 import logging
 import json
 import requests
+import textwrap
 from typing import Dict, List
 from dataclasses import dataclass, asdict
 from datetime import datetime
@@ -75,7 +76,6 @@ class AlertSystem:
     def _console_alert(self, report: ThreatReport):
         """Print alert to console"""
         risk_color = Colors.get_risk_color(report.risk_level)
-        header_bar = Colors.colorize("="*80, risk_color)
         
         # Format timestamp nicely
         try:
@@ -84,75 +84,85 @@ class AlertSystem:
         except ValueError:
             formatted_time = report.timestamp
 
-        print("\n" + header_bar)
-        print(Colors.colorize(f"🚨 SECURITY ALERT - {report.risk_level.upper()} RISK", risk_color + Colors.BOLD))
-        print(header_bar)
+        # Modern Box Drawing
+        top_border = "┌" + "─" * 78 + "┐"
+        bottom_border = "└" + "─" * 78 + "┘"
+        separator = "─" * 80
 
-        print(f"{Colors.BOLD}Timestamp:{Colors.RESET} {formatted_time}")
-        print(f"{Colors.BOLD}Subject:{Colors.RESET}   {self._sanitize_text(report.subject)}")
-        print(f"{Colors.BOLD}From:{Colors.RESET}      {self._sanitize_text(report.sender)}")
-        print(f"{Colors.BOLD}To:{Colors.RESET}        {self._sanitize_text(report.recipient)}")
+        # Print Header
+        print(f"\n{Colors.colorize(top_border, risk_color)}")
+        title = f"🚨 SECURITY ALERT - {report.risk_level.upper()} RISK"
+        print(f"{Colors.colorize('│', risk_color)}  {Colors.colorize(title, risk_color + Colors.BOLD):<86}  {Colors.colorize('│', risk_color)}")
+        print(f"{Colors.colorize(bottom_border, risk_color)}\n")
 
-        # Threat meter
+        # Helper for aligned fields
+        def print_field(label: str, value: str):
+            print(f"{Colors.BOLD}{label:<12}{Colors.RESET} {value}")
+
+        print_field("Timestamp:", formatted_time)
+        print_field("Subject:", textwrap.shorten(self._sanitize_text(report.subject), width=65, placeholder="..."))
+        print_field("From:", textwrap.shorten(self._sanitize_text(report.sender), width=65, placeholder="..."))
+        print_field("To:", textwrap.shorten(self._sanitize_text(report.recipient), width=65, placeholder="..."))
+
+        print()
+
+        # Threat meter (Modernized)
         score_val = min(max(report.overall_threat_score, 0), 100)
         meter_len = 20
         filled_len = int(score_val / 100 * meter_len)
-        bar = "█" * filled_len + "░" * (meter_len - filled_len)
+
+        # Using blocks for filled and dots for empty
+        bar_chars = "■" * filled_len + "·" * (meter_len - filled_len)
         meter_color = Colors.get_risk_color(report.risk_level)
 
-        print(f"{Colors.BOLD}Score:{Colors.RESET}     {Colors.colorize(bar, meter_color)} {report.overall_threat_score:.2f}/100")
-        print(f"{Colors.BOLD}Risk:{Colors.RESET}      {Colors.colorize(report.risk_level.upper(), risk_color + Colors.BOLD)}")
+        # Format: [■■■■······] 45.0/100 (HIGH)
+        bar_display = f"[{Colors.colorize(bar_chars, meter_color)}]"
+        risk_display = f"({Colors.colorize(report.risk_level.upper(), risk_color + Colors.BOLD)})"
+
+        print(f"{Colors.BOLD}{'Risk Score:':<12}{Colors.RESET} {bar_display} {report.overall_threat_score:.1f}/100 {risk_display}")
+
+        # Sections Helper
+        def print_section(title, items, color=Colors.RED):
+             if items:
+                print(f"\n{Colors.BOLD}[ {title} ]{Colors.RESET}")
+                for item in items[:5]: # Limit to 5
+                    print(f" {Colors.colorize('•', color)} {item}")
 
         # Spam Analysis Section
-        print(f"\n{Colors.BOLD}📧 SPAM ANALYSIS{Colors.RESET}")
         spam = report.spam_analysis
-        has_spam_indicators = False
         if spam.get('indicators'):
-            has_spam_indicators = True
-            for indicator in spam['indicators'][:5]:  # Show first 5
-                print(f"  {Colors.colorize('•', Colors.CYAN)} {indicator}")
-        
-        if not has_spam_indicators:
-            print(f"  {Colors.colorize('✓', Colors.GREEN)} No suspicious patterns detected")
+             print_section("SPAM ANALYSIS", spam['indicators'], Colors.CYAN)
+        elif spam.get('suspicious_urls'):
+             print_section("SPAM ANALYSIS - SUSPICIOUS URLS", spam['suspicious_urls'], Colors.CYAN)
+        else:
+             # Only show positive if high risk overall but this section is clean, or just skip?
+             # Let's show clean state if it's significant
+             pass
+
 
         # NLP Analysis Section
-        print(f"\n{Colors.BOLD}🧠 NLP THREAT ANALYSIS{Colors.RESET}")
         nlp = report.nlp_analysis
-        has_nlp_issues = False
-
         if nlp.get('social_engineering_indicators'):
-            has_nlp_issues = True
-            print(f"  {Colors.BOLD}Social Engineering:{Colors.RESET}")
-            for indicator in nlp['social_engineering_indicators'][:3]:
-                print(f"    {Colors.colorize('•', Colors.RED)} {indicator}")
+            print_section("NLP THREAT - SOCIAL ENGINEERING", nlp['social_engineering_indicators'], Colors.RED)
 
         if nlp.get('authority_impersonation'):
-            has_nlp_issues = True
-            print(f"  {Colors.BOLD}Authority Impersonation:{Colors.RESET}")
-            for indicator in nlp['authority_impersonation'][:3]:
-                print(f"    {Colors.colorize('•', Colors.RED)} {indicator}")
+            print_section("NLP THREAT - IMPERSONATION", nlp['authority_impersonation'], Colors.RED)
 
-        if not has_nlp_issues:
-            print(f"  {Colors.colorize('✓', Colors.GREEN)} No psychological triggers or impersonation detected")
         
         # Media Analysis Section
-        print(f"\n{Colors.BOLD}📎 MEDIA ANALYSIS{Colors.RESET}")
         media = report.media_analysis
-        has_media_issues = False
         if media.get('file_type_warnings'):
-            has_media_issues = True
-            print(f"  {Colors.BOLD}File Warnings:{Colors.RESET}")
-            for warning in media['file_type_warnings'][:3]:
-                print(f"    {Colors.colorize('•', Colors.YELLOW)} {warning}")
+            print_section("MEDIA ANALYSIS", media['file_type_warnings'], Colors.YELLOW)
 
-        if not has_media_issues:
-            print(f"  {Colors.colorize('✓', Colors.GREEN)} Attachments appear safe")
         
-        print(f"\n{Colors.BOLD}🛡️  RECOMMENDATIONS{Colors.RESET}")
-        for rec in report.recommendations:
-            print(f"  {Colors.colorize('►', Colors.GREEN)} {rec}")
+        # Recommendations
+        if report.recommendations:
+            print(f"\n{Colors.BOLD}🛡️  RECOMMENDATIONS{Colors.RESET}")
+            for rec in report.recommendations:
+                print(f" {Colors.colorize('►', Colors.GREEN)} {rec}")
         
-        print(header_bar + "\n")
+        # Footer
+        print(f"\n{Colors.colorize(separator, Colors.GREY)}\n")
     
     def _webhook_alert(self, report: ThreatReport):
         """Send alert via webhook"""
