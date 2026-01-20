@@ -47,3 +47,30 @@ def sanitize_for_logging(text: str, max_length: int = 255) -> str:
         text = text[:max_length] + "..."
 
     return text
+
+def sanitize_for_csv(text: str) -> str:
+    """
+    Sanitize text to prevent CSV Injection (Formula Injection).
+    Prepends a single quote if the text starts with =, +, -, or @.
+    This prevents spreadsheet software from executing the text as a formula
+    when the data is exported to CSV or displayed in a tabular format.
+
+    Args:
+        text: The input string to sanitize.
+
+    Returns:
+        Sanitized string safe for CSV usage.
+    """
+    if not text:
+        return ""
+
+    # Check if the string starts with characters that trigger formulas
+    # Note: We must check after stripping whitespace because "  =1+1" can also be dangerous
+    # in some contexts, though usually CSV parsers strip it or quote it.
+    # However, for safety, if the trimmed version starts with it, we escape the original.
+
+    stripped = text.lstrip()
+    if stripped.startswith(('=', '+', '-', '@')):
+        return "'" + text
+
+    return text

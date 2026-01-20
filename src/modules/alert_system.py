@@ -10,7 +10,7 @@ from typing import Dict, List
 from dataclasses import dataclass, asdict
 from datetime import datetime
 
-from ..utils.sanitization import sanitize_for_logging
+from ..utils.sanitization import sanitize_for_logging, sanitize_for_csv
 from .email_ingestion import EmailData
 from .spam_analyzer import SpamAnalysisResult
 from .nlp_analyzer import NLPAnalysisResult
@@ -177,6 +177,7 @@ class AlertSystem:
         """
         Sanitize text for safe console output.
         Removes control characters and normalizes whitespace.
+        Also sanitizes for CSV injection to prevent formula execution if output is exported.
         """
         if not text:
             return ""
@@ -192,6 +193,9 @@ class AlertSystem:
                 (127 <= ord(c) <= 159)
             )
         )
+
+        # Prevent Formula/CSV Injection
+        sanitized = sanitize_for_csv(sanitized)
 
         return sanitized
 
