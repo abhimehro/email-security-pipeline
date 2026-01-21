@@ -64,13 +64,16 @@ def sanitize_for_csv(text: str) -> str:
     if not text:
         return ""
 
-    # Check if the string starts with characters that trigger formulas
-    # Note: We must check after stripping whitespace because "  =1+1" can also be dangerous
-    # in some contexts, though usually CSV parsers strip it or quote it.
-    # However, for safety, if the trimmed version starts with it, we escape the original.
+    # Check if the string starts with characters that trigger formulas.
+    # We check after stripping leading whitespace because "  =1+1" can also be dangerous
+    # in some contexts where CSV consumers trim whitespace. When sanitizing, we preserve
+    # the original leading whitespace and insert the quote immediately before the first
+    # non-whitespace character to keep detection and transformation consistent.
 
     stripped = text.lstrip()
     if stripped.startswith(('=', '+', '-', '@')):
-        return "'" + text
+        leading_ws_len = len(text) - len(stripped)
+        leading_ws = text[:leading_ws_len]
+        return leading_ws + "'" + stripped
 
     return text
