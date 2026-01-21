@@ -10,7 +10,7 @@ from typing import Dict, List
 from dataclasses import dataclass, asdict
 from datetime import datetime
 
-from ..utils.sanitization import sanitize_for_csv
+from ..utils.sanitization import sanitize_for_logging, sanitize_for_csv
 from .email_ingestion import EmailData
 from .spam_analyzer import SpamAnalysisResult
 from .nlp_analyzer import NLPAnalysisResult
@@ -89,9 +89,9 @@ class AlertSystem:
         print(header_bar)
 
         print(f"{Colors.BOLD}Timestamp:{Colors.RESET} {formatted_time}")
-        print(f"{Colors.BOLD}Subject:{Colors.RESET}   {self._sanitize_text(report.subject)}")
-        print(f"{Colors.BOLD}From:{Colors.RESET}      {self._sanitize_text(report.sender)}")
-        print(f"{Colors.BOLD}To:{Colors.RESET}        {self._sanitize_text(report.recipient)}")
+        print(f"{Colors.BOLD}Subject:{Colors.RESET}   {self._sanitize_text(report.subject, csv_safe=True)}")
+        print(f"{Colors.BOLD}From:{Colors.RESET}      {self._sanitize_text(report.sender, csv_safe=True)}")
+        print(f"{Colors.BOLD}To:{Colors.RESET}        {self._sanitize_text(report.recipient, csv_safe=True)}")
 
         # Threat meter
         score_val = min(max(report.overall_threat_score, 0), 100)
@@ -173,11 +173,14 @@ class AlertSystem:
         except Exception as e:
             self.logger.error(f"Failed to send webhook alert: {e}")
     
-    def _sanitize_text(self, text: str) -> str:
+    def _sanitize_text(self, text: str, csv_safe: bool = False) -> str:
         """
         Sanitize text for safe console output.
         Removes control characters and normalizes whitespace.
-        Also sanitizes for CSV injection to prevent formula execution if output is exported.
+
+        Args:
+            text: Input text
+            csv_safe: If True, applies CSV/Formula injection prevention
         """
         if not text:
             return ""
@@ -194,8 +197,9 @@ class AlertSystem:
             )
         )
 
-        # Prevent Formula/CSV Injection
-        sanitized = sanitize_for_csv(sanitized)
+        if csv_safe:
+            # Prevent Formula/CSV Injection for console logs that might be exported
+            sanitized = sanitize_for_csv(sanitized)
 
         return sanitized
 
@@ -208,7 +212,8 @@ class AlertSystem:
             return ""
 
         # First sanitize control characters using the existing method
-        text = self._sanitize_text(text)
+        # We do NOT use csv_safe=True here to avoid messing up Slack formatting
+        text = self._sanitize_text(text, csv_safe=False)
 
         # Escape Slack special characters
         # Reference: https://api.slack.com/reference/surfaces/formatting#escaping
