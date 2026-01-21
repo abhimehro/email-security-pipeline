@@ -92,7 +92,8 @@ class AlertSystem:
         # Print Header
         print(f"\n{Colors.colorize(top_border, risk_color)}")
         title = f"🚨 SECURITY ALERT - {report.risk_level.upper()} RISK"
-        print(f"{Colors.colorize('│', risk_color)}  {Colors.colorize(title, risk_color + Colors.BOLD):<86}  {Colors.colorize('│', risk_color)}")
+        padded_title = f"{title:<86}"
+        print(f"{Colors.colorize('│', risk_color)}  {Colors.colorize(padded_title, risk_color + Colors.BOLD)}  {Colors.colorize('│', risk_color)}")
         print(f"{Colors.colorize(bottom_border, risk_color)}\n")
 
         # Helper for aligned fields
