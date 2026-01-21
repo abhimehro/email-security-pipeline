@@ -38,7 +38,6 @@ class SpamAnalyzer:
     ]
 
     # Pre-compiled regex patterns for performance
-    # SPAM_KEYWORD_REGEXES = [re.compile(p, re.IGNORECASE) for p in SPAM_KEYWORDS]
 
     # Generate master pattern with named groups for identification
     _parts = []
