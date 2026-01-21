@@ -5,8 +5,8 @@ Handles threat notifications and alerting across multiple channels
 
 import logging
 import json
-import requests
 import textwrap
+import requests
 from typing import Dict, List
 from dataclasses import dataclass, asdict
 from datetime import datetime
@@ -92,8 +92,15 @@ class AlertSystem:
         # Print Header
         print(f"\n{Colors.colorize(top_border, risk_color)}")
         title = f"🚨 SECURITY ALERT - {report.risk_level.upper()} RISK"
-        padded_title = f"{title:<86}"
-        print(f"{Colors.colorize('│', risk_color)}  {Colors.colorize(padded_title, risk_color + Colors.BOLD)}  {Colors.colorize('│', risk_color)}")
+
+        # Calculate padding for center/left alignment within 76 visible chars (78 - 2 margins)
+        # Using 74 chars for text content area + 2 chars margin
+        # Total interior width is 78. Borders are │...│
+        # Layout: │  Title                                                                     │
+
+        # Safe alignment: Pad the raw string to 76 characters first
+        title_padded = f"{title:<76}"
+        print(f"{Colors.colorize('│', risk_color)} {Colors.colorize(title_padded, risk_color + Colors.BOLD)} {Colors.colorize('│', risk_color)}")
         print(f"{Colors.colorize(bottom_border, risk_color)}\n")
 
         # Helper for aligned fields
@@ -124,37 +131,50 @@ class AlertSystem:
 
         # Sections Helper
         def print_section(title, items, color=Colors.RED):
-             if items:
+            if items:
                 print(f"\n{Colors.BOLD}[ {title} ]{Colors.RESET}")
-                for item in items[:5]: # Limit to 5
+                for item in items[:5]:  # Limit to 5
                     print(f" {Colors.colorize('•', color)} {item}")
 
         # Spam Analysis Section
         spam = report.spam_analysis
+        has_spam_issues = False
         if spam.get('indicators'):
-             print_section("SPAM ANALYSIS", spam['indicators'], Colors.CYAN)
+            print_section("SPAM ANALYSIS", spam['indicators'], Colors.CYAN)
+            has_spam_issues = True
         elif spam.get('suspicious_urls'):
-             print_section("SPAM ANALYSIS - SUSPICIOUS URLS", spam['suspicious_urls'], Colors.CYAN)
-        else:
-             # Only show positive if high risk overall but this section is clean, or just skip?
-             # Let's show clean state if it's significant
-             pass
+            print_section("SPAM ANALYSIS - SUSPICIOUS URLS", spam['suspicious_urls'], Colors.CYAN)
+            has_spam_issues = True
 
+        if not has_spam_issues:
+            print(f"\n{Colors.BOLD}[ SPAM ANALYSIS ]{Colors.RESET}")
+            print(f" {Colors.colorize('✓', Colors.GREEN)} No suspicious patterns detected")
 
         # NLP Analysis Section
         nlp = report.nlp_analysis
+        has_nlp_issues = False
         if nlp.get('social_engineering_indicators'):
             print_section("NLP THREAT - SOCIAL ENGINEERING", nlp['social_engineering_indicators'], Colors.RED)
+            has_nlp_issues = True
 
         if nlp.get('authority_impersonation'):
             print_section("NLP THREAT - IMPERSONATION", nlp['authority_impersonation'], Colors.RED)
+            has_nlp_issues = True
 
+        if not has_nlp_issues:
+            print(f"\n{Colors.BOLD}[ NLP THREAT ANALYSIS ]{Colors.RESET}")
+            print(f" {Colors.colorize('✓', Colors.GREEN)} No psychological triggers or impersonation detected")
         
         # Media Analysis Section
         media = report.media_analysis
+        has_media_issues = False
         if media.get('file_type_warnings'):
             print_section("MEDIA ANALYSIS", media['file_type_warnings'], Colors.YELLOW)
+            has_media_issues = True
 
+        if not has_media_issues:
+            print(f"\n{Colors.BOLD}[ MEDIA ANALYSIS ]{Colors.RESET}")
+            print(f" {Colors.colorize('✓', Colors.GREEN)} Attachments appear safe")
         
         # Recommendations
         if report.recommendations:

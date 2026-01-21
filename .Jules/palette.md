@@ -1,3 +1,21 @@
+# Palette's Journal
+
+## 2025-05-15 - Initial Assessment
+**Learning:** This is a backend Python application (Email Security Analysis Pipeline) with no web frontend.
+**Action:** UX improvements will focus on CLI output, log readability, and alert message formatting (the primary user interface for this tool).
+
+## 2025-05-20 - Interactive CLI Onboarding
+**Learning:** CLI tools often exit abruptly when configuration is missing, forcing users to context-switch to shell commands.
+**Action:** Detect missing config and offer to create it interactively from a template within the application flow itself.
+
+## 2025-10-27 - Positive Reinforcement in Security CLIs
+**Learning:** Security tools often default to "silence is golden," but explicit "No issues detected" feedback builds trust and reduces anxiety for users interpreting logs.
+**Action:** Always include success/clean states in report summaries, not just failure/threat states.
+
+## 2025-11-20 - Visual Feedback for Blocking Operations
+**Learning:** Users running connectivity checks often face "hanging" states where it's unclear if the tool is working or frozen, especially with network timeouts.
+**Action:** Implement immediate visual feedback (e.g., "⏳ Checking...") before blocking network operations in CLI tools, using carriage returns (`\r`) to update status in-place.
+
 ## 2026-01-20 - Structured Console Alerts
 **Learning:** Users perceive structured CLI output (boxes, alignment) as more authoritative and actionable than raw text logs. Visual hierarchy (cards) helps quickly distinguish critical information from metadata.
 **Action:** When designing CLI tools, use box-drawing characters and consistent indentation to group related information, even without external libraries like `rich`.
