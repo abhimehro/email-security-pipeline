@@ -10,7 +10,7 @@ from typing import Dict, List
 from dataclasses import dataclass, asdict
 from datetime import datetime
 
-from ..utils.sanitization import sanitize_for_logging, sanitize_for_csv
+from ..utils.sanitization import sanitize_for_csv
 from .email_ingestion import EmailData
 from .spam_analyzer import SpamAnalysisResult
 from .nlp_analyzer import NLPAnalysisResult
