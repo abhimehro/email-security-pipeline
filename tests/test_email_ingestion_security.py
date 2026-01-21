@@ -102,5 +102,43 @@ class TestEmailIngestionSecurity(unittest.TestCase):
 
         self.assertTrue(found_sanitized, "Logger did not receive sanitized filename")
 
+    def test_fetch_skips_large_emails(self):
+        """Test that fetch_unseen_emails checks size before downloading"""
+        self.client.connection = MagicMock()
+        self.client.select_folder = MagicMock(return_value=True)
+        self.client.max_email_size = 10 * 1024 * 1024 # 10MB limit
+
+        # search returns 3 email IDs
+        self.client.connection.search.return_value = ("OK", [b"1 2 3"])
+
+        # Mock fetch response for RFC822.SIZE
+        size_response = [
+            b'1 (RFC822.SIZE 1024)',
+            b'2 (RFC822.SIZE 104857600)', # 100MB
+            b'3 (RFC822.SIZE 2048)'
+        ]
+
+        content_response = [
+            (b'1 (RFC822 {10})', b'Content 1'),
+            (b'3 (RFC822 {10})', b'Content 3')
+        ]
+
+        def fetch_side_effect(ids, message_parts):
+            if "(RFC822.SIZE)" in message_parts:
+                return "OK", size_response
+            elif "(RFC822)" in message_parts:
+                if b'2' in ids:
+                    raise AssertionError(f"Client attempted to fetch body of large email ID 2! IDs requested: {ids}")
+                return "OK", content_response
+            return "NO", []
+
+        self.client.connection.fetch.side_effect = fetch_side_effect
+
+        emails = self.client.fetch_unseen_emails("INBOX")
+
+        self.assertEqual(len(emails), 2)
+        self.assertEqual(emails[0][0], "1")
+        self.assertEqual(emails[1][0], "3")
+
 if __name__ == '__main__':
     unittest.main()

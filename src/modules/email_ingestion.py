@@ -69,6 +69,12 @@ class IMAPClient:
         self.max_attachment_bytes = max_attachment_bytes
         self.max_total_attachment_bytes = max_total_attachment_bytes
         self.max_attachment_count = max_attachment_count
+        # Set max email size based on attachment limits + 5MB overhead
+        # If max_total_attachment_bytes is 0 (unlimited), we use a safe default of 500MB
+        if max_total_attachment_bytes > 0:
+            self.max_email_size = max_total_attachment_bytes + (5 * 1024 * 1024)
+        else:
+            self.max_email_size = 500 * 1024 * 1024
         self.max_body_size = 1024 * 1024  # Default 1MB, overridden by manager
         self.connection: Optional[imaplib.IMAP4_SSL] = None
         self.logger = logging.getLogger(f"IMAPClient.{config.provider}")
@@ -269,7 +275,52 @@ class IMAPClient:
                 ids_str = b",".join(batch_ids)
 
                 try:
-                    status, data = self.connection.fetch(ids_str, "(RFC822)")
+                    # 1. Check sizes first to prevent DoS
+                    safe_ids = []
+                    status, size_data = self.connection.fetch(ids_str, "(RFC822.SIZE)")
+
+                    if status == "OK" and isinstance(size_data, list):
+                        for item in size_data:
+                            # Item is typically b'SEQ (RFC822.SIZE 12345)' or (b'SEQ (RFC822.SIZE 12345)', b'')
+                            # imaplib can return different formats
+                            info = item
+                            if isinstance(item, tuple):
+                                info = item[0]
+
+                            if isinstance(info, bytes):
+                                try:
+                                    # Parse: b'1 (RFC822.SIZE 1024)'
+                                    parts = info.split()
+                                    seq = parts[0]
+                                    # Find size in the string
+                                    # Format is typically: SEQ (RFC822.SIZE <size>)
+                                    # We look for the closing parenthesis or just last element
+                                    # Safe parsing: look for RFC822.SIZE and take next element
+                                    content = info.decode('ascii', errors='ignore')
+                                    if 'RFC822.SIZE' in content:
+                                        size_idx = content.find('RFC822.SIZE') + 11
+                                        remaining = content[size_idx:].strip()
+                                        # Remove trailing ')' if present
+                                        size_str = remaining.split(')')[0].strip()
+                                        size = int(size_str)
+
+                                        if size > self.max_email_size:
+                                            self.logger.warning(
+                                                f"Skipping oversized email {seq.decode()} ({size} bytes > {self.max_email_size})"
+                                            )
+                                            continue
+
+                                        safe_ids.append(seq)
+                                except Exception as parse_err:
+                                    self.logger.warning(f"Error parsing size for {info}: {parse_err}")
+                                    continue
+
+                    if not safe_ids:
+                        continue
+
+                    safe_ids_str = b",".join(safe_ids)
+
+                    status, data = self.connection.fetch(safe_ids_str, "(RFC822)")
                     if status == "OK" and isinstance(data, list):
                         for item in data:
                             if isinstance(item, tuple):
@@ -295,7 +346,7 @@ class IMAPClient:
 
                     else:
                         self.logger.warning(
-                            f"Failed to fetch batch {ids_str}: {status}"
+                            f"Failed to fetch batch {safe_ids_str}: {status}"
                         )
 
                 except Exception as e:
