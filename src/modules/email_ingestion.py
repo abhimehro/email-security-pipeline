@@ -316,6 +316,9 @@ class IMAPClient:
                                     continue
 
                     if not safe_ids:
+                        self.logger.info(
+                            f"No emails in batch {ids_str} passed size checks; skipping batch."
+                        )
                         continue
 
                     safe_ids_str = b",".join(safe_ids)
