@@ -42,7 +42,7 @@ class SpamAnalyzer:
     COMBINED_SPAM_PATTERN = re.compile('|'.join(SPAM_KEYWORDS), re.IGNORECASE)
 
     LINK_PATTERN = re.compile(r'https?://', re.IGNORECASE)
-    URL_EXTRACTION_PATTERN = re.compile(r'https?://[^\s<>"]+')
+    URL_EXTRACTION_PATTERN = re.compile(r'https?://[^\s<>"]+', re.IGNORECASE)
     MONEY_PATTERN = re.compile(r'\$\d+|\d+\s*(dollar|usd|euro)', re.IGNORECASE)
     IMG_TAG_PATTERN = re.compile(r'<img\b', re.IGNORECASE)
     # Use bounded quantifiers to prevent ReDoS (Regular Expression Denial of Service)
@@ -97,19 +97,23 @@ class SpamAnalyzer:
         score += subject_score
         indicators.extend(subject_indicators)
 
+        # Extract URLs once for both body analysis and URL checking
+        full_body_content = email_data.body_text + email_data.body_html
+        extracted_urls = self.URL_EXTRACTION_PATTERN.findall(full_body_content)
+        link_count = len(extracted_urls)
+
         # Analyze body content
         body_score, body_indicators = self._analyze_body(
             email_data.body_text,
-            email_data.body_html
+            email_data.body_html,
+            link_count
         )
         score += body_score
         indicators.extend(body_indicators)
 
         # Check for suspicious URLs
         if self.config.spam_check_urls:
-            url_score, found_urls = self._check_urls(
-                email_data.body_text + email_data.body_html
-            )
+            url_score, found_urls = self._check_urls(extracted_urls)
             score += url_score
             suspicious_urls.extend(found_urls)
 
@@ -174,7 +178,7 @@ class SpamAnalyzer:
 
         return score, indicators
 
-    def _analyze_body(self, text_body: str, html_body: str) -> Tuple[float, List[str]]:
+    def _analyze_body(self, text_body: str, html_body: str, link_count: int) -> Tuple[float, List[str]]:
         """Analyze email body for spam indicators"""
         score = 0.0
         indicators = []
@@ -196,13 +200,7 @@ class SpamAnalyzer:
             score += keyword_matches * 0.5
             indicators.append(f"Found {keyword_matches} spam keyword matches")
 
-        # Check for excessive links
-        link_count = 0
-        if text_body:
-            link_count += sum(1 for _ in self.LINK_PATTERN.finditer(text_body))
-        if html_body:
-            link_count += sum(1 for _ in self.LINK_PATTERN.finditer(html_body))
-
+        # Check for excessive links (using count passed from analyze)
         if link_count > 10:
             score += 1.0
             indicators.append(f"Excessive links ({link_count})")
@@ -224,14 +222,10 @@ class SpamAnalyzer:
 
         return score, indicators
 
-    def _check_urls(self, content: str) -> Tuple[float, List[str]]:
+    def _check_urls(self, urls: List[str]) -> Tuple[float, List[str]]:
         """Check for suspicious URLs"""
         score = 0.0
         suspicious = []
-
-        # Extract URLs
-        # Using findall here because we need the actual strings to parse
-        urls = self.URL_EXTRACTION_PATTERN.findall(content)
 
         for url in urls:
             try:
