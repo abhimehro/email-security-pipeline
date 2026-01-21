@@ -25,6 +25,10 @@ from ..utils.sanitization import sanitize_for_logging
 # Security limits
 MAX_SUBJECT_LENGTH = 1024
 
+# Fallback maximum email size (500MB) to prevent DoS if no attachment limit is set
+# This ensures we don't try to download indefinitely large emails in "unlimited" mode
+DEFAULT_MAX_EMAIL_SIZE = 500 * 1024 * 1024
+
 
 @dataclass
 class EmailData:
@@ -74,7 +78,7 @@ class IMAPClient:
         if max_total_attachment_bytes > 0:
             self.max_email_size = max_total_attachment_bytes + (5 * 1024 * 1024)
         else:
-            self.max_email_size = 500 * 1024 * 1024
+            self.max_email_size = DEFAULT_MAX_EMAIL_SIZE
         self.max_body_size = 1024 * 1024  # Default 1MB, overridden by manager
         self.connection: Optional[imaplib.IMAP4_SSL] = None
         self.logger = logging.getLogger(f"IMAPClient.{config.provider}")
@@ -299,37 +303,23 @@ class IMAPClient:
                                     content = info.decode('ascii', errors='ignore')
                                     if 'RFC822.SIZE' in content:
                                         size_idx = content.find('RFC822.SIZE') + 11
-                                    # Find size in the string using a robust regex
-                                    # Format is typically: SEQ (RFC822.SIZE <size>)
-                                    # but whitespace and additional attributes may vary
-                                    content = info.decode('ascii', errors='ignore')
-                                    match = re.search(r"RFC822\.SIZE\s+(\d+)", content)
-                                    if not match:
-                                        self.logger.warning(f"Could not find RFC822.SIZE in response: {content!r}")
-                                        continue
+                                        remaining = content[size_idx:].strip()
+                                        # Remove trailing ')' if present
+                                        size_str = remaining.split(')')[0].strip()
+                                        size = int(size_str)
 
-                                    size_str = match.group(1)
-                                    size = int(size_str)
+                                        if size > self.max_email_size:
+                                            self.logger.warning(
+                                                f"Skipping oversized email {seq.decode()} ({size} bytes > {self.max_email_size})"
+                                            )
+                                            continue
 
-                                    if size > self.max_email_size:
-                                        self.logger.warning(
-                                            f"Skipping oversized email {seq.decode()} ({size} bytes > {self.max_email_size})"
-                                        )
-                                        continue
-
-                                    safe_ids.append(seq)
+                                        safe_ids.append(seq)
                                 except Exception as parse_err:
-                                    self.logger.warning(
-                                        f"Error parsing RFC822.SIZE for message info {info}: {parse_err}. "
-                                        "Skipping this message without processing; repeated occurrences may "
-                                        "indicate malformed server responses causing legitimate emails to be dropped."
-                                    )
+                                    self.logger.warning(f"Error parsing size for {info}: {parse_err}")
                                     continue
 
                     if not safe_ids:
-                        self.logger.info(
-                            f"No emails in batch {ids_str} passed size checks; skipping batch."
-                        )
                         continue
 
                     safe_ids_str = b",".join(safe_ids)
