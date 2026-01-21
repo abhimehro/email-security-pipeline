@@ -299,25 +299,25 @@ class IMAPClient:
                                     content = info.decode('ascii', errors='ignore')
                                     if 'RFC822.SIZE' in content:
                                         size_idx = content.find('RFC822.SIZE') + 11
-                                        remaining = content[size_idx:].strip()
-                                        # Remove trailing ')' if present
-                                        size_str = remaining.split(')')[0].strip()
-                                        try:
-                                            size = int(size_str)
-                                        except ValueError as value_err:
-                                            # Malformed or non-numeric size value; skip this item explicitly
-                                            self.logger.warning(
-                                                f"Invalid RFC822.SIZE value '{size_str}' for {info}: {value_err}"
-                                            )
-                                            continue
+                                    # Find size in the string using a robust regex
+                                    # Format is typically: SEQ (RFC822.SIZE <size>)
+                                    # but whitespace and additional attributes may vary
+                                    content = info.decode('ascii', errors='ignore')
+                                    match = re.search(r"RFC822\.SIZE\s+(\d+)", content)
+                                    if not match:
+                                        self.logger.warning(f"Could not find RFC822.SIZE in response: {content!r}")
+                                        continue
 
-                                        if size > self.max_email_size:
-                                            self.logger.warning(
-                                                f"Skipping oversized email {seq.decode()} ({size} bytes > {self.max_email_size})"
-                                            )
-                                            continue
+                                    size_str = match.group(1)
+                                    size = int(size_str)
 
-                                        safe_ids.append(seq)
+                                    if size > self.max_email_size:
+                                        self.logger.warning(
+                                            f"Skipping oversized email {seq.decode()} ({size} bytes > {self.max_email_size})"
+                                        )
+                                        continue
+
+                                    safe_ids.append(seq)
                                 except Exception as parse_err:
                                     self.logger.warning(
                                         f"Error parsing RFC822.SIZE for message info {info}: {parse_err}. "
