@@ -302,7 +302,14 @@ class IMAPClient:
                                         remaining = content[size_idx:].strip()
                                         # Remove trailing ')' if present
                                         size_str = remaining.split(')')[0].strip()
-                                        size = int(size_str)
+                                        try:
+                                            size = int(size_str)
+                                        except ValueError as value_err:
+                                            # Malformed or non-numeric size value; skip this item explicitly
+                                            self.logger.warning(
+                                                f"Invalid RFC822.SIZE value '{size_str}' for {info}: {value_err}"
+                                            )
+                                            continue
 
                                         if size > self.max_email_size:
                                             self.logger.warning(
