@@ -312,7 +312,11 @@ class IMAPClient:
 
                                         safe_ids.append(seq)
                                 except Exception as parse_err:
-                                    self.logger.warning(f"Error parsing size for {info}: {parse_err}")
+                                    self.logger.warning(
+                                        f"Error parsing RFC822.SIZE for message info {info}: {parse_err}. "
+                                        "Skipping this message without processing; repeated occurrences may "
+                                        "indicate malformed server responses causing legitimate emails to be dropped."
+                                    )
                                     continue
 
                     if not safe_ids:
