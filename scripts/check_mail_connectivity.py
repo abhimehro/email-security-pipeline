@@ -175,10 +175,20 @@ def main():
 
         proton_help = "Ensure Proton Mail Bridge is running and serving localhost."
 
+        # Proton Bridge can be configured with different TLS modes on IMAP.
+        # Default behavior: STARTTLS on 1143 (existing behavior).
+        # If PROTON_IMAP_USE_SSL is set, honor it; otherwise, infer SSL for port 143.
+        proton_imap_port = int(os.getenv("PROTON_IMAP_PORT", "1143"))
+        proton_imap_use_ssl_env = os.getenv("PROTON_IMAP_USE_SSL")
+        if proton_imap_use_ssl_env is not None:
+            proton_imap_use_ssl = proton_imap_use_ssl_env.lower() == "true"
+        else:
+            proton_imap_use_ssl = (proton_imap_port == 143)
+
         check_imap(
             os.getenv("PROTON_IMAP_SERVER", "127.0.0.1"),
-            int(os.getenv("PROTON_IMAP_PORT", "1143")),
-            False,
+            proton_imap_port,
+            proton_imap_use_ssl,
             os.getenv("PROTON_EMAIL", ""),
             os.getenv("PROTON_APP_PASSWORD", ""),
             help_text=proton_help
