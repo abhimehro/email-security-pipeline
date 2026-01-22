@@ -151,10 +151,18 @@ def main():
             help_text=outlook_help
         )
         # Outlook SMTP typically uses STARTTLS on 587
+        outlook_smtp_port = int(os.getenv("OUTLOOK_SMTP_PORT", "587"))
+        outlook_smtp_use_ssl_env = os.getenv("OUTLOOK_SMTP_USE_SSL")
+        if outlook_smtp_use_ssl_env is not None:
+            outlook_smtp_use_ssl = outlook_smtp_use_ssl_env.lower() == "true"
+        else:
+            # Infer SSL usage from common SMTPS port; default behavior remains STARTTLS on 587
+            outlook_smtp_use_ssl = outlook_smtp_port == 465
+
         check_smtp(
             os.getenv("OUTLOOK_SMTP_SERVER", "smtp.office365.com"),
-            int(os.getenv("OUTLOOK_SMTP_PORT", "587")),
-            False, # Outlook SMTP usually uses STARTTLS
+            outlook_smtp_port,
+            outlook_smtp_use_ssl,
             os.getenv("OUTLOOK_EMAIL", ""),
             os.getenv("OUTLOOK_APP_PASSWORD", ""),
             help_text=outlook_help
