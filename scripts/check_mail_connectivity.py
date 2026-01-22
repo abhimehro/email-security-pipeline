@@ -151,18 +151,10 @@ def main():
             help_text=outlook_help
         )
         # Outlook SMTP typically uses STARTTLS on 587
-        outlook_smtp_port = int(os.getenv("OUTLOOK_SMTP_PORT", "587"))
-        outlook_smtp_use_ssl_env = os.getenv("OUTLOOK_SMTP_USE_SSL")
-        if outlook_smtp_use_ssl_env is not None:
-            outlook_smtp_use_ssl = outlook_smtp_use_ssl_env.lower() == "true"
-        else:
-            # Infer SSL usage from common SMTPS port; default behavior remains STARTTLS on 587
-            outlook_smtp_use_ssl = outlook_smtp_port == 465
-
         check_smtp(
             os.getenv("OUTLOOK_SMTP_SERVER", "smtp.office365.com"),
-            outlook_smtp_port,
-            outlook_smtp_use_ssl,
+            int(os.getenv("OUTLOOK_SMTP_PORT", "587")),
+            False, # Outlook SMTP usually uses STARTTLS
             os.getenv("OUTLOOK_EMAIL", ""),
             os.getenv("OUTLOOK_APP_PASSWORD", ""),
             help_text=outlook_help
@@ -175,20 +167,10 @@ def main():
 
         proton_help = "Ensure Proton Mail Bridge is running and serving localhost."
 
-        # Proton Bridge can be configured with different TLS modes on IMAP.
-        # Default behavior: STARTTLS on 1143 (existing behavior).
-        # If PROTON_IMAP_USE_SSL is set, honor it; otherwise, infer SSL for port 143.
-        proton_imap_port = int(os.getenv("PROTON_IMAP_PORT", "1143"))
-        proton_imap_use_ssl_env = os.getenv("PROTON_IMAP_USE_SSL")
-        if proton_imap_use_ssl_env is not None:
-            proton_imap_use_ssl = proton_imap_use_ssl_env.lower() == "true"
-        else:
-            proton_imap_use_ssl = (proton_imap_port == 143)
-
         check_imap(
             os.getenv("PROTON_IMAP_SERVER", "127.0.0.1"),
-            proton_imap_port,
-            proton_imap_use_ssl,
+            int(os.getenv("PROTON_IMAP_PORT", "1143")),
+            False,
             os.getenv("PROTON_EMAIL", ""),
             os.getenv("PROTON_APP_PASSWORD", ""),
             help_text=proton_help
