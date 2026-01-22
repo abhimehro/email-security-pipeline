@@ -38,7 +38,23 @@ class SpamAnalyzer:
     ]
 
     # Pre-compiled regex patterns for performance
-    SPAM_KEYWORD_REGEXES = [re.compile(p, re.IGNORECASE) for p in SPAM_KEYWORDS]
+
+    # Generate master pattern with named groups for identification
+    _parts = []
+    _map = {}
+    for _i, _p in enumerate(SPAM_KEYWORDS):
+        _g = f"spam_kw_{_i}"
+        # Wrap pattern in a named group.
+        _parts.append(f"(?P<{_g}>{_p})")
+        _map[_g] = _p
+
+    MASTER_SPAM_PATTERN = re.compile("|".join(_parts), re.IGNORECASE)
+    MASTER_SPAM_MAP = _map
+
+    # Clean up temporary variables
+    del _parts, _map, _i, _p, _g
+
+    # Simple combined pattern (no named groups) for fast detection/counting
     COMBINED_SPAM_PATTERN = re.compile('|'.join(SPAM_KEYWORDS), re.IGNORECASE)
 
     LINK_PATTERN = re.compile(r'https?://', re.IGNORECASE)
@@ -163,11 +179,14 @@ class SpamAnalyzer:
             indicators.append("Excessive exclamation marks")
 
         # Check spam keywords
+        # Optimization: Fast check first, then single-pass identification
         if self.COMBINED_SPAM_PATTERN.search(subject_lower):
-            # Optimization: Use pre-compiled regexes
-            # We iterate to find exactly which keyword matched for reporting
-            for pattern_re, pattern_str in zip(self.SPAM_KEYWORD_REGEXES, self.SPAM_KEYWORDS):
-                if pattern_re.search(subject_lower):
+            found_groups = set()
+            for match in self.MASTER_SPAM_PATTERN.finditer(subject_lower):
+                group_name = match.lastgroup
+                if group_name and group_name in self.MASTER_SPAM_MAP and group_name not in found_groups:
+                    found_groups.add(group_name)
+                    pattern_str = self.MASTER_SPAM_MAP[group_name]
                     score += 1.5
                     indicators.append(f"Spam keyword in subject: {pattern_str}")
 

@@ -11,3 +11,7 @@
 ## 2025-11-09 - Regex Compilation and ML Inference
 **Learning:** Sequential `re.findall` on large texts with many patterns is significantly slower than a single pass with a combined regex. Also, legacy code might contain duplicate heavy operations (like ML inference) due to merge conflicts or poor refactoring.
 **Action:** Combine regex patterns into single compiled objects with named groups. Audit expensive function calls for redundancy.
+
+## 2025-11-13 - Regex Optimization Strategy
+**Learning:** When matching multiple patterns where identification of the specific match is required, a hybrid approach works best for moderate pattern counts. Use a simple combined OR regex (no capturing groups) for a fast "check" pass. If it matches, use a complex combined regex with named groups for identification. This avoids the overhead of named groups in the common "no match" case and is faster than iterating individual regexes in the "match" case.
+**Action:** Use `SIMPLE_PATTERN.search()` for detection and `COMPLEX_PATTERN.finditer()` for identification when optimizing multi-pattern matching.
