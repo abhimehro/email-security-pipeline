@@ -336,12 +336,15 @@ class MediaAuthenticityAnalyzer:
 
         # Advanced ML-based detection
         try:
-            # Create a temporary file to work with OpenCV
-            with tempfile.NamedTemporaryFile(delete=False, suffix=os.path.splitext(filename)[1]) as temp_file:
-                temp_file.write(data)
-                temp_file_path = temp_file.name
+            # Use TemporaryDirectory to ensure cleanup even on crash and to isolate files
+            with tempfile.TemporaryDirectory() as temp_dir:
+                # Use a safe internal filename but preserve extension for cv2 detection
+                safe_name = f"analysis_target{os.path.splitext(filename)[1]}"
+                temp_file_path = os.path.join(temp_dir, safe_name)
 
-            try:
+                with open(temp_file_path, 'wb') as temp_file:
+                    temp_file.write(data)
+
                 # 1. Extract frames
                 frames = self._extract_frames_from_video(temp_file_path, max_frames=20)
 
@@ -371,11 +374,6 @@ class MediaAuthenticityAnalyzer:
                     if model_score > 0.7:
                         score += 3.0
                         indicators.append(f"High probability of deepfake detected by model: {filename}")
-
-            finally:
-                # Cleanup temp file
-                if os.path.exists(temp_file_path):
-                    os.unlink(temp_file_path)
 
         except Exception as e:
             self.logger.error(f"Error during deepfake analysis for {filename}: {str(e)}")

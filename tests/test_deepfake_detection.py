@@ -26,6 +26,14 @@ class TestDeepfakeDetection(unittest.TestCase):
 
         self.analyzer = MediaAuthenticityAnalyzer(self.config)
 
+        # Mock _check_content_type_mismatch to avoid magic byte checks failing on dummy data
+        self.original_check_content_type_mismatch = self.analyzer._check_content_type_mismatch
+        self.analyzer._check_content_type_mismatch = MagicMock(return_value=(0.0, ""))
+
+    def tearDown(self):
+        # Restore original method
+        self.analyzer._check_content_type_mismatch = self.original_check_content_type_mismatch
+
     def test_simulator_clean_file(self):
         email_data = EmailData(
             message_id="1",
@@ -140,6 +148,9 @@ class TestDeepfakeDetection(unittest.TestCase):
                 "truncated": False
             }]
         )
+
+        # Mock _check_content_type_mismatch to avoid magic byte checks failing on dummy data
+        self.analyzer._check_content_type_mismatch = MagicMock(return_value=(0.0, ""))
 
         result = self.analyzer.analyze(email_data)
         # Should default to 0.0 and log warning
