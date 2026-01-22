@@ -17,3 +17,8 @@
 **Vulnerability:** `MediaAuthenticityAnalyzer` passed files with valid extensions (e.g., `.mp4`) to `cv2.VideoCapture` without verifying their content type (magic bytes). This could allow attackers to trigger vulnerabilities in the underlying media libraries (ffmpeg/OpenCV) using malformed or disguised files.
 **Learning:** File extensions are user-controlled and untrustworthy. Detection logic must default to "Fail Closed": if a file claims to be a specific type but its signature cannot be verified, it should be treated as high-risk, not processed blindly.
 **Prevention:** Implemented strict magic byte verification for media files in `MediaAuthenticityAnalyzer`. Files with media extensions but missing/invalid signatures now trigger a critical threat score and bypass deepfake processing.
+
+## 2026-05-21 - [DoS Prevention in IMAP Fetch]
+**Vulnerability:** `IMAPClient` fetched full email content (`RFC822`) before checking its size, exposing the system to memory exhaustion (OOM) and bandwidth DoS if a malicious actor sent a massive email (e.g., 1GB+). Previous truncations only happened *after* the data was loaded into memory.
+**Learning:** Ingestion pipelines must validate data size *before* retrieving the full payload. "Check-then-act" is crucial for resource protection in network protocols.
+**Prevention:** Modified `IMAPClient` to fetch `(RFC822.SIZE)` metadata first. Emails exceeding the configured limit are skipped entirely, preventing them from ever consuming system memory.
