@@ -251,17 +251,25 @@ def main():
             print("You can run: cp .env.example .env")
             sys.exit(1)
 
-    # Validate that .env is not the example file
+    # Validate that configuration does not use default values
     try:
-        with open(config_file, 'r') as f:
-            content = f.read()
-            if 'your-email@gmail.com' in content or 'your-app-password-here' in content or 'your-email@outlook.com' in content or 'your-bridge-password-here' in content:
-                print(f"{Colors.YELLOW}⚠️  Warning: .env file appears to contain example values.{Colors.RESET}")
-                print("Please update .env with your actual credentials before running.")
-                print(f"{Colors.GREY}(Press Ctrl+C to stop and edit configuration){Colors.RESET}\n")
-                time.sleep(2)
+        # Load config temporarily for validation
+        config_validator = Config(config_file)
+        from src.utils.validators import check_default_credentials
+
+        errors = check_default_credentials(config_validator)
+        if errors:
+            print(f"\n{Colors.RED}❌ Configuration Error: Default credentials detected{Colors.RESET}")
+            print(f"{Colors.GREY}The following issues must be resolved in your .env file before starting:{Colors.RESET}\n")
+
+            for error in errors:
+                print(f"  • {Colors.YELLOW}{error}{Colors.RESET}")
+
+            print(f"\nPlease edit {Colors.BOLD}{config_file}{Colors.RESET} with your actual credentials.")
+            sys.exit(1)
+
     except Exception as e:
-        print(f"Warning: Could not validate .env file: {e}")
+        print(f"{Colors.YELLOW}Warning: Could not validate configuration: {e}{Colors.RESET}")
 
     # Create and start pipeline
     print(f"{Colors.GREEN}🚀 Starting pipeline...{Colors.RESET}")
