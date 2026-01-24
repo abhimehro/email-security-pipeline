@@ -5,6 +5,7 @@ Traditional spam scoring based on headers, content patterns, and URLs
 
 import re
 import logging
+from collections import Counter
 from typing import Dict, List, Tuple, Union
 from urllib.parse import urlparse
 from dataclasses import dataclass
@@ -246,7 +247,10 @@ class SpamAnalyzer:
         score = 0.0
         suspicious = []
 
-        for url in urls:
+        # Optimization: deduplicate URL checks while maintaining scoring logic
+        url_counts = Counter(urls)
+
+        for url, count in url_counts.items():
             try:
                 parsed = urlparse(url)
                 domain = parsed.netloc
@@ -255,14 +259,14 @@ class SpamAnalyzer:
                 if self.COMBINED_URL_PATTERN.search(domain):
                      # If matched, we just mark it. The original code broke after first match
                      # in the loop, effectively counting only one match per URL from this list.
-                     score += 0.5
-                     suspicious.append(url)
+                     score += 0.5 * count
+                     suspicious.extend([url] * count)
 
                 # Check for URL shorteners
                 # Original code logic was separate and could add another 0.5 score
                 if self.SHORTENER_PATTERN.search(domain):
-                    score += 0.5
-                    suspicious.append(url)
+                    score += 0.5 * count
+                    suspicious.extend([url] * count)
 
             except Exception:
                 pass
