@@ -6,7 +6,7 @@ Handles loading and validation of environment variables and settings
 import logging
 import os
 from typing import Dict, List, Optional
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from dotenv import load_dotenv
 from urllib.parse import urlparse
 
@@ -18,7 +18,7 @@ class EmailAccountConfig:
     email: str
     imap_server: str
     imap_port: int
-    app_password: str
+    app_password: str = field(repr=False)
     folders: List[str]
     provider: str
     use_ssl: bool
@@ -46,7 +46,7 @@ class AnalysisConfig:
     deepfake_detection_enabled: bool
     media_analysis_timeout: int
     deepfake_provider: str
-    deepfake_api_key: Optional[str]
+    deepfake_api_key: Optional[str] = field(repr=False)
     deepfake_api_url: Optional[str]
     deepfake_model_path: Optional[str]
 
