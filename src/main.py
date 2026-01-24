@@ -10,6 +10,7 @@ import logging
 import signal
 import shutil
 from pathlib import Path
+from typing import List
 
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -201,6 +202,37 @@ class EmailSecurityPipeline:
             self.logger.error(f"Error analyzing email: {e}", exc_info=True)
 
 
+def check_for_default_credentials(config: Config) -> List[str]:
+    """
+    Check if the configuration still contains default example values.
+    Returns a list of error messages.
+    """
+    errors = []
+    defaults = {
+        "your-email@gmail.com": "Gmail email",
+        "your-app-password-here": "App password",
+        "your-email@outlook.com": "Outlook email",
+        "your-email@pm.me": "Proton Mail email",
+        "your-bridge-password-here": "Proton Bridge password",
+    }
+
+    # Check email accounts
+    for account in config.email_accounts:
+        if account.email in defaults:
+            errors.append(f"{account.provider.title()} account uses default email: '{account.email}'")
+        if account.app_password in defaults:
+            errors.append(f"{account.provider.title()} account uses default password")
+
+    # Check webhooks
+    if config.alerts.webhook_enabled and config.alerts.webhook_url == "https://your-webhook-url.com/alerts":
+        errors.append("Webhook is enabled but uses default URL")
+
+    if config.alerts.slack_enabled and config.alerts.slack_webhook == "https://hooks.slack.com/services/YOUR/WEBHOOK/URL":
+        errors.append("Slack is enabled but uses default Webhook URL")
+
+    return errors
+
+
 def signal_handler(signum, frame):
     """Handle shutdown signals"""
     print("\nReceived shutdown signal, stopping gracefully...")
@@ -251,17 +283,22 @@ def main():
             print("You can run: cp .env.example .env")
             sys.exit(1)
 
-    # Validate that .env is not the example file
+    # Validate that .env contains valid credentials
     try:
-        with open(config_file, 'r') as f:
-            content = f.read()
-            if 'your-email@gmail.com' in content or 'your-app-password-here' in content or 'your-email@outlook.com' in content or 'your-bridge-password-here' in content:
-                print(f"{Colors.YELLOW}⚠️  Warning: .env file appears to contain example values.{Colors.RESET}")
-                print("Please update .env with your actual credentials before running.")
-                print(f"{Colors.GREY}(Press Ctrl+C to stop and edit configuration){Colors.RESET}\n")
-                time.sleep(2)
+        temp_config = Config(config_file)
+        config_errors = check_for_default_credentials(temp_config)
+
+        if config_errors:
+            print(f"{Colors.YELLOW}⚠️  CONFIGURATION ERROR{Colors.RESET}")
+            print(f"{Colors.YELLOW}The following settings use example/default values:{Colors.RESET}")
+            for error in config_errors:
+                print(f"  • {error}")
+            print(f"\n{Colors.BOLD}Please update {config_file} with your actual credentials.{Colors.RESET}")
+            sys.exit(1)
+
     except Exception as e:
-        print(f"Warning: Could not validate .env file: {e}")
+        # If Config init fails, we let the main pipeline validation handle it later.
+        pass
 
     # Create and start pipeline
     print(f"{Colors.GREEN}🚀 Starting pipeline...{Colors.RESET}")

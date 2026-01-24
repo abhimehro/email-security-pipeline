@@ -43,7 +43,7 @@ class TestDeepfakeDetection(unittest.TestCase):
                 "filename": "vacation.mp4",
                 "content_type": "video/mp4",
                 "size": 1024 * 1024,
-                "data": b"a" * 1024 * 200,
+                "data": b"\x00\x00\x00\x18ftypmp42" + b"a" * 1024 * 200,
                 "truncated": False
             }]
         )
@@ -69,7 +69,7 @@ class TestDeepfakeDetection(unittest.TestCase):
                 "filename": "deepfake_video.mp4",
                 "content_type": "video/mp4",
                 "size": 1024 * 1024,
-                "data": b"a" * 1024 * 200,
+                "data": b"\x00\x00\x00\x18ftypmp42" + b"a" * 1024 * 200,
                 "truncated": False
             }]
         )
@@ -101,7 +101,7 @@ class TestDeepfakeDetection(unittest.TestCase):
                 "filename": "suspicious_clip.mp4",
                 "content_type": "video/mp4",
                 "size": 1024 * 1024,
-                "data": b"a" * 1024 * 200,
+                "data": b"\x00\x00\x00\x18ftypmp42" + b"a" * 1024 * 200,
                 "truncated": False
             }]
         )
@@ -136,7 +136,7 @@ class TestDeepfakeDetection(unittest.TestCase):
                 "filename": "deepfake_test.mp4",
                 "content_type": "video/mp4",
                 "size": 1024 * 1024,
-                "data": b"a" * 1024 * 200,
+                "data": b"\x00\x00\x00\x18ftypmp42" + b"a" * 1024 * 200,
                 "truncated": False
             }]
         )
