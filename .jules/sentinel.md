@@ -22,3 +22,8 @@
 **Vulnerability:** `IMAPClient` fetched full email content (`RFC822`) before checking its size, exposing the system to memory exhaustion (OOM) and bandwidth DoS if a malicious actor sent a massive email (e.g., 1GB+). Previous truncations only happened *after* the data was loaded into memory.
 **Learning:** Ingestion pipelines must validate data size *before* retrieving the full payload. "Check-then-act" is crucial for resource protection in network protocols.
 **Prevention:** Modified `IMAPClient` to fetch `(RFC822.SIZE)` metadata first. Emails exceeding the configured limit are skipped entirely, preventing them from ever consuming system memory.
+
+## 2026-06-15 - [Authentication-Results Verification Bypass]
+**Vulnerability:** `SpamAnalyzer` checked for the *existence* of DKIM signatures but failed to verify their validity status (e.g., `dkim=fail`) in the `Authentication-Results` header. This allowed attackers to bypass authentication checks by including a fake or invalid signature.
+**Learning:** Checking for the presence of a security control (like a signature) is insufficient. You must verify the *outcome* of that control. Upstream validation results (like `Authentication-Results`) are the source of truth for email authenticity.
+**Prevention:** Updated `SpamAnalyzer` to parse `Authentication-Results` headers and penalize emails with explicit `dkim=fail` or `spf=fail` statuses, regardless of signature presence.
