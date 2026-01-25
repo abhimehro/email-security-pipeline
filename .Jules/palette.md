@@ -19,3 +19,7 @@
 ## 2025-11-22 - Actionable Error Context
 **Learning:** Generic error messages (e.g., "LOGIN failed") leave users stranded, especially for complex configs like Outlook business accounts vs. personal ones.
 **Action:** Embed specific troubleshooting tips directly into the error output of CLI tools when known configuration pitfalls exist (e.g., "Tip: Personal Outlook accounts NO LONGER support App Passwords").
+
+## 2025-11-25 - Visual Hierarchy in Console Lists
+**Learning:** Color-coding list bullets in CLI output significantly improves scannability, allowing users to instantly identify high-severity items in a list of mixed recommendations.
+**Action:** Use semantic colors (Red/Yellow/Green) for list markers when displaying prioritized or categorized information in terminal interfaces.
