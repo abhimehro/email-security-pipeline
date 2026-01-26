@@ -305,6 +305,17 @@ class SpamAnalyzer:
             score += 0.5
             issues.append("Missing DKIM signature")
 
+        # Check Authentication-Results for explicit failures
+        auth_results = get_header_list('authentication-results')
+        for result in auth_results:
+            result_lower = result.lower()
+            if 'dkim=fail' in result_lower:
+                score += 2.5
+                issues.append("DKIM verification failed (Authentication-Results)")
+            if 'spf=fail' in result_lower:
+                score += 2.0
+                issues.append("SPF verification failed (Authentication-Results)")
+
         # Check for missing standard headers
         # We check for lowercased keys
         required_headers = ['from', 'to', 'date', 'message-id']

@@ -136,3 +136,32 @@ def test_suspicious_urls(spam_analyzer, clean_email):
 
     assert len(result.suspicious_urls) > 0
     assert "http://bit.ly/suspicious" in result.suspicious_urls
+
+def test_authentication_results_failure(spam_analyzer, clean_email):
+    # Add Authentication-Results header with failures
+    clean_email.headers['authentication-results'] = [
+        "mx.google.com; dkim=fail header.i=@spammer.com; spf=fail (google.com: domain of spammer@spammer.com does not designate ...)"
+    ]
+    # Ensure DKIM-Signature exists so we don't trigger "Missing DKIM" score
+    clean_email.headers['dkim-signature'] = "v=1; ..."
+
+    result = spam_analyzer.analyze(clean_email)
+
+    # Check for scores
+    # +2.5 for DKIM fail
+    # +2.0 for SPF fail
+    # +0.0 for "Missing DKIM" (since we provided it)
+    # +0.0 for "SPF check failed" (received-spf is pass in clean_email fixture)
+
+    found_dkim = False
+    found_spf = False
+
+    for issue in result.header_issues:
+        if "DKIM verification failed (Authentication-Results)" in issue:
+            found_dkim = True
+        if "SPF verification failed (Authentication-Results)" in issue:
+            found_spf = True
+
+    assert found_dkim, "Should detect DKIM failure in Authentication-Results"
+    assert found_spf, "Should detect SPF failure in Authentication-Results"
+    assert result.score >= 4.5
