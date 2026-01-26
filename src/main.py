@@ -114,6 +114,36 @@ class EmailSecurityPipeline:
         self.ingestion_manager.close_all_connections()
         self.logger.info("Pipeline stopped")
 
+    def _wait_with_countdown(self, seconds: int):
+        """
+        Wait with a visual countdown timer to improve CLI UX.
+
+        Args:
+            seconds: Number of seconds to wait
+        """
+        self.logger.info(f"Waiting {seconds} seconds until next check...")
+
+        try:
+            for remaining in range(seconds, 0, -1):
+                if not self.running:
+                    break
+
+                # Visual countdown using carriage return to overwrite line
+                # Uses GREY color to reduce visual noise
+                sys.stdout.write(f"\r{Colors.GREY}⏳ Next check in {remaining}s...   {Colors.RESET}")
+                sys.stdout.flush()
+                time.sleep(1)
+
+            # Clear the countdown line
+            sys.stdout.write("\r" + " " * 50 + "\r")
+            sys.stdout.flush()
+
+        except KeyboardInterrupt:
+            # Clear line and re-raise to allow graceful shutdown
+            sys.stdout.write("\r" + " " * 50 + "\r")
+            sys.stdout.flush()
+            raise
+
     def _monitoring_loop(self):
         """Main monitoring loop"""
         iteration = 0
@@ -139,11 +169,7 @@ class EmailSecurityPipeline:
 
                 # Wait before next check
                 if self.running:
-                    self.logger.info(
-                        f"Waiting {self.config.system.check_interval} seconds "
-                        f"until next check..."
-                    )
-                    time.sleep(self.config.system.check_interval)
+                    self._wait_with_countdown(self.config.system.check_interval)
 
             except Exception as e:
                 self.logger.error(f"Error in monitoring loop: {e}", exc_info=True)

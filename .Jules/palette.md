@@ -19,3 +19,7 @@
 ## 2025-11-22 - Actionable Error Context
 **Learning:** Generic error messages (e.g., "LOGIN failed") leave users stranded, especially for complex configs like Outlook business accounts vs. personal ones.
 **Action:** Embed specific troubleshooting tips directly into the error output of CLI tools when known configuration pitfalls exist (e.g., "Tip: Personal Outlook accounts NO LONGER support App Passwords").
+
+## 2026-01-26 - Signal Handling in UX Waits
+**Learning:** When implementing "delightful" CLI waits (like countdowns), naively catching exceptions can swallow interrupt signals (Ctrl+C), leaving the user unable to exit the application gracefully.
+**Action:** Always re-raise `KeyboardInterrupt` after cleaning up UI elements (like clearing the current line) to ensure the main event loop can handle the shutdown signal.
