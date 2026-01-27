@@ -4,7 +4,7 @@ python-dotenv>=1.0.0
 # Optional: NLP and ML (uncomment when needed)
 transformers==4.53.0
 torch==2.8.0
-sentencepiece==0.1.99
+sentencepiece==0.2.1
 
 # Optional: Database support
 # sqlite3  # Built-in to Python
