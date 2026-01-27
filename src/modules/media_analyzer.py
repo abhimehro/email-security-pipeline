@@ -335,50 +335,53 @@ class MediaAuthenticityAnalyzer:
             return score, indicators
 
         # Advanced ML-based detection
+        temp_file_path = None
         try:
             # Create a temporary file to work with OpenCV
             with tempfile.NamedTemporaryFile(delete=False, suffix=os.path.splitext(filename)[1]) as temp_file:
-                temp_file.write(data)
                 temp_file_path = temp_file.name
+                temp_file.write(data)
 
-            try:
-                # 1. Extract frames
-                frames = self._extract_frames_from_video(temp_file_path, max_frames=20)
+            # 1. Extract frames
+            frames = self._extract_frames_from_video(temp_file_path, max_frames=20)
 
-                if not frames:
-                     self.logger.warning(f"Could not extract frames from {filename}")
-                else:
-                    # 2. Analyze for facial inconsistencies
-                    facial_score, facial_issues = self._analyze_facial_inconsistencies(frames)
-                    if facial_score > 0:
-                        score += facial_score
-                        indicators.extend([f"{filename}: {issue}" for issue in facial_issues])
+            if not frames:
+                 self.logger.warning(f"Could not extract frames from {filename}")
+            else:
+                # 2. Analyze for facial inconsistencies
+                facial_score, facial_issues = self._analyze_facial_inconsistencies(frames)
+                if facial_score > 0:
+                    score += facial_score
+                    indicators.extend([f"{filename}: {issue}" for issue in facial_issues])
 
-                    # 3. Check audio-visual synchronization
-                    sync_score, sync_issues = self._check_audio_visual_sync(temp_file_path, frames)
-                    if sync_score > 0:
-                        score += sync_score
-                        indicators.extend([f"{filename}: {issue}" for issue in sync_issues])
+                # 3. Check audio-visual synchronization
+                sync_score, sync_issues = self._check_audio_visual_sync(temp_file_path, frames)
+                if sync_score > 0:
+                    score += sync_score
+                    indicators.extend([f"{filename}: {issue}" for issue in sync_issues])
 
-                    # 4. Look for compression artifacts typical of deepfakes
-                    compression_score, compression_issues = self._check_compression_artifacts(frames)
-                    if compression_score > 0:
-                        score += compression_score
-                        indicators.extend([f"{filename}: {issue}" for issue in compression_issues])
+                # 4. Look for compression artifacts typical of deepfakes
+                compression_score, compression_issues = self._check_compression_artifacts(frames)
+                if compression_score > 0:
+                    score += compression_score
+                    indicators.extend([f"{filename}: {issue}" for issue in compression_issues])
 
-                    # 5. Use specialized deepfake detection models (Simulated)
-                    model_score = self._run_deepfake_model(frames, content_type)
-                    if model_score > 0.7:
-                        score += 3.0
-                        indicators.append(f"High probability of deepfake detected by model: {filename}")
-
-            finally:
-                # Cleanup temp file
-                if os.path.exists(temp_file_path):
-                    os.unlink(temp_file_path)
+                # 5. Use specialized deepfake detection models (Simulated)
+                model_score = self._run_deepfake_model(frames, content_type)
+                if model_score > 0.7:
+                    score += 3.0
+                    indicators.append(f"High probability of deepfake detected by model: {filename}")
 
         except Exception as e:
             self.logger.error(f"Error during deepfake analysis for {filename}: {str(e)}")
+
+        finally:
+            # Cleanup temp file
+            if temp_file_path and os.path.exists(temp_file_path):
+                try:
+                    os.unlink(temp_file_path)
+                except OSError as e:
+                    self.logger.warning(f"Failed to delete temp file {temp_file_path}: {e}")
 
         return score, indicators
 
