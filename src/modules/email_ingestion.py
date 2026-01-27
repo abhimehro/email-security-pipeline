@@ -603,6 +603,10 @@ class IMAPClient:
         except Exception:
             return value
 
+    # Pre-compiled regex patterns for filename sanitization
+    FILENAME_SANITIZE_PATTERN = re.compile(r'[^a-zA-Z0-9.\-_ ]')
+    FILENAME_COLLAPSE_DOTS_PATTERN = re.compile(r'\.+')
+
     @staticmethod
     def _sanitize_filename(filename: str) -> str:
         """
@@ -624,14 +628,14 @@ class IMAPClient:
 
         # 2. Replace dangerous characters with underscore
         # Allow alphanumeric, dot, dash, underscore, space
-        filename = re.sub(r'[^a-zA-Z0-9.\-_ ]', '_', filename)
+        filename = IMAPClient.FILENAME_SANITIZE_PATTERN.sub('_', filename)
 
         # 3. Prevent hidden files (starting with dot)
         while filename.startswith('.'):
             filename = filename[1:]
 
         # 4. Collapse multiple dots (e.g., file..exe)
-        filename = re.sub(r'\.+', '.', filename)
+        filename = IMAPClient.FILENAME_COLLAPSE_DOTS_PATTERN.sub('.', filename)
 
         return filename.strip() or "unnamed_attachment"
 
