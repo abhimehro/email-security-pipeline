@@ -15,3 +15,7 @@
 ## 2025-11-13 - Regex Optimization Strategy
 **Learning:** When matching multiple patterns where identification of the specific match is required, a hybrid approach works best for moderate pattern counts. Use a simple combined OR regex (no capturing groups) for a fast "check" pass. If it matches, use a complex combined regex with named groups for identification. This avoids the overhead of named groups in the common "no match" case and is faster than iterating individual regexes in the "match" case.
 **Action:** Use `SIMPLE_PATTERN.search()` for detection and `COMPLEX_PATTERN.finditer()` for identification when optimizing multi-pattern matching.
+
+## 2025-11-14 - LRU Cache on Large Inputs
+**Learning:** Applying `lru_cache` to functions taking potentially large unique strings (like email bodies) creates significant memory and CPU overhead (hashing). If the consumer (e.g., a Transformer model) only processes a prefix (e.g., 512 tokens), truncating the input *before* caching provides massive speedups (~300x in benchmarks) and effective cache utilization.
+**Action:** Truncate large input strings to the effective processing limit before passing them to cached functions.

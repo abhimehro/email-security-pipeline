@@ -17,7 +17,7 @@ from .email_ingestion import EmailData
 try:
     import torch
     from transformers import AutoTokenizer, AutoModelForSequenceClassification
-except ImportError:
+except (ImportError, OSError):
     torch = None
     AutoTokenizer = None
     AutoModelForSequenceClassification = None
@@ -363,7 +363,6 @@ class NLPThreatAnalyzer:
         else:
             return "low"
 
-    @lru_cache(maxsize=1024)
     def analyze_with_transformer(self, text: str) -> Dict:
         """
         Analyze text using transformer model
@@ -373,6 +372,17 @@ class NLPThreatAnalyzer:
 
         Returns:
             Dictionary with analysis results
+        """
+        # Optimization: Truncate text before processing/caching
+        # 4096 chars is ~1000 tokens, well above the 512 token limit of most models
+        # This avoids hashing and processing huge strings for the cache key
+        truncated_text = text[:4096]
+        return self._analyze_with_transformer_core(truncated_text)
+
+    @lru_cache(maxsize=1024)
+    def _analyze_with_transformer_core(self, text: str) -> Dict:
+        """
+        Core transformer analysis with caching
         """
         if not self.model or not self.tokenizer:
             return {"error": "Model not loaded"}
