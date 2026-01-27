@@ -299,7 +299,35 @@ class SpamAnalyzer:
             score += 1.0
             issues.append("SPF soft fail")
 
-        # Check DKIM
+        # Check Authentication-Results (Modern SPF/DKIM validation)
+        auth_results = get_header_list('authentication-results')
+        dkim_auth_fail = False
+        spf_auth_fail = False
+
+        for result in auth_results:
+            result_lower = result.lower()
+
+            # Check DKIM results
+            if 'dkim=fail' in result_lower or 'dkim=permerror' in result_lower:
+                dkim_auth_fail = True
+            elif 'dkim=neutral' in result_lower:
+                # Neutral usually means signature failed to verify or public key issue
+                dkim_auth_fail = True
+
+            # Check SPF results (secondary check if Received-SPF is missing/ambiguous)
+            if 'spf=fail' in result_lower or 'spf=permerror' in result_lower:
+                spf_auth_fail = True
+
+        if dkim_auth_fail:
+            score += 2.5
+            issues.append("DKIM verification failed (Authentication-Results)")
+
+        # Don't double count SPF failure if already caught by Received-SPF
+        if spf_auth_fail and not spf_fail:
+            score += 2.0
+            issues.append("SPF verification failed (Authentication-Results)")
+
+        # Check DKIM presence
         dkim = get_header_list('dkim-signature')
         if not dkim:
             score += 0.5

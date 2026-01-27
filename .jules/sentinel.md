@@ -27,3 +27,7 @@
 **Vulnerability:** `EmailAccountConfig` and `AnalysisConfig` dataclasses included sensitive fields (`app_password`, `deepfake_api_key`) in their default `__repr__` method. This caused credentials to be leaked in plain text if these objects were ever logged for debugging (e.g., `logger.info(config)`).
 **Learning:** Python `dataclass` automatically generates a `__repr__` that includes all fields by default. Developers must explicitly exclude sensitive fields using `field(repr=False)` to prevent accidental leakage in logs.
 **Prevention:** Updated `EmailAccountConfig` and `AnalysisConfig` to use `field(repr=False)` for all sensitive fields. Added regression tests in `tests/test_config_security.py` to verify that `str(config)` does not contain secrets.
+## 2026-06-15 - [Authentication-Results Verification Bypass]
+**Vulnerability:** `SpamAnalyzer` checked for the *existence* of DKIM signatures but failed to verify their validity status (e.g., `dkim=fail`) in the `Authentication-Results` header. This allowed attackers to bypass authentication checks by including a fake or invalid signature.
+**Learning:** Checking for the presence of a security control (like a signature) is insufficient. You must verify the *outcome* of that control. Upstream validation results (like `Authentication-Results`) are the source of truth for email authenticity.
+**Prevention:** Updated `SpamAnalyzer` to parse `Authentication-Results` headers and penalize emails with explicit `dkim=fail` or `spf=fail` statuses, regardless of signature presence.
