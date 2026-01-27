@@ -22,3 +22,8 @@
 **Vulnerability:** `IMAPClient` fetched full email content (`RFC822`) before checking its size, exposing the system to memory exhaustion (OOM) and bandwidth DoS if a malicious actor sent a massive email (e.g., 1GB+). Previous truncations only happened *after* the data was loaded into memory.
 **Learning:** Ingestion pipelines must validate data size *before* retrieving the full payload. "Check-then-act" is crucial for resource protection in network protocols.
 **Prevention:** Modified `IMAPClient` to fetch `(RFC822.SIZE)` metadata first. Emails exceeding the configured limit are skipped entirely, preventing them from ever consuming system memory.
+
+## 2026-05-25 - [Sensitive Data Exposure in Log Objects]
+**Vulnerability:** `EmailAccountConfig` and `AnalysisConfig` dataclasses included sensitive fields (`app_password`, `deepfake_api_key`) in their default `__repr__` method. This caused credentials to be leaked in plain text if these objects were ever logged for debugging (e.g., `logger.info(config)`).
+**Learning:** Python `dataclass` automatically generates a `__repr__` that includes all fields by default. Developers must explicitly exclude sensitive fields using `field(repr=False)` to prevent accidental leakage in logs.
+**Prevention:** Updated `EmailAccountConfig` and `AnalysisConfig` to use `field(repr=False)` for all sensitive fields. Added regression tests in `tests/test_config_security.py` to verify that `str(config)` does not contain secrets.
