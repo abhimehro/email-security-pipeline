@@ -1,5 +1,7 @@
 
 import time
+import re
+import os
 from src.modules.email_ingestion import IMAPClient, EmailAccountConfig
 
 # Mock config
