@@ -58,6 +58,9 @@ class AlertSystem:
         # Only alert on significant threats
         if threat_report.overall_threat_score < self.config.threat_low:
             self.logger.debug(f"Threat score too low to alert: {threat_report.overall_threat_score}")
+            # Provide positive feedback for clean emails if console is enabled
+            if self.config.console:
+                self._console_clean_report(threat_report)
             return
         
         # Console alert
@@ -160,6 +163,26 @@ class AlertSystem:
         
         print(header_bar + "\n")
     
+    def _console_clean_report(self, report: ThreatReport):
+        """Print clean report to console"""
+        # Compact format for clean emails
+        score_val = min(max(report.overall_threat_score, 0), 100)
+
+        # Short timestamp
+        try:
+            dt = datetime.fromisoformat(report.timestamp)
+            time_str = dt.strftime("%H:%M:%S")
+        except ValueError:
+            time_str = report.timestamp
+
+        # Subject truncated
+        sanitized_subject = self._sanitize_text(report.subject)
+        subject = sanitized_subject[:60]
+        if len(sanitized_subject) > 60:
+            subject += "..."
+
+        print(f"{Colors.GREEN}✓ CLEAN{Colors.RESET} [{time_str}] {subject} (Score: {score_val:.1f})")
+
     def _webhook_alert(self, report: ThreatReport):
         """Send alert via webhook"""
         try:
