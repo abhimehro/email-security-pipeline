@@ -123,6 +123,7 @@ class NLPThreatAnalyzer:
             all_patterns.append((p, "PS", d))
 
         self.master_pattern, self.master_map = self._compile_master_pattern(all_patterns)
+        self.simple_master_pattern = self._compile_simple_master_pattern(all_patterns)
 
         # Initialize model if needed
         if self._should_use_ml_model():
@@ -147,6 +148,20 @@ class NLPThreatAnalyzer:
 
         full_pattern = "|".join(regex_parts)
         return re.compile(full_pattern, re.IGNORECASE), group_map
+
+    def _compile_simple_master_pattern(self, patterns: List[Tuple[str, str, str]]) -> re.Pattern:
+        """
+        Compile a simplified master pattern without named groups for fast presence check.
+        """
+        # Join patterns with OR operator, wrapped in non-capturing groups if needed
+        # We rely on the fact that existing patterns capture what they need internally
+        # but for the simple check we just need ANY match.
+        regex_parts = []
+        for pattern, _, _ in patterns:
+            regex_parts.append(f"(?:{pattern})")
+
+        full_pattern = "|".join(regex_parts)
+        return re.compile(full_pattern, re.IGNORECASE)
 
     def _should_use_ml_model(self) -> bool:
         """Check if ML model should be loaded"""
@@ -202,14 +217,16 @@ class NLPThreatAnalyzer:
             "PS": defaultdict(int)
         }
 
-        for match in self.master_pattern.finditer(text):
-            group_name = match.lastgroup
-            if group_name and group_name in self.master_map:
-                prefix, description = self.master_map[group_name]
-                if prefix == "AU":
-                    matches_by_category[prefix][description].append(match.group())
-                else:
-                    matches_by_category[prefix][description] += 1
+        # Optimization: Fast check with simple pattern
+        if self.simple_master_pattern.search(text):
+            for match in self.master_pattern.finditer(text):
+                group_name = match.lastgroup
+                if group_name and group_name in self.master_map:
+                    prefix, description = self.master_map[group_name]
+                    if prefix == "AU":
+                        matches_by_category[prefix][description].append(match.group())
+                    else:
+                        matches_by_category[prefix][description] += 1
 
         # Check for social engineering
         if self.config.check_social_engineering:
