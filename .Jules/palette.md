@@ -27,3 +27,7 @@
 ## 2025-11-25 - Visual Hierarchy in Console Lists
 **Learning:** Color-coding list bullets in CLI output significantly improves scannability, allowing users to instantly identify high-severity items in a list of mixed recommendations.
 **Action:** Use semantic colors (Red/Yellow/Green) for list markers when displaying prioritized or categorized information in terminal interfaces.
+
+## 2026-01-27 - Compact Positive Feedback
+**Learning:** When adding positive reinforcement to CLIs, use a compact, single-line format with distinct colors (Green) to distinguish it from verbose error/alert logs without cluttering the output.
+**Action:** Use `✓ CLEAN` or similar concise markers for success states to provide heartbeat confirmation.
