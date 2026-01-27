@@ -3,11 +3,11 @@ Layer 1: Spam Detection Analyzer
 Traditional spam scoring based on headers, content patterns, and URLs
 """
 
-import re
 import logging
+import re
+from dataclasses import dataclass
 from typing import Dict, List, Tuple, Union
 from urllib.parse import urlparse
-from dataclasses import dataclass
 
 from .email_ingestion import EmailData
 
@@ -15,6 +15,7 @@ from .email_ingestion import EmailData
 @dataclass
 class SpamAnalysisResult:
     """Result of spam analysis"""
+
     score: float
     indicators: List[str]
     suspicious_urls: List[str]
@@ -27,14 +28,14 @@ class SpamAnalyzer:
 
     # Spam indicator patterns
     SPAM_KEYWORDS = [
-        r'\b(viagra|cialis|pharmacy|pills)\b',
-        r'\b(winner|congratulations|prize|lottery)\b',
-        r'\b(urgent|immediate|action required|act now)\b',
-        r'\b(click here|click now|limited time)\b',
-        r'\b(free money|make money|earn cash)\b',
-        r'\b(nigerian prince|inheritance|beneficiary)\b',
-        r'\b(enlarge|enhancement|weight loss)\b',
-        r'\b(casino|poker|gambling)\b',
+        r"\b(viagra|cialis|pharmacy|pills)\b",
+        r"\b(winner|congratulations|prize|lottery)\b",
+        r"\b(urgent|immediate|action required|act now)\b",
+        r"\b(click here|click now|limited time)\b",
+        r"\b(free money|make money|earn cash)\b",
+        r"\b(nigerian prince|inheritance|beneficiary)\b",
+        r"\b(enlarge|enhancement|weight loss)\b",
+        r"\b(casino|poker|gambling)\b",
     ]
 
     # Pre-compiled regex patterns for performance
@@ -55,33 +56,36 @@ class SpamAnalyzer:
     del _parts, _map, _i, _p, _g
 
     # Simple combined pattern (no named groups) for fast detection/counting
-    COMBINED_SPAM_PATTERN = re.compile('|'.join(SPAM_KEYWORDS), re.IGNORECASE)
+    COMBINED_SPAM_PATTERN = re.compile("|".join(SPAM_KEYWORDS), re.IGNORECASE)
 
-    LINK_PATTERN = re.compile(r'https?://', re.IGNORECASE)
+    LINK_PATTERN = re.compile(r"https?://", re.IGNORECASE)
     URL_EXTRACTION_PATTERN = re.compile(r'https?://[^\s<>"]+', re.IGNORECASE)
-    MONEY_PATTERN = re.compile(r'\$\d+|\d+\s*(dollar|usd|euro)', re.IGNORECASE)
-    IMG_TAG_PATTERN = re.compile(r'<img\b', re.IGNORECASE)
+    MONEY_PATTERN = re.compile(r"\$\d+|\d+\s*(dollar|usd|euro)", re.IGNORECASE)
+    IMG_TAG_PATTERN = re.compile(r"<img\b", re.IGNORECASE)
     # Use bounded quantifiers to prevent ReDoS (Regular Expression Denial of Service)
-    HIDDEN_TEXT_PATTERN = re.compile(r'font-size:\s*[0-2]px|color:\s*#fff.{0,100}background.{0,100}#fff', re.IGNORECASE)
-    EMAIL_ADDRESS_PATTERN = re.compile(r'[\w\.-]+@[\w\.-]+')
-    SENDER_DOMAIN_PATTERN = re.compile(r'[\w\.-]+@([\w\.-]+)', re.IGNORECASE)
-    DISPLAY_NAME_PATTERN = re.compile(r'^([^<]+)<', re.IGNORECASE)
+    HIDDEN_TEXT_PATTERN = re.compile(
+        r"font-size:\s*[0-2]px|color:\s*#fff.{0,100}background.{0,100}#fff",
+        re.IGNORECASE,
+    )
+    EMAIL_ADDRESS_PATTERN = re.compile(r"[\w\.-]+@[\w\.-]+")
+    SENDER_DOMAIN_PATTERN = re.compile(r"[\w\.-]+@([\w\.-]+)", re.IGNORECASE)
+    DISPLAY_NAME_PATTERN = re.compile(r"^([^<]+)<", re.IGNORECASE)
 
     # Suspicious URL patterns
     SUSPICIOUS_URL_PATTERNS = [
-        re.compile(r'bit\.ly'),
-        re.compile(r'tinyurl'),
-        re.compile(r't\.co'),
-        re.compile(r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}'),  # IP addresses
-        re.compile(r'[a-z0-9\-]{30,}'),  # Very long subdomain/path
+        r"bit\.ly",
+        r"tinyurl",
+        r"t\.co",
+        r"goo\.gl",
+        r"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}",  # IP addresses
+        r"[a-z0-9\-]{30,}",  # Very long subdomain/path
     ]
 
     # Pre-compiled combined pattern for performance
-    # To join them, we need the pattern strings
-    COMBINED_URL_PATTERN = re.compile('|'.join(p.pattern for p in SUSPICIOUS_URL_PATTERNS), re.IGNORECASE)
+    COMBINED_URL_PATTERN = re.compile("|".join(SUSPICIOUS_URL_PATTERNS), re.IGNORECASE)
 
     # Additional shorteners specific check regex
-    SHORTENER_PATTERN = re.compile(r'(bit\.ly|tinyurl|t\.co|goo\.gl)', re.IGNORECASE)
+    SHORTENER_PATTERN = re.compile(r"(bit\.ly|tinyurl|t\.co|goo\.gl)", re.IGNORECASE)
 
     def __init__(self, config):
         """
@@ -120,9 +124,7 @@ class SpamAnalyzer:
 
         # Analyze body content
         body_score, body_indicators = self._analyze_body(
-            email_data.body_text,
-            email_data.body_html,
-            link_count
+            email_data.body_text, email_data.body_html, link_count
         )
         score += body_score
         indicators.extend(body_indicators)
@@ -141,8 +143,7 @@ class SpamAnalyzer:
 
         # Check sender reputation
         sender_score, sender_indicators = self._check_sender(
-            email_data.sender,
-            email_data.headers
+            email_data.sender, email_data.headers
         )
         score += sender_score
         indicators.extend(sender_indicators)
@@ -159,7 +160,7 @@ class SpamAnalyzer:
             indicators=indicators,
             suspicious_urls=suspicious_urls,
             header_issues=header_issues,
-            risk_level=risk_level
+            risk_level=risk_level,
         )
 
     def _analyze_subject(self, subject: str) -> Tuple[float, List[str]]:
@@ -174,7 +175,7 @@ class SpamAnalyzer:
             indicators.append("Subject in all caps")
 
         # Check for excessive punctuation
-        if subject.count('!') > 2:
+        if subject.count("!") > 2:
             score += 0.5
             indicators.append("Excessive exclamation marks")
 
@@ -184,7 +185,11 @@ class SpamAnalyzer:
             found_groups = set()
             for match in self.MASTER_SPAM_PATTERN.finditer(subject_lower):
                 group_name = match.lastgroup
-                if group_name and group_name in self.MASTER_SPAM_MAP and group_name not in found_groups:
+                if (
+                    group_name
+                    and group_name in self.MASTER_SPAM_MAP
+                    and group_name not in found_groups
+                ):
                     found_groups.add(group_name)
                     pattern_str = self.MASTER_SPAM_MAP[group_name]
                     score += 1.5
@@ -197,7 +202,9 @@ class SpamAnalyzer:
 
         return score, indicators
 
-    def _analyze_body(self, text_body: str, html_body: str, link_count: int) -> Tuple[float, List[str]]:
+    def _analyze_body(
+        self, text_body: str, html_body: str, link_count: int
+    ) -> Tuple[float, List[str]]:
         """Analyze email body for spam indicators"""
         score = 0.0
         indicators = []
@@ -209,11 +216,15 @@ class SpamAnalyzer:
 
         # Check spam keywords in text body
         if text_body:
-            keyword_matches += sum(1 for _ in self.COMBINED_SPAM_PATTERN.finditer(text_body))
+            keyword_matches += sum(
+                1 for _ in self.COMBINED_SPAM_PATTERN.finditer(text_body)
+            )
 
         # Check spam keywords in html body
         if html_body:
-            keyword_matches += sum(1 for _ in self.COMBINED_SPAM_PATTERN.finditer(html_body))
+            keyword_matches += sum(
+                1 for _ in self.COMBINED_SPAM_PATTERN.finditer(html_body)
+            )
 
         if keyword_matches > 0:
             score += keyword_matches * 0.5
@@ -253,10 +264,10 @@ class SpamAnalyzer:
 
                 # Check against combined suspicious patterns first
                 if self.COMBINED_URL_PATTERN.search(domain):
-                     # If matched, we just mark it. The original code broke after first match
-                     # in the loop, effectively counting only one match per URL from this list.
-                     score += 0.5
-                     suspicious.append(url)
+                    # If matched, we just mark it. The original code broke after first match
+                    # in the loop, effectively counting only one match per URL from this list.
+                    score += 0.5
+                    suspicious.append(url)
 
                 # Check for URL shorteners
                 # Original code logic was separate and could add another 0.5 score
@@ -269,7 +280,9 @@ class SpamAnalyzer:
 
         return score, suspicious
 
-    def _analyze_headers(self, headers: Dict[str, Union[str, List[str]]]) -> Tuple[float, List[str]]:
+    def _analyze_headers(
+        self, headers: Dict[str, Union[str, List[str]]]
+    ) -> Tuple[float, List[str]]:
         """Analyze email headers for anomalies"""
         score = 0.0
         issues = []
@@ -282,14 +295,14 @@ class SpamAnalyzer:
             return val
 
         # Check SPF
-        spf_headers = get_header_list('received-spf')
+        spf_headers = get_header_list("received-spf")
         spf_fail = False
         spf_softfail = False
         for spf in spf_headers:
             spf_lower = spf.lower()
-            if 'fail' in spf_lower and 'softfail' not in spf_lower:
+            if "fail" in spf_lower and "softfail" not in spf_lower:
                 spf_fail = True
-            elif 'softfail' in spf_lower:
+            elif "softfail" in spf_lower:
                 spf_softfail = True
 
         if spf_fail:
@@ -300,7 +313,7 @@ class SpamAnalyzer:
             issues.append("SPF soft fail")
 
         # Check Authentication-Results (Modern SPF/DKIM validation)
-        auth_results = get_header_list('authentication-results')
+        auth_results = get_header_list("authentication-results")
         dkim_auth_fail = False
         spf_auth_fail = False
 
@@ -308,14 +321,14 @@ class SpamAnalyzer:
             result_lower = result.lower()
 
             # Check DKIM results
-            if 'dkim=fail' in result_lower or 'dkim=permerror' in result_lower:
+            if "dkim=fail" in result_lower or "dkim=permerror" in result_lower:
                 dkim_auth_fail = True
-            elif 'dkim=neutral' in result_lower:
+            elif "dkim=neutral" in result_lower:
                 # Neutral usually means signature failed to verify or public key issue
                 dkim_auth_fail = True
 
             # Check SPF results (secondary check if Received-SPF is missing/ambiguous)
-            if 'spf=fail' in result_lower or 'spf=permerror' in result_lower:
+            if "spf=fail" in result_lower or "spf=permerror" in result_lower:
                 spf_auth_fail = True
 
         if dkim_auth_fail:
@@ -328,30 +341,30 @@ class SpamAnalyzer:
             issues.append("SPF verification failed (Authentication-Results)")
 
         # Check DKIM presence
-        dkim = get_header_list('dkim-signature')
+        dkim = get_header_list("dkim-signature")
         if not dkim:
             score += 0.5
             issues.append("Missing DKIM signature")
 
         # Check for missing standard headers
         # We check for lowercased keys
-        required_headers = ['from', 'to', 'date', 'message-id']
+        required_headers = ["from", "to", "date", "message-id"]
         for header in required_headers:
             if header not in headers:
                 # Display original case for readability
-                display_header = header.title().replace('Id', 'ID')
+                display_header = header.title().replace("Id", "ID")
                 score += 0.5
                 issues.append(f"Missing {display_header} header")
 
         # Check for suspicious received headers
-        received_headers = get_header_list('received')
+        received_headers = get_header_list("received")
         if len(received_headers) > 10:
             score += 1.0
             issues.append("Excessive hops in delivery path")
 
         # Check for forged sender
-        from_headers = get_header_list('from')
-        return_path_headers = get_header_list('return-path')
+        from_headers = get_header_list("from")
+        return_path_headers = get_header_list("return-path")
 
         if len(from_headers) > 1:
             score += 2.0
@@ -372,7 +385,9 @@ class SpamAnalyzer:
 
         return score, issues
 
-    def _check_sender(self, sender: str, headers: Dict[str, Union[str, List[str]]]) -> Tuple[float, List[str]]:
+    def _check_sender(
+        self, sender: str, headers: Dict[str, Union[str, List[str]]]
+    ) -> Tuple[float, List[str]]:
         """Check sender reputation and authenticity"""
         score = 0.0
         indicators = []
@@ -381,8 +396,13 @@ class SpamAnalyzer:
 
         # Check for freemail providers (common in spam)
         freemail_providers = [
-            'gmail.com', 'yahoo.com', 'hotmail.com', 'outlook.com',
-            'aol.com', 'mail.com', 'protonmail.com'
+            "gmail.com",
+            "yahoo.com",
+            "hotmail.com",
+            "outlook.com",
+            "aol.com",
+            "mail.com",
+            "protonmail.com",
         ]
 
         # Extract domain from sender
@@ -391,7 +411,10 @@ class SpamAnalyzer:
             domain = email_match.group(1)
 
             # Check if corporate email is from freemail (red flag)
-            if any(corp in sender_lower for corp in ['ceo', 'president', 'director', 'manager']):
+            if any(
+                corp in sender_lower
+                for corp in ["ceo", "president", "director", "manager"]
+            ):
                 if any(provider in domain for provider in freemail_providers):
                     score += 1.5
                     indicators.append("Corporate title with freemail provider")
@@ -402,7 +425,7 @@ class SpamAnalyzer:
             display_name = display_name_match.group(1).strip().lower()
 
             # Check if display name contains different domain
-            if '@' in display_name or '.' in display_name:
+            if "@" in display_name or "." in display_name:
                 score += 1.0
                 indicators.append("Suspicious display name format")
 
