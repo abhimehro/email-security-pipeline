@@ -150,7 +150,13 @@ class AlertSystem:
         
         print(f"\n{Colors.BOLD}🛡️  RECOMMENDATIONS{Colors.RESET}")
         for rec in report.recommendations:
-            print(f"  {Colors.colorize('►', Colors.GREEN)} {rec}")
+            color = Colors.GREEN
+            rec_upper = rec.upper()
+            if any(key in rec_upper for key in ["HIGH RISK", "DANGEROUS", "PHISHING"]):
+                color = Colors.RED
+            elif any(key in rec_upper for key in ["SUSPICIOUS", "VERIFY", "URGENCY", "IMPERSONATION"]):
+                color = Colors.YELLOW
+            print(f"  {Colors.colorize('►', color)} {rec}")
         
         print(header_bar + "\n")
     
