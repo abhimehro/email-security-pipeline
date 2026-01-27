@@ -16,6 +16,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src.utils.config import Config
 from src.utils.colors import Colors
+from src.utils.ui import CountdownTimer
 from src.utils.logging_utils import ColoredFormatter
 from src.utils.sanitization import sanitize_for_logging
 from src.modules.email_ingestion import EmailIngestionManager
@@ -143,11 +144,14 @@ class EmailSecurityPipeline:
                         f"Waiting {self.config.system.check_interval} seconds "
                         f"until next check..."
                     )
-                    time.sleep(self.config.system.check_interval)
+                    CountdownTimer.wait(
+                        self.config.system.check_interval,
+                        f"{Colors.GREY}Waiting for next check{Colors.RESET}"
+                    )
 
             except Exception as e:
                 self.logger.error(f"Error in monitoring loop: {e}", exc_info=True)
-                time.sleep(30)  # Wait before retrying
+                CountdownTimer.wait(30, f"{Colors.RED}Retrying in{Colors.RESET}")
 
     def _analyze_email(self, email_data):
         """
