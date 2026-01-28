@@ -11,6 +11,11 @@ from dotenv import load_dotenv
 from urllib.parse import urlparse
 
 
+class ConfigurationError(Exception):
+    """Exception raised for configuration errors. Contains a list of errors."""
+    pass
+
+
 @dataclass
 class EmailAccountConfig:
     """Configuration for a single email account"""
@@ -240,43 +245,48 @@ class Config:
             True if configuration is valid
 
         Raises:
-            ValueError: If configuration is invalid
+            ConfigurationError: If configuration is invalid, contains list of errors
         """
+        errors = []
+
         if not self.email_accounts:
-            raise ValueError("No email accounts configured. Enable at least one account.")
+            errors.append("No email accounts configured. Enable at least one account.")
 
         for account in self.email_accounts:
             if not account.email or not account.app_password:
-                raise ValueError(f"Missing credentials for {account.provider} account")
+                errors.append(f"Missing credentials for {account.provider} account")
             if not account.folders:
-                raise ValueError(f"No folders configured for {account.provider} account")
+                errors.append(f"No folders configured for {account.provider} account")
             if account.imap_port <= 0:
-                raise ValueError(f"Invalid IMAP port for {account.provider} account")
+                errors.append(f"Invalid IMAP port for {account.provider} account")
 
         if self.alerts.webhook_enabled:
             if not self.alerts.webhook_url:
-                raise ValueError("Webhook enabled but no URL provided")
-            if not self._is_https_url(self.alerts.webhook_url):
-                raise ValueError("Webhook URL must use HTTPS")
+                errors.append("Webhook enabled but no URL provided")
+            elif not self._is_https_url(self.alerts.webhook_url):
+                errors.append("Webhook URL must use HTTPS")
 
         if self.alerts.slack_enabled:
             if not self.alerts.slack_webhook:
-                raise ValueError("Slack alerts enabled but no webhook URL provided")
-            if not self._is_https_url(self.alerts.slack_webhook):
-                raise ValueError("Slack webhook URL must use HTTPS")
-            if "hooks.slack.com" not in self.alerts.slack_webhook:
-                raise ValueError("Slack webhook URL must be a valid Slack hooks endpoint")
+                errors.append("Slack alerts enabled but no webhook URL provided")
+            elif not self._is_https_url(self.alerts.slack_webhook):
+                errors.append("Slack webhook URL must use HTTPS")
+            elif "hooks.slack.com" not in self.alerts.slack_webhook:
+                errors.append("Slack webhook URL must be a valid Slack hooks endpoint")
 
         if self.system.max_attachment_size_mb <= 0:
-            raise ValueError("MAX_ATTACHMENT_SIZE_MB must be greater than zero")
+            errors.append("MAX_ATTACHMENT_SIZE_MB must be greater than zero")
 
         if getattr(logging, self.system.log_level.upper(), None) is None:
-            raise ValueError(f"Invalid log level: {self.system.log_level}")
+            errors.append(f"Invalid log level: {self.system.log_level}")
 
         if not (self.alerts.threat_low < self.alerts.threat_medium < self.alerts.threat_high):
-            raise ValueError(
+            errors.append(
                 f"Threat thresholds must satisfy LOW < MEDIUM < HIGH. "
                 f"Got: LOW={self.alerts.threat_low}, MEDIUM={self.alerts.threat_medium}, HIGH={self.alerts.threat_high}"
             )
+
+        if errors:
+            raise ConfigurationError(errors)
 
         return True

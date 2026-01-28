@@ -27,3 +27,7 @@
 ## 2025-11-25 - Visual Hierarchy in Console Lists
 **Learning:** Color-coding list bullets in CLI output significantly improves scannability, allowing users to instantly identify high-severity items in a list of mixed recommendations.
 **Action:** Use semantic colors (Red/Yellow/Green) for list markers when displaying prioritized or categorized information in terminal interfaces.
+
+## 2025-11-26 - Aggregated Configuration Validation
+**Learning:** Failing fast on the *first* configuration error forces a frustrating "fix-run-fix-run" loop for users setting up a complex tool.
+**Action:** Accumulate all validation errors and present them in a single, formatted list so the user can fix everything at once.
