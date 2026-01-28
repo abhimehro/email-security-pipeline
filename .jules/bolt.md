@@ -19,3 +19,7 @@
 ## 2025-11-14 - LRU Cache on Large Inputs
 **Learning:** Applying `lru_cache` to functions taking potentially large unique strings (like email bodies) creates significant memory and CPU overhead (hashing). If the consumer (e.g., a Transformer model) only processes a prefix (e.g., 512 tokens), truncating the input *before* caching provides massive speedups (~300x in benchmarks) and effective cache utilization.
 **Action:** Truncate large input strings to the effective processing limit before passing them to cached functions.
+
+## 2025-11-15 - Early Truncation in Sanitization
+**Learning:** Sanitization functions often perform O(N) operations (normalization, regex). When the output is capped (e.g. logging), processing the entire input is wasteful. A safety buffer (e.g. 4x output size) allows early truncation, protecting against DoS and saving 99%+ CPU on large inputs.
+**Action:** Always check if an output length constraint can be enforced *before* expensive transformations.

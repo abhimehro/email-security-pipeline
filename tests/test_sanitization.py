@@ -48,5 +48,25 @@ class TestSanitization(unittest.TestCase):
         self.assertEqual(sanitized, "This is a ...")
         self.assertTrue(len(sanitized) <= 13) # 10 + 3 dots
 
+    def test_large_input_truncation(self):
+        """Test that large inputs are truncated correctly"""
+        # Create a large string that exceeds the early truncation threshold (4 * 255 = 1020)
+        large_text = "A" * 2000
+        sanitized = sanitize_for_logging(large_text, max_length=255)
+
+        # It should still respect the final max_length
+        self.assertEqual(len(sanitized), 255 + 3) # 255 + "..."
+        self.assertEqual(sanitized[:255], "A" * 255)
+        self.assertTrue(sanitized.endswith("..."))
+
+    def test_large_input_with_expansion(self):
+        """Test large input with expansion characters"""
+        # Input larger than threshold (10 * 4 = 40)
+        text = "\n" * 100
+        sanitized = sanitize_for_logging(text, max_length=10)
+        # Should be truncated to 10 + "..."
+        self.assertEqual(len(sanitized), 13)
+        self.assertEqual(sanitized, "\\n" * 5 + "...")
+
 if __name__ == '__main__':
     unittest.main()

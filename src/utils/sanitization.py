@@ -23,6 +23,12 @@ def sanitize_for_logging(text: str, max_length: int = 255) -> str:
     if not text:
         return ""
 
+    # Optimization: Truncate excessively long strings early to prevent DoS.
+    # We use a 4x multiplier to account for potential expansion during normalization/escaping
+    # (e.g., \n -> \\n) and to ensure we don't over-truncate before filtering.
+    if max_length and len(text) > max_length * 4:
+        text = text[:max_length * 4]
+
     # 1. Normalize unicode characters
     text = unicodedata.normalize('NFKC', text)
 
