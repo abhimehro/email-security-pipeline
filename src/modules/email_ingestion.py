@@ -133,12 +133,14 @@ class IMAPClient:
                 self.connection = imaplib.IMAP4_SSL(
                     self.config.imap_server,
                     self.config.imap_port,
-                    ssl_context=context
+                    ssl_context=context,
+                    timeout=30  # Security: Prevent indefinite hangs
                 )
             else:
                 self.connection = imaplib.IMAP4(
                     self.config.imap_server,
-                    self.config.imap_port
+                    self.config.imap_port,
+                    timeout=30  # Security: Prevent indefinite hangs
                 )
                 self.connection.starttls(ssl_context=context)
 
