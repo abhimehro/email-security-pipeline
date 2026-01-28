@@ -37,3 +37,8 @@
 **Vulnerability:** `MediaAuthenticityAnalyzer` created temporary files for OpenCV processing but failed to clean them up if an exception occurred during the `write` operation (e.g., disk full). This could lead to disk exhaustion (DoS).
 **Learning:** `tempfile.NamedTemporaryFile(delete=False)` requires manual cleanup in ALL exit paths. Standard `try...finally` blocks must encompass the file creation and writing steps to ensure `os.unlink` is always called.
 **Prevention:** Refactored `_check_deepfake_indicators` to wrap file creation, writing, and usage in a single `try...finally` block, ensuring deterministic cleanup.
+
+## 2026-06-25 - [DoS Prevention via Logging and Timeouts]
+**Vulnerability:** Default `logging.FileHandler` has no size limit, allowing logs to grow indefinitely and exhaust disk space. Additionally, `imaplib` connections lacked timeouts, making the system vulnerable to hangs if the server becomes unresponsive.
+**Learning:** Availability is a key pillar of security (CIA triad). Resource consumption (disk, sockets) must always be bounded. Logging configurations and network calls are common sources of unbounded resource usage.
+**Prevention:** Replaced `FileHandler` with `RotatingFileHandler` (10MB limit) and added explicit `timeout=30` to all IMAP connections.
