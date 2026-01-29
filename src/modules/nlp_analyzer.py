@@ -206,8 +206,10 @@ class NLPThreatAnalyzer:
         authority_impersonation = []
         psychological_triggers = []
 
-        # Combine text for analysis
-        text = f"{email_data.subject} {email_data.body_text}"
+        # Iterate over parts to avoid large string concatenation
+        parts = [email_data.subject, email_data.body_text]
+        exclamation_count = 0
+        caps_count = 0
 
         # Single pass scan
         matches_by_category = {
@@ -217,16 +219,25 @@ class NLPThreatAnalyzer:
             "PS": defaultdict(int)
         }
 
-        # Optimization: Fast check with simple pattern
-        if self.simple_master_pattern.search(text):
-            for match in self.master_pattern.finditer(text):
-                group_name = match.lastgroup
-                if group_name and group_name in self.master_map:
-                    prefix, description = self.master_map[group_name]
-                    if prefix == "AU":
-                        matches_by_category[prefix][description].append(match.group())
-                    else:
-                        matches_by_category[prefix][description] += 1
+        for part in parts:
+            if not part:
+                continue
+
+            # Accumulate simple counts for urgency detection
+            exclamation_count += part.count('!')
+            # Use finditer for memory efficiency instead of findall
+            caps_count += sum(1 for _ in self.CAPS_WORDS_PATTERN.finditer(part))
+
+            # Optimization: Fast check with simple pattern
+            if self.simple_master_pattern.search(part):
+                for match in self.master_pattern.finditer(part):
+                    group_name = match.lastgroup
+                    if group_name and group_name in self.master_map:
+                        prefix, description = self.master_map[group_name]
+                        if prefix == "AU":
+                            matches_by_category[prefix][description].append(match.group())
+                        else:
+                            matches_by_category[prefix][description] += 1
 
         # Check for social engineering
         if self.config.check_social_engineering:
@@ -236,7 +247,7 @@ class NLPThreatAnalyzer:
 
         # Check for urgency markers
         if self.config.check_urgency_markers:
-            score, indicators = self._detect_urgency(text, matches_by_category["UG"])
+            score, indicators = self._detect_urgency(exclamation_count, caps_count, matches_by_category["UG"])
             threat_score += score
             urgency_markers.extend(indicators)
 
@@ -256,9 +267,20 @@ class NLPThreatAnalyzer:
 
         # Integration of Transformer Model Predictions into Threat Scoring
         if self.model and self.tokenizer:
-            # We pass the original text to the transformer, not lowercased
+            # Prepare text for transformer efficiently, avoiding huge concatenation
+            # Truncate text before processing/caching
+            # 4096 chars is ~1000 tokens, well above the 512 token limit of most models
+            max_len = 4096
+            subject_len = len(email_data.subject)
+            # +1 for space between subject and body
+            if subject_len + 1 >= max_len:
+                ml_text = email_data.subject[:max_len]
+            else:
+                ml_text = f"{email_data.subject} {email_data.body_text[:max_len - subject_len - 1]}"
+
+            # We pass the text to the transformer
             # as some models are case-sensitive (though distilbert-base-uncased isn't)
-            transformer_results = self.analyze_with_transformer(text)
+            transformer_results = self.analyze_with_transformer(ml_text)
             if "error" not in transformer_results:
                 ml_threat_prob = transformer_results.get("threat_probability", 0.0)
 
@@ -299,7 +321,7 @@ class NLPThreatAnalyzer:
 
         return score, indicators
 
-    def _detect_urgency(self, text: str, counts: Dict[str, int]) -> Tuple[float, List[str]]:
+    def _detect_urgency(self, exclamation_count: int, caps_count: int, counts: Dict[str, int]) -> Tuple[float, List[str]]:
         """Detect urgency and time pressure tactics"""
         score = 0.0
         indicators = []
@@ -309,17 +331,14 @@ class NLPThreatAnalyzer:
             indicators.append(f"{description} ({count} occurrences)")
 
         # Check for multiple exclamation marks (urgency indicator)
-        exclamation_count = text.count('!')
         if exclamation_count > 2:
             score += exclamation_count * 0.5
             indicators.append(f"Excessive exclamation marks ({exclamation_count})")
 
         # Check for all caps words (shouting)
-        # Using pre-compiled regex for performance
-        caps_words = self.CAPS_WORDS_PATTERN.findall(text)
-        if len(caps_words) > 3:
-            score += len(caps_words) * 0.3
-            indicators.append(f"Excessive caps words ({len(caps_words)})")
+        if caps_count > 3:
+            score += caps_count * 0.3
+            indicators.append(f"Excessive caps words ({caps_count})")
 
         return score, indicators
 
