@@ -37,3 +37,8 @@
 **Vulnerability:** `MediaAuthenticityAnalyzer` created temporary files for OpenCV processing but failed to clean them up if an exception occurred during the `write` operation (e.g., disk full). This could lead to disk exhaustion (DoS).
 **Learning:** `tempfile.NamedTemporaryFile(delete=False)` requires manual cleanup in ALL exit paths. Standard `try...finally` blocks must encompass the file creation and writing steps to ensure `os.unlink` is always called.
 **Prevention:** Refactored `_check_deepfake_indicators` to wrap file creation, writing, and usage in a single `try...finally` block, ensuring deterministic cleanup.
+
+## 2026-06-17 - [Data Leak via Alert Webhooks]
+**Vulnerability:** The `AlertSystem` transmitted `ThreatReport` objects as-is to external webhooks. When suspicious URLs contained sensitive query parameters (e.g., password reset tokens), these secrets were leaked to the webhook receiver (and potentially its logs), violating the principle of least privilege.
+**Learning:** Security alerts often contain the sensitive data they are reporting on. Alerting pipelines must include a "sanitization layer" to redact credentials/secrets from the payload before it leaves the trust boundary.
+**Prevention:** Implemented `_redact_sensitive_url_params` in `AlertSystem`. Sensitive query parameters (password, token, etc.) are now replaced with `[REDACTED]` in webhook payloads.
