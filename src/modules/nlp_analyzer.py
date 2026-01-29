@@ -208,36 +208,9 @@ class NLPThreatAnalyzer:
 
         # Iterate over parts to avoid large string concatenation
         parts = [email_data.subject, email_data.body_text]
-        exclamation_count = 0
-        caps_count = 0
 
-        # Single pass scan
-        matches_by_category = {
-            "SE": defaultdict(int),
-            "UG": defaultdict(int),
-            "AU": defaultdict(list), # Authority needs the actual match strings
-            "PS": defaultdict(int)
-        }
-
-        for part in parts:
-            if not part:
-                continue
-
-            # Accumulate simple counts for urgency detection
-            exclamation_count += part.count('!')
-            # Use finditer for memory efficiency instead of findall
-            caps_count += sum(1 for _ in self.CAPS_WORDS_PATTERN.finditer(part))
-
-            # Optimization: Fast check with simple pattern
-            if self.simple_master_pattern.search(part):
-                for match in self.master_pattern.finditer(part):
-                    group_name = match.lastgroup
-                    if group_name and group_name in self.master_map:
-                        prefix, description = self.master_map[group_name]
-                        if prefix == "AU":
-                            matches_by_category[prefix][description].append(match.group())
-                        else:
-                            matches_by_category[prefix][description] += 1
+        # Scan text for patterns and stats
+        matches_by_category, exclamation_count, caps_count = self._scan_text_patterns(parts)
 
         # Check for social engineering
         if self.config.check_social_engineering:
@@ -267,32 +240,9 @@ class NLPThreatAnalyzer:
 
         # Integration of Transformer Model Predictions into Threat Scoring
         if self.model and self.tokenizer:
-            # Prepare text for transformer efficiently, avoiding huge concatenation
-            # Truncate text before processing/caching
-            # 4096 chars is ~1000 tokens, well above the 512 token limit of most models
-            max_len = 4096
-            subject_len = len(email_data.subject)
-            # +1 for space between subject and body
-            if subject_len + 1 >= max_len:
-                ml_text = email_data.subject[:max_len]
-            else:
-                ml_text = f"{email_data.subject} {email_data.body_text[:max_len - subject_len - 1]}"
-
-            # We pass the text to the transformer
-            # as some models are case-sensitive (though distilbert-base-uncased isn't)
-            transformer_results = self.analyze_with_transformer(ml_text)
-            if "error" not in transformer_results:
-                ml_threat_prob = transformer_results.get("threat_probability", 0.0)
-
-                # If the probability suggests a threat (>0.5), we increase the score.
-                if ml_threat_prob > 0.5:
-                    # Map 0.5-1.0 to 0-10 points
-                    ml_score = (ml_threat_prob - 0.5) * 20
-                    threat_score += ml_score
-                    social_engineering.append(
-                        f"ML Model detected high threat probability: "
-                        f"{ml_threat_prob:.2f}"
-                    )
+            ml_score, ml_indicators = self._run_transformer_analysis(email_data)
+            threat_score += ml_score
+            social_engineering.extend(ml_indicators)
 
         # Calculate risk level
         risk_level = self._calculate_risk_level(threat_score)
@@ -309,6 +259,74 @@ class NLPThreatAnalyzer:
             psychological_triggers=psychological_triggers,
             risk_level=risk_level
         )
+
+    def _scan_text_patterns(self, parts: List[Optional[str]]) -> Tuple[Dict, int, int]:
+        """Scan text parts for patterns and statistics"""
+        exclamation_count = 0
+        caps_count = 0
+        matches_by_category = {
+            "SE": defaultdict(int),
+            "UG": defaultdict(int),
+            "AU": defaultdict(list), # Authority needs the actual match strings
+            "PS": defaultdict(int)
+        }
+
+        for part in parts:
+            if not part:
+                continue
+
+            # Accumulate simple counts for urgency detection
+            exclamation_count += part.count('!')
+            # Use finditer for memory efficiency instead of findall
+            caps_count += sum(1 for _ in self.CAPS_WORDS_PATTERN.finditer(part))
+
+            # Optimization: Fast check with simple pattern
+            if self.simple_master_pattern.search(part):
+                for match in self.master_pattern.finditer(part):
+                    group_name = match.lastgroup
+                    if group_name and group_name in self.master_map:
+                        prefix, description = self.master_map[group_name]
+                        if prefix == "AU":
+                            matches_by_category[prefix][description].append(match.group())
+                        else:
+                            matches_by_category[prefix][description] += 1
+
+        return matches_by_category, exclamation_count, caps_count
+
+    def _run_transformer_analysis(self, email_data: EmailData) -> Tuple[float, List[str]]:
+        """Run transformer model analysis on email content"""
+        # Prepare text for transformer efficiently, avoiding huge concatenation
+        # Truncate text before processing/caching
+        # 4096 chars is ~1000 tokens, well above the 512 token limit of most models
+        max_len = 4096
+        subject_len = len(email_data.subject)
+        # +1 for space between subject and body
+        if subject_len + 1 >= max_len:
+            ml_text = email_data.subject[:max_len]
+        else:
+            ml_text = f"{email_data.subject} {email_data.body_text[:max_len - subject_len - 1]}"
+
+        # We pass the text to the transformer
+        # as some models are case-sensitive (though distilbert-base-uncased isn't)
+        transformer_results = self.analyze_with_transformer(ml_text)
+
+        score = 0.0
+        indicators = []
+
+        if "error" not in transformer_results:
+            ml_threat_prob = transformer_results.get("threat_probability", 0.0)
+
+            # If the probability suggests a threat (>0.5), we increase the score.
+            if ml_threat_prob > 0.5:
+                # Map 0.5-1.0 to 0-10 points
+                ml_score = (ml_threat_prob - 0.5) * 20
+                score += ml_score
+                indicators.append(
+                    f"ML Model detected high threat probability: "
+                    f"{ml_threat_prob:.2f}"
+                )
+
+        return score, indicators
 
     def _detect_social_engineering(self, counts: Dict[str, int]) -> Tuple[float, List[str]]:
         """Detect social engineering patterns"""
