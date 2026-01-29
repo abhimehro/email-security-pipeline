@@ -7,6 +7,8 @@ import sys
 import time
 import threading
 
+from .colors import Colors
+
 
 class CountdownTimer:
     """
@@ -36,8 +38,18 @@ class CountdownTimer:
                 else:
                     time_str = f"{remaining}s"
 
+                # Calculate progress bar
+                total_width = 20
+                if self.duration > 0:
+                    filled = int((remaining / self.duration) * total_width)
+                else:
+                    filled = 0
+
+                bar = "█" * filled + "░" * (total_width - filled)
+                bar_colored = f"{Colors.CYAN}{bar}{Colors.RESET}"
+
                 # \r moves cursor to start of line, \033[K clears the line
-                sys.stdout.write(f"\r{self.message}: {time_str} ... \033[K")
+                sys.stdout.write(f"\r{self.message}: [{bar_colored}] {time_str} ... \033[K")
                 sys.stdout.flush()
 
                 time.sleep(self.interval)
