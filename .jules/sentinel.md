@@ -37,3 +37,8 @@
 **Vulnerability:** `MediaAuthenticityAnalyzer` created temporary files for OpenCV processing but failed to clean them up if an exception occurred during the `write` operation (e.g., disk full). This could lead to disk exhaustion (DoS).
 **Learning:** `tempfile.NamedTemporaryFile(delete=False)` requires manual cleanup in ALL exit paths. Standard `try...finally` blocks must encompass the file creation and writing steps to ensure `os.unlink` is always called.
 **Prevention:** Refactored `_check_deepfake_indicators` to wrap file creation, writing, and usage in a single `try...finally` block, ensuring deterministic cleanup.
+
+## 2026-06-20 - [Bypass via Missing Server-Side Extensions]
+**Vulnerability:** `MediaAuthenticityAnalyzer` failed to identify common server-side script files (e.g., `.php`, `.py`, `.rb`, `.jsp`) as dangerous because they were missing from the `DANGEROUS_EXTENSIONS` list. These files, being text-based and lacking magic bytes, bypassed content-type mismatch checks, resulting in a low threat score.
+**Learning:** Security blocklists are often incomplete. When defining dangerous file types, one must consider not just client-side executables but also server-side scripts that could be dangerous if the file storage is misconfigured or executed in a different context.
+**Prevention:** Updated `MediaAuthenticityAnalyzer` to include a comprehensive list of server-side script extensions in the `DANGEROUS_EXTENSIONS` blocklist.
