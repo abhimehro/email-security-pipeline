@@ -63,3 +63,42 @@ class CountdownTimer:
         """Static convenience method to block with a countdown"""
         timer = CountdownTimer(seconds, message)
         timer.start()
+
+
+class ProgressBar:
+    """
+    Simple text-based progress bar for CLI.
+    """
+    def __init__(self, total: int, prefix: str = '', length: int = 30, fill: str = '█'):
+        self.total = max(1, total)
+        self.prefix = prefix
+        self.length = length
+        self.fill = fill
+        self.current = 0
+
+    def update(self, iteration: int, suffix: str = ''):
+        """Update progress bar"""
+        if not sys.stdout.isatty():
+            return
+
+        self.current = iteration
+        percent = "{0:.1f}".format(100 * (iteration / float(self.total)))
+        filled_length = int(self.length * iteration // self.total)
+        bar = self.fill * filled_length + '-' * (self.length - filled_length)
+
+        sys.stdout.write(f'\r{self.prefix} |{bar}| {percent}% {suffix} \033[K')
+        sys.stdout.flush()
+
+    def finish(self):
+        """Complete the progress bar"""
+        if sys.stdout.isatty():
+            sys.stdout.write('\n')
+            sys.stdout.flush()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        if sys.stdout.isatty():
+            sys.stdout.write('\n')
+            sys.stdout.flush()
