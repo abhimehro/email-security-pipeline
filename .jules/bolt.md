@@ -19,3 +19,7 @@
 ## 2025-11-14 - LRU Cache on Large Inputs
 **Learning:** Applying `lru_cache` to functions taking potentially large unique strings (like email bodies) creates significant memory and CPU overhead (hashing). If the consumer (e.g., a Transformer model) only processes a prefix (e.g., 512 tokens), truncating the input *before* caching provides massive speedups (~300x in benchmarks) and effective cache utilization.
 **Action:** Truncate large input strings to the effective processing limit before passing them to cached functions.
+
+## 2025-11-15 - Memoization of Repeated Regex Checks in Batches
+**Learning:** In contexts like email analysis, inputs often contain highly repetitive elements (e.g., multiple links to the same domain). Running identical regex checks on these duplicates is redundant. A local, short-lived cache (memoization) within the batch processing loop can provide significant speedups (e.g., ~55% for URL checking) with minimal memory overhead.
+**Action:** Implement local memoization for expensive checks (like regex or parsing) when processing batches of items that are likely to contain duplicates.

@@ -256,22 +256,33 @@ class SpamAnalyzer:
         """Check for suspicious URLs"""
         score = 0.0
         suspicious = []
+        # Cache for domain checks to avoid redundant regex operations
+        # Optimization: Emails often contain repeated domains (links, images).
+        # We memoize the regex check results for each domain in this batch.
+        domain_cache = {}
 
         for url in urls:
             try:
                 parsed = urlparse(url)
                 domain = parsed.netloc
 
+                if domain in domain_cache:
+                    is_suspicious, is_shortener = domain_cache[domain]
+                else:
+                    is_suspicious = bool(self.COMBINED_URL_PATTERN.search(domain))
+                    # Check for URL shorteners
+                    is_shortener = bool(self.SHORTENER_PATTERN.search(domain))
+                    domain_cache[domain] = (is_suspicious, is_shortener)
+
                 # Check against combined suspicious patterns first
-                if self.COMBINED_URL_PATTERN.search(domain):
+                if is_suspicious:
                     # If matched, we just mark it. The original code broke after first match
                     # in the loop, effectively counting only one match per URL from this list.
                     score += 0.5
                     suspicious.append(url)
 
-                # Check for URL shorteners
                 # Original code logic was separate and could add another 0.5 score
-                if self.SHORTENER_PATTERN.search(domain):
+                if is_shortener:
                     score += 0.5
                     suspicious.append(url)
 
