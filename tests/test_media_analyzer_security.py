@@ -133,5 +133,47 @@ class TestMediaAnalyzerSecurity(unittest.TestCase):
 
         self.assertTrue(found_suspicious, "Failed to detect double extension")
 
+    def test_dangerous_server_extensions(self):
+        """Test that server-side script extensions are blocked"""
+        dangerous_extensions = [
+            '.php', '.php3', '.php4', '.php5', '.phtml',
+            '.pl', '.py', '.rb', '.asp', '.aspx', '.jsp', '.jspx', '.cgi',
+            '.bash'
+        ]
+
+        for ext in dangerous_extensions:
+            filename = f"script{ext}"
+            email_data = EmailData(
+                message_id=f"test-{ext}",
+                subject=f"Test {ext}",
+                sender="sender@example.com",
+                recipient="recipient@example.com",
+                date=datetime.now(),
+                body_text="",
+                body_html="",
+                headers={},
+                attachments=[{
+                    "filename": filename,
+                    "content_type": "text/plain",
+                    "size": 100,
+                    "data": b"script content",
+                    "truncated": False
+                }],
+                raw_email=None,
+                account_email="me@example.com",
+                folder="INBOX"
+            )
+
+            result = self.analyzer.analyze(email_data)
+
+            found_dangerous = False
+            for warning in result.file_type_warnings:
+                if "Dangerous file type" in warning:
+                    found_dangerous = True
+                    break
+
+            self.assertTrue(found_dangerous, f"Failed to detect dangerous extension: {ext}")
+            self.assertEqual(result.risk_level, "high", f"Risk level should be high for {ext}")
+
 if __name__ == '__main__':
     unittest.main()
