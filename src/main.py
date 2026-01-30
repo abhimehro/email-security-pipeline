@@ -16,7 +16,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src.utils.config import Config
 from src.utils.colors import Colors
-from src.utils.ui import CountdownTimer
+from src.utils.ui import CountdownTimer, ProgressBar
 from src.utils.logging_utils import ColoredFormatter
 from src.utils.sanitization import sanitize_for_logging
 from src.modules.email_ingestion import EmailIngestionManager
@@ -135,8 +135,14 @@ class EmailSecurityPipeline:
                     self.logger.info(f"Analyzing {len(emails)} emails")
 
                     # Analyze each email
-                    for email_data in emails:
-                        self._analyze_email(email_data)
+                    with ProgressBar(len(emails), prefix="Progress", length=40) as pb:
+                        for i, email_data in enumerate(emails):
+                            safe_subject = sanitize_for_logging(email_data.subject, max_length=30)
+                            pb.update(i, suffix=f"Analyzing: {safe_subject}")
+
+                            self._analyze_email(email_data)
+
+                            pb.update(i + 1, suffix=f"Completed: {safe_subject}")
 
                 # Wait before next check
                 if self.running:
