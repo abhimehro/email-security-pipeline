@@ -20,6 +20,7 @@ from email.utils import getaddresses
 
 from ..utils.config import EmailAccountConfig
 from ..utils.sanitization import sanitize_for_logging
+from ..utils.colors import Colors
 
 
 # Security limits
@@ -82,6 +83,28 @@ class IMAPClient:
         self.max_body_size = 1024 * 1024  # Default 1MB, overridden by manager
         self.connection: Optional[imaplib.IMAP4_SSL] = None
         self.logger = logging.getLogger(f"IMAPClient.{config.provider}")
+
+    def _get_auth_tip(self, error_msg: str) -> Optional[str]:
+        """Get actionable tip based on error and provider"""
+        msg_lower = error_msg.lower()
+        server_lower = self.config.imap_server.lower()
+
+        # Check for authentication failures
+        auth_keywords = ["authentication", "login", "credential", "logon"]
+
+        if not any(k in msg_lower for k in auth_keywords):
+            return None
+
+        if "outlook" in server_lower or "office365" in server_lower:
+            return "Personal Outlook/Hotmail accounts NO LONGER support passwords. You must use an App Password (if Business) or OAuth (not supported)."
+
+        if "gmail" in server_lower:
+            return "Gmail requires 2-Step Verification enabled and an App Password to use IMAP."
+
+        if "yahoo" in server_lower:
+             return "Yahoo Mail requires an App Password generated from account security settings."
+
+        return "Check your email and password. If using 2FA, you likely need an App Password."
 
     @staticmethod
     def _create_secure_ssl_context(verify_ssl: bool = True) -> ssl.SSLContext:
@@ -148,6 +171,9 @@ class IMAPClient:
 
         except imaplib.IMAP4.error as e:
             self.logger.error(f"IMAP connection error: {e}")
+            tip = self._get_auth_tip(str(e))
+            if tip:
+                self.logger.warning(f"{Colors.YELLOW}💡 {tip}{Colors.RESET}")
             return False
         except Exception as e:
             self.logger.error(f"Unexpected connection error: {e}")
@@ -589,7 +615,11 @@ class IMAPClient:
             result["valid"] = True
             conn.logout()
         except imaplib.IMAP4.error as e:
-            result["error"] = f"IMAP login failed: {e}"
+            error_msg = f"IMAP login failed: {e}"
+            tip = self._get_auth_tip(str(e))
+            if tip:
+                error_msg += f" (Tip: {tip})"
+            result["error"] = error_msg
         except Exception as e:
             result["error"] = f"Credential check failed with unexpected error: {e}"
         return result

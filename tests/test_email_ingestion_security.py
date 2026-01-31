@@ -182,5 +182,31 @@ class TestEmailIngestionSecurity(unittest.TestCase):
         emails = self.client.fetch_unseen_emails("INBOX")
         self.assertEqual(len(emails), 0)
 
+    def test_auth_tips(self):
+        """Test that _get_auth_tip returns correct advice"""
+        # 1. Outlook
+        self.client.config.imap_server = "imap.outlook.com"
+        tip = self.client._get_auth_tip("NO [AUTHENTICATIONFAILED] Login failed.")
+        self.assertIn("Personal Outlook/Hotmail accounts NO LONGER support passwords", tip)
+
+        # 2. Gmail
+        self.client.config.imap_server = "imap.gmail.com"
+        tip = self.client._get_auth_tip("Invalid credentials (Failure)")
+        self.assertIn("Gmail requires 2-Step Verification", tip)
+
+        # 3. Yahoo
+        self.client.config.imap_server = "imap.mail.yahoo.com"
+        tip = self.client._get_auth_tip("AUTHENTICATIONFAILED")
+        self.assertIn("Yahoo Mail requires an App Password", tip)
+
+        # 4. Generic
+        self.client.config.imap_server = "imap.other.com"
+        tip = self.client._get_auth_tip("Login failed")
+        self.assertIn("Check your email and password", tip)
+
+        # 5. Non-auth error
+        tip = self.client._get_auth_tip("Connection timed out")
+        self.assertIsNone(tip)
+
 if __name__ == '__main__':
     unittest.main()

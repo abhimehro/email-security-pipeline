@@ -27,3 +27,7 @@
 ## 2025-11-25 - Visual Hierarchy in Console Lists
 **Learning:** Color-coding list bullets in CLI output significantly improves scannability, allowing users to instantly identify high-severity items in a list of mixed recommendations.
 **Action:** Use semantic colors (Red/Yellow/Green) for list markers when displaying prioritized or categorized information in terminal interfaces.
+
+## 2025-11-28 - Troubleshooting via Logging
+**Learning:** When adding user-facing tips to backend modules, avoiding direct `print` statements preserves architectural cleanliness while still reaching the user if the logger is configured for stdout.
+**Action:** Use `self.logger.warning` with semantic coloring to inject high-visibility tips into the standard application logs, ensuring they are captured by both the user's console and persistent log files.
