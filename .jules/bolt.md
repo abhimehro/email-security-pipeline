@@ -19,3 +19,7 @@
 ## 2025-11-14 - LRU Cache on Large Inputs
 **Learning:** Applying `lru_cache` to functions taking potentially large unique strings (like email bodies) creates significant memory and CPU overhead (hashing). If the consumer (e.g., a Transformer model) only processes a prefix (e.g., 512 tokens), truncating the input *before* caching provides massive speedups (~300x in benchmarks) and effective cache utilization.
 **Action:** Truncate large input strings to the effective processing limit before passing them to cached functions.
+
+## 2025-11-18 - Regex vs Loop for Sanitization
+**Learning:** Python loops with conditional logic for character filtering are significantly slower than `re.sub` with a compiled regex (observed ~3.7x speedup).
+**Action:** Replace character-level filtering loops with compiled regex substitutions where possible.

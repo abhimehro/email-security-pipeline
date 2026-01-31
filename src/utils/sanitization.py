@@ -8,6 +8,7 @@ import unicodedata
 
 # Pre-compile regex for performance
 ANSI_ESCAPE_PATTERN = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
+CONTROL_CHARS_PATTERN = re.compile(r'[\x00-\x08\x0a-\x1f]')
 
 def sanitize_for_logging(text: str, max_length: int = 255) -> str:
     """
@@ -40,7 +41,7 @@ def sanitize_for_logging(text: str, max_length: int = 255) -> str:
 
     # Remove other non-printable control characters (ASCII 0-31 except tab)
     # We already handled \n and \r above.
-    text = "".join(ch for ch in text if ch == '\t' or ord(ch) >= 32)
+    text = CONTROL_CHARS_PATTERN.sub('', text)
 
     # 4. Truncate if necessary to prevent log flooding
     if len(text) > max_length:
