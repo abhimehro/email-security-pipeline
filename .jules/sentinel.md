@@ -37,3 +37,8 @@
 **Vulnerability:** `MediaAuthenticityAnalyzer` created temporary files for OpenCV processing but failed to clean them up if an exception occurred during the `write` operation (e.g., disk full). This could lead to disk exhaustion (DoS).
 **Learning:** `tempfile.NamedTemporaryFile(delete=False)` requires manual cleanup in ALL exit paths. Standard `try...finally` blocks must encompass the file creation and writing steps to ensure `os.unlink` is always called.
 **Prevention:** Refactored `_check_deepfake_indicators` to wrap file creation, writing, and usage in a single `try...finally` block, ensuring deterministic cleanup.
+
+## 2026-06-21 - [DoS Prevention in Media Analysis]
+**Vulnerability:** `MediaAuthenticityAnalyzer` processed video frames for deepfake detection without validating their dimensions. An attacker could supply a video with extremely high resolution (e.g. 8K+) but small file size (highly compressed), causing memory exhaustion (OOM) when frames were decoded into numpy arrays.
+**Learning:** File size limits are insufficient for compressed media. The expanded memory footprint of uncompressed frames (Height * Width * Channels) must be validated against resource limits.
+**Prevention:** Implemented `MAX_FRAME_DIMENSION` (1920px) limit. Frames exceeding this size are resized before being stored in memory or processed, preventing OOM crashes.

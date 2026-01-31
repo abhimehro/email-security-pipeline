@@ -6,10 +6,19 @@ Analyzes attachments for synthetic content and deepfakes
 import logging
 import tempfile
 import os
-import numpy as np
-import cv2
-from typing import List, Tuple
+from typing import List, Tuple, Any
 from dataclasses import dataclass
+
+try:
+    import numpy as np
+    import cv2
+    CV2_AVAILABLE = True
+    NDArray = np.ndarray
+except ImportError:
+    np = None
+    cv2 = None
+    CV2_AVAILABLE = False
+    NDArray = Any
 
 from .email_ingestion import EmailData
 
@@ -45,6 +54,9 @@ class MediaAuthenticityAnalyzer:
         '.mp4', '.avi', '.mov', '.wmv', '.flv', '.mkv',
         '.mp3', '.wav', '.aac', '.flac', '.ogg', '.m4a'
     ]
+
+    # Security: Limit frame dimensions to prevent DoS (memory exhaustion)
+    MAX_FRAME_DIMENSION = 1920
 
     def __init__(self, config):
         """
@@ -335,6 +347,9 @@ class MediaAuthenticityAnalyzer:
             return score, indicators
 
         # Advanced ML-based detection
+        if not CV2_AVAILABLE:
+            return score, indicators
+
         temp_file_path = None
         try:
             # Create a temporary file to work with OpenCV
@@ -385,9 +400,13 @@ class MediaAuthenticityAnalyzer:
 
         return score, indicators
 
-    def _extract_frames_from_video(self, video_path: str, max_frames: int = 10) -> List[np.ndarray]:
+    def _extract_frames_from_video(self, video_path: str, max_frames: int = 10) -> List[NDArray]:
         """Extract a sample of frames from the video."""
         frames = []
+        if not CV2_AVAILABLE:
+            self.logger.warning("OpenCV not available, skipping frame extraction")
+            return frames
+
         try:
             cap = cv2.VideoCapture(video_path)
             if not cap.isOpened():
@@ -399,7 +418,9 @@ class MediaAuthenticityAnalyzer:
                 success, frame = cap.read()
                 count = 0
                 while success and count < max_frames:
-                    frames.append(frame)
+                    if frame is not None:
+                        frame = self._resize_frame_if_needed(frame)
+                        frames.append(frame)
                     success, frame = cap.read()
                     count += 1
             else:
@@ -408,7 +429,8 @@ class MediaAuthenticityAnalyzer:
                 for i in range(0, total_frames, step):
                     cap.set(cv2.CAP_PROP_POS_FRAMES, i)
                     success, frame = cap.read()
-                    if success:
+                    if success and frame is not None:
+                        frame = self._resize_frame_if_needed(frame)
                         frames.append(frame)
                     if len(frames) >= max_frames:
                         break
@@ -419,7 +441,18 @@ class MediaAuthenticityAnalyzer:
 
         return frames
 
-    def _analyze_facial_inconsistencies(self, frames: List[np.ndarray]) -> Tuple[float, List[str]]:
+    def _resize_frame_if_needed(self, frame: NDArray) -> NDArray:
+        """Resize frame if it exceeds maximum dimensions to prevent memory exhaustion"""
+        h, w = frame.shape[:2]
+        if h > self.MAX_FRAME_DIMENSION or w > self.MAX_FRAME_DIMENSION:
+            # Calculate new dimensions preserving aspect ratio
+            scale = self.MAX_FRAME_DIMENSION / max(h, w)
+            new_w = int(w * scale)
+            new_h = int(h * scale)
+            return cv2.resize(frame, (new_w, new_h), interpolation=cv2.INTER_AREA)
+        return frame
+
+    def _analyze_facial_inconsistencies(self, frames: List[NDArray]) -> Tuple[float, List[str]]:
         """
         Analyze frames for facial inconsistencies.
         Uses OpenCV's Haar cascades for face detection and analyzes face regions.
@@ -462,7 +495,7 @@ class MediaAuthenticityAnalyzer:
 
         return score, issues
 
-    def _check_audio_visual_sync(self, video_path: str, frames: List[np.ndarray]) -> Tuple[float, List[str]]:
+    def _check_audio_visual_sync(self, video_path: str, frames: List[NDArray]) -> Tuple[float, List[str]]:
         """
         Check for audio-visual synchronization issues.
         Note: Full A/V sync requires complex analysis (e.g. lip reading vs audio phonemes).
@@ -497,7 +530,7 @@ class MediaAuthenticityAnalyzer:
 
         return score, issues
 
-    def _check_compression_artifacts(self, frames: List[np.ndarray]) -> Tuple[float, List[str]]:
+    def _check_compression_artifacts(self, frames: List[NDArray]) -> Tuple[float, List[str]]:
         """
         Check for double compression artifacts or unusual frequency patterns.
         """
@@ -531,7 +564,7 @@ class MediaAuthenticityAnalyzer:
 
         return score, issues
 
-    def _run_deepfake_model(self, frames: List[np.ndarray], content_type: str) -> float:
+    def _run_deepfake_model(self, frames: List[NDArray], content_type: str) -> float:
         """
         Run deepfake detection model (Simulated).
 
