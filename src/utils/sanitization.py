@@ -8,6 +8,10 @@ import unicodedata
 
 # Pre-compile regex for performance
 ANSI_ESCAPE_PATTERN = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
+# Control characters to remove: 0-8, 11-12, 14-31, 127
+# We keep \t (9), and \n (10) / \r (13) are handled by replacement
+CONTROL_CHARS_PATTERN = re.compile(r'[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]')
+
 
 def sanitize_for_logging(text: str, max_length: int = 255) -> str:
     """
@@ -22,6 +26,12 @@ def sanitize_for_logging(text: str, max_length: int = 255) -> str:
     """
     if not text:
         return ""
+
+    # Optimization: Early truncation to avoid processing huge strings
+    # We allow some buffer (4x) for expansion (e.g. unicode normalization or escaping)
+    limit = max_length * 4
+    if len(text) > limit:
+        text = text[:limit]
 
     # 1. Normalize unicode characters
     text = unicodedata.normalize('NFKC', text)
@@ -40,7 +50,8 @@ def sanitize_for_logging(text: str, max_length: int = 255) -> str:
 
     # Remove other non-printable control characters (ASCII 0-31 except tab)
     # We already handled \n and \r above.
-    text = "".join(ch for ch in text if ch == '\t' or ord(ch) >= 32)
+    # Optimization: Use regex instead of list comprehension for performance
+    text = CONTROL_CHARS_PATTERN.sub('', text)
 
     # 4. Truncate if necessary to prevent log flooding
     if len(text) > max_length:
