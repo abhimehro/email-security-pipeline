@@ -1,8 +1,29 @@
 
 import unittest
-from src.utils.config import EmailAccountConfig, AnalysisConfig
+from src.utils.config import EmailAccountConfig, AnalysisConfig, AlertConfig
 
 class TestConfigSecurity(unittest.TestCase):
+    def test_alert_config_repr_security(self):
+        """Test that AlertConfig __repr__ does not leak webhooks"""
+        secret_webhook = "https://hooks.slack.com/services/T000/B000/SECRET"
+        secret_url = "https://example.com?token=SECRET"
+
+        config = AlertConfig(
+            console=True,
+            webhook_enabled=True,
+            webhook_url=secret_url,
+            slack_enabled=True,
+            slack_webhook=secret_webhook,
+            threat_low=30.0,
+            threat_medium=60.0,
+            threat_high=80.0
+        )
+
+        repr_str = str(config)
+        self.assertNotIn(secret_webhook, repr_str, "Slack webhook leaked in __repr__")
+        self.assertNotIn(secret_url, repr_str, "Webhook URL leaked in __repr__")
+        self.assertNotIn("slack_webhook", repr_str, "Field name should be hidden")
+
     def test_email_account_config_repr_security(self):
         """Test that EmailAccountConfig __repr__ does not leak app_password"""
         secret_password = "SUPER_SECRET_PASSWORD_123"
