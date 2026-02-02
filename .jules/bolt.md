@@ -19,3 +19,7 @@
 ## 2025-11-14 - LRU Cache on Large Inputs
 **Learning:** Applying `lru_cache` to functions taking potentially large unique strings (like email bodies) creates significant memory and CPU overhead (hashing). If the consumer (e.g., a Transformer model) only processes a prefix (e.g., 512 tokens), truncating the input *before* caching provides massive speedups (~300x in benchmarks) and effective cache utilization.
 **Action:** Truncate large input strings to the effective processing limit before passing them to cached functions.
+
+## 2025-11-15 - String Stripping and No-Op Regex Replacements
+**Learning:** Python's built-in `lstrip()` is significantly faster (up to 27x) than a manual `while startswith` loop for removing leading characters. Additionally, `re.sub` creates new string objects even for trivial replacements (e.g., `.` -> `.`). Modifying patterns to avoid matching "safe" cases (e.g., `\.+` -> `\.{2,}`) prevents unnecessary allocations.
+**Action:** Replace manual character stripping loops with `lstrip/rstrip`. Refine regex patterns to only match what strictly needs replacement.

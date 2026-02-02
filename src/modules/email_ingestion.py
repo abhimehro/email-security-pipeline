@@ -605,7 +605,7 @@ class IMAPClient:
 
     # Pre-compiled regex patterns for filename sanitization
     FILENAME_SANITIZE_PATTERN = re.compile(r'[^a-zA-Z0-9.\-_ ]')
-    FILENAME_COLLAPSE_DOTS_PATTERN = re.compile(r'\.+')
+    FILENAME_COLLAPSE_DOTS_PATTERN = re.compile(r'\.{2,}')
 
     @staticmethod
     def _sanitize_filename(filename: str) -> str:
@@ -631,8 +631,7 @@ class IMAPClient:
         filename = IMAPClient.FILENAME_SANITIZE_PATTERN.sub('_', filename)
 
         # 3. Prevent hidden files (starting with dot)
-        while filename.startswith('.'):
-            filename = filename[1:]
+        filename = filename.lstrip('.')
 
         # 4. Collapse multiple dots (e.g., file..exe)
         filename = IMAPClient.FILENAME_COLLAPSE_DOTS_PATTERN.sub('.', filename)
