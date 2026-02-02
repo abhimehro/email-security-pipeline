@@ -16,7 +16,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src.utils.config import Config
 from src.utils.colors import Colors
-from src.utils.ui import CountdownTimer
+from src.utils.ui import CountdownTimer, ProgressBar
 from src.utils.logging_utils import ColoredFormatter
 from src.utils.sanitization import sanitize_for_logging
 from src.modules.email_ingestion import EmailIngestionManager
@@ -134,9 +134,11 @@ class EmailSecurityPipeline:
                 else:
                     self.logger.info(f"Analyzing {len(emails)} emails")
 
-                    # Analyze each email
-                    for email_data in emails:
-                        self._analyze_email(email_data)
+                    # Analyze each email with progress bar
+                    with ProgressBar(len(emails), "Processing") as pb:
+                        for email_data in emails:
+                            self._analyze_email(email_data)
+                            pb.update(1, suffix=sanitize_for_logging(email_data.subject, 30))
 
                 # Wait before next check
                 if self.running:
@@ -162,7 +164,7 @@ class EmailSecurityPipeline:
         """
         try:
             safe_subject = sanitize_for_logging(email_data.subject, max_length=50)
-            self.logger.info(f"Analyzing email: {safe_subject}...")
+            self.logger.debug(f"Analyzing email: {safe_subject}...")
 
             # Layer 1: Spam Analysis
             spam_result = self.spam_analyzer.analyze(email_data)

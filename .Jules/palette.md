@@ -27,3 +27,7 @@
 ## 2025-11-25 - Visual Hierarchy in Console Lists
 **Learning:** Color-coding list bullets in CLI output significantly improves scannability, allowing users to instantly identify high-severity items in a list of mixed recommendations.
 **Action:** Use semantic colors (Red/Yellow/Green) for list markers when displaying prioritized or categorized information in terminal interfaces.
+
+## 2025-11-26 - Progress Visibility for Batch Processing
+**Learning:** Sequential processing of items (like emails) in a CLI without progress indicators creates uncertainty about duration and activity.
+**Action:** Implement a lightweight, zero-dependency `ProgressBar` for batch loops to provide immediate visual feedback on throughput and remaining work.
