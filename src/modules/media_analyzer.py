@@ -6,10 +6,21 @@ Analyzes attachments for synthetic content and deepfakes
 import logging
 import tempfile
 import os
-import numpy as np
-import cv2
 from typing import List, Tuple
 from dataclasses import dataclass
+
+try:
+    import numpy as np
+    import cv2
+    OPENCV_AVAILABLE = True
+except ImportError:
+    # Handle missing dependencies gracefully
+    # We create a mock np object so type hints (np.ndarray) don't crash the module
+    class MockNumpy:
+        class ndarray: pass
+    np = MockNumpy()
+    cv2 = None
+    OPENCV_AVAILABLE = False
 
 from .email_ingestion import EmailData
 
@@ -45,6 +56,9 @@ class MediaAuthenticityAnalyzer:
         '.mp4', '.avi', '.mov', '.wmv', '.flv', '.mkv',
         '.mp3', '.wav', '.aac', '.flac', '.ogg', '.m4a'
     ]
+
+    # Max frame dimension for deepfake analysis to prevent DoS (Full HD)
+    MAX_FRAME_DIMENSION = 1920
 
     def __init__(self, config):
         """
@@ -324,6 +338,10 @@ class MediaAuthenticityAnalyzer:
         if not is_media:
             return score, indicators
 
+        # Check if OpenCV is available
+        if not OPENCV_AVAILABLE:
+            return score, indicators
+
         # Basic heuristics
         if filename_lower.endswith(('.mp4', '.avi', '.mov')):
             size = len(data)
@@ -388,6 +406,10 @@ class MediaAuthenticityAnalyzer:
     def _extract_frames_from_video(self, video_path: str, max_frames: int = 10) -> List[np.ndarray]:
         """Extract a sample of frames from the video."""
         frames = []
+
+        if not OPENCV_AVAILABLE:
+            return frames
+
         try:
             cap = cv2.VideoCapture(video_path)
             if not cap.isOpened():
@@ -399,7 +421,10 @@ class MediaAuthenticityAnalyzer:
                 success, frame = cap.read()
                 count = 0
                 while success and count < max_frames:
-                    frames.append(frame)
+                    # Security check: Resize large frames to prevent DoS
+                    if success and frame is not None:
+                        frame = self._resize_frame_if_needed(frame)
+                        frames.append(frame)
                     success, frame = cap.read()
                     count += 1
             else:
@@ -408,7 +433,9 @@ class MediaAuthenticityAnalyzer:
                 for i in range(0, total_frames, step):
                     cap.set(cv2.CAP_PROP_POS_FRAMES, i)
                     success, frame = cap.read()
-                    if success:
+                    if success and frame is not None:
+                        # Security check: Resize large frames to prevent DoS
+                        frame = self._resize_frame_if_needed(frame)
                         frames.append(frame)
                     if len(frames) >= max_frames:
                         break
@@ -419,6 +446,17 @@ class MediaAuthenticityAnalyzer:
 
         return frames
 
+    def _resize_frame_if_needed(self, frame: np.ndarray) -> np.ndarray:
+        """Resize frame if it exceeds maximum dimensions to prevent DoS"""
+        h, w = frame.shape[:2]
+        if w > self.MAX_FRAME_DIMENSION or h > self.MAX_FRAME_DIMENSION:
+            # Calculate scaling factor
+            scale = self.MAX_FRAME_DIMENSION / max(w, h)
+            new_w = int(w * scale)
+            new_h = int(h * scale)
+            return cv2.resize(frame, (new_w, new_h))
+        return frame
+
     def _analyze_facial_inconsistencies(self, frames: List[np.ndarray]) -> Tuple[float, List[str]]:
         """
         Analyze frames for facial inconsistencies.
@@ -427,12 +465,19 @@ class MediaAuthenticityAnalyzer:
         score = 0.0
         issues = []
 
+        if not OPENCV_AVAILABLE:
+            return score, issues
+
         # Load Haar cascade for face detection (lazy loading with caching)
         if self.face_cascade is None:
             # Note: In a real environment, ensure the XML file is available or bundled.
             # We try to load from default OpenCV path or a local path.
-            cascade_path = cv2.data.haarcascades + 'haarcascade_frontalface_default.xml'
-            self.face_cascade = cv2.CascadeClassifier(cascade_path)
+            try:
+                cascade_path = cv2.data.haarcascades + 'haarcascade_frontalface_default.xml'
+                self.face_cascade = cv2.CascadeClassifier(cascade_path)
+            except AttributeError:
+                # Handle cases where cv2.data is not available
+                self.face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
 
         if self.face_cascade.empty():
             self.logger.warning("Haar cascade not found. Skipping facial analysis.")
