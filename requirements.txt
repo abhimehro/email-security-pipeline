@@ -5,6 +5,7 @@ python-dotenv>=1.0.0
 transformers==4.53.0
 torch>=2.9.0
 sentencepiece==0.2.1
+opencv-python-headless>=4.10.0
 
 # Optional: Database support
 # sqlite3  # Built-in to Python
