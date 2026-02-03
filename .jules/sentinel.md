@@ -37,3 +37,8 @@
 **Vulnerability:** `MediaAuthenticityAnalyzer` created temporary files for OpenCV processing but failed to clean them up if an exception occurred during the `write` operation (e.g., disk full). This could lead to disk exhaustion (DoS).
 **Learning:** `tempfile.NamedTemporaryFile(delete=False)` requires manual cleanup in ALL exit paths. Standard `try...finally` blocks must encompass the file creation and writing steps to ensure `os.unlink` is always called.
 **Prevention:** Refactored `_check_deepfake_indicators` to wrap file creation, writing, and usage in a single `try...finally` block, ensuring deterministic cleanup.
+
+## 2026-06-17 - [Sensitive Data Exposure in Cache]
+**Vulnerability:** `NLPThreatAnalyzer` used `functools.lru_cache` to cache transformer analysis results. This inadvertently stored the full raw text of analyzed emails in memory as cache keys, creating a persistent risk of sensitive data exposure.
+**Learning:** Caching mechanisms that automatically use function arguments as keys (like `lru_cache`) are dangerous for functions processing sensitive data.
+**Prevention:** Replaced `lru_cache` with a manual hash-based cache. The cache now uses SHA-256 hashes of the text as keys, ensuring raw email content is never stored in the caching structure.
