@@ -9,9 +9,20 @@ import unicodedata
 # Pre-compile regex for performance
 ANSI_ESCAPE_PATTERN = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
 
+# Unicode categories to exclude from logging
+# Cc: Control (including ASCII 0-31, 127, 0x80-0x9F)
+# Cf: Format (including BiDi controls, Zero Width Space, Soft Hyphen)
+# Cs: Surrogates
+# Co: Private Use
+# Cn: Unassigned
+# Zl: Line Separator
+# Zp: Paragraph Separator
+EXCLUDED_LOGGING_CATEGORIES = {'Cc', 'Cf', 'Cs', 'Co', 'Cn', 'Zl', 'Zp'}
+
 def sanitize_for_logging(text: str, max_length: int = 255) -> str:
     """
-    Sanitize text for safe logging to prevent Log Injection (CRLF) and terminal manipulation.
+    Sanitize text for safe logging to prevent Log Injection (CRLF),
+    terminal manipulation, and obfuscation via BiDi/format characters.
 
     Args:
         text: The input string to sanitize.
@@ -29,20 +40,19 @@ def sanitize_for_logging(text: str, max_length: int = 255) -> str:
     # 2. Replace newlines and carriage returns with escaped versions
     text = text.replace('\n', '\\n').replace('\r', '\\r')
 
-    # 3. Remove or replace other control characters (keeping printable characters)
-    # We keep standard ASCII printable characters and common unicode characters,
-    # but remove control codes that aren't whitespace.
-    # The regex [^\w\s\-\.\:\@\/] is too restrictive for general text,
-    # so we focus on removing non-printable control characters.
-
-    # Remove ANSI escape sequences (for terminal colors/cursor movement)
+    # 3. Remove ANSI escape sequences (for terminal colors/cursor movement)
     text = ANSI_ESCAPE_PATTERN.sub('', text)
 
-    # Remove other non-printable control characters (ASCII 0-31 except tab)
-    # We already handled \n and \r above.
-    text = "".join(ch for ch in text if ch == '\t' or ord(ch) >= 32)
+    # 4. Remove control characters and dangerous format characters
+    # We keep standard printable characters but remove controls and formatters
+    # that could be used for obfuscation (like BiDi overrides).
+    # We explicitly allow Tab as it is useful for formatting and harmless.
+    text = "".join(
+        ch for ch in text
+        if ch == '\t' or unicodedata.category(ch) not in EXCLUDED_LOGGING_CATEGORIES
+    )
 
-    # 4. Truncate if necessary to prevent log flooding
+    # 5. Truncate if necessary to prevent log flooding
     if len(text) > max_length:
         text = text[:max_length] + "..."
 

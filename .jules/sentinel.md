@@ -37,3 +37,8 @@
 **Vulnerability:** `MediaAuthenticityAnalyzer` created temporary files for OpenCV processing but failed to clean them up if an exception occurred during the `write` operation (e.g., disk full). This could lead to disk exhaustion (DoS).
 **Learning:** `tempfile.NamedTemporaryFile(delete=False)` requires manual cleanup in ALL exit paths. Standard `try...finally` blocks must encompass the file creation and writing steps to ensure `os.unlink` is always called.
 **Prevention:** Refactored `_check_deepfake_indicators` to wrap file creation, writing, and usage in a single `try...finally` block, ensuring deterministic cleanup.
+
+## 2026-06-18 - [Log Spoofing via BiDi Characters]
+**Vulnerability:** Logging functions sanitized control characters using `ord(ch) >= 32` but allowed Unicode Format characters (Category `Cf`), specifically Right-to-Left Override (`U+202E`). This allowed attackers to inject characters that reverse text direction in logs, enabling them to disguise malicious activity (e.g., masking a user or action).
+**Learning:** Checking for "printable" ASCII range (>= 32) is insufficient for Unicode security. Unicode contains "printable" or "format" characters that are dangerous in specific contexts (like logs or UIs). Sanitization must explicitly handle Unicode categories.
+**Prevention:** Updated sanitization logic to use `unicodedata.category` and strictly exclude dangerous categories (`Cc`, `Cf`, `Cs`, `Co`, `Cn`, `Zl`, `Zp`) while allowing safe exceptions like Tab.
