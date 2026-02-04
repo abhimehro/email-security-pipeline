@@ -27,3 +27,7 @@
 ## 2025-11-25 - Visual Hierarchy in Console Lists
 **Learning:** Color-coding list bullets in CLI output significantly improves scannability, allowing users to instantly identify high-severity items in a list of mixed recommendations.
 **Action:** Use semantic colors (Red/Yellow/Green) for list markers when displaying prioritized or categorized information in terminal interfaces.
+
+## 2025-11-28 - Threaded Spinner Pattern
+**Learning:** When implementing in-place animations (spinners) in Python CLIs, running the animation in a separate daemon thread ensures the main process remains unblocked, while context managers provide a clean API to ensure the terminal state is restored even on exceptions.
+**Action:** Use the `Spinner` context manager pattern for all indeterminate blocking operations > 500ms.
