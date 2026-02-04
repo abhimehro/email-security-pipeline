@@ -16,7 +16,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src.utils.config import Config
 from src.utils.colors import Colors
-from src.utils.ui import CountdownTimer
+from src.utils.ui import CountdownTimer, Spinner
 from src.utils.logging_utils import ColoredFormatter
 from src.utils.sanitization import sanitize_for_logging
 from src.modules.email_ingestion import EmailIngestionManager
@@ -92,8 +92,9 @@ class EmailSecurityPipeline:
             self.logger.info("Starting Email Security Pipeline")
 
             # Initialize email clients
-            if not self.ingestion_manager.initialize_clients():
-                raise RuntimeError("Failed to initialize email clients")
+            with Spinner("Initializing email clients..."):
+                if not self.ingestion_manager.initialize_clients():
+                    raise RuntimeError("Failed to initialize email clients")
 
             self.running = True
 
@@ -125,9 +126,10 @@ class EmailSecurityPipeline:
 
             try:
                 # Fetch emails
-                emails = self.ingestion_manager.fetch_all_emails(
-                    self.config.system.max_emails_per_batch
-                )
+                with Spinner("Checking for new emails..."):
+                    emails = self.ingestion_manager.fetch_all_emails(
+                        self.config.system.max_emails_per_batch
+                    )
 
                 if not emails:
                     self.logger.info("No new emails to analyze")
