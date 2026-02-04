@@ -118,8 +118,10 @@ class SpamAnalyzer:
         indicators.extend(subject_indicators)
 
         # Extract URLs once for both body analysis and URL checking
-        full_body_content = email_data.body_text + email_data.body_html
-        extracted_urls = self.URL_EXTRACTION_PATTERN.findall(full_body_content)
+        # Optimization: Avoid large string concatenation
+        extracted_urls = self.URL_EXTRACTION_PATTERN.findall(email_data.body_text)
+        if email_data.body_html:
+            extracted_urls.extend(self.URL_EXTRACTION_PATTERN.findall(email_data.body_html))
         link_count = len(extracted_urls)
 
         # Analyze body content
@@ -263,17 +265,19 @@ class SpamAnalyzer:
                 domain = parsed.netloc
 
                 # Check against combined suspicious patterns first
+                # Optimization: SHORTENER_PATTERN is a subset of COMBINED_URL_PATTERN.
+                # Only check specific shortener pattern if the combined pattern matches.
                 if self.COMBINED_URL_PATTERN.search(domain):
                     # If matched, we just mark it. The original code broke after first match
                     # in the loop, effectively counting only one match per URL from this list.
                     score += 0.5
                     suspicious.append(url)
 
-                # Check for URL shorteners
-                # Original code logic was separate and could add another 0.5 score
-                if self.SHORTENER_PATTERN.search(domain):
-                    score += 0.5
-                    suspicious.append(url)
+                    # Check for URL shorteners
+                    # Original code logic was separate and could add another 0.5 score
+                    if self.SHORTENER_PATTERN.search(domain):
+                        score += 0.5
+                        suspicious.append(url)
 
             except Exception:
                 pass

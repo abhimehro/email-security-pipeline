@@ -19,3 +19,7 @@
 ## 2025-11-14 - LRU Cache on Large Inputs
 **Learning:** Applying `lru_cache` to functions taking potentially large unique strings (like email bodies) creates significant memory and CPU overhead (hashing). If the consumer (e.g., a Transformer model) only processes a prefix (e.g., 512 tokens), truncating the input *before* caching provides massive speedups (~300x in benchmarks) and effective cache utilization.
 **Action:** Truncate large input strings to the effective processing limit before passing them to cached functions.
+
+## 2025-11-15 - Nested Regex Checks for Subsets
+**Learning:** When one regex pattern is a strict subset of another (e.g., specific shorteners vs. general suspicious URLs), nesting the specific check inside the general check avoids redundant scanning of the majority (clean) cases.
+**Action:** Identify subset relationships in regex checks and nest them to short-circuit expensive operations.
