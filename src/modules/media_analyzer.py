@@ -6,6 +6,8 @@ Analyzes attachments for synthetic content and deepfakes
 import logging
 import tempfile
 import os
+import zipfile
+import io
 import numpy as np
 import cv2
 from typing import List, Tuple
@@ -111,6 +113,20 @@ class MediaAuthenticityAnalyzer:
             threat_score += size_score
             if size_warning:
                 size_anomalies.append(size_warning)
+
+            # Check for dangerous contents in archives (e.g. Zip files)
+            # We check if it looks like a zip (magic bytes or extension)
+            is_zip = False
+            if data and data.startswith(b'PK\x03\x04'):
+                is_zip = True
+            elif filename.lower().endswith('.zip'):
+                is_zip = True
+
+            if is_zip:
+                zip_score, zip_warnings = self._inspect_zip_contents(filename, data)
+                threat_score += zip_score
+                if zip_warnings:
+                    suspicious_attachments.extend(zip_warnings)
 
             # Check for potential deepfakes
             # Only proceed if the file hasn't already been flagged as dangerous/suspicious (score >= 5.0)
@@ -308,6 +324,46 @@ class MediaAuthenticityAnalyzer:
                 warning = f"Suspiciously small media file: {filename} ({size} bytes)"
 
         return score, warning
+
+    def _inspect_zip_contents(self, filename: str, data: bytes) -> Tuple[float, List[str]]:
+        """Inspect contents of zip file for dangerous files"""
+        score = 0.0
+        warnings = []
+        try:
+            # Use io.BytesIO to treat bytes as file-like object
+            with zipfile.ZipFile(io.BytesIO(data)) as zf:
+                file_list = zf.namelist()
+
+                # Limit number of files to inspect to prevent DoS
+                if len(file_list) > 1000:
+                    score += 1.0
+                    warnings.append(f"Zip file {filename} contains too many files ({len(file_list)})")
+                    # We still check the first 1000
+                    file_list = file_list[:1000]
+
+                for contained_file in file_list:
+                    contained_lower = contained_file.lower()
+
+                    # Check for dangerous extensions
+                    for ext in self.DANGEROUS_EXTENSIONS:
+                        if contained_lower.endswith(ext):
+                            score += 5.0
+                            warnings.append(f"Zip {filename} contains dangerous file: {contained_file}")
+                            return score, warnings  # Return immediately on high threat
+
+                    # Check for suspicious extensions
+                    for ext in self.SUSPICIOUS_EXTENSIONS:
+                        if ext in contained_lower:
+                            score += 3.0
+                            warnings.append(f"Zip {filename} contains suspicious file: {contained_file}")
+
+        except zipfile.BadZipFile:
+            # Not a valid zip file, might be corrupted or just named .zip
+            pass
+        except Exception as e:
+            self.logger.warning(f"Error inspecting zip {filename}: {e}")
+
+        return score, warnings
 
     def _check_deepfake_indicators(self, filename: str, data: bytes, content_type: str) -> Tuple[float, List[str]]:
         """

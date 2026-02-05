@@ -37,3 +37,8 @@
 **Vulnerability:** `MediaAuthenticityAnalyzer` created temporary files for OpenCV processing but failed to clean them up if an exception occurred during the `write` operation (e.g., disk full). This could lead to disk exhaustion (DoS).
 **Learning:** `tempfile.NamedTemporaryFile(delete=False)` requires manual cleanup in ALL exit paths. Standard `try...finally` blocks must encompass the file creation and writing steps to ensure `os.unlink` is always called.
 **Prevention:** Refactored `_check_deepfake_indicators` to wrap file creation, writing, and usage in a single `try...finally` block, ensuring deterministic cleanup.
+
+## 2026-10-27 - [Archive Content Inspection]
+**Vulnerability:** The system validated attachment extensions but failed to inspect the contents of container formats like ZIP files, allowing malware to bypass detection by hiding inside "safe" archives.
+**Learning:** Container formats (zip, tar, etc.) are opaque to simple extension/magic-byte checks. Security controls must recursively inspect container contents.
+**Prevention:** Implemented `_inspect_zip_contents` in `MediaAuthenticityAnalyzer` using `zipfile` to peek at file lists without full extraction, preventing zip bombs by limiting entry count.
