@@ -27,3 +27,7 @@
 ## 2025-11-25 - Visual Hierarchy in Console Lists
 **Learning:** Color-coding list bullets in CLI output significantly improves scannability, allowing users to instantly identify high-severity items in a list of mixed recommendations.
 **Action:** Use semantic colors (Red/Yellow/Green) for list markers when displaying prioritized or categorized information in terminal interfaces.
+
+## 2025-11-25 - Summary Tables for CLI Checks
+**Learning:** CLI output for multi-step checks (like connectivity) becomes hard to parse when errors are verbose.
+**Action:** Adding a summary table at the end of a CLI script provides an "at-a-glance" status check that persists even if detailed logs scroll off-screen.
