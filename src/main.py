@@ -89,6 +89,9 @@ class EmailSecurityPipeline:
             # Validate configuration
             self.config.validate()
 
+            # Print configuration summary
+            self._print_configuration_summary()
+
             self.logger.info("Starting Email Security Pipeline")
 
             # Initialize email clients
@@ -203,6 +206,61 @@ class EmailSecurityPipeline:
 
         except Exception as e:
             self.logger.error(f"Error analyzing email: {e}", exc_info=True)
+
+    def _print_configuration_summary(self):
+        """Print a summary of the current configuration"""
+        print(f"\n{Colors.BOLD}📊 System Configuration:{Colors.RESET}")
+
+        # Accounts
+        print(f"  • {Colors.CYAN}Monitored Accounts:{Colors.RESET}")
+        for account in self.config.email_accounts:
+            status = f"{Colors.GREEN}Active{Colors.RESET}" if account.enabled else f"{Colors.GREY}Disabled{Colors.RESET}"
+            print(f"    - {account.provider.title()}: {account.email} ({status})")
+
+        # Analysis
+        print(f"  • {Colors.CYAN}Analysis Layers:{Colors.RESET}")
+        print(
+            f"    - Spam Detection:   {Colors.GREEN}Active{Colors.RESET} "
+            f"(Threshold: {self.config.analysis.spam_threshold})"
+        )
+        print(
+            f"    - NLP Analysis:     {Colors.GREEN}Active{Colors.RESET} "
+            f"(Threshold: {self.config.analysis.nlp_threshold})"
+        )
+
+        media_status = (
+            f"{Colors.GREEN}Active{Colors.RESET}"
+            if self.config.analysis.check_media_attachments
+            else f"{Colors.GREY}Disabled{Colors.RESET}"
+        )
+        deepfake_status = (
+            "Enabled"
+            if self.config.analysis.deepfake_detection_enabled
+            else "Disabled"
+        )
+        print(f"    - Media Check:      {media_status} (Deepfake: {deepfake_status})")
+
+        # Alerts
+        print(f"  • {Colors.CYAN}Alert Channels:{Colors.RESET}")
+        channels = []
+        if self.config.alerts.console:
+            channels.append("Console")
+        if self.config.alerts.webhook_enabled:
+            channels.append("Webhook")
+        if self.config.alerts.slack_enabled:
+            channels.append("Slack")
+
+        if channels:
+            print(f"    - Enabled: {', '.join(channels)}")
+        else:
+            print(f"    - Enabled: {Colors.YELLOW}None{Colors.RESET}")
+
+        print(f"  • {Colors.CYAN}System:{Colors.RESET}")
+        print(f"    - Log Level: {self.config.system.log_level}")
+        print(f"    - Interval:  {self.config.system.check_interval}s")
+
+        # Documentation footer
+        print(f"\n📚 {Colors.GREY}For help, see README.md or OUTLOOK_TROUBLESHOOTING.md{Colors.RESET}\n")
 
 
 def signal_handler(signum, frame):
