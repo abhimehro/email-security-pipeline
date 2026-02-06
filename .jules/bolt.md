@@ -19,3 +19,7 @@
 ## 2025-11-14 - LRU Cache on Large Inputs
 **Learning:** Applying `lru_cache` to functions taking potentially large unique strings (like email bodies) creates significant memory and CPU overhead (hashing). If the consumer (e.g., a Transformer model) only processes a prefix (e.g., 512 tokens), truncating the input *before* caching provides massive speedups (~300x in benchmarks) and effective cache utilization.
 **Action:** Truncate large input strings to the effective processing limit before passing them to cached functions.
+
+## 2025-11-15 - String Sanitization Optimization
+**Learning:** For character-level filtering (like removing control characters), `str.translate` is roughly 18x faster than list comprehension with `join` for large strings. This is critical for utility functions used in hot paths like logging.
+**Action:** Use `str.translate` with a pre-computed translation table for character removal or replacement.
