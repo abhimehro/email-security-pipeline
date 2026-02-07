@@ -6,6 +6,7 @@ Provides user-friendly output components like countdown timers.
 import sys
 import time
 import threading
+from .colors import Colors
 
 
 class CountdownTimer:
@@ -36,8 +37,23 @@ class CountdownTimer:
                 else:
                     time_str = f"{remaining}s"
 
+                # Progress Bar
+                total_len = 20
+                if self.duration > 0:
+                    percent = remaining / self.duration
+                else:
+                    percent = 0
+
+                filled_len = int(percent * total_len)
+                # Ensure filled_len is within bounds
+                filled_len = max(0, min(filled_len, total_len))
+
+                bar = "█" * filled_len + "░" * (total_len - filled_len)
+                colored_bar = Colors.colorize(bar, Colors.CYAN)
+
                 # \r moves cursor to start of line, \033[K clears the line
-                sys.stdout.write(f"\r{self.message}: {time_str} ... \033[K")
+                # Added brackets around bar for better visual containment
+                sys.stdout.write(f"\r{self.message}: [{colored_bar}] {time_str} ... \033[K")
                 sys.stdout.flush()
 
                 time.sleep(self.interval)

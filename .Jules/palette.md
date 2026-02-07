@@ -27,3 +27,7 @@
 ## 2025-11-25 - Visual Hierarchy in Console Lists
 **Learning:** Color-coding list bullets in CLI output significantly improves scannability, allowing users to instantly identify high-severity items in a list of mixed recommendations.
 **Action:** Use semantic colors (Red/Yellow/Green) for list markers when displaying prioritized or categorized information in terminal interfaces.
+
+## 2025-11-26 - Visual Progress for Wait States
+**Learning:** Purely numeric countdowns (e.g., "Wait: 5s") lack a visual sense of scale, making short waits feel longer.
+**Action:** Enhance CLI countdowns with a visual progress bar (`[████░░]`) to provide immediate, intuitive feedback on remaining time.
