@@ -9,6 +9,7 @@ import time
 import logging
 import signal
 import shutil
+import concurrent.futures
 from pathlib import Path
 
 # Add project root to path
@@ -59,6 +60,9 @@ class EmailSecurityPipeline:
         self.nlp_analyzer = NLPThreatAnalyzer(self.config.analysis)
         self.media_analyzer = MediaAuthenticityAnalyzer(self.config.analysis)
         self.alert_system = AlertSystem(self.config.alerts)
+
+        # Optimization: ThreadPool for parallel analysis
+        self.executor = concurrent.futures.ThreadPoolExecutor(max_workers=3)
 
         self.running = False
 
@@ -113,6 +117,8 @@ class EmailSecurityPipeline:
         self.logger.info("Stopping Email Security Pipeline")
         self.running = False
         self.ingestion_manager.close_all_connections()
+        if hasattr(self, 'executor'):
+            self.executor.shutdown(wait=True)
         self.logger.info("Pipeline stopped")
 
     def _monitoring_loop(self):
@@ -164,22 +170,29 @@ class EmailSecurityPipeline:
             safe_subject = sanitize_for_logging(email_data.subject, max_length=50)
             self.logger.info(f"Analyzing email: {safe_subject}...")
 
+            # Parallel Analysis Layer
+            # Optimization: Run independent analyzers concurrently
+            future_spam = self.executor.submit(self.spam_analyzer.analyze, email_data)
+            future_nlp = self.executor.submit(self.nlp_analyzer.analyze, email_data)
+            future_media = self.executor.submit(self.media_analyzer.analyze, email_data)
+
+            # Retrieve results (will wait if not ready)
             # Layer 1: Spam Analysis
-            spam_result = self.spam_analyzer.analyze(email_data)
+            spam_result = future_spam.result()
             self.logger.debug(
                 f"Spam analysis: score={spam_result.score:.2f}, "
                 f"risk={spam_result.risk_level}"
             )
 
             # Layer 2: NLP Threat Detection
-            nlp_result = self.nlp_analyzer.analyze(email_data)
+            nlp_result = future_nlp.result()
             self.logger.debug(
                 f"NLP analysis: score={nlp_result.threat_score:.2f}, "
                 f"risk={nlp_result.risk_level}"
             )
 
             # Layer 3: Media Authenticity
-            media_result = self.media_analyzer.analyze(email_data)
+            media_result = future_media.result()
             self.logger.debug(
                 f"Media analysis: score={media_result.threat_score:.2f}, "
                 f"risk={media_result.risk_level}"

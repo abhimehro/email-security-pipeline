@@ -19,3 +19,7 @@
 ## 2025-11-14 - LRU Cache on Large Inputs
 **Learning:** Applying `lru_cache` to functions taking potentially large unique strings (like email bodies) creates significant memory and CPU overhead (hashing). If the consumer (e.g., a Transformer model) only processes a prefix (e.g., 512 tokens), truncating the input *before* caching provides massive speedups (~300x in benchmarks) and effective cache utilization.
 **Action:** Truncate large input strings to the effective processing limit before passing them to cached functions.
+
+## 2025-11-15 - Parallelizing Pipeline Stages
+**Learning:** In a multi-stage pipeline where stages are independent (CPU/IO bound mixed), simple `ThreadPoolExecutor` parallelization can yield linear speedup (3x for 3 stages) with minimal code complexity.
+**Action:** Identify independent processing stages in hot loops and wrap them in `executor.submit()` + `.result()`.
