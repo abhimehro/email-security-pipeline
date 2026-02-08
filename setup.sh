@@ -53,9 +53,37 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
     read -sp "Enter your Gmail app password (hidden): " gmail_password
     echo ""
 
-    # Update .env file (using OS-appropriate sed command)
-    $SED_CMD "s|GMAIL_EMAIL=.*|GMAIL_EMAIL=$gmail_email|" .env
-    $SED_CMD "s|GMAIL_APP_PASSWORD=.*|GMAIL_APP_PASSWORD=$gmail_password|" .env
+    # Update .env file safely using python (avoids leaking credentials in ps aux and sed injection)
+    if command -v python3 &> /dev/null; then
+        export GMAIL_EMAIL="$gmail_email"
+        export GMAIL_APP_PASSWORD="$gmail_password"
+
+        python3 -c '
+import os
+
+email = os.environ.get("GMAIL_EMAIL", "")
+password = os.environ.get("GMAIL_APP_PASSWORD", "")
+
+lines = []
+with open(".env", "r") as f:
+    for line in f:
+        if line.startswith("GMAIL_EMAIL="):
+            lines.append(f"GMAIL_EMAIL={email}\n")
+        elif line.startswith("GMAIL_APP_PASSWORD="):
+            lines.append(f"GMAIL_APP_PASSWORD={password}\n")
+        else:
+            lines.append(line)
+
+with open(".env", "w") as f:
+    f.writelines(lines)
+'
+        # Unset exported variables
+        unset GMAIL_EMAIL
+        unset GMAIL_APP_PASSWORD
+    else
+        echo -e "${RED}Error: Python 3 not found. Cannot securely update .env file.${NC}"
+        echo "Please edit .env manually to add your credentials."
+    fi
 
     # Clear password from memory (basic security measure)
     gmail_password=""
