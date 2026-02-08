@@ -34,3 +34,15 @@ class Colors:
         elif level == "low":
             return cls.GREEN
         return cls.WHITE
+
+    @classmethod
+    def get_risk_symbol(cls, risk_level: str) -> str:
+        """Get symbol for a risk level"""
+        level = risk_level.lower()
+        if level == "high":
+            return "🔴"
+        elif level == "medium":
+            return "🟡"
+        elif level == "low":
+            return "🟢"
+        return "⚪"

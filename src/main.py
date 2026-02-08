@@ -166,23 +166,26 @@ class EmailSecurityPipeline:
 
             # Layer 1: Spam Analysis
             spam_result = self.spam_analyzer.analyze(email_data)
+            symbol = Colors.get_risk_symbol(spam_result.risk_level)
             self.logger.debug(
                 f"Spam analysis: score={spam_result.score:.2f}, "
-                f"risk={spam_result.risk_level}"
+                f"risk={spam_result.risk_level} {symbol}"
             )
 
             # Layer 2: NLP Threat Detection
             nlp_result = self.nlp_analyzer.analyze(email_data)
+            symbol = Colors.get_risk_symbol(nlp_result.risk_level)
             self.logger.debug(
                 f"NLP analysis: score={nlp_result.threat_score:.2f}, "
-                f"risk={nlp_result.risk_level}"
+                f"risk={nlp_result.risk_level} {symbol}"
             )
 
             # Layer 3: Media Authenticity
             media_result = self.media_analyzer.analyze(email_data)
+            symbol = Colors.get_risk_symbol(media_result.risk_level)
             self.logger.debug(
                 f"Media analysis: score={media_result.threat_score:.2f}, "
-                f"risk={media_result.risk_level}"
+                f"risk={media_result.risk_level} {symbol}"
             )
 
             # Generate threat report
@@ -196,9 +199,10 @@ class EmailSecurityPipeline:
             # Send alerts
             self.alert_system.send_alert(threat_report)
 
+            symbol = Colors.get_risk_symbol(threat_report.risk_level)
             self.logger.info(
                 f"Analysis complete: overall_score={threat_report.overall_threat_score:.2f}, "
-                f"risk={threat_report.risk_level}"
+                f"risk={threat_report.risk_level} {symbol}"
             )
 
         except Exception as e:

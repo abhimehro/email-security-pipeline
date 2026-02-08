@@ -27,3 +27,7 @@
 ## 2025-11-25 - Visual Hierarchy in Console Lists
 **Learning:** Color-coding list bullets in CLI output significantly improves scannability, allowing users to instantly identify high-severity items in a list of mixed recommendations.
 **Action:** Use semantic colors (Red/Yellow/Green) for list markers when displaying prioritized or categorized information in terminal interfaces.
+
+## 2025-05-30 - Visual Risk Indicators in Logs
+**Learning:** Text-based logs can be dense and hard to scan for critical information like risk levels. Adding simple visual anchors (emojis/symbols) alongside text labels significantly improves scanability and immediate comprehension.
+**Action:** Enhance CLI logs and console alerts with semantic symbols (🔴, 🟡, 🟢) to reinforce text-based status indicators.
