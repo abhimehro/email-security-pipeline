@@ -7,6 +7,7 @@ Main orchestrator that coordinates all analysis modules
 import sys
 import time
 import logging
+from logging.handlers import RotatingFileHandler
 import signal
 import shutil
 from pathlib import Path
@@ -71,7 +72,12 @@ class EmailSecurityPipeline:
         log_path.parent.mkdir(parents=True, exist_ok=True)
 
         # Configure handlers
-        file_handler = logging.FileHandler(self.config.system.log_file)
+        # Security: Use RotatingFileHandler to prevent disk space DoS (CWE-400)
+        file_handler = RotatingFileHandler(
+            self.config.system.log_file,
+            maxBytes=10*1024*1024,  # 10MB
+            backupCount=5
+        )
         file_handler.setFormatter(logging.Formatter(log_format))
 
         stream_handler = logging.StreamHandler(sys.stdout)
