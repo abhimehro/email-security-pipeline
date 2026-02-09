@@ -6,21 +6,12 @@ Analyzes attachments for synthetic content and deepfakes
 import logging
 import tempfile
 import os
+import zipfile
+import io
+import numpy as np
+import cv2
 from typing import List, Tuple
 from dataclasses import dataclass
-
-try:
-    import numpy as np
-    import cv2
-    OPENCV_AVAILABLE = True
-except ImportError:
-    # Handle missing dependencies gracefully
-    # We create a mock np object so type hints (np.ndarray) don't crash the module
-    class MockNumpy:
-        class ndarray: pass
-    np = MockNumpy()
-    cv2 = None
-    OPENCV_AVAILABLE = False
 
 from .email_ingestion import EmailData
 
@@ -42,9 +33,7 @@ class MediaAuthenticityAnalyzer:
     # Dangerous file extensions
     DANGEROUS_EXTENSIONS = [
         '.exe', '.bat', '.cmd', '.com', '.pif', '.scr', '.vbs', '.js',
-        '.jar', '.msi', '.dll', '.hta', '.wsf', '.ps1', '.sh', '.bash', '.app',
-        '.php', '.php3', '.php4', '.php5', '.phtml', '.pl', '.py', '.rb',
-        '.asp', '.aspx', '.jsp', '.jspx', '.cgi'
+        '.jar', '.msi', '.dll', '.hta', '.wsf', '.ps1', '.sh', '.app'
     ]
 
     # Suspicious file extensions (commonly used for disguise)
@@ -58,9 +47,6 @@ class MediaAuthenticityAnalyzer:
         '.mp4', '.avi', '.mov', '.wmv', '.flv', '.mkv',
         '.mp3', '.wav', '.aac', '.flac', '.ogg', '.m4a'
     ]
-
-    # Max frame dimension for deepfake analysis to prevent DoS (Full HD)
-    MAX_FRAME_DIMENSION = 1920
 
     def __init__(self, config):
         """
@@ -127,6 +113,20 @@ class MediaAuthenticityAnalyzer:
             threat_score += size_score
             if size_warning:
                 size_anomalies.append(size_warning)
+
+            # Check for dangerous contents in archives (e.g. Zip files)
+            # We check if it looks like a zip (magic bytes or extension)
+            is_zip = False
+            if data and data.startswith(b'PK\x03\x04'):
+                is_zip = True
+            elif filename.lower().endswith('.zip'):
+                is_zip = True
+
+            if is_zip:
+                zip_score, zip_warnings = self._inspect_zip_contents(filename, data)
+                threat_score += zip_score
+                if zip_warnings:
+                    suspicious_attachments.extend(zip_warnings)
 
             # Check for potential deepfakes
             # Only proceed if the file hasn't already been flagged as dangerous/suspicious (score >= 5.0)
@@ -325,6 +325,46 @@ class MediaAuthenticityAnalyzer:
 
         return score, warning
 
+    def _inspect_zip_contents(self, filename: str, data: bytes) -> Tuple[float, List[str]]:
+        """Inspect contents of zip file for dangerous files"""
+        score = 0.0
+        warnings = []
+        try:
+            # Use io.BytesIO to treat bytes as file-like object
+            with zipfile.ZipFile(io.BytesIO(data)) as zf:
+                file_list = zf.namelist()
+
+                # Limit number of files to inspect to prevent DoS
+                if len(file_list) > 1000:
+                    score += 1.0
+                    warnings.append(f"Zip file {filename} contains too many files ({len(file_list)})")
+                    # We still check the first 1000
+                    file_list = file_list[:1000]
+
+                for contained_file in file_list:
+                    contained_lower = contained_file.lower()
+
+                    # Check for dangerous extensions
+                    for ext in self.DANGEROUS_EXTENSIONS:
+                        if contained_lower.endswith(ext):
+                            score += 5.0
+                            warnings.append(f"Zip {filename} contains dangerous file: {contained_file}")
+                            return score, warnings  # Return immediately on high threat
+
+                    # Check for suspicious extensions
+                    for ext in self.SUSPICIOUS_EXTENSIONS:
+                        if ext in contained_lower:
+                            score += 3.0
+                            warnings.append(f"Zip {filename} contains suspicious file: {contained_file}")
+
+        except zipfile.BadZipFile:
+            # Not a valid zip file, might be corrupted or just named .zip
+            pass
+        except Exception as e:
+            self.logger.warning(f"Error inspecting zip {filename}: {e}")
+
+        return score, warnings
+
     def _check_deepfake_indicators(self, filename: str, data: bytes, content_type: str) -> Tuple[float, List[str]]:
         """
         Check for potential deepfake indicators using advanced analysis.
@@ -338,10 +378,6 @@ class MediaAuthenticityAnalyzer:
         is_media = any(filename_lower.endswith(ext) for ext in self.MEDIA_EXTENSIONS)
 
         if not is_media:
-            return score, indicators
-
-        # Check if OpenCV is available
-        if not OPENCV_AVAILABLE:
             return score, indicators
 
         # Basic heuristics
@@ -408,10 +444,6 @@ class MediaAuthenticityAnalyzer:
     def _extract_frames_from_video(self, video_path: str, max_frames: int = 10) -> List[np.ndarray]:
         """Extract a sample of frames from the video."""
         frames = []
-
-        if not OPENCV_AVAILABLE:
-            return frames
-
         try:
             cap = cv2.VideoCapture(video_path)
             if not cap.isOpened():
@@ -423,10 +455,7 @@ class MediaAuthenticityAnalyzer:
                 success, frame = cap.read()
                 count = 0
                 while success and count < max_frames:
-                    # Security check: Resize large frames to prevent DoS
-                    if success and frame is not None:
-                        frame = self._resize_frame_if_needed(frame)
-                        frames.append(frame)
+                    frames.append(frame)
                     success, frame = cap.read()
                     count += 1
             else:
@@ -435,9 +464,7 @@ class MediaAuthenticityAnalyzer:
                 for i in range(0, total_frames, step):
                     cap.set(cv2.CAP_PROP_POS_FRAMES, i)
                     success, frame = cap.read()
-                    if success and frame is not None:
-                        # Security check: Resize large frames to prevent DoS
-                        frame = self._resize_frame_if_needed(frame)
+                    if success:
                         frames.append(frame)
                     if len(frames) >= max_frames:
                         break
@@ -448,17 +475,6 @@ class MediaAuthenticityAnalyzer:
 
         return frames
 
-    def _resize_frame_if_needed(self, frame: np.ndarray) -> np.ndarray:
-        """Resize frame if it exceeds maximum dimensions to prevent DoS"""
-        h, w = frame.shape[:2]
-        if w > self.MAX_FRAME_DIMENSION or h > self.MAX_FRAME_DIMENSION:
-            # Calculate scaling factor
-            scale = self.MAX_FRAME_DIMENSION / max(w, h)
-            new_w = int(w * scale)
-            new_h = int(h * scale)
-            return cv2.resize(frame, (new_w, new_h))
-        return frame
-
     def _analyze_facial_inconsistencies(self, frames: List[np.ndarray]) -> Tuple[float, List[str]]:
         """
         Analyze frames for facial inconsistencies.
@@ -467,19 +483,12 @@ class MediaAuthenticityAnalyzer:
         score = 0.0
         issues = []
 
-        if not OPENCV_AVAILABLE:
-            return score, issues
-
         # Load Haar cascade for face detection (lazy loading with caching)
         if self.face_cascade is None:
             # Note: In a real environment, ensure the XML file is available or bundled.
             # We try to load from default OpenCV path or a local path.
-            try:
-                cascade_path = cv2.data.haarcascades + 'haarcascade_frontalface_default.xml'
-                self.face_cascade = cv2.CascadeClassifier(cascade_path)
-            except AttributeError:
-                # Handle cases where cv2.data is not available
-                self.face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
+            cascade_path = cv2.data.haarcascades + 'haarcascade_frontalface_default.xml'
+            self.face_cascade = cv2.CascadeClassifier(cascade_path)
 
         if self.face_cascade.empty():
             self.logger.warning("Haar cascade not found. Skipping facial analysis.")
