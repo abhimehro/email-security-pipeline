@@ -42,3 +42,8 @@
 **Vulnerability:** `setup.sh` passed credentials as command-line arguments to `sed`, exposing them via `ps aux`. Passwords with special characters (e.g., `|`) could also cause command injection or breakage.
 **Learning:** Never pass secrets as command-line arguments. Use environment variables (not visible in process listings) and a robust language like Python for file manipulation instead of `sed`.
 **Prevention:** Replaced `sed` with an inline Python script. Secrets are passed as one-off environment variables to `python3`, never exported to the shell. Dead `SED_CMD` detection code was removed.
+
+## 2026-06-25 - [Media Analysis Validation Gap]
+**Vulnerability:** The deepfake detection module processed files based on their extension (e.g., `.mov`) even if they failed strict signature validation. This could allow attackers to bypass validation and trigger vulnerabilities in underlying media libraries (like OpenCV) by disguising malicious files with allowed extensions.
+**Learning:** Inconsistent validation logic (checking some extensions strictly but not others) creates security gaps. All inputs processed by complex parsers must be strictly validated against a known-good allowlist of signatures.
+**Prevention:** Updated `MediaAuthenticityAnalyzer` to enforce strict magic byte validation for all supported media extensions, preventing processing of any file that does not match a known secure signature.

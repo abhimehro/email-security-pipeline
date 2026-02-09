@@ -11,7 +11,7 @@ import io
 import numpy as np
 import cv2
 import concurrent.futures
-from typing import List, Tuple
+from typing import List, Tuple, Optional
 from dataclasses import dataclass
 
 from .email_ingestion import EmailData
@@ -206,52 +206,55 @@ class MediaAuthenticityAnalyzer:
 
         return score, warnings
 
-    def _check_content_type_mismatch(self, filename: str, content_type: str, data: bytes) -> Tuple[float, str]:
-        """Check if actual file content matches declared content type"""
-        # Require a minimal amount of data for magic-byte checks; RIFF-specific logic below
-        # has its own stricter length guard for accessing bytes 8–12.
+    def _detect_file_type(self, data: bytes) -> Optional[str]:
+        """Detect file type from magic bytes"""
         if not data or len(data) < 4:
-            return 0.0, ""
-
-        # Detect actual file type from magic bytes
-        actual_type = None
+            return None
 
         # Check RIFF container (AVI, WAV, WEBP)
         if data.startswith(b'RIFF'):
             if len(data) >= 12:
                 format_type = data[8:12]
                 if format_type == b'AVI ':
-                    actual_type = 'avi'
+                    return 'avi'
                 elif format_type == b'WAVE':
-                    actual_type = 'wav'
+                    return 'wav'
                 elif format_type == b'WEBP':
-                    actual_type = 'webp'
+                    return 'webp'
 
-        # Check other signatures
-        if not actual_type:
-            # Format: (offset, signature, type_name)
-            signatures = [
-                (0, b'%PDF', 'pdf'),
-                (0, b'PK\x03\x04', 'zip'),
-                (0, b'\xff\xd8\xff', 'jpeg'),
-                (0, b'\x89PNG', 'png'),
-                (0, b'GIF8', 'gif'),
-                (0, b'MZ', 'exe'),
-                (0, b'\xd0\xcf\x11\xe0', 'doc'),
-                (4, b'ftyp', 'mp4'),  # Common for MP4/MOV
-                (0, b'\x1a\x45\xdf\xa3', 'mkv'),
-                # ID3 at offset 0 indicates an ID3v2 tag at the beginning of an MP3 file
-                (0, b'ID3', 'mp3'),
-                (0, b'\xff\xfb', 'mp3'),
-                (0, b'\xff\xf3', 'mp3'),
-                (0, b'\xff\xf2', 'mp3'),
-            ]
+        # Format: (offset, signature, type_name)
+        signatures = [
+            (0, b'%PDF', 'pdf'),
+            (0, b'PK\x03\x04', 'zip'),
+            (0, b'\xff\xd8\xff', 'jpeg'),
+            (0, b'\x89PNG', 'png'),
+            (0, b'GIF8', 'gif'),
+            (0, b'MZ', 'exe'),
+            (0, b'\xd0\xcf\x11\xe0', 'doc'),
+            (4, b'ftyp', 'mp4'),  # Common for MP4/MOV
+            (0, b'\x1a\x45\xdf\xa3', 'mkv'),
+            # ID3 at offset 0 indicates an ID3v2 tag at the beginning of an MP3 file
+            (0, b'ID3', 'mp3'),
+            (0, b'\xff\xfb', 'mp3'),
+            (0, b'\xff\xf3', 'mp3'),
+            (0, b'\xff\xf2', 'mp3'),
+            # Additional Media Types
+            (0, b'\x30\x26\xB2\x75\x8E\x66\xCF\x11', 'wmv'),
+            (0, b'FLV', 'flv'),
+            (0, b'OggS', 'ogg'),
+            (0, b'fLaC', 'flac'),
+        ]
 
-            for offset, sig, name in signatures:
-                if len(data) >= offset + len(sig):
-                    if data[offset:offset+len(sig)] == sig:
-                        actual_type = name
-                        break
+        for offset, sig, name in signatures:
+            if len(data) >= offset + len(sig):
+                if data[offset:offset+len(sig)] == sig:
+                    return name
+
+        return None
+
+    def _check_content_type_mismatch(self, filename: str, content_type: str, data: bytes) -> Tuple[float, str]:
+        """Check if actual file content matches declared content type"""
+        actual_type = self._detect_file_type(data)
 
         if actual_type:
             # Check if extension matches detected type
@@ -276,6 +279,10 @@ class MediaAuthenticityAnalyzer:
                 'mp3': ['.mp3'],
                 'mkv': ['.mkv', '.webm'],
                 'webp': ['.webp'],
+                'wmv': ['.wmv'],
+                'flv': ['.flv'],
+                'ogg': ['.ogg', '.oga', '.ogv', '.ogx'],
+                'flac': ['.flac'],
             }
 
             if actual_type in expected_extensions:
@@ -305,6 +312,13 @@ class MediaAuthenticityAnalyzer:
                 '.avi': 'AVI video',
                 '.mkv': 'MKV video',
                 '.wav': 'WAV audio',
+                # Additional strict validation for media types processed by OpenCV
+                '.mov': 'QuickTime video',
+                '.wmv': 'WMV video',
+                '.flv': 'FLV video',
+                '.ogg': 'Ogg audio/video',
+                '.flac': 'FLAC audio',
+                '.m4a': 'M4A audio',
             }
 
             # Treat all known media extensions (and WAV) as critical when their signatures are invalid,
@@ -476,7 +490,8 @@ class MediaAuthenticityAnalyzer:
                 success, frame = cap.read()
                 count = 0
                 while success and count < max_frames:
-                    frames.append(frame)
+                    if frame is not None:
+                        frames.append(self._resize_frame_if_needed(frame))
                     success, frame = cap.read()
                     count += 1
             else:
@@ -485,8 +500,8 @@ class MediaAuthenticityAnalyzer:
                 for i in range(0, total_frames, step):
                     cap.set(cv2.CAP_PROP_POS_FRAMES, i)
                     success, frame = cap.read()
-                    if success:
-                        frames.append(frame)
+                    if success and frame is not None:
+                        frames.append(self._resize_frame_if_needed(frame))
                     if len(frames) >= max_frames:
                         break
 
@@ -495,6 +510,33 @@ class MediaAuthenticityAnalyzer:
             self.logger.error(f"Error extracting frames: {e}")
 
         return frames
+
+    def _resize_frame_if_needed(self, frame: np.ndarray, max_dim: int = 1920) -> np.ndarray:
+        """Resize frame if it exceeds maximum dimension while maintaining aspect ratio"""
+        try:
+            h, w = frame.shape[:2]
+
+            # Defensive check: guard against malformed/empty frames with non-positive dimensions.
+            # OpenCV's resize requires strictly positive width/height; if we get bad input here,
+            # we log and return the frame unchanged rather than raising and bypassing DoS controls.
+            if h <= 0 or w <= 0:
+                self.logger.warning(
+                    f"Received frame with non-positive dimensions (h={h}, w={w}); skipping resize."
+                )
+                return frame
+
+            if max(h, w) <= max_dim:
+                return frame
+
+            scale = max_dim / max(h, w)
+            # Clamp new dimensions to at least 1 pixel to avoid int() rounding to 0,
+            # which would cause cv2.resize to raise and circumvent the downscaling.
+            new_w = max(1, int(w * scale))
+            new_h = max(1, int(h * scale))
+            return cv2.resize(frame, (new_w, new_h), interpolation=cv2.INTER_AREA)
+        except Exception as e:
+            self.logger.warning(f"Error resizing frame: {e}")
+            return frame
 
     def _analyze_facial_inconsistencies(self, frames: List[np.ndarray]) -> Tuple[float, List[str]]:
         """

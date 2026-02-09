@@ -2,14 +2,17 @@
 import unittest
 import numpy as np
 import sys
+import os
 from unittest.mock import MagicMock, patch
+from datetime import datetime
 
 # Add src to path
-import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../src')))
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from src.modules.media_analyzer import MediaAuthenticityAnalyzer
+from src.modules.email_ingestion import EmailData
+from src.utils.config import AnalysisConfig
 
 class TestMediaDoS(unittest.TestCase):
     def setUp(self):
@@ -59,6 +62,65 @@ class TestMediaDoS(unittest.TestCase):
         self.assertAlmostEqual(original_aspect, new_aspect, places=2, msg="Aspect ratio mismatch")
 
         print("Test Passed: Frame was correctly resized.")
+
+class TestMediaSecurity(unittest.TestCase):
+    def setUp(self):
+        self.config = AnalysisConfig(
+            spam_threshold=5.0,
+            spam_check_headers=True,
+            spam_check_urls=True,
+            nlp_model="test",
+            nlp_threshold=0.7,
+            nlp_batch_size=8,
+            check_social_engineering=True,
+            check_urgency_markers=True,
+            check_authority_impersonation=True,
+            check_media_attachments=True,
+            deepfake_detection_enabled=True,
+            media_analysis_timeout=10,
+            deepfake_provider="simulator",
+            deepfake_api_key=None,
+            deepfake_api_url=None,
+            deepfake_model_path=None
+        )
+        self.analyzer = MediaAuthenticityAnalyzer(self.config)
+
+    def test_disguised_mov_file_blocked(self):
+        # Create a "fake" mov that is actually just text
+        # .mov is now strictly validated
+        fake_mov_content = b"This is not a video file, it is a text file disguised as mov."
+
+        email_data = EmailData(
+            message_id="1",
+            subject="Test",
+            sender="sender@example.com",
+            recipient="recipient@example.com",
+            date=datetime.now(),
+            body_text="body",
+            body_html="",
+            headers={},
+            attachments=[{
+                "filename": "exploit.mov",
+                "content_type": "video/quicktime",
+                "size": len(fake_mov_content),
+                "data": fake_mov_content,
+                "truncated": False
+            }],
+            raw_email=None,
+            account_email="me@example.com",
+            folder="INBOX"
+        )
+
+        with unittest.mock.patch.object(self.analyzer, '_extract_frames_from_video', return_value=[]) as mock_extract:
+            result = self.analyzer.analyze(email_data)
+
+            # Check if mismatch was detected
+            found_mismatch = any("Invalid file signature" in w for w in result.suspicious_attachments)
+
+            self.assertTrue(found_mismatch, "Should detect file type mismatch for .mov")
+
+            # Verify that deepfake analysis was skipped (OpenCV not called)
+            mock_extract.assert_not_called()
 
 if __name__ == '__main__':
     unittest.main()
