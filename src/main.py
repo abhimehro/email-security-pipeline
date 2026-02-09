@@ -16,7 +16,7 @@ from pathlib import Path
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.utils.config import Config
+from src.utils.config import Config, ConfigurationError
 from src.utils.colors import Colors
 from src.utils.ui import CountdownTimer
 from src.utils.logging_utils import ColoredFormatter
@@ -113,6 +113,13 @@ class EmailSecurityPipeline:
         except KeyboardInterrupt:
             self.logger.info("Received shutdown signal")
             self.stop()
+        except ConfigurationError as e:
+            print(f"\n{Colors.RED}❌ Configuration Error:{Colors.RESET}")
+            for error in e.args[0]:
+                print(f"  • {Colors.YELLOW}{error}{Colors.RESET}")
+            print(f"\nPlease check your configuration file.")
+            self.stop()
+            sys.exit(1)
         except Exception as e:
             self.logger.error(f"Fatal error: {e}", exc_info=True)
             self.stop()
