@@ -41,7 +41,8 @@ class TestIngestionOptimization(unittest.TestCase):
         # Part 2: 11 characters (should be truncated to 4)
         msg.attach(MIMEText("Part2:67890", "plain"))
 
-        raw_email = msg.as_string().encode('utf-8')
+        # Use as_bytes() to better reflect actual IMAP raw email bytes
+        raw_email = msg.as_bytes()
 
         email_data = self.client.parse_email("1", raw_email, "INBOX")
 
