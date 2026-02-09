@@ -56,9 +56,9 @@ class AlertConfig:
     """Configuration for alert system"""
     console: bool
     webhook_enabled: bool
-    webhook_url: Optional[str]
+    webhook_url: Optional[str] = field(repr=False)
     slack_enabled: bool
-    slack_webhook: Optional[str]
+    slack_webhook: Optional[str] = field(repr=False)
     threat_low: float
     threat_medium: float
     threat_high: float
