@@ -3,7 +3,6 @@ import unittest
 import numpy as np
 import sys
 import os
-import tempfile
 from unittest.mock import MagicMock, patch
 from datetime import datetime
 
