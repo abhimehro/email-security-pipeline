@@ -37,3 +37,8 @@
 **Vulnerability:** `MediaAuthenticityAnalyzer` created temporary files for OpenCV processing but failed to clean them up if an exception occurred during the `write` operation (e.g., disk full). This could lead to disk exhaustion (DoS).
 **Learning:** `tempfile.NamedTemporaryFile(delete=False)` requires manual cleanup in ALL exit paths. Standard `try...finally` blocks must encompass the file creation and writing steps to ensure `os.unlink` is always called.
 **Prevention:** Refactored `_check_deepfake_indicators` to wrap file creation, writing, and usage in a single `try...finally` block, ensuring deterministic cleanup.
+
+## 2026-02-08 - [Credential Leakage in setup.sh]
+**Vulnerability:** `setup.sh` passed credentials as command-line arguments to `sed`, exposing them via `ps aux`. Passwords with special characters (e.g., `|`) could also cause command injection or breakage.
+**Learning:** Never pass secrets as command-line arguments. Use environment variables (not visible in process listings) and a robust language like Python for file manipulation instead of `sed`.
+**Prevention:** Replaced `sed` with an inline Python script. Secrets are passed as one-off environment variables to `python3`, never exported to the shell. Dead `SED_CMD` detection code was removed.

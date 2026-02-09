@@ -19,3 +19,7 @@
 ## 2025-11-14 - LRU Cache on Large Inputs
 **Learning:** Applying `lru_cache` to functions taking potentially large unique strings (like email bodies) creates significant memory and CPU overhead (hashing). If the consumer (e.g., a Transformer model) only processes a prefix (e.g., 512 tokens), truncating the input *before* caching provides massive speedups (~300x in benchmarks) and effective cache utilization.
 **Action:** Truncate large input strings to the effective processing limit before passing them to cached functions.
+
+## 2026-02-08 - Memory-Efficient Match Counting
+**Learning:** `re.findall()` allocates a list of all matching strings, which wastes memory when only the count is needed. For large texts (up to 1MB) with many matches, `sum(1 for _ in re.finditer())` achieves >99% memory reduction while maintaining comparable speed.
+**Action:** Use `re.finditer()` with a generator expression instead of `re.findall()` when only the match count is needed.

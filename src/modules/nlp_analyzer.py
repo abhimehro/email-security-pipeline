@@ -315,11 +315,13 @@ class NLPThreatAnalyzer:
             indicators.append(f"Excessive exclamation marks ({exclamation_count})")
 
         # Check for all caps words (shouting)
-        # Using pre-compiled regex for performance
-        caps_words = self.CAPS_WORDS_PATTERN.findall(text)
-        if len(caps_words) > 3:
-            score += len(caps_words) * 0.3
-            indicators.append(f"Excessive caps words ({len(caps_words)})")
+        # Using finditer instead of findall to avoid allocating full match list
+        caps_word_count = sum(
+            1 for _ in self.CAPS_WORDS_PATTERN.finditer(text)
+        )
+        if caps_word_count > 3:
+            score += caps_word_count * 0.3
+            indicators.append(f"Excessive caps words ({caps_word_count})")
 
         return score, indicators
 

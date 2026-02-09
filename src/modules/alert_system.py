@@ -100,8 +100,13 @@ class AlertSystem:
         bar = "█" * filled_len + "░" * (meter_len - filled_len)
         meter_color = Colors.get_risk_color(report.risk_level)
 
+        risk_symbol = Colors.get_risk_symbol(report.risk_level)
         print(f"{Colors.BOLD}Score:{Colors.RESET}     {Colors.colorize(bar, meter_color)} {report.overall_threat_score:.2f}/100")
-        print(f"{Colors.BOLD}Risk:{Colors.RESET}      {Colors.colorize(report.risk_level.upper(), risk_color + Colors.BOLD)}")
+        print(
+            f"{Colors.BOLD}Risk:{Colors.RESET}      "
+            f"{Colors.colorize(report.risk_level.upper(), risk_color + Colors.BOLD)}"
+            f" {risk_symbol}"
+        )
 
         # Spam Analysis Section
         print(f"\n{Colors.BOLD}📧 SPAM ANALYSIS{Colors.RESET}")

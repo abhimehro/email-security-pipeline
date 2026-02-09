@@ -4,13 +4,6 @@
 
 set -e  # Exit on error
 
-# Check if running on macOS or Linux
-if [[ "$OSTYPE" == "darwin"* ]]; then
-    SED_CMD="sed -i ''"
-else
-    SED_CMD="sed -i"
-fi
-
 echo "===================================="
 echo "Email Security Pipeline Setup"
 echo "===================================="
@@ -53,11 +46,45 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
     read -sp "Enter your Gmail app password (hidden): " gmail_password
     echo ""
 
-    # Update .env file (using OS-appropriate sed command)
-    $SED_CMD "s|GMAIL_EMAIL=.*|GMAIL_EMAIL=$gmail_email|" .env
-    $SED_CMD "s|GMAIL_APP_PASSWORD=.*|GMAIL_APP_PASSWORD=$gmail_password|" .env
+    # Require python3 for safe .env updates
+    if ! command -v python3 &> /dev/null; then
+        echo -e "${RED}Error: python3 is required to update .env safely${NC}"
+        exit 1
+    fi
 
-    # Clear password from memory (basic security measure)
+    # Update .env file using Python to avoid credential leakage via ps aux.
+    # Secrets are passed as one-off environment variables, never exported.
+    GMAIL_EMAIL="$gmail_email" GMAIL_APP_PASSWORD="$gmail_password" python3 -c '
+import os
+
+email = os.environ.get("GMAIL_EMAIL", "")
+password = os.environ.get("GMAIL_APP_PASSWORD", "")
+
+lines = []
+email_found = False
+password_found = False
+
+with open(".env", "r") as f:
+    for line in f:
+        if line.startswith("GMAIL_EMAIL="):
+            lines.append(f"GMAIL_EMAIL={email}\n")
+            email_found = True
+        elif line.startswith("GMAIL_APP_PASSWORD="):
+            lines.append(f"GMAIL_APP_PASSWORD={password}\n")
+            password_found = True
+        else:
+            lines.append(line)
+
+if not email_found:
+    lines.append(f"GMAIL_EMAIL={email}\n")
+if not password_found:
+    lines.append(f"GMAIL_APP_PASSWORD={password}\n")
+
+with open(".env", "w") as f:
+    f.writelines(lines)
+'
+
+    # Clear password from shell variable
     gmail_password=""
 
     echo -e "${GREEN}Gmail credentials configured!${NC}"

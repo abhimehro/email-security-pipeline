@@ -27,3 +27,11 @@
 ## 2025-11-25 - Visual Hierarchy in Console Lists
 **Learning:** Color-coding list bullets in CLI output significantly improves scannability, allowing users to instantly identify high-severity items in a list of mixed recommendations.
 **Action:** Use semantic colors (Red/Yellow/Green) for list markers when displaying prioritized or categorized information in terminal interfaces.
+
+## 2026-02-08 - Risk Indicator Symbols
+**Learning:** Adding emoji risk indicators (🔴🟡🟢) to log and alert output lets users scan analysis results at a glance without reading score values. Use a dictionary mapping for maintainability.
+**Action:** Use `Colors.get_risk_symbol()` to annotate risk levels in logs and console alerts.
+
+## 2026-02-08 - Progress Bar for Countdown Timer
+**Learning:** A visual progress bar in the countdown timer provides immediate context for remaining time that a numeric countdown alone cannot convey. Use the block/shade characters (█/░) for universal terminal support.
+**Action:** Render a colored progress bar alongside the countdown timer, gated behind `sys.stdout.isatty()` for CI/CD compatibility.
