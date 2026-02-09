@@ -187,7 +187,17 @@ class AlertSystem:
         if len(sanitized_subject) > 60:
             subject += "..."
 
-        print(f"{Colors.GREEN}✓ CLEAN{Colors.RESET} [{time_str}] {subject} (Score: {score_val:.1f})")
+        # Sender truncated
+        sanitized_sender = self._sanitize_text(report.sender)
+        sender = sanitized_sender[:25]
+        if len(sanitized_sender) > 25:
+            sender += "..."
+
+        print(
+            f"{Colors.GREEN}✓ CLEAN{Colors.RESET} [{time_str}] "
+            f"{Colors.BOLD}{sender}{Colors.RESET}: {subject} "
+            f"(Score: {score_val:.1f})"
+        )
 
     def _webhook_alert(self, report: ThreatReport):
         """Send alert via webhook"""
