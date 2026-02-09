@@ -34,3 +34,14 @@ class Colors:
         elif level == "low":
             return cls.GREEN
         return cls.WHITE
+
+    @staticmethod
+    def get_risk_symbol(risk_level: str) -> str:
+        """Get emoji symbol for a risk level"""
+        level = risk_level.lower()
+        symbols = {
+            "high": "🔴",
+            "medium": "🟡",
+            "low": "🟢",
+        }
+        return symbols.get(level, "⚪")

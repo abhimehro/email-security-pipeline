@@ -7,12 +7,16 @@ import sys
 import time
 import threading
 
+from .colors import Colors
+
 
 class CountdownTimer:
     """
     Displays a countdown timer in the terminal.
     Handles TTY checking and graceful interruptions.
     """
+
+    PROGRESS_BAR_WIDTH = 20
 
     def __init__(self, duration: int, message: str = "Waiting", interval: float = 1.0):
         self.duration = duration
@@ -36,8 +40,16 @@ class CountdownTimer:
                 else:
                     time_str = f"{remaining}s"
 
+                # Progress bar
+                pct = remaining / self.duration if self.duration > 0 else 0
+                filled = int(pct * self.PROGRESS_BAR_WIDTH)
+                progress_bar = "█" * filled + "░" * (self.PROGRESS_BAR_WIDTH - filled)
+                colored_bar = Colors.colorize(progress_bar, Colors.CYAN)
+
                 # \r moves cursor to start of line, \033[K clears the line
-                sys.stdout.write(f"\r{self.message}: {time_str} ... \033[K")
+                sys.stdout.write(
+                    f"\r{self.message}: {colored_bar} {time_str} \033[K"
+                )
                 sys.stdout.flush()
 
                 time.sleep(self.interval)
