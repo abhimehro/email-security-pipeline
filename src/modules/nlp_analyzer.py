@@ -6,10 +6,11 @@ urgency markers, and psychological manipulation
 
 import re
 import logging
+import hashlib
+import threading
 from typing import List, Dict, Tuple, Optional
 from collections import defaultdict
 from dataclasses import dataclass
-from functools import lru_cache
 
 from .email_ingestion import EmailData
 
@@ -109,6 +110,8 @@ class NLPThreatAnalyzer:
         self.model = None
         self.tokenizer = None
         self.device = None
+        self._cache = {}
+        self._lock = threading.Lock()
 
         # Compile combined master pattern for performance
         # We combine all regex patterns into a single master regex to scan the text
@@ -427,16 +430,40 @@ class NLPThreatAnalyzer:
         Returns:
             Dictionary with analysis results
         """
-        # Optimization: Truncate text before processing/caching
-        # 4096 chars is ~1000 tokens, well above the 512 token limit of most models
-        # This avoids hashing and processing huge strings for the cache key
+        # Optimization: Truncate text before processing
         truncated_text = text[:4096]
-        return self._analyze_with_transformer_core(truncated_text)
 
-    @lru_cache(maxsize=1024)
-    def _analyze_with_transformer_core(self, text: str) -> Dict:
+        # Calculate hash for cache key to avoid storing raw text
+        text_hash = hashlib.sha256(truncated_text.encode()).hexdigest()
+
+        # Check cache
+        with self._lock:
+            if text_hash in self._cache:
+                # Move to end (LRU)
+                val = self._cache.pop(text_hash)
+                self._cache[text_hash] = val
+                return val
+
+        # Compute result
+        result = self._analyze_core_impl(truncated_text)
+
+        # Store in cache
+        with self._lock:
+            self._cache[text_hash] = result
+
+            # Enforce size limit
+            if len(self._cache) > 1024:
+                # Remove oldest (first inserted)
+                try:
+                    self._cache.pop(next(iter(self._cache)))
+                except (StopIteration, KeyError):
+                    pass
+
+        return result
+
+    def _analyze_core_impl(self, text: str) -> Dict:
         """
-        Core transformer analysis with caching
+        Core transformer analysis implementation
         """
         if not self.model or not self.tokenizer:
             return {"error": "Model not loaded"}

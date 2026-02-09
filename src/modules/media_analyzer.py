@@ -34,7 +34,9 @@ class MediaAuthenticityAnalyzer:
     # Dangerous file extensions
     DANGEROUS_EXTENSIONS = [
         '.exe', '.bat', '.cmd', '.com', '.pif', '.scr', '.vbs', '.js',
-        '.jar', '.msi', '.dll', '.hta', '.wsf', '.ps1', '.sh', '.app'
+        '.jar', '.msi', '.dll', '.hta', '.wsf', '.ps1', '.sh', '.bash', '.app',
+        '.php', '.php3', '.php4', '.php5', '.phtml', '.pl', '.py', '.rb',
+        '.asp', '.aspx', '.jsp', '.jspx', '.cgi'
     ]
 
     # Suspicious file extensions (commonly used for disguise)
