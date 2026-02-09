@@ -449,31 +449,44 @@ class IMAPClient:
                     # Extract text body
                     if content_type == "text/plain" and "attachment" not in content_disposition:
                         if body_text_len < self.max_body_size:
-                            text_part = self._decode_part_payload(part)
-                            # Check truncation before append
-                            remaining = self.max_body_size - body_text_len
-                            if len(text_part) > remaining:
-                                text_part = text_part[:remaining]
+                            # Get raw bytes and truncate at byte level before decoding
+                            payload_bytes = part.get_payload(decode=True)
+                            if payload_bytes:
+                                remaining_bytes = self.max_body_size - body_text_len
+                                truncated = len(payload_bytes) > remaining_bytes
+                                if truncated:
+                                    payload_bytes = payload_bytes[:remaining_bytes]
+                                
+                                # Decode the (potentially truncated) bytes
+                                text_part = self._decode_bytes(payload_bytes, part.get_content_charset())
                                 body_text_parts.append(text_part)
-                                body_text_len += len(text_part)
-                                self.logger.warning(f"Body text truncated to {self.max_body_size} bytes for email {safe_email_id}")
-                            else:
-                                body_text_parts.append(text_part)
-                                body_text_len += len(text_part)
+                                body_text_len += len(payload_bytes)
+                                
+                                if truncated:
+                                    self.logger.warning(
+                                        f"Body text truncated to {self.max_body_size} bytes for email {safe_email_id}"
+                                    )
 
                     # Extract HTML body
                     elif content_type == "text/html" and "attachment" not in content_disposition:
                         if body_html_len < self.max_body_size:
-                            html_part = self._decode_part_payload(part)
-                            remaining = self.max_body_size - body_html_len
-                            if len(html_part) > remaining:
-                                html_part = html_part[:remaining]
+                            # Get raw bytes and truncate at byte level before decoding
+                            payload_bytes = part.get_payload(decode=True)
+                            if payload_bytes:
+                                remaining_bytes = self.max_body_size - body_html_len
+                                truncated = len(payload_bytes) > remaining_bytes
+                                if truncated:
+                                    payload_bytes = payload_bytes[:remaining_bytes]
+                                
+                                # Decode the (potentially truncated) bytes
+                                html_part = self._decode_bytes(payload_bytes, part.get_content_charset())
                                 body_html_parts.append(html_part)
-                                body_html_len += len(html_part)
-                                self.logger.warning(f"Body HTML truncated to {self.max_body_size} bytes for email {safe_email_id}")
-                            else:
-                                body_html_parts.append(html_part)
-                                body_html_len += len(html_part)
+                                body_html_len += len(payload_bytes)
+                                
+                                if truncated:
+                                    self.logger.warning(
+                                        f"Body HTML truncated to {self.max_body_size} bytes for email {safe_email_id}"
+                                    )
 
                     # Extract attachments
                     elif "attachment" in content_disposition:

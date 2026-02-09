@@ -25,5 +25,5 @@
 **Action:** Use `re.finditer()` with a generator expression instead of `re.findall()` when only the match count is needed.
 
 ## 2026-03-05 - Multipart Email Parsing Efficiency
-**Learning:** String concatenation in a loop (`body += part`) for potentially many parts leads to O(N^2) complexity, which can be a DoS vector for large emails with many small parts. Using `list.append()` followed by `"".join()` is O(N) and significantly safer and faster for large inputs.
-**Action:** Use list accumulation for string building in loops, especially when handling external input like email bodies.
+**Learning:** String concatenation in a loop (`body += part`) for potentially many parts leads to O(N^2) complexity, which can be a DoS vector for large emails with many small parts. Using `list.append()` followed by `"".join()` is O(N) and significantly safer and faster for large inputs. Additionally, size limits must be enforced at the byte level (before decoding) to accurately respect configured limits and avoid decoding unnecessarily large payloads.
+**Action:** Use list accumulation for string building in loops, especially when handling external input like email bodies. Truncate raw bytes before decoding to avoid wasting CPU/memory on content that will be discarded.
