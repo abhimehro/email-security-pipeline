@@ -461,7 +461,7 @@ class IMAPClient:
                                     bytes_to_add = len(payload_bytes)
                                 
                                 # Decode the (potentially truncated) bytes
-                                text_part = self._decode_bytes(payload_bytes, part.get_content_charset())
+                                text_part = IMAPClient._decode_bytes(payload_bytes, part.get_content_charset())
                                 body_text_parts.append(text_part)
                                 body_text_len += bytes_to_add
                                 
@@ -485,7 +485,7 @@ class IMAPClient:
                                     bytes_to_add = len(payload_bytes)
                                 
                                 # Decode the (potentially truncated) bytes
-                                html_part = self._decode_bytes(payload_bytes, part.get_content_charset())
+                                html_part = IMAPClient._decode_bytes(payload_bytes, part.get_content_charset())
                                 body_html_parts.append(html_part)
                                 body_html_len += bytes_to_add
                                 
