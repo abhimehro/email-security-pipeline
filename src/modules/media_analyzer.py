@@ -10,6 +10,7 @@ import zipfile
 import io
 import numpy as np
 import cv2
+import concurrent.futures
 from typing import List, Tuple
 from dataclasses import dataclass
 
@@ -132,11 +133,29 @@ class MediaAuthenticityAnalyzer:
             # Only proceed if the file hasn't already been flagged as dangerous/suspicious (score >= 5.0)
             # This prevents processing of potentially malicious files (e.g., disguised executables)
             if self.config.deepfake_detection_enabled and threat_score < 5.0:
-                deepfake_score, deepfake_indicators = self._check_deepfake_indicators(
-                    filename, data, content_type
-                )
-                threat_score += deepfake_score
-                potential_deepfakes.extend(deepfake_indicators)
+                executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
+                try:
+                    future = executor.submit(
+                        self._check_deepfake_indicators,
+                        filename,
+                        data,
+                        content_type
+                    )
+                    deepfake_score, deepfake_indicators = future.result(
+                        timeout=self.config.media_analysis_timeout
+                    )
+                    threat_score += deepfake_score
+                    potential_deepfakes.extend(deepfake_indicators)
+                except concurrent.futures.TimeoutError:
+                    self.logger.warning(
+                        f"Deepfake analysis timed out for {filename} (>{self.config.media_analysis_timeout}s)"
+                    )
+                    size_anomalies.append(f"Deepfake analysis timed out: {filename}")
+                except Exception as e:
+                    self.logger.error(f"Deepfake analysis failed for {filename}: {e}")
+                finally:
+                    # Do not wait for the thread to finish if it's stuck
+                    executor.shutdown(wait=False, cancel_futures=True)
 
         # Calculate risk level
         risk_level = self._calculate_risk_level(threat_score)
