@@ -41,10 +41,7 @@ class CountdownTimer:
                     time_str = f"{remaining}s"
 
                 # Progress bar
-                if self.duration > 0:
-                    pct = remaining / self.duration
-                else:
-                    pct = 0
+                pct = remaining / self.duration if self.duration > 0 else 0
                 filled = int(pct * self.PROGRESS_BAR_WIDTH)
                 progress_bar = "█" * filled + "░" * (self.PROGRESS_BAR_WIDTH - filled)
                 colored_bar = Colors.colorize(progress_bar, Colors.CYAN)
