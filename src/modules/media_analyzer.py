@@ -515,12 +515,24 @@ class MediaAuthenticityAnalyzer:
         """Resize frame if it exceeds maximum dimension while maintaining aspect ratio"""
         try:
             h, w = frame.shape[:2]
+
+            # Defensive check: guard against malformed/empty frames with non-positive dimensions.
+            # OpenCV's resize requires strictly positive width/height; if we get bad input here,
+            # we log and return the frame unchanged rather than raising and bypassing DoS controls.
+            if h <= 0 or w <= 0:
+                self.logger.warning(
+                    f"Received frame with non-positive dimensions (h={h}, w={w}); skipping resize."
+                )
+                return frame
+
             if max(h, w) <= max_dim:
                 return frame
 
             scale = max_dim / max(h, w)
-            new_w = int(w * scale)
-            new_h = int(h * scale)
+            # Clamp new dimensions to at least 1 pixel to avoid int() rounding to 0,
+            # which would cause cv2.resize to raise and circumvent the downscaling.
+            new_w = max(1, int(w * scale))
+            new_h = max(1, int(h * scale))
             return cv2.resize(frame, (new_w, new_h), interpolation=cv2.INTER_AREA)
         except Exception as e:
             self.logger.warning(f"Error resizing frame: {e}")
