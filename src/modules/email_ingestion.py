@@ -429,6 +429,13 @@ class IMAPClient:
             # Extract body
             body_text = ""
             body_html = ""
+
+            # Optimization: Use lists to accumulate body parts to avoid O(N^2) string concatenation
+            body_text_parts = []
+            body_html_parts = []
+            body_text_len = 0
+            body_html_len = 0
+
             attachments = []
             current_total_size = 0
 
@@ -441,21 +448,32 @@ class IMAPClient:
 
                     # Extract text body
                     if content_type == "text/plain" and "attachment" not in content_disposition:
-                        text_part = self._decode_part_payload(part)
-                        if len(body_text) < self.max_body_size:
-                            body_text += text_part
-                            if len(body_text) > self.max_body_size:
-                                body_text = body_text[:self.max_body_size]
+                        if body_text_len < self.max_body_size:
+                            text_part = self._decode_part_payload(part)
+                            # Check truncation before append
+                            remaining = self.max_body_size - body_text_len
+                            if len(text_part) > remaining:
+                                text_part = text_part[:remaining]
+                                body_text_parts.append(text_part)
+                                body_text_len += len(text_part)
                                 self.logger.warning(f"Body text truncated to {self.max_body_size} bytes for email {safe_email_id}")
+                            else:
+                                body_text_parts.append(text_part)
+                                body_text_len += len(text_part)
 
                     # Extract HTML body
                     elif content_type == "text/html" and "attachment" not in content_disposition:
-                        html_part = self._decode_part_payload(part)
-                        if len(body_html) < self.max_body_size:
-                            body_html += html_part
-                            if len(body_html) > self.max_body_size:
-                                body_html = body_html[:self.max_body_size]
+                        if body_html_len < self.max_body_size:
+                            html_part = self._decode_part_payload(part)
+                            remaining = self.max_body_size - body_html_len
+                            if len(html_part) > remaining:
+                                html_part = html_part[:remaining]
+                                body_html_parts.append(html_part)
+                                body_html_len += len(html_part)
                                 self.logger.warning(f"Body HTML truncated to {self.max_body_size} bytes for email {safe_email_id}")
+                            else:
+                                body_html_parts.append(html_part)
+                                body_html_len += len(html_part)
 
                     # Extract attachments
                     elif "attachment" in content_disposition:
@@ -500,6 +518,10 @@ class IMAPClient:
                                 "truncated": truncated,
                             })
                             current_total_size += original_size
+
+                # Join collected parts
+                body_text = "".join(body_text_parts)
+                body_html = "".join(body_html_parts)
             else:
                 # Single part message
                 content_type = msg.get_content_type()
