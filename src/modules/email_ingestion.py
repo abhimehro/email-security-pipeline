@@ -83,6 +83,27 @@ class IMAPClient:
         self.connection: Optional[imaplib.IMAP4_SSL] = None
         self.logger = logging.getLogger(f"IMAPClient.{config.provider}")
 
+    def _get_auth_tip(self, error_msg: str) -> Optional[str]:
+        """Get actionable tip based on error and provider"""
+        msg_lower = error_msg.lower()
+        server_lower = self.config.imap_server.lower()
+
+        # Check for authentication failures
+        auth_keywords = ["authentication failed", "login failed", "invalid credentials", "logon failure", "authenticate"]
+        if not any(k in msg_lower for k in auth_keywords):
+            return None
+
+        if "outlook" in server_lower or "office365" in server_lower:
+            return "Personal Outlook/Hotmail accounts NO LONGER support passwords. You must use an App Password or OAuth (Enterprise)."
+
+        if "gmail" in server_lower:
+            return "Gmail requires 2-Step Verification enabled and an App Password to use IMAP."
+
+        if "yahoo" in server_lower:
+            return "Yahoo Mail requires an App Password generated from account security settings."
+
+        return "Check your email and password. If using 2FA, you likely need an App Password."
+
     @staticmethod
     def _create_secure_ssl_context(verify_ssl: bool = True) -> ssl.SSLContext:
         """
@@ -133,12 +154,14 @@ class IMAPClient:
                 self.connection = imaplib.IMAP4_SSL(
                     self.config.imap_server,
                     self.config.imap_port,
-                    ssl_context=context
+                    ssl_context=context,
+                    timeout=30  # Security: Prevent indefinite hangs
                 )
             else:
                 self.connection = imaplib.IMAP4(
                     self.config.imap_server,
-                    self.config.imap_port
+                    self.config.imap_port,
+                    timeout=30  # Security: Prevent indefinite hangs
                 )
                 self.connection.starttls(ssl_context=context)
 
@@ -148,6 +171,9 @@ class IMAPClient:
 
         except imaplib.IMAP4.error as e:
             self.logger.error(f"IMAP connection error: {e}")
+            tip = self._get_auth_tip(str(e))
+            if tip:
+                self.logger.warning(f"💡 {tip}")
             return False
         except Exception as e:
             self.logger.error(f"Unexpected connection error: {e}")
@@ -590,6 +616,9 @@ class IMAPClient:
             conn.logout()
         except imaplib.IMAP4.error as e:
             result["error"] = f"IMAP login failed: {e}"
+            tip = self._get_auth_tip(str(e))
+            if tip:
+                result["error"] += f" ({tip})"
         except Exception as e:
             result["error"] = f"Credential check failed with unexpected error: {e}"
         return result
@@ -605,7 +634,7 @@ class IMAPClient:
 
     # Pre-compiled regex patterns for filename sanitization
     FILENAME_SANITIZE_PATTERN = re.compile(r'[^a-zA-Z0-9.\-_ ]')
-    FILENAME_COLLAPSE_DOTS_PATTERN = re.compile(r'\.+')
+    FILENAME_COLLAPSE_DOTS_PATTERN = re.compile(r'\.{2,}')
 
     @staticmethod
     def _sanitize_filename(filename: str) -> str:
@@ -631,8 +660,7 @@ class IMAPClient:
         filename = IMAPClient.FILENAME_SANITIZE_PATTERN.sub('_', filename)
 
         # 3. Prevent hidden files (starting with dot)
-        while filename.startswith('.'):
-            filename = filename[1:]
+        filename = filename.lstrip('.')
 
         # 4. Collapse multiple dots (e.g., file..exe)
         filename = IMAPClient.FILENAME_COLLAPSE_DOTS_PATTERN.sub('.', filename)

@@ -6,10 +6,11 @@ urgency markers, and psychological manipulation
 
 import re
 import logging
+import hashlib
+import threading
 from typing import List, Dict, Tuple, Optional
 from collections import defaultdict
 from dataclasses import dataclass
-from functools import lru_cache
 
 from .email_ingestion import EmailData
 
@@ -109,6 +110,8 @@ class NLPThreatAnalyzer:
         self.model = None
         self.tokenizer = None
         self.device = None
+        self._cache = {}
+        self._lock = threading.Lock()
 
         # Compile combined master pattern for performance
         # We combine all regex patterns into a single master regex to scan the text
@@ -206,27 +209,11 @@ class NLPThreatAnalyzer:
         authority_impersonation = []
         psychological_triggers = []
 
-        # Combine text for analysis
-        text = f"{email_data.subject} {email_data.body_text}"
+        # Iterate over parts to avoid large string concatenation
+        parts = [email_data.subject, email_data.body_text]
 
-        # Single pass scan
-        matches_by_category = {
-            "SE": defaultdict(int),
-            "UG": defaultdict(int),
-            "AU": defaultdict(list), # Authority needs the actual match strings
-            "PS": defaultdict(int)
-        }
-
-        # Optimization: Fast check with simple pattern
-        if self.simple_master_pattern.search(text):
-            for match in self.master_pattern.finditer(text):
-                group_name = match.lastgroup
-                if group_name and group_name in self.master_map:
-                    prefix, description = self.master_map[group_name]
-                    if prefix == "AU":
-                        matches_by_category[prefix][description].append(match.group())
-                    else:
-                        matches_by_category[prefix][description] += 1
+        # Scan text for patterns and stats
+        matches_by_category, exclamation_count, caps_count = self._scan_text_patterns(parts)
 
         # Check for social engineering
         if self.config.check_social_engineering:
@@ -236,7 +223,7 @@ class NLPThreatAnalyzer:
 
         # Check for urgency markers
         if self.config.check_urgency_markers:
-            score, indicators = self._detect_urgency(text, matches_by_category["UG"])
+            score, indicators = self._detect_urgency(exclamation_count, caps_count, matches_by_category["UG"])
             threat_score += score
             urgency_markers.extend(indicators)
 
@@ -256,21 +243,9 @@ class NLPThreatAnalyzer:
 
         # Integration of Transformer Model Predictions into Threat Scoring
         if self.model and self.tokenizer:
-            # We pass the original text to the transformer, not lowercased
-            # as some models are case-sensitive (though distilbert-base-uncased isn't)
-            transformer_results = self.analyze_with_transformer(text)
-            if "error" not in transformer_results:
-                ml_threat_prob = transformer_results.get("threat_probability", 0.0)
-
-                # If the probability suggests a threat (>0.5), we increase the score.
-                if ml_threat_prob > 0.5:
-                    # Map 0.5-1.0 to 0-10 points
-                    ml_score = (ml_threat_prob - 0.5) * 20
-                    threat_score += ml_score
-                    social_engineering.append(
-                        f"ML Model detected high threat probability: "
-                        f"{ml_threat_prob:.2f}"
-                    )
+            ml_score, ml_indicators = self._run_transformer_analysis(email_data)
+            threat_score += ml_score
+            social_engineering.extend(ml_indicators)
 
         # Calculate risk level
         risk_level = self._calculate_risk_level(threat_score)
@@ -288,6 +263,74 @@ class NLPThreatAnalyzer:
             risk_level=risk_level
         )
 
+    def _scan_text_patterns(self, parts: List[Optional[str]]) -> Tuple[Dict, int, int]:
+        """Scan text parts for patterns and statistics"""
+        exclamation_count = 0
+        caps_count = 0
+        matches_by_category = {
+            "SE": defaultdict(int),
+            "UG": defaultdict(int),
+            "AU": defaultdict(list), # Authority needs the actual match strings
+            "PS": defaultdict(int)
+        }
+
+        for part in parts:
+            if not part:
+                continue
+
+            # Accumulate simple counts for urgency detection
+            exclamation_count += part.count('!')
+            # Use finditer for memory efficiency instead of findall
+            caps_count += sum(1 for _ in self.CAPS_WORDS_PATTERN.finditer(part))
+
+            # Optimization: Fast check with simple pattern
+            if self.simple_master_pattern.search(part):
+                for match in self.master_pattern.finditer(part):
+                    group_name = match.lastgroup
+                    if group_name and group_name in self.master_map:
+                        prefix, description = self.master_map[group_name]
+                        if prefix == "AU":
+                            matches_by_category[prefix][description].append(match.group())
+                        else:
+                            matches_by_category[prefix][description] += 1
+
+        return matches_by_category, exclamation_count, caps_count
+
+    def _run_transformer_analysis(self, email_data: EmailData) -> Tuple[float, List[str]]:
+        """Run transformer model analysis on email content"""
+        # Prepare text for transformer efficiently, avoiding huge concatenation
+        # Truncate text before processing/caching
+        # 4096 chars is ~1000 tokens, well above the 512 token limit of most models
+        max_len = 4096
+        subject_len = len(email_data.subject)
+        # +1 for space between subject and body
+        if subject_len + 1 >= max_len:
+            ml_text = email_data.subject[:max_len]
+        else:
+            ml_text = f"{email_data.subject} {email_data.body_text[:max_len - subject_len - 1]}"
+
+        # We pass the text to the transformer
+        # as some models are case-sensitive (though distilbert-base-uncased isn't)
+        transformer_results = self.analyze_with_transformer(ml_text)
+
+        score = 0.0
+        indicators = []
+
+        if "error" not in transformer_results:
+            ml_threat_prob = transformer_results.get("threat_probability", 0.0)
+
+            # If the probability suggests a threat (>0.5), we increase the score.
+            if ml_threat_prob > 0.5:
+                # Map 0.5-1.0 to 0-10 points
+                ml_score = (ml_threat_prob - 0.5) * 20
+                score += ml_score
+                indicators.append(
+                    f"ML Model detected high threat probability: "
+                    f"{ml_threat_prob:.2f}"
+                )
+
+        return score, indicators
+
     def _detect_social_engineering(self, counts: Dict[str, int]) -> Tuple[float, List[str]]:
         """Detect social engineering patterns"""
         score = 0.0
@@ -299,7 +342,7 @@ class NLPThreatAnalyzer:
 
         return score, indicators
 
-    def _detect_urgency(self, text: str, counts: Dict[str, int]) -> Tuple[float, List[str]]:
+    def _detect_urgency(self, exclamation_count: int, caps_count: int, counts: Dict[str, int]) -> Tuple[float, List[str]]:
         """Detect urgency and time pressure tactics"""
         score = 0.0
         indicators = []
@@ -309,19 +352,14 @@ class NLPThreatAnalyzer:
             indicators.append(f"{description} ({count} occurrences)")
 
         # Check for multiple exclamation marks (urgency indicator)
-        exclamation_count = text.count('!')
         if exclamation_count > 2:
             score += exclamation_count * 0.5
             indicators.append(f"Excessive exclamation marks ({exclamation_count})")
 
         # Check for all caps words (shouting)
-        # Using finditer instead of findall to avoid allocating full match list
-        caps_word_count = sum(
-            1 for _ in self.CAPS_WORDS_PATTERN.finditer(text)
-        )
-        if caps_word_count > 3:
-            score += caps_word_count * 0.3
-            indicators.append(f"Excessive caps words ({caps_word_count})")
+        if caps_count > 3:
+            score += caps_count * 0.3
+            indicators.append(f"Excessive caps words ({caps_count})")
 
         return score, indicators
 
@@ -392,16 +430,40 @@ class NLPThreatAnalyzer:
         Returns:
             Dictionary with analysis results
         """
-        # Optimization: Truncate text before processing/caching
-        # 4096 chars is ~1000 tokens, well above the 512 token limit of most models
-        # This avoids hashing and processing huge strings for the cache key
+        # Optimization: Truncate text before processing
         truncated_text = text[:4096]
-        return self._analyze_with_transformer_core(truncated_text)
 
-    @lru_cache(maxsize=1024)
-    def _analyze_with_transformer_core(self, text: str) -> Dict:
+        # Calculate hash for cache key to avoid storing raw text
+        text_hash = hashlib.sha256(truncated_text.encode()).hexdigest()
+
+        # Check cache
+        with self._lock:
+            if text_hash in self._cache:
+                # Move to end (LRU)
+                val = self._cache.pop(text_hash)
+                self._cache[text_hash] = val
+                return val
+
+        # Compute result
+        result = self._analyze_core_impl(truncated_text)
+
+        # Store in cache
+        with self._lock:
+            self._cache[text_hash] = result
+
+            # Enforce size limit
+            if len(self._cache) > 1024:
+                # Remove oldest (first inserted)
+                try:
+                    self._cache.pop(next(iter(self._cache)))
+                except (StopIteration, KeyError):
+                    pass
+
+        return result
+
+    def _analyze_core_impl(self, text: str) -> Dict:
         """
-        Core transformer analysis with caching
+        Core transformer analysis implementation
         """
         if not self.model or not self.tokenizer:
             return {"error": "Model not loaded"}

@@ -7,16 +7,18 @@ Main orchestrator that coordinates all analysis modules
 import sys
 import time
 import logging
+from logging.handlers import RotatingFileHandler
 import signal
 import shutil
+import concurrent.futures
 from pathlib import Path
 
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.utils.config import Config
+from src.utils.config import Config, ConfigurationError
 from src.utils.colors import Colors
-from src.utils.ui import CountdownTimer
+from src.utils.ui import CountdownTimer, Spinner
 from src.utils.logging_utils import ColoredFormatter
 from src.utils.sanitization import sanitize_for_logging
 from src.modules.email_ingestion import EmailIngestionManager
@@ -60,6 +62,9 @@ class EmailSecurityPipeline:
         self.media_analyzer = MediaAuthenticityAnalyzer(self.config.analysis)
         self.alert_system = AlertSystem(self.config.alerts)
 
+        # Optimization: ThreadPool for parallel analysis
+        self.executor = concurrent.futures.ThreadPoolExecutor(max_workers=3)
+
         self.running = False
 
     def _setup_logging(self):
@@ -71,7 +76,12 @@ class EmailSecurityPipeline:
         log_path.parent.mkdir(parents=True, exist_ok=True)
 
         # Configure handlers
-        file_handler = logging.FileHandler(self.config.system.log_file)
+        # Security: Use RotatingFileHandler to prevent disk space DoS (CWE-400)
+        file_handler = RotatingFileHandler(
+            self.config.system.log_file,
+            maxBytes=10*1024*1024,  # 10MB
+            backupCount=5
+        )
         file_handler.setFormatter(logging.Formatter(log_format))
 
         stream_handler = logging.StreamHandler(sys.stdout)
@@ -89,11 +99,15 @@ class EmailSecurityPipeline:
             # Validate configuration
             self.config.validate()
 
+            # Print configuration summary
+            self._print_configuration_summary()
+
             self.logger.info("Starting Email Security Pipeline")
 
             # Initialize email clients
-            if not self.ingestion_manager.initialize_clients():
-                raise RuntimeError("Failed to initialize email clients")
+            with Spinner("Initializing email clients..."):
+                if not self.ingestion_manager.initialize_clients():
+                    raise RuntimeError("Failed to initialize email clients")
 
             self.running = True
 
@@ -103,6 +117,13 @@ class EmailSecurityPipeline:
         except KeyboardInterrupt:
             self.logger.info("Received shutdown signal")
             self.stop()
+        except ConfigurationError as e:
+            print(f"\n{Colors.RED}❌ Configuration Error:{Colors.RESET}")
+            for error in e.args[0]:
+                print(f"  • {Colors.YELLOW}{error}{Colors.RESET}")
+            print(f"\nPlease check your configuration file.")
+            self.stop()
+            sys.exit(1)
         except Exception as e:
             self.logger.error(f"Fatal error: {e}", exc_info=True)
             self.stop()
@@ -113,6 +134,8 @@ class EmailSecurityPipeline:
         self.logger.info("Stopping Email Security Pipeline")
         self.running = False
         self.ingestion_manager.close_all_connections()
+        if hasattr(self, 'executor'):
+            self.executor.shutdown(wait=True)
         self.logger.info("Pipeline stopped")
 
     def _monitoring_loop(self):
@@ -125,9 +148,10 @@ class EmailSecurityPipeline:
 
             try:
                 # Fetch emails
-                emails = self.ingestion_manager.fetch_all_emails(
-                    self.config.system.max_emails_per_batch
-                )
+                with Spinner("Checking for new emails..."):
+                    emails = self.ingestion_manager.fetch_all_emails(
+                        self.config.system.max_emails_per_batch
+                    )
 
                 if not emails:
                     self.logger.info("No new emails to analyze")
@@ -164,8 +188,15 @@ class EmailSecurityPipeline:
             safe_subject = sanitize_for_logging(email_data.subject, max_length=50)
             self.logger.info(f"Analyzing email: {safe_subject}...")
 
+            # Parallel Analysis Layer
+            # Optimization: Run independent analyzers concurrently
+            future_spam = self.executor.submit(self.spam_analyzer.analyze, email_data)
+            future_nlp = self.executor.submit(self.nlp_analyzer.analyze, email_data)
+            future_media = self.executor.submit(self.media_analyzer.analyze, email_data)
+
+            # Retrieve results (will wait if not ready)
             # Layer 1: Spam Analysis
-            spam_result = self.spam_analyzer.analyze(email_data)
+            spam_result = future_spam.result()
             spam_symbol = Colors.get_risk_symbol(spam_result.risk_level)
             self.logger.debug(
                 f"Spam analysis: score={spam_result.score:.2f}, "
@@ -173,7 +204,7 @@ class EmailSecurityPipeline:
             )
 
             # Layer 2: NLP Threat Detection
-            nlp_result = self.nlp_analyzer.analyze(email_data)
+            nlp_result = future_nlp.result()
             nlp_symbol = Colors.get_risk_symbol(nlp_result.risk_level)
             self.logger.debug(
                 f"NLP analysis: score={nlp_result.threat_score:.2f}, "
@@ -181,7 +212,7 @@ class EmailSecurityPipeline:
             )
 
             # Layer 3: Media Authenticity
-            media_result = self.media_analyzer.analyze(email_data)
+            media_result = future_media.result()
             media_symbol = Colors.get_risk_symbol(media_result.risk_level)
             self.logger.debug(
                 f"Media analysis: score={media_result.threat_score:.2f}, "
@@ -206,6 +237,61 @@ class EmailSecurityPipeline:
 
         except Exception as e:
             self.logger.error(f"Error analyzing email: {e}", exc_info=True)
+
+    def _print_configuration_summary(self):
+        """Print a summary of the current configuration"""
+        print(f"\n{Colors.BOLD}📊 System Configuration:{Colors.RESET}")
+
+        # Accounts
+        print(f"  • {Colors.CYAN}Monitored Accounts:{Colors.RESET}")
+        for account in self.config.email_accounts:
+            status = f"{Colors.GREEN}Active{Colors.RESET}" if account.enabled else f"{Colors.GREY}Disabled{Colors.RESET}"
+            print(f"    - {account.provider.title()}: {account.email} ({status})")
+
+        # Analysis
+        print(f"  • {Colors.CYAN}Analysis Layers:{Colors.RESET}")
+        print(
+            f"    - Spam Detection:   {Colors.GREEN}Active{Colors.RESET} "
+            f"(Threshold: {self.config.analysis.spam_threshold})"
+        )
+        print(
+            f"    - NLP Analysis:     {Colors.GREEN}Active{Colors.RESET} "
+            f"(Threshold: {self.config.analysis.nlp_threshold})"
+        )
+
+        media_status = (
+            f"{Colors.GREEN}Active{Colors.RESET}"
+            if self.config.analysis.check_media_attachments
+            else f"{Colors.GREY}Disabled{Colors.RESET}"
+        )
+        deepfake_status = (
+            "Enabled"
+            if self.config.analysis.deepfake_detection_enabled
+            else "Disabled"
+        )
+        print(f"    - Media Check:      {media_status} (Deepfake: {deepfake_status})")
+
+        # Alerts
+        print(f"  • {Colors.CYAN}Alert Channels:{Colors.RESET}")
+        channels = []
+        if self.config.alerts.console:
+            channels.append("Console")
+        if self.config.alerts.webhook_enabled:
+            channels.append("Webhook")
+        if self.config.alerts.slack_enabled:
+            channels.append("Slack")
+
+        if channels:
+            print(f"    - Enabled: {', '.join(channels)}")
+        else:
+            print(f"    - Enabled: {Colors.YELLOW}None{Colors.RESET}")
+
+        print(f"  • {Colors.CYAN}System:{Colors.RESET}")
+        print(f"    - Log Level: {self.config.system.log_level}")
+        print(f"    - Interval:  {self.config.system.check_interval}s")
+
+        # Documentation footer
+        print(f"\n📚 {Colors.GREY}For help, see README.md or OUTLOOK_TROUBLESHOOTING.md{Colors.RESET}\n")
 
 
 def signal_handler(signum, frame):

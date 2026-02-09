@@ -6,6 +6,7 @@ Provides user-friendly output components like countdown timers.
 import sys
 import time
 import threading
+import itertools
 
 from .colors import Colors
 
@@ -75,3 +76,42 @@ class CountdownTimer:
         """Static convenience method to block with a countdown"""
         timer = CountdownTimer(seconds, message)
         timer.start()
+
+
+class Spinner:
+    """
+    Displays a loading spinner in the terminal.
+    """
+    def __init__(self, message: str = "Loading", delay: float = 0.1):
+        self.spinner = itertools.cycle(['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'])
+        self.message = message
+        self.delay = delay
+        self.busy = False
+        self.thread = None
+
+    def _spin(self):
+        while self.busy:
+            # \r moves cursor to start of line, \033[K clears the line
+            sys.stdout.write(f"\r{next(self.spinner)} {self.message}   \033[K")
+            sys.stdout.flush()
+            time.sleep(self.delay)
+            # Check again to avoid writing after stop
+            if not self.busy:
+                break
+
+    def __enter__(self):
+        if sys.stdout.isatty():
+            self.busy = True
+            self.thread = threading.Thread(target=self._spin)
+            self.thread.start()
+        else:
+            print(f"{self.message}...")
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if sys.stdout.isatty():
+            self.busy = False
+            if self.thread:
+                self.thread.join()
+            sys.stdout.write(f"\r\033[K") # Clear line
+            sys.stdout.flush()

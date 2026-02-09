@@ -9,6 +9,7 @@ import requests
 from typing import Dict, List
 from dataclasses import dataclass, asdict
 from datetime import datetime
+from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
 
 from ..utils.sanitization import sanitize_for_logging, sanitize_for_csv
 from .email_ingestion import EmailData
@@ -58,6 +59,9 @@ class AlertSystem:
         # Only alert on significant threats
         if threat_report.overall_threat_score < self.config.threat_low:
             self.logger.debug(f"Threat score too low to alert: {threat_report.overall_threat_score}")
+            # Provide positive feedback for clean emails if console is enabled
+            if self.config.console:
+                self._console_clean_report(threat_report)
             return
         
         # Console alert
@@ -165,10 +169,39 @@ class AlertSystem:
         
         print(header_bar + "\n")
     
+    def _console_clean_report(self, report: ThreatReport):
+        """Print clean report to console"""
+        # Compact format for clean emails
+        score_val = min(max(report.overall_threat_score, 0), 100)
+
+        # Short timestamp
+        try:
+            dt = datetime.fromisoformat(report.timestamp)
+            time_str = dt.strftime("%H:%M:%S")
+        except ValueError:
+            time_str = report.timestamp
+
+        # Subject truncated
+        sanitized_subject = self._sanitize_text(report.subject)
+        subject = sanitized_subject[:60]
+        if len(sanitized_subject) > 60:
+            subject += "..."
+
+        print(f"{Colors.GREEN}✓ CLEAN{Colors.RESET} [{time_str}] {subject} (Score: {score_val:.1f})")
+
     def _webhook_alert(self, report: ThreatReport):
         """Send alert via webhook"""
         try:
             payload = asdict(report)
+
+            # Redact sensitive info from suspicious URLs if present
+            if 'spam_analysis' in payload and 'suspicious_urls' in payload['spam_analysis']:
+                urls = payload['spam_analysis']['suspicious_urls']
+                if urls:
+                    payload['spam_analysis']['suspicious_urls'] = [
+                        self._redact_sensitive_url_params(url) for url in urls
+                    ]
+
             response = requests.post(
                 self.config.webhook_url,
                 json=payload,
@@ -184,6 +217,41 @@ class AlertSystem:
         except Exception as e:
             self.logger.error(f"Failed to send webhook alert: {e}")
     
+    def _redact_sensitive_url_params(self, url: str) -> str:
+        """
+        Redact sensitive query parameters from URL.
+        Prevents leaking credentials or tokens in logs/alerts.
+        """
+        try:
+            if not url:
+                return ""
+
+            parsed = urlparse(url)
+            # keep_blank_values=True ensures we don't drop empty params
+            query_params = parse_qs(parsed.query, keep_blank_values=True)
+
+            sensitive_keys = {
+                'password', 'token', 'secret', 'key', 'apikey', 'api_key',
+                'access_token', 'auth', 'authorization', 'sig', 'signature'
+            }
+
+            changed = False
+            for key in query_params:
+                if key.lower() in sensitive_keys:
+                    query_params[key] = ['[REDACTED]']
+                    changed = True
+
+            if changed:
+                # doseq=True handles lists of values correctly
+                new_query = urlencode(query_params, doseq=True)
+                parsed = parsed._replace(query=new_query)
+                return urlunparse(parsed)
+            return url
+        except Exception:
+            # If parsing fails, return original to avoid losing data,
+            # but rely on other sanitization layers if any.
+            return url
+
     def _sanitize_text(self, text: str, csv_safe: bool = False) -> str:
         """
         Sanitize text for safe console output.
