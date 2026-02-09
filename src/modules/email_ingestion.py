@@ -456,11 +456,14 @@ class IMAPClient:
                                 truncated = len(payload_bytes) > remaining_bytes
                                 if truncated:
                                     payload_bytes = payload_bytes[:remaining_bytes]
+                                    bytes_to_add = remaining_bytes
+                                else:
+                                    bytes_to_add = len(payload_bytes)
                                 
                                 # Decode the (potentially truncated) bytes
                                 text_part = self._decode_bytes(payload_bytes, part.get_content_charset())
                                 body_text_parts.append(text_part)
-                                body_text_len += len(payload_bytes)
+                                body_text_len += bytes_to_add
                                 
                                 if truncated:
                                     self.logger.warning(
@@ -477,11 +480,14 @@ class IMAPClient:
                                 truncated = len(payload_bytes) > remaining_bytes
                                 if truncated:
                                     payload_bytes = payload_bytes[:remaining_bytes]
+                                    bytes_to_add = remaining_bytes
+                                else:
+                                    bytes_to_add = len(payload_bytes)
                                 
                                 # Decode the (potentially truncated) bytes
                                 html_part = self._decode_bytes(payload_bytes, part.get_content_charset())
                                 body_html_parts.append(html_part)
-                                body_html_len += len(payload_bytes)
+                                body_html_len += bytes_to_add
                                 
                                 if truncated:
                                     self.logger.warning(
