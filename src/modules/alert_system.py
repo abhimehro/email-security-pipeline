@@ -172,7 +172,34 @@ class AlertSystem:
     def _console_clean_report(self, report: ThreatReport):
         """Print clean report to console"""
         # Compact format for clean emails
-        score_val = min(max(report.overall_threat_score, 0), 100)
+        score_val = max(0.0, report.overall_threat_score)
+
+        # Calculate risk relative to the low threshold (the "clean" budget)
+        threshold = self.config.threat_low
+        if threshold <= 0: threshold = 30
+
+        percent_of_threshold = min(score_val / threshold, 1.0)
+
+        # Mini bar: 10 chars
+        bar_len = 10
+        filled = int(percent_of_threshold * bar_len)
+
+        # Bar construction
+        fill_char = "■"
+        empty_char = "·"
+
+        filled_part = fill_char * filled
+        empty_part = empty_char * (bar_len - filled)
+
+        # Color logic
+        bar_color = Colors.GREEN
+        if percent_of_threshold > 0.6:
+            bar_color = Colors.YELLOW
+
+        colored_filled = Colors.colorize(filled_part, bar_color)
+        colored_empty = Colors.colorize(empty_part, Colors.GREY)
+
+        visual_bar = f"[{colored_filled}{colored_empty}]"
 
         # Short timestamp
         try:
@@ -183,11 +210,21 @@ class AlertSystem:
 
         # Subject truncated
         sanitized_subject = self._sanitize_text(report.subject)
-        subject = sanitized_subject[:60]
-        if len(sanitized_subject) > 60:
+        subject = sanitized_subject[:50]
+        if len(sanitized_subject) > 50:
             subject += "..."
 
-        print(f"{Colors.GREEN}✓ CLEAN{Colors.RESET} [{time_str}] {subject} (Score: {score_val:.1f})")
+        # Separator
+        sep = Colors.colorize("│", Colors.GREY)
+
+        # Format:
+        # ✓ CLEAN | HH:MM:SS | Score: XX.X [■■···] | Subject
+        print(
+            f"{Colors.GREEN}✓ CLEAN{Colors.RESET} "
+            f"{sep} {time_str} "
+            f"{sep} Score: {score_val:4.1f} {visual_bar} "
+            f"{sep} {subject}"
+        )
 
     def _webhook_alert(self, report: ThreatReport):
         """Send alert via webhook"""
