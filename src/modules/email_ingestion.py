@@ -665,7 +665,7 @@ class IMAPClient:
         # 4. Collapse multiple dots (e.g., file..exe)
         filename = IMAPClient.FILENAME_COLLAPSE_DOTS_PATTERN.sub('.', filename)
 
-        return filename.strip() or "unnamed_attachment"
+        return filename.strip().rstrip('.') or "unnamed_attachment"
 
     @classmethod
     def _format_addresses(cls, header_value: str) -> str:
