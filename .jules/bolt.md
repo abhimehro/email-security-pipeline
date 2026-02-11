@@ -23,3 +23,7 @@
 ## 2026-02-08 - Memory-Efficient Match Counting
 **Learning:** `re.findall()` allocates a list of all matching strings, which wastes memory when only the count is needed. For large texts (up to 1MB) with many matches, `sum(1 for _ in re.finditer())` achieves >99% memory reduction while maintaining comparable speed.
 **Action:** Use `re.finditer()` with a generator expression instead of `re.findall()` when only the match count is needed.
+
+## 2026-03-01 - Avoid Large String Concatenation
+**Learning:** Large string concatenation (e.g., combining 1MB+ strings) allocates new memory and triggers copying, which is expensive in hot paths. Processing parts sequentially avoids this allocation.
+**Action:** Process large text fields individually when extracting data (e.g., regex matching) instead of concatenating them.

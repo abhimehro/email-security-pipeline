@@ -118,8 +118,10 @@ class SpamAnalyzer:
         indicators.extend(subject_indicators)
 
         # Extract URLs once for both body analysis and URL checking
-        full_body_content = email_data.body_text + email_data.body_html
-        extracted_urls = self.URL_EXTRACTION_PATTERN.findall(full_body_content)
+        # Optimization: Process parts separately to avoid large string concatenation
+        extracted_urls = self.URL_EXTRACTION_PATTERN.findall(email_data.body_text)
+        if email_data.body_html:
+            extracted_urls.extend(self.URL_EXTRACTION_PATTERN.findall(email_data.body_html))
         link_count = len(extracted_urls)
 
         # Analyze body content
