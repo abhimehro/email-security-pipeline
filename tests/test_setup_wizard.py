@@ -1,6 +1,7 @@
 import unittest
-from unittest.mock import patch, mock_open, call
+from unittest.mock import patch, mock_open, call, MagicMock
 from src.utils.setup_wizard import run_setup_wizard
+import os
 
 class TestSetupWizard(unittest.TestCase):
 
@@ -20,12 +21,21 @@ OUTLOOK_APP_PASSWORD=password
 
     @patch('builtins.input')
     @patch('getpass.getpass')
+    @patch('os.fdopen')
+    @patch('os.open')
     @patch('builtins.open', new_callable=mock_open)
     @patch('pathlib.Path.exists')
-    def test_gmail_setup(self, mock_exists, mock_file, mock_getpass, mock_input):
+    def test_gmail_setup(self, mock_exists, mock_read_file, mock_os_open, mock_os_fdopen, mock_getpass, mock_input):
         # Setup mocks
         mock_exists.return_value = True
-        mock_file.return_value.read.return_value = self.example_content
+        mock_read_file.return_value.read.return_value = self.example_content
+
+        # Configure os.open to return a fake file descriptor
+        mock_os_open.return_value = 123
+
+        # Configure os.fdopen to return a mock file handle for writing
+        mock_write_handle = MagicMock()
+        mock_os_fdopen.return_value.__enter__.return_value = mock_write_handle
 
         # User inputs:
         # 1. Choice: '1' (Gmail)
@@ -40,13 +50,12 @@ OUTLOOK_APP_PASSWORD=password
 
         self.assertTrue(result)
 
-        # Verify file write
-        handle = mock_file()
-        # The file is opened twice: once for read, once for write
-        # We want to check the write call
+        # Verify permissions were set (0o600 = 384 in decimal)
+        mock_os_open.assert_called_with(".env", os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
 
+        # Verify file write
         # Combine all written content
-        written_content = "".join(call.args[0] for call in handle.write.call_args_list)
+        written_content = "".join(call.args[0] for call in mock_write_handle.write.call_args_list)
 
         self.assertIn("GMAIL_ENABLED=true", written_content)
         self.assertIn("GMAIL_EMAIL=myuser@gmail.com", written_content)
@@ -56,11 +65,17 @@ OUTLOOK_APP_PASSWORD=password
 
     @patch('builtins.input')
     @patch('getpass.getpass')
+    @patch('os.fdopen')
+    @patch('os.open')
     @patch('builtins.open', new_callable=mock_open)
     @patch('pathlib.Path.exists')
-    def test_proton_setup(self, mock_exists, mock_file, mock_getpass, mock_input):
+    def test_proton_setup(self, mock_exists, mock_read_file, mock_os_open, mock_os_fdopen, mock_getpass, mock_input):
         mock_exists.return_value = True
-        mock_file.return_value.read.return_value = self.example_content
+        mock_read_file.return_value.read.return_value = self.example_content
+
+        mock_os_open.return_value = 123
+        mock_write_handle = MagicMock()
+        mock_os_fdopen.return_value.__enter__.return_value = mock_write_handle
 
         # Choice 2 (Proton), email, password
         mock_input.side_effect = ['2', 'myuser@pm.me']
@@ -70,8 +85,7 @@ OUTLOOK_APP_PASSWORD=password
 
         self.assertTrue(result)
 
-        handle = mock_file()
-        written_content = "".join(call.args[0] for call in handle.write.call_args_list)
+        written_content = "".join(call.args[0] for call in mock_write_handle.write.call_args_list)
 
         self.assertIn("PROTON_ENABLED=true", written_content)
         self.assertIn("PROTON_EMAIL=myuser@pm.me", written_content)

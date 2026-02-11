@@ -1,5 +1,6 @@
 import sys
 import re
+import os
 import getpass
 from pathlib import Path
 
@@ -36,7 +37,7 @@ def _select_provider() -> str:
             return '4'
 
 def _get_credentials(choice: str, provider_name: str) -> tuple[str, str]:
-    """Prompt user for email and password."""
+    """Prompt user for email and app secret."""
     print(f"\n{Colors.CYAN}Step 2: Configure {provider_name} Credentials{Colors.RESET}")
 
     try:
@@ -56,16 +57,16 @@ def _get_credentials(choice: str, provider_name: str) -> tuple[str, str]:
             print(f"\n{Colors.GREY}Note: Personal Outlook accounts are not supported.")
             print(f"Business accounts may require an App Password if MFA is enabled.{Colors.RESET}")
 
-        password = getpass.getpass(f"Enter your {provider_name} app password: ").strip()
-        while not password:
+        app_secret = getpass.getpass(f"Enter your {provider_name} app password: ").strip()
+        while not app_secret:
             print(f"{Colors.YELLOW}Password is required.{Colors.RESET}")
-            password = getpass.getpass(f"Enter your {provider_name} app password: ").strip()
+            app_secret = getpass.getpass(f"Enter your {provider_name} app password: ").strip()
 
-        return email, password
+        return email, app_secret
     except EOFError:
         return "", ""
 
-def _generate_config_content(template_content: str, provider_key: str, email: str, password: str) -> str:
+def _generate_config_content(template_content: str, provider_key: str, email: str, app_secret: str) -> str:
     """Generate configuration content by replacing template variables."""
     content = template_content
 
@@ -80,11 +81,11 @@ def _generate_config_content(template_content: str, provider_key: str, email: st
     # Set email for selected provider
     content = re.sub(f"{provider_key}_EMAIL=.*", f"{provider_key}_EMAIL={email}", content)
 
-    # Set password safely
-    def replace_password(match):
-        return f"{provider_key}_APP_PASSWORD={password}"
+    # Set app_secret safely
+    def replace_secret(match):
+        return f"{provider_key}_APP_PASSWORD={app_secret}"
 
-    content = re.sub(f"{provider_key}_APP_PASSWORD=.*", replace_password, content)
+    content = re.sub(f"{provider_key}_APP_PASSWORD=.*", replace_secret, content)
 
     return content
 
@@ -114,8 +115,8 @@ def run_setup_wizard(config_file: str = ".env", template_file: str = ".env.examp
     selected_key, selected_name = provider_map[choice]
 
     # 2. Get Credentials
-    email, password = _get_credentials(choice, selected_name)
-    if not email or not password:
+    email, app_secret = _get_credentials(choice, selected_name)
+    if not email or not app_secret:
         return False
 
     # 3. Read Template
@@ -127,12 +128,16 @@ def run_setup_wizard(config_file: str = ".env", template_file: str = ".env.examp
         return False
 
     # 4. Generate Config
-    new_content = _generate_config_content(template_content, selected_key, email, password)
+    new_content = _generate_config_content(template_content, selected_key, email, app_secret)
 
     # 5. Write Config
     try:
-        with open(config_file, 'w') as f:
+        # Create file with restrictive permissions (600)
+        # Using os.open to set mode atomically if possible, or chmod after
+        fd = os.open(config_file, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+        with os.fdopen(fd, 'w') as f:
             f.write(new_content)
+
         print(f"\n{Colors.GREEN}✔ Configuration saved to {config_file}{Colors.RESET}")
     except Exception as e:
         print(f"{Colors.RED}Error writing config: {e}{Colors.RESET}")
