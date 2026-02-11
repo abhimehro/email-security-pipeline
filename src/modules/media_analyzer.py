@@ -182,7 +182,8 @@ class MediaAuthenticityAnalyzer:
         warnings = []
 
         # Sanitize filename (strip whitespace and null bytes for check)
-        filename_lower = filename.lower().strip().replace('\0', '')
+        # Also strip trailing dots which can bypass extension checks but still be executable on Windows
+        filename_lower = filename.lower().strip().replace('\0', '').rstrip('.')
 
         # Check for dangerous extensions
         for ext in self.DANGEROUS_EXTENSIONS:
