@@ -35,3 +35,7 @@
 ## 2026-02-08 - Progress Bar for Countdown Timer
 **Learning:** A visual progress bar in the countdown timer provides immediate context for remaining time that a numeric countdown alone cannot convey. Use the block/shade characters (█/░) for universal terminal support.
 **Action:** Render a colored progress bar alongside the countdown timer, gated behind `sys.stdout.isatty()` for CI/CD compatibility.
+
+## 2026-03-01 - Setup Wizard for Configuration
+**Learning:** Interactive setup wizards significantly reduce the friction of configuring complex environment variables, especially for first-time users who may be overwhelmed by `.env.example`.
+**Action:** When a configuration file is missing, offer to run an interactive wizard that guides the user through the essential settings (e.g., email provider, credentials) and generates the file automatically.
