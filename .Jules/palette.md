@@ -35,3 +35,7 @@
 ## 2026-02-08 - Progress Bar for Countdown Timer
 **Learning:** A visual progress bar in the countdown timer provides immediate context for remaining time that a numeric countdown alone cannot convey. Use the block/shade characters (█/░) for universal terminal support.
 **Action:** Render a colored progress bar alongside the countdown timer, gated behind `sys.stdout.isatty()` for CI/CD compatibility.
+
+## 2026-03-22 - Interactive Setup Wizard
+**Learning:** For backend tools with complex configuration (like .env files), users often struggle with initial setup. A CLI wizard that interactively fills in the most critical values (e.g. credentials) reduces friction significantly.
+**Action:** Detect missing configuration and offer an interactive wizard to generate it, using secure input methods (`getpass`) and existing libraries (`python-dotenv`) to safely modify files.

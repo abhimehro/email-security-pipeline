@@ -21,6 +21,7 @@ from src.utils.colors import Colors
 from src.utils.ui import CountdownTimer, Spinner
 from src.utils.logging_utils import ColoredFormatter
 from src.utils.sanitization import sanitize_for_logging
+from src.utils.setup_wizard import run_setup_wizard
 from src.modules.email_ingestion import EmailIngestionManager
 from src.modules.spam_analyzer import SpamAnalyzer
 from src.modules.nlp_analyzer import NLPThreatAnalyzer
@@ -325,6 +326,14 @@ def main():
                     try:
                         shutil.copy(".env.example", config_file)
                         print(f"Created '{config_file}' from '.env.example'.")
+
+                        try:
+                            if input(f"\nWould you like to run the setup wizard? [Y/n] ").strip().lower() in ('', 'y', 'yes'):
+                                run_setup_wizard(config_file)
+                                sys.exit(0)
+                        except Exception as e:
+                            print(f"{Colors.YELLOW}Warning: Wizard error ({e}). Please edit {config_file} manually.{Colors.RESET}")
+
                         print("IMPORTANT: Please edit .env with your actual credentials before proceeding.")
                         sys.exit(0)
                     except Exception as e:
