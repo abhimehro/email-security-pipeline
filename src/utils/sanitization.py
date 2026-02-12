@@ -77,7 +77,8 @@ def sanitize_for_csv(text: str) -> str:
     # Dangerous characters that can trigger formulas at the start of a cell
     # Note: We check the original string for TAB/CR at the start,
     # as lstrip() removes them.
-    dangerous_chars = ('=', '+', '-', '@')
+    # Added '%' to prevent DDE injection in older spreadsheet software
+    dangerous_chars = ('=', '+', '-', '@', '%')
 
     # Check if the string starts with characters that trigger formulas
     # Note: We must check after stripping whitespace because "  =1+1" can also be dangerous.
