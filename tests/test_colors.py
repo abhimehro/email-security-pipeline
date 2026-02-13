@@ -88,7 +88,15 @@ class TestColors(unittest.TestCase):
         self.assertEqual(Cls.colorize("test", "\033[91m"), "test")
         self.assertEqual(Cls.get_risk_color("high"), "")
 
-    def test_non_tty(self):
+    def test_no_color_env_empty(self):
+        """Test that an empty NO_COLOR env var disables colors"""
+        Cls = self._reload_colors(mock_tty=True, mock_no_color="")
+        self.assertFalse(Cls.ENABLED)
+        self.assertEqual(Cls.RED, "")
+        self.assertEqual(Cls.colorize("test", "\033[91m"), "test")
+        self.assertEqual(Cls.get_risk_color("high"), "")
+
+
         """Test that non-TTY disables colors"""
         Cls = self._reload_colors(mock_tty=False)
         self.assertFalse(Cls.ENABLED)
