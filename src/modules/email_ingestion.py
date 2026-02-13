@@ -24,6 +24,7 @@ from ..utils.sanitization import sanitize_for_logging
 
 # Security limits
 MAX_SUBJECT_LENGTH = 1024
+MAX_MIME_PARTS = 100
 
 # Fallback maximum email size (500MB) to prevent DoS if no attachment limit is set
 # This ensures we don't try to download indefinitely large emails in "unlimited" mode
@@ -442,7 +443,15 @@ class IMAPClient:
             safe_email_id = sanitize_for_logging(email_id)
 
             if msg.is_multipart():
+                part_count = 0
                 for part in msg.walk():
+                    part_count += 1
+                    if part_count > MAX_MIME_PARTS:
+                        self.logger.warning(
+                            f"Email {safe_email_id} exceeds max MIME parts ({MAX_MIME_PARTS}). Truncating remaining parts."
+                        )
+                        break
+
                     content_type = part.get_content_type()
                     content_disposition = str(part.get("Content-Disposition", ""))
 
