@@ -112,6 +112,38 @@ class TestColors(unittest.TestCase):
         self.assertEqual(Cls.RED, "")
         self.assertEqual(Cls.colorize("test", "\033[91m"), "test")
 
+    def test_stdout_without_isatty(self):
+        """Test that lack of isatty attribute disables colors via hasattr(sys.stdout, 'isatty')."""
 
+        class StdoutWithoutIsatty:
+            """Minimal stdout-like object without an isatty attribute.
+
+            We provide write/flush so that any code writing to stdout
+            during module import won't fail, but deliberately omit
+            isatty so hasattr(sys.stdout, "isatty") returns False.
+            """
+
+            def write(self, data):
+                # No-op writer; we don't care about captured output here.
+                pass
+
+            def flush(self):
+                # No-op flush to satisfy file-like interface expectations.
+                pass
+
+        mock_stdout = StdoutWithoutIsatty()
+
+        # Ensure NO_COLOR is not forcing colors off so we only test
+        # the hasattr(sys.stdout, "isatty") fallback behavior.
+        with patch('sys.stdout', mock_stdout):
+            with patch.dict(os.environ):
+                if 'NO_COLOR' in os.environ:
+                    del os.environ['NO_COLOR']
+                importlib.reload(colors)
+                Cls = colors.Colors
+
+        self.assertFalse(Cls.ENABLED)
+        self.assertEqual(Cls.RED, "")
+        self.assertEqual(Cls.colorize("test", "\033[91m"), "test")
 if __name__ == "__main__":
     unittest.main()
