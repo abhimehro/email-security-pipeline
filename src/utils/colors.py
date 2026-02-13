@@ -11,7 +11,7 @@ class Colors:
     # Check if colors should be enabled
     # 1. NO_COLOR env var (standard: https://no-color.org/)
     # 2. Not a TTY (piped output)
-    _no_color = os.environ.get("NO_COLOR")
+    _no_color = "NO_COLOR" in os.environ
     _is_tty = sys.stdout.isatty() if hasattr(sys.stdout, "isatty") else False
 
     # Logic: Enable if TTY and NO_COLOR is not set
