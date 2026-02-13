@@ -47,3 +47,8 @@
 **Vulnerability:** The deepfake detection module processed files based on their extension (e.g., `.mov`) even if they failed strict signature validation. This could allow attackers to bypass validation and trigger vulnerabilities in underlying media libraries (like OpenCV) by disguising malicious files with allowed extensions.
 **Learning:** Inconsistent validation logic (checking some extensions strictly but not others) creates security gaps. All inputs processed by complex parsers must be strictly validated against a known-good allowlist of signatures.
 **Prevention:** Updated `MediaAuthenticityAnalyzer` to enforce strict magic byte validation for all supported media extensions, preventing processing of any file that does not match a known secure signature.
+
+## 2026-06-26 - [File Extension Check Bypass]
+**Vulnerability:** File extension checks could be bypassed by appending a trailing dot (e.g., `malware.exe.`).
+**Learning:** Windows treats files with trailing dots as the file without the dot (e.g., `malware.exe.` executes as `malware.exe`), but exact-match extension checks often fail.
+**Prevention:** Always strip trailing dots from filenames before validation and processing, especially when dealing with cross-platform file handling.

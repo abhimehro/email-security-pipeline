@@ -665,7 +665,12 @@ class IMAPClient:
         # 4. Collapse multiple dots (e.g., file..exe)
         filename = IMAPClient.FILENAME_COLLAPSE_DOTS_PATTERN.sub('.', filename)
 
-        return filename.strip() or "unnamed_attachment"
+        # 5. Remove trailing dots to prevent extension bypasses
+        # e.g., "malware.exe." -> "malware.exe"
+        # Security: Trailing dots are ignored by Windows but bypass exact-match extension checks
+        filename = filename.strip().rstrip('.')
+
+        return filename or "unnamed_attachment"
 
     @classmethod
     def _format_addresses(cls, header_value: str) -> str:
