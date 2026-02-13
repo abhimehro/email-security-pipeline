@@ -88,6 +88,15 @@ class TestColors(unittest.TestCase):
         self.assertEqual(Cls.colorize("test", "\033[91m"), "test")
         self.assertEqual(Cls.get_risk_color("high"), "")
 
+    def test_no_color_env_empty_string(self):
+        """Test that NO_COLOR='' also disables colors per spec"""
+        # According to the NO_COLOR spec, any presence of the variable,
+        # even with an empty value, must disable color output.
+        Cls = self._reload_colors(mock_tty=True, mock_no_color="")
+        self.assertFalse(Cls.ENABLED)
+        self.assertEqual(Cls.RED, "")
+        self.assertEqual(Cls.colorize("test", "\033[91m"), "test")
+        self.assertEqual(Cls.get_risk_color("high"), "")
     def test_no_color_env_empty(self):
         """Test that an empty NO_COLOR env var disables colors"""
         Cls = self._reload_colors(mock_tty=True, mock_no_color="")
