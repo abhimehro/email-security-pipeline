@@ -27,3 +27,7 @@
 ## 2026-03-01 - Avoid Large String Concatenation
 **Learning:** Large string concatenation (e.g., combining 1MB+ strings) allocates new memory and triggers copying, which is expensive in hot paths. Processing parts sequentially avoids this allocation.
 **Action:** Process large text fields individually when extracting data (e.g., regex matching) instead of concatenating them.
+
+## 2026-03-05 - Multipart Email Parsing Efficiency
+**Learning:** String concatenation in a loop (`body += part`) for potentially many parts leads to O(N^2) complexity, which can be a DoS vector for large emails with many small parts. Using `list.append()` followed by `"".join()` is O(N) and significantly safer and faster for large inputs.
+**Action:** Use list accumulation for string building in loops, especially when handling external input like email bodies.
