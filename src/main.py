@@ -19,6 +19,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from src.utils.config import Config, ConfigurationError
 from src.utils.colors import Colors
 from src.utils.ui import CountdownTimer, Spinner
+from src.utils.setup_wizard import run_setup_wizard
 from src.utils.logging_utils import ColoredFormatter
 from src.utils.sanitization import sanitize_for_logging
 from src.modules.email_ingestion import EmailIngestionManager
@@ -320,19 +321,34 @@ def main():
         if Path(".env.example").exists() and sys.stdin.isatty():
             print(f"Configuration file '{config_file}' not found.")
             try:
-                response = input(f"Would you like to create it from '.env.example'? [Y/n] ").strip().lower()
+                # Offer Setup Wizard
+                print(f"\n{Colors.CYAN}Would you like to run the interactive setup wizard?{Colors.RESET}")
+                print(f"{Colors.GREY}(This will help you configure your email provider){Colors.RESET}")
+
+                response = input(f"Run setup wizard? [Y/n] ").strip().lower()
                 if response in ('', 'y', 'yes'):
-                    try:
-                        shutil.copy(".env.example", config_file)
-                        print(f"Created '{config_file}' from '.env.example'.")
-                        print("IMPORTANT: Please edit .env with your actual credentials before proceeding.")
+                    if run_setup_wizard(config_file):
+                        # Setup successful
                         sys.exit(0)
-                    except Exception as e:
-                        print(f"Error creating file: {e}")
+                    else:
+                         # Wizard failed or skipped
+                         print(f"{Colors.YELLOW}Setup skipped.{Colors.RESET}")
+
+                # Fallback to copy only if wizard wasn't run or failed
+                if not Path(config_file).exists():
+                    response = input(f"Create '{config_file}' from template without wizard? [Y/n] ").strip().lower()
+                    if response in ('', 'y', 'yes'):
+                        try:
+                            shutil.copy(".env.example", config_file)
+                            print(f"Created '{config_file}' from '.env.example'.")
+                            print("IMPORTANT: Please edit .env with your actual credentials before proceeding.")
+                            sys.exit(0)
+                        except Exception as e:
+                            print(f"Error creating file: {e}")
+                            sys.exit(1)
+                    else:
+                        print("Please create a .env file based on .env.example")
                         sys.exit(1)
-                else:
-                    print("Please create a .env file based on .env.example")
-                    sys.exit(1)
             except EOFError:
                 # Handle case where input stream is closed
                 pass
