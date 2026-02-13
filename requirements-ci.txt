@@ -1,0 +1,9 @@
+# CI/Test dependencies
+# NOTE: This intentionally avoids the optional NLP/ML stacks (torch/transformers)
+# so PR validation stays fast and reliable.
+
+python-dotenv>=1.0.0
+requests>=2.31.0
+numpy>=1.26.0
+opencv-python-headless>=4.8.0
+pytest>=8.0.0
