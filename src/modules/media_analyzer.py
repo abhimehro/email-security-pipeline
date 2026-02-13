@@ -483,7 +483,23 @@ class MediaAuthenticityAnalyzer:
         return score, indicators
 
     def _extract_frames_from_video(self, video_path: str, max_frames: int = 10, max_dim: int = 1920) -> List[np.ndarray]:
-        """Extract a sample of frames from the video."""
+        """
+        Extract a sample of frames from the video.
+
+        Frames are sampled up to ``max_frames`` times, distributed across the video
+        when the total frame count is known, or sequentially from the start if it is not.
+
+        Each extracted frame is optionally resized via ``_resize_frame_if_needed`` so
+        that its longest side does not exceed ``max_dim`` pixels, while preserving
+        aspect ratio. Frames smaller than ``max_dim`` are left at their original size.
+
+        Args:
+            video_path: Path to the video file to sample.
+            max_frames: Maximum number of frames to extract from the video.
+            max_dim: Maximum allowed dimension (in pixels) for the width or height
+                of each returned frame. The frame is downscaled if necessary so its
+                longest side is at most this value, preserving aspect ratio.
+        """
         frames = []
         try:
             cap = cv2.VideoCapture(video_path)
