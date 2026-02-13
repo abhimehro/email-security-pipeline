@@ -21,7 +21,8 @@ class TestMediaDoS(unittest.TestCase):
         self.config.deepfake_detection_enabled = True
         self.analyzer = MediaAuthenticityAnalyzer(self.config)
 
-    @patch('cv2.VideoCapture')
+    # Patch the module-local cv2 reference used by MediaAuthenticityAnalyzer.
+    @patch('src.modules.media_analyzer.cv2.VideoCapture')
     def test_extract_large_frames(self, mock_capture):
         # Create a mock video capture
         mock_cap_instance = MagicMock()

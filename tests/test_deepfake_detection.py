@@ -23,6 +23,9 @@ class TestDeepfakeDetection(unittest.TestCase):
         self.config.deepfake_api_key = None
         self.config.deepfake_api_url = None
         self.config.deepfake_model_path = None
+        # NOTE: MediaAuthenticityAnalyzer enforces a hard timeout on deepfake analysis.
+        # Some tests use MagicMock config, so we must provide this attribute explicitly.
+        self.config.media_analysis_timeout = 10
 
         self.analyzer = MediaAuthenticityAnalyzer(self.config)
 
@@ -76,6 +79,9 @@ class TestDeepfakeDetection(unittest.TestCase):
 
         # Mock frame extraction to return dummy frames
         self.analyzer._extract_frames_from_video = MagicMock(return_value=[np.zeros((100, 100, 3), dtype=np.uint8)])
+        # Avoid codec/ffmpeg variability in CI by mocking the other OpenCV-heavy steps.
+        self.analyzer._check_audio_visual_sync = MagicMock(return_value=(0.0, []))
+        self.analyzer._check_compression_artifacts = MagicMock(return_value=(0.0, []))
         # Mock model score to be high
         self.analyzer._run_deepfake_model = MagicMock(return_value=0.8)
 
@@ -108,6 +114,9 @@ class TestDeepfakeDetection(unittest.TestCase):
 
         # Mock frame extraction to return dummy frames
         self.analyzer._extract_frames_from_video = MagicMock(return_value=[np.zeros((100, 100, 3), dtype=np.uint8)])
+        # Avoid codec/ffmpeg variability in CI by mocking the other OpenCV-heavy steps.
+        self.analyzer._check_audio_visual_sync = MagicMock(return_value=(0.0, []))
+        self.analyzer._check_compression_artifacts = MagicMock(return_value=(0.0, []))
         # Mock some facial inconsistencies to get a score
         self.analyzer._analyze_facial_inconsistencies = MagicMock(return_value=(1.0, ["Facial issue"]))
         # Mock model score to be low
