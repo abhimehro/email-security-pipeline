@@ -13,6 +13,7 @@ class TestCSVSanitization(unittest.TestCase):
         self.assertEqual(sanitize_for_csv("+1+1"), "'+1+1")
         self.assertEqual(sanitize_for_csv("-1+1"), "'-1+1")
         self.assertEqual(sanitize_for_csv("@SUM(1,1)"), "'@SUM(1,1)")
+        self.assertEqual(sanitize_for_csv("%100"), "'%100")  # Test % injection
 
     def test_whitespace_prefix(self):
         """Test dangerous patterns prefixed with whitespace"""
