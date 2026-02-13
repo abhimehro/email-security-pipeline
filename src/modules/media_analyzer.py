@@ -435,7 +435,8 @@ class MediaAuthenticityAnalyzer:
                 temp_file.write(data)
 
             # 1. Extract frames
-            frames = self._extract_frames_from_video(temp_file_path, max_frames=20)
+            # Optimization: 10 frames is sufficient for statistical analysis and reduces processing time by 50%
+            frames = self._extract_frames_from_video(temp_file_path, max_frames=10, max_dim=1280)
 
             if not frames:
                  self.logger.warning(f"Could not extract frames from {filename}")
@@ -481,7 +482,7 @@ class MediaAuthenticityAnalyzer:
 
         return score, indicators
 
-    def _extract_frames_from_video(self, video_path: str, max_frames: int = 10) -> List[np.ndarray]:
+    def _extract_frames_from_video(self, video_path: str, max_frames: int = 10, max_dim: int = 1920) -> List[np.ndarray]:
         """Extract a sample of frames from the video."""
         frames = []
         try:
@@ -496,7 +497,7 @@ class MediaAuthenticityAnalyzer:
                 count = 0
                 while success and count < max_frames:
                     if frame is not None:
-                        frames.append(self._resize_frame_if_needed(frame))
+                        frames.append(self._resize_frame_if_needed(frame, max_dim))
                     success, frame = cap.read()
                     count += 1
             else:
@@ -506,7 +507,7 @@ class MediaAuthenticityAnalyzer:
                     cap.set(cv2.CAP_PROP_POS_FRAMES, i)
                     success, frame = cap.read()
                     if success and frame is not None:
-                        frames.append(self._resize_frame_if_needed(frame))
+                        frames.append(self._resize_frame_if_needed(frame, max_dim))
                     if len(frames) >= max_frames:
                         break
 
