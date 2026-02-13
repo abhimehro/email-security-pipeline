@@ -47,9 +47,13 @@ def sanitize_for_logging(text: str, max_length: int = 255) -> str:
     # We keep standard printable characters but remove controls and formatters
     # that could be used for obfuscation (like BiDi overrides).
     # We explicitly allow Tab as it is useful for formatting and harmless.
+    # Optimization: Use isprintable() which is faster than unicodedata.category()
+    # isprintable() returns True for L, M, N, P, S, and Zs (space only).
+    # It returns False for Cc, Cf, Cs, Co, Cn, Zl, Zp, and Zs (non-space).
+    # So we keep ch if it's '\t', printable, or a Zs (separator) character.
     text = "".join(
         ch for ch in text
-        if ch == '\t' or unicodedata.category(ch) not in EXCLUDED_LOGGING_CATEGORIES
+        if ch == '\t' or ch.isprintable() or unicodedata.category(ch) == 'Zs'
     )
 
     # 5. Truncate if necessary to prevent log flooding
