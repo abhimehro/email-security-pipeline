@@ -16,6 +16,8 @@ class TestMediaOptimization(unittest.TestCase):
         self.config = MagicMock()
         self.config.check_media_attachments = True
         self.config.deepfake_detection_enabled = True
+        # Maintain consistency with other tests that configure a media analysis timeout
+        self.config.media_analysis_timeout = 30
         self.analyzer = MediaAuthenticityAnalyzer(self.config)
 
     def original_check_compression_artifacts(self, gray_frames):
