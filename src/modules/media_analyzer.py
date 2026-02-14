@@ -673,14 +673,10 @@ class MediaAuthenticityAnalyzer:
             # Mask out low frequencies (which are at the corners in unshifted spectrum)
             mask_size = min(h, w) // 8
 
-            # Top-left corner
-            magnitude_spectrum[0:mask_size, 0:mask_size] = 0
-            # Top-right corner
-            magnitude_spectrum[0:mask_size, w-mask_size:w] = 0
-            # Bottom-left corner
-            magnitude_spectrum[h-mask_size:h, 0:mask_size] = 0
-            # Bottom-right corner
-            magnitude_spectrum[h-mask_size:h, w-mask_size:w] = 0
+            magnitude_spectrum[:mask_size, :mask_size] = 0
+            magnitude_spectrum[:mask_size, -mask_size:] = 0
+            magnitude_spectrum[-mask_size:, :mask_size] = 0
+            magnitude_spectrum[-mask_size:, -mask_size:] = 0
 
             if np.mean(magnitude_spectrum) > 150: # Arbitrary threshold for high freq noise
                 high_freq_noise_count += 1
