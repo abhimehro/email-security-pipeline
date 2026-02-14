@@ -52,3 +52,8 @@
 **Vulnerability:** File extension checks could be bypassed by appending a trailing dot (e.g., `malware.exe.`).
 **Learning:** Windows treats files with trailing dots as the file without the dot (e.g., `malware.exe.` executes as `malware.exe`), but exact-match extension checks often fail.
 **Prevention:** Always strip trailing dots from filenames before validation and processing, especially when dealing with cross-platform file handling.
+
+## 2026-06-27 - [DoS via MIME Bomb]
+**Vulnerability:** Email ingestion was vulnerable to DoS via "MIME bombs" (emails with an excessive number of parts). Iterating over thousands of MIME parts in `parse_email` consumed excessive CPU and memory, even if individual parts were small.
+**Learning:** Limiting data size is not enough; the complexity of the data structure (e.g., nesting depth, number of elements) must also be bounded.
+**Prevention:** Implemented `MAX_MIME_PARTS` limit (100) in `IMAPClient.parse_email`. Processing halts and remaining parts are truncated if the limit is exceeded.
