@@ -148,7 +148,7 @@ To decide which phase to perform:
 
    a. Repository is now performance-ready. Review `build-steps/action.yml` and `build-steps.log` to understand setup. If build failed then create fix PR and exit.
    
-   b. Read the plan in the discussion mentioned earlier, along with comments.
+   b. Read the plan in the tracking issue mentioned earlier, along with comments.
 
    c. Check for existing performance PRs (especially yours with "${{ github.workflow }}" prefix). Avoid duplicate work.
    
