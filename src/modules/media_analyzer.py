@@ -661,19 +661,26 @@ class MediaAuthenticityAnalyzer:
             # Optimization: Use OpenCV DFT instead of Numpy FFT
             # cv2.dft is typically 2-3x faster than np.fft.fft2
             dft = cv2.dft(np.float32(gray), flags=cv2.DFT_COMPLEX_OUTPUT)
-            dft_shift = np.fft.fftshift(dft)
 
-            # Compute magnitude
-            magnitude = cv2.magnitude(dft_shift[:,:,0], dft_shift[:,:,1])
+            # Optimization: Avoid fftshift by masking corners (low frequencies) directly
+            # This saves ~16MB allocation per frame (1080p) and avoids array copy
+            magnitude = cv2.magnitude(dft[:,:,0], dft[:,:,1])
             magnitude_spectrum = 20 * np.log(magnitude + 1)
 
             # Simple heuristic: Check for unusual spikes in high frequencies
             # often seen in GAN-generated images or poor compression re-encoding
             h, w = gray.shape
-            center_h, center_w = h // 2, w // 2
-            # Mask out low frequencies
+            # Mask out low frequencies (which are at the corners in unshifted spectrum)
             mask_size = min(h, w) // 8
-            magnitude_spectrum[center_h-mask_size:center_h+mask_size, center_w-mask_size:center_w+mask_size] = 0
+
+            # Top-left corner
+            magnitude_spectrum[0:mask_size, 0:mask_size] = 0
+            # Top-right corner
+            magnitude_spectrum[0:mask_size, w-mask_size:w] = 0
+            # Bottom-left corner
+            magnitude_spectrum[h-mask_size:h, 0:mask_size] = 0
+            # Bottom-right corner
+            magnitude_spectrum[h-mask_size:h, w-mask_size:w] = 0
 
             if np.mean(magnitude_spectrum) > 150: # Arbitrary threshold for high freq noise
                 high_freq_noise_count += 1
