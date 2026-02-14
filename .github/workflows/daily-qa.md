@@ -19,6 +19,7 @@ safe-outputs:
   create-issue:
     title-prefix: "${{ github.workflow }}"
     labels: [automation, qa, workflow-tracker]
+    max: 5
   add-comment:
     target: "*" # all issues and PRs
     max: 5
