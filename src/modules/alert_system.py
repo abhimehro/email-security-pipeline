@@ -279,10 +279,7 @@ class AlertSystem:
 
             return msg
         except Exception:
-            # Fallback to simple redaction if regex fails
-            if "hooks.slack.com" in msg:
-                return "Error sending to Slack (URL redacted)"
-            return msg
+            return "An error occurred (details redacted for security)"
     
     def _redact_url_secrets(self, url: str) -> str:
         """
