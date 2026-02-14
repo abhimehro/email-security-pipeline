@@ -300,7 +300,8 @@ class AlertSystem:
 
             # 2. Redact Slack Webhooks
             # Format: /services/T000/B000/TOKEN
-            if "slack.com" in parsed.netloc and "/services/" in parsed.path:
+            netloc = parsed.netloc.lower()
+            if (netloc == "hooks.slack.com" or netloc.endswith(".slack.com")) and parsed.path.startswith("/services/"):
                 parts = parsed.path.split('/')
                 # parts[0] is empty, parts[1] is 'services'
                 # parts[2] is Team ID, parts[3] is Bot ID, parts[4] is Token
@@ -313,7 +314,7 @@ class AlertSystem:
 
             # 3. Redact Discord Webhooks
             # Format: /api/webhooks/ID/TOKEN
-            if "discord.com" in parsed.netloc and "/api/webhooks/" in parsed.path:
+            if (netloc == "discord.com" or netloc.endswith(".discord.com")) and parsed.path.startswith("/api/webhooks/"):
                 parts = parsed.path.split('/')
                 # parts[-1] is likely the token
                 if len(parts) >= 5:
