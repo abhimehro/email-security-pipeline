@@ -1,6 +1,6 @@
 
 import unittest
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 import requests
 from src.modules.alert_system import AlertSystem
 from src.utils.config import AlertConfig
