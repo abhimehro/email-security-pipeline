@@ -56,7 +56,7 @@ class TestMediaOptimization(unittest.TestCase):
         orig_score, orig_issues = self.original_check_compression_artifacts(frames)
         print(f"Original: score={orig_score}, issues={orig_issues}")
 
-        # Run current class logic (will be optimized later)
+        # Run current optimized class logic and verify it matches the original fftshift-based approach
         opt_score, opt_issues = self.analyzer._check_compression_artifacts(frames)
         print(f"Current: score={opt_score}, issues={opt_issues}")
 
