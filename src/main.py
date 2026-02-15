@@ -276,7 +276,9 @@ class EmailSecurityPipeline:
                 self.metrics.record_processing_time(processing_time_ms)
                 
                 # Record threats detected with consistent classification
-                if threat_report.risk_level != "CLEAN":
+                # Only treat medium/high risk emails as "threats" in metrics.
+                # Using .lower() here keeps us robust if upstream ever changes casing.
+                if threat_report.risk_level.lower() in {"medium", "high"}:
                     # Determine threat type based on highest scoring layer
                     # Priority order for tie-breaking: spam > phishing > malware
                     # (i.e., spam_result > nlp_result > media_result)

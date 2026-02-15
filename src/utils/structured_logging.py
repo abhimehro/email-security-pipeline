@@ -5,7 +5,7 @@ Provides JSON-formatted logging for better integration with log aggregation tool
 
 import json
 import logging
-from typing import Any, Dict
+from typing import Any
 
 
 class JSONFormatter(logging.Formatter):
