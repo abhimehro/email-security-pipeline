@@ -303,14 +303,18 @@ class TestEmailIngestionManagerRecovery(unittest.TestCase):
         pooling with health checks and automatic reconnection logic.
         """
         mock_client = MagicMock()
-        self.manager.clients = [mock_client]
+        mock_client.ensure_connection.return_value = True
+        mock_client.fetch_unseen_emails.return_value = []
+        
+        self.manager.clients = {
+            self.accounts[0].email: mock_client
+        }
         
         # Simulate connection lost, then reconnected
         mock_client.connection = None
         mock_client.connect.return_value = True
-        mock_client.fetch_emails.return_value = []
         
-        # Should attempt reconnection
+        # Should attempt reconnection via ensure_connection
         emails = self.manager.fetch_all_emails(max_per_folder=10)
         
         # Should handle gracefully

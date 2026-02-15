@@ -210,14 +210,21 @@ class TestMultiAccountProcessing(unittest.TestCase):
         )
         
         # Setup mock clients
+        # Account1 has 2 folders, so fetch_unseen_emails will be called twice
+        # We need to return different emails for each folder
         mock_client1 = MagicMock()
         mock_client1.ensure_connection.return_value = True
-        mock_client1.fetch_unseen_emails.return_value = [("1", b"raw1")]
-        mock_client1.parse_email.return_value = email1
+        # Return different emails for each folder call
+        mock_client1.fetch_unseen_emails.side_effect = [
+            [("1", b"raw1")],  # First folder (INBOX)
+            [("2", b"raw2")]   # Second folder (Spam)
+        ]
+        # parse_email will be called for each fetched email
+        mock_client1.parse_email.side_effect = [email1, email1]  # Return email1 for both
         
         mock_client2 = MagicMock()
         mock_client2.ensure_connection.return_value = True
-        mock_client2.fetch_unseen_emails.return_value = [("2", b"raw2")]
+        mock_client2.fetch_unseen_emails.return_value = [("3", b"raw3")]
         mock_client2.parse_email.return_value = email2
         
         manager.clients = {
