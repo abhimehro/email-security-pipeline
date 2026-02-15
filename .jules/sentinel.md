@@ -57,3 +57,8 @@
 **Vulnerability:** Email ingestion was vulnerable to DoS via "MIME bombs" (emails with an excessive number of parts). Iterating over thousands of MIME parts in `parse_email` consumed excessive CPU and memory, even if individual parts were small.
 **Learning:** Limiting data size is not enough; the complexity of the data structure (e.g., nesting depth, number of elements) must also be bounded.
 **Prevention:** Implemented `MAX_MIME_PARTS` limit (100) in `IMAPClient.parse_email`. Processing halts and remaining parts are truncated if the limit is exceeded.
+
+## 2026-06-29 - [Unicode Spoofing in Alerts]
+**Vulnerability:** The alert system's text sanitization logic (`_sanitize_text`) only filtered ASCII control characters (0-31, 127-159), allowing dangerous Unicode characters like Right-to-Left Override (U+202E) to pass through. This enabled attackers to spoof file extensions in console logs and Slack alerts (e.g., making `evil[RTLO]fdp.exe` appear as `evilexe.pdf`), potentially tricking administrators.
+**Learning:** Naive ASCII-based sanitization is insufficient in a Unicode world. Security controls must explicitly handle or filter invisible, formatting, and control characters from all Unicode categories (Cc, Cf, etc.) to prevent UI redressing and confusion attacks.
+**Prevention:** Updated `AlertSystem` to use `unicodedata` and `str.isprintable()` to strictly filter out non-printable characters and format controls (Category Cf) from all alert outputs, while preserving legitimate international text.

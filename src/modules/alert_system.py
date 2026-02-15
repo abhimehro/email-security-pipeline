@@ -6,6 +6,7 @@ Handles threat notifications and alerting across multiple channels
 import logging
 import json
 import requests
+import unicodedata
 from typing import Dict, List
 from dataclasses import dataclass, asdict
 from datetime import datetime
@@ -292,7 +293,7 @@ class AlertSystem:
     def _sanitize_text(self, text: str, csv_safe: bool = False) -> str:
         """
         Sanitize text for safe console output.
-        Removes control characters and normalizes whitespace.
+        Removes control characters, BiDi overrides, and normalizes whitespace.
 
         Args:
             text: Input text
@@ -304,13 +305,11 @@ class AlertSystem:
         # Replace newlines and tabs with spaces
         sanitized = text.replace('\n', ' ').replace('\r', ' ').replace('\t', ' ')
 
-        # Remove control characters (0x00-0x1F and 0x7F-0x9F), preserve printable Unicode
+        # Remove non-printable characters (including BiDi overrides, control chars, etc.)
+        # Only keep characters that are printable or separators (Zs)
         sanitized = ''.join(
             c for c in sanitized
-            if not (
-                (0 <= ord(c) <= 31) or
-                (127 <= ord(c) <= 159)
-            )
+            if c.isprintable() or unicodedata.category(c) == 'Zs'
         )
 
         if csv_safe:
