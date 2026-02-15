@@ -372,7 +372,8 @@ class IMAPConnection:
                     if isinstance(info, bytes):
                         try:
                             # Parse: b'1 (RFC822.SIZE 1024)'
-                            content = info.decode('ascii', errors='ignore')
+                            # SECURITY: Use 'replace' to maintain visibility of encoding issues
+                            content = info.decode('ascii', errors='replace')
                             
                             if 'RFC822.SIZE' in content:
                                 # Extract sequence number

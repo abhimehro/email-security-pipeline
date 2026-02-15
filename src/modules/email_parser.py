@@ -16,7 +16,7 @@ This module enforces limits and sanitization at every step.
 
 import email
 import logging
-from typing import Dict, List, Optional, Union, Any
+from typing import Dict, List, Optional, Union, Any, Tuple
 from email.message import Message
 from email.header import decode_header, make_header
 from email.utils import getaddresses, parsedate_to_datetime
@@ -189,7 +189,7 @@ class EmailParser:
         self, 
         msg: Message, 
         email_id: str
-    ) -> tuple[str, str, List[Dict[str, Any]]]:
+    ) -> Tuple[str, str, List[Dict[str, Any]]]:
         """
         Extract body text, HTML, and attachments from email
         
@@ -217,7 +217,7 @@ class EmailParser:
         self, 
         msg: Message, 
         safe_email_id: str
-    ) -> tuple[str, str, List[Dict[str, Any]]]:
+    ) -> Tuple[str, str, List[Dict[str, Any]]]:
         """
         Extract content from multipart email
         
@@ -285,7 +285,7 @@ class EmailParser:
         self, 
         msg: Message, 
         safe_email_id: str
-    ) -> tuple[str, str, List[Dict[str, Any]]]:
+    ) -> Tuple[str, str, List[Dict[str, Any]]]:
         """
         Extract content from single-part email
         """

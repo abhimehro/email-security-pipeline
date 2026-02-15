@@ -54,10 +54,13 @@ def sanitize_filename(filename: str) -> str:
         return "unnamed_attachment"
     
     # Remove path components (defense in depth)
+    # This prevents "../.." style attacks before character filtering
     filename = filename.split("/")[-1].split("\\")[-1]
     
     # Apply whitelist: only keep safe characters
-    # This removes: /, \, .., null bytes, control chars, etc.
+    # This removes: /, \, null bytes, control chars, etc.
+    # NOTE: Single dots are safe (needed for extensions like ".txt")
+    # because we already removed path separators above
     sanitized = FILENAME_SANITIZE_PATTERN.sub("", filename)
     
     # Collapse multiple dots to prevent directory traversal bypasses

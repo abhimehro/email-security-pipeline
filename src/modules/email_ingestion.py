@@ -17,7 +17,7 @@ interface to a complex subsystem (IMAP + parsing + security).
 
 import imaplib
 import logging
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Tuple
 
 from ..utils.config import EmailAccountConfig
 from ..utils.sanitization import sanitize_for_logging
@@ -213,7 +213,7 @@ class IMAPClient:
         self.connection_manager.connection = self.connection
         return self.connection_manager.select_folder(folder)
     
-    def fetch_unseen_emails(self, folder: str, limit: int = 50) -> List[tuple[str, bytes]]:
+    def fetch_unseen_emails(self, folder: str, limit: int = 50) -> List[Tuple[str, bytes]]:
         """
         Fetch unseen emails from folder
         
