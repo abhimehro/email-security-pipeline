@@ -136,7 +136,7 @@ To decide which phase to perform:
 
    Exit workflow.
 
-6. Test build steps manually. If fixes needed then update the PR branch. If unable to resolve then create issue and exit.
+6. Test build steps manually. If fixes needed then update the PR branch. If unable to resolve then add a detailed comment to the discussion identified at the start of the workflow (and optionally to the PR) describing the unresolved problems and exit.
 
 7. Add brief comment (1 or 2 sentences) to the discussion identified at the start of the workflow stating progress made and giving links to the PR created.
 
@@ -205,6 +205,6 @@ To decide which phase to perform:
 
       After creation, check the pull request to ensure it is correct, includes all expected files, and doesn't include any unwanted files or changes. Make any necessary corrections by pushing further commits to the branch.
 
-   b. If failed or lessons learned then add more files to the PR branch to update relevant performance guide in `.github/copilot/instructions/` with insights. Create a new guide if needed, or split, merge or delete existing guides as appropriate. This is your chance to improve the performance engineering documentation for next time, so you and your team don't make the same mistakes again! Make the most of it!
+   b. If failed or lessons learned then add more files to the PR branch to update the relevant performance guide in `.github/agents/` (perf-guide-*.agent.md files) with insights. Create a new guide if needed, or split, merge or delete existing guides as appropriate. This is your chance to improve the performance engineering documentation for next time, so you and your team don't make the same mistakes again! Make the most of it!
 
 5. **Final update**: Add brief comment (1 or 2 sentences) to the discussion identified at the start of the workflow stating goal worked on, PR links, and progress made.
