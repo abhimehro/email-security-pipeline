@@ -39,3 +39,7 @@
 ## 2026-03-01 - Setup Wizard for Configuration
 **Learning:** Interactive setup wizards significantly reduce the friction of configuring complex environment variables, especially for first-time users who may be overwhelmed by `.env.example`.
 **Action:** When a configuration file is missing, offer to run an interactive wizard that guides the user through the essential settings (e.g., email provider, credentials) and generates the file automatically.
+
+## 2026-05-15 - Information Density in "Clean" Logs
+**Learning:** Security logs often strip context from "clean" events to reduce noise, but hiding the sender makes it impossible to verify false negatives at a glance.
+**Action:** Always include key metadata (Sender, Subject) in summary logs, even for success states, using truncation and alignment to maintain readability.
