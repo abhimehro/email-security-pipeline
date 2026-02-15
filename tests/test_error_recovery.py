@@ -48,7 +48,7 @@ class TestIMAPErrorRecovery(unittest.TestCase):
         PATTERN RECOGNITION: This is similar to circuit breaker patterns where we
         fail fast rather than waiting indefinitely for a dead service.
         """
-        with patch('imaplib.IMAP4_SSL') as mock_imap:
+        with patch('src.modules.email_ingestion.imaplib.IMAP4_SSL') as mock_imap:
             # Simulate connection timeout
             mock_imap.side_effect = socket.timeout("Connection timed out")
             
@@ -67,7 +67,7 @@ class TestIMAPErrorRecovery(unittest.TestCase):
         MITM attacks often involve invalid certificates. We must detect and reject
         these to prevent credential theft and email interception.
         """
-        with patch('imaplib.IMAP4_SSL') as mock_imap:
+        with patch('src.modules.email_ingestion.imaplib.IMAP4_SSL') as mock_imap:
             # Simulate SSL certificate error
             mock_imap.side_effect = ssl.SSLError("certificate verify failed")
             
@@ -84,7 +84,7 @@ class TestIMAPErrorRecovery(unittest.TestCase):
         Failed logins could indicate credential compromise or misconfiguration.
         We must handle this gracefully and log it for investigation.
         """
-        with patch('imaplib.IMAP4_SSL') as mock_imap:
+        with patch('src.modules.email_ingestion.imaplib.IMAP4_SSL') as mock_imap:
             mock_connection = MagicMock()
             mock_imap.return_value = mock_connection
             
