@@ -19,11 +19,15 @@ class TestSecurityFixes(unittest.TestCase):
     @patch('src.main.RotatingFileHandler')
     @patch('src.main.Config')
     def test_logging_uses_rotating_handler(self, mock_config, mock_rotating_handler):
-        """Test that RotatingFileHandler is used instead of FileHandler"""
-        # Setup mock config
+        """Test that RotatingFileHandler is used with configurable size/count"""
+        # Setup mock config with new rotation settings
         mock_config_instance = mock_config.return_value
         mock_config_instance.system.log_file = "logs/test.log"
         mock_config_instance.system.log_level = "INFO"
+        mock_config_instance.system.log_format = "text"
+        mock_config_instance.system.log_rotation_size_mb = 10
+        mock_config_instance.system.log_rotation_keep_files = 5
+        mock_config_instance.system.enable_metrics = True
         mock_config_instance.email_accounts = [] # Avoid initialization of IngestionManager failing hard
         mock_config_instance.analysis = MagicMock()
         mock_config_instance.alerts = MagicMock()
@@ -40,10 +44,10 @@ class TestSecurityFixes(unittest.TestCase):
 
             pipeline = EmailSecurityPipeline(".env")
 
-            # Verify RotatingFileHandler was initialized
+            # Verify RotatingFileHandler was initialized with configurable values
             mock_rotating_handler.assert_called_with(
                 "logs/test.log",
-                maxBytes=10*1024*1024,
+                maxBytes=10*1024*1024,  # 10MB in bytes
                 backupCount=5
             )
 

@@ -21,6 +21,8 @@ from src.utils.colors import Colors
 from src.utils.ui import CountdownTimer, Spinner
 from src.utils.setup_wizard import run_setup_wizard
 from src.utils.logging_utils import ColoredFormatter
+from src.utils.structured_logging import JSONFormatter
+from src.utils.metrics import Metrics
 from src.utils.sanitization import sanitize_for_logging
 from src.modules.email_ingestion import EmailIngestionManager
 from src.modules.spam_analyzer import SpamAnalyzer
@@ -48,6 +50,11 @@ class EmailSecurityPipeline:
         self.logger = logging.getLogger("EmailSecurityPipeline")
         self.logger.info("Initializing Email Security Pipeline")
 
+        # Initialize metrics collection if enabled
+        self.metrics = Metrics() if self.config.system.enable_metrics else None
+        if self.metrics:
+            self.logger.info("Metrics collection enabled")
+
         # Initialize modules
         self.ingestion_manager = EmailIngestionManager(
             self.config.email_accounts,
@@ -69,22 +76,42 @@ class EmailSecurityPipeline:
         self.running = False
 
     def _setup_logging(self):
-        """Setup logging configuration"""
+        """
+        Setup logging configuration.
+        
+        Supports both text (colored, human-readable) and JSON (structured, machine-parseable) formats.
+        
+        TEACHING MOMENT: We use different formatters for file vs console because:
+        - File logs should be machine-parseable (JSON) when LOG_FORMAT=json
+        - Console logs should be human-readable with colors for local development
+        
+        This is similar to how nginx can log JSON to files but show colored output to stdout.
+        """
         log_format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 
         # Create logs directory if needed
         log_path = Path(self.config.system.log_file)
         log_path.parent.mkdir(parents=True, exist_ok=True)
 
-        # Configure handlers
+        # Configure file handler with rotation
         # Security: Use RotatingFileHandler to prevent disk space DoS (CWE-400)
+        # MAINTENANCE WISDOM: Using configurable size limits means you can tune this
+        # based on your disk space without changing code
         file_handler = RotatingFileHandler(
             self.config.system.log_file,
-            maxBytes=10*1024*1024,  # 10MB
-            backupCount=5
+            maxBytes=self.config.system.log_rotation_size_mb * 1024 * 1024,
+            backupCount=self.config.system.log_rotation_keep_files
         )
-        file_handler.setFormatter(logging.Formatter(log_format))
+        
+        # Choose formatter based on LOG_FORMAT configuration
+        if self.config.system.log_format == "json":
+            # JSON format: structured logs for log aggregation tools
+            file_handler.setFormatter(JSONFormatter())
+        else:
+            # Text format: traditional format without colors for files
+            file_handler.setFormatter(logging.Formatter(log_format))
 
+        # Console handler always uses colored text for better UX
         stream_handler = logging.StreamHandler(sys.stdout)
         stream_handler.setFormatter(ColoredFormatter(log_format))
 
@@ -163,6 +190,10 @@ class EmailSecurityPipeline:
                     for email_data in emails:
                         self._analyze_email(email_data)
 
+                # Log metrics summary periodically (every 10 iterations)
+                if self.metrics and iteration % 10 == 0:
+                    self._log_metrics_summary()
+
                 # Wait before next check
                 if self.running:
                     self.logger.info(
@@ -176,6 +207,8 @@ class EmailSecurityPipeline:
 
             except Exception as e:
                 self.logger.error(f"Error in monitoring loop: {e}", exc_info=True)
+                if self.metrics:
+                    self.metrics.record_error("monitoring_loop_error")
                 CountdownTimer.wait(30, f"{Colors.RED}Retrying in{Colors.RESET}")
 
     def _analyze_email(self, email_data):
@@ -185,6 +218,9 @@ class EmailSecurityPipeline:
         Args:
             email_data: EmailData object
         """
+        # Track processing time for performance monitoring
+        start_time = time.time()
+        
         try:
             safe_subject = sanitize_for_logging(email_data.subject, max_length=50)
             self.logger.info(f"Analyzing email: {safe_subject}...")
@@ -231,13 +267,64 @@ class EmailSecurityPipeline:
             # Send alerts
             self.alert_system.send_alert(threat_report)
 
+            # Calculate processing time
+            processing_time_ms = (time.time() - start_time) * 1000
+
+            # Record metrics if enabled
+            if self.metrics:
+                self.metrics.record_email_processed()
+                self.metrics.record_processing_time(processing_time_ms)
+                
+                # Record threats detected
+                if threat_report.risk_level != "CLEAN":
+                    # Determine threat type based on highest scoring layer
+                    threat_type = "unknown"
+                    if spam_result.score >= nlp_result.threat_score and spam_result.score >= media_result.threat_score:
+                        threat_type = "spam"
+                    elif nlp_result.threat_score >= media_result.threat_score:
+                        threat_type = "phishing"
+                    else:
+                        threat_type = "malware"
+                    
+                    self.metrics.record_threat(threat_type, threat_report.risk_level.lower())
+
             self.logger.info(
                 f"Analysis complete: overall_score={threat_report.overall_threat_score:.2f}, "
-                f"risk={threat_report.risk_level}"
+                f"risk={threat_report.risk_level}, time={processing_time_ms:.0f}ms"
             )
 
         except Exception as e:
+            # Record error in metrics
+            if self.metrics:
+                self.metrics.record_error("analysis_error")
             self.logger.error(f"Error analyzing email: {e}", exc_info=True)
+
+    def _log_metrics_summary(self):
+        """
+        Log a summary of collected metrics.
+        
+        TEACHING MOMENT: We log metrics periodically instead of on every email
+        because it reduces log volume. Imagine processing 1000 emails - you don't
+        want 1000 metric log entries, you want a summary every N iterations.
+        
+        INDUSTRY CONTEXT: Professional teams export these metrics to monitoring
+        systems like Prometheus or CloudWatch every 60 seconds for dashboards
+        and alerting.
+        """
+        if not self.metrics:
+            return
+        
+        summary = self.metrics.get_summary()
+        
+        # Log with extra fields for structured logging
+        self.logger.info(
+            f"Metrics Summary: {summary['emails_processed']} emails processed, "
+            f"{len(summary['threats_detected'])} threat types detected, "
+            f"avg processing time: {summary['processing_time_stats'].get('avg_ms', 0):.0f}ms"
+        )
+        
+        # Log detailed metrics at debug level
+        self.logger.debug(f"Detailed metrics: {summary}")
 
     def _print_configuration_summary(self):
         """Print a summary of the current configuration"""
@@ -288,8 +375,11 @@ class EmailSecurityPipeline:
             print(f"    - Enabled: {Colors.YELLOW}None{Colors.RESET}")
 
         print(f"  • {Colors.CYAN}System:{Colors.RESET}")
-        print(f"    - Log Level: {self.config.system.log_level}")
-        print(f"    - Interval:  {self.config.system.check_interval}s")
+        print(f"    - Log Level:  {self.config.system.log_level}")
+        print(f"    - Log Format: {self.config.system.log_format}")
+        if self.config.system.enable_metrics:
+            print(f"    - Metrics:    {Colors.GREEN}Enabled{Colors.RESET}")
+        print(f"    - Interval:   {self.config.system.check_interval}s")
 
         # Documentation footer
         print(f"\n📚 {Colors.GREY}For help, see README.md or OUTLOOK_TROUBLESHOOTING.md{Colors.RESET}\n")
