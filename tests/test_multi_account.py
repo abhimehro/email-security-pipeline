@@ -278,20 +278,17 @@ class TestMultiAccountProcessing(unittest.TestCase):
             "user2@different.com": mock_client2
         }
         
-        # Measure time for fetch operation
-        start_time = time.time()
-        
-        # Perform fetch - should apply rate limiting
-        manager.fetch_all_emails(max_per_folder=10)
-        
-        elapsed_time = time.time() - start_time
-        
-        # With 2 accounts and 3 folders total (account1=2, account2=1),
-        # there should be some delay applied
-        # Just verify operation completed (timing can be unreliable in tests)
-        self.assertIsInstance(elapsed_time, float)
-        self.assertGreaterEqual(elapsed_time, 0)
+        # Patch sleep in the email_ingestion module to make rate limiting observable
+        with patch("src.modules.email_ingestion.time.sleep") as mock_sleep:
+            # Perform fetch - should apply rate limiting
+            manager.fetch_all_emails(max_per_folder=10)
 
+        # With 2 accounts and 3 folders total (account1=2, account2=1),
+        # rate limiting should trigger at least one sleep with the configured delay
+        self.assertGreaterEqual(mock_sleep.call_count, 1)
+        for call in mock_sleep.call_args_list:
+            # Each sleep call should use the configured rate_limit_delay
+            self.assertEqual(call.args[0], rate_limit_delay)
     def test_concurrent_account_error_isolation(self):
         """
         SECURITY STORY: This tests that errors in one account don't affect others.
@@ -328,7 +325,10 @@ class TestMultiAccountProcessing(unittest.TestCase):
         mock_client2.config = self.account2
         mock_client2.fetch_emails.side_effect = Exception("Account error")
         
-        manager.clients = [mock_client1, mock_client2]
+        manager.clients = {
+            self.account1.email: mock_client1,
+            self.account2.email: mock_client2,
+        }
         
         # Fetch should succeed for working account despite other account's error
         emails = manager.fetch_all_emails(max_per_folder=10)
@@ -422,7 +422,10 @@ class TestMultiAccountProcessing(unittest.TestCase):
         mock_client2.config = self.account2
         mock_client2.fetch_emails.return_value = []
         
-        manager.clients = [mock_client1, mock_client2]
+        manager.clients = {
+            "user1@example.com": mock_client1,
+            "user2@example.com": mock_client2,
+        }
         
         # Fetch with limit
         emails = manager.fetch_all_emails(max_per_folder=10)

@@ -412,7 +412,7 @@ class TestGracefulDegradation(unittest.TestCase):
         analyzer = MediaAuthenticityAnalyzer(analysis_config)
         
         # Mock network failure
-        with patch('requests.post', side_effect=ConnectionError("Network unreachable")):
+        with patch('src.modules.media_analyzer.requests.post', side_effect=ConnectionError("Network unreachable")):
             email_data = EmailData(
                 message_id="net-fail-123",
                 subject="Video attachment",

@@ -131,25 +131,24 @@ class TestWebhookDelivery(unittest.TestCase):
         # If retry logic exists, would see multiple calls
         # If not, this documents that retry logic should be added
 
+    @unittest.expectedFailure
     @patch('src.modules.alert_system.requests.post')
     def test_webhook_timeout_handling(self, mock_post):
         """
         SECURITY STORY: This tests timeout handling for slow webhook endpoints.
         If an endpoint hangs, we shouldn't wait indefinitely. Timeouts ensure
         the pipeline continues processing other emails even if one webhook is slow.
+
+        Current behavior: a requests.Timeout may bubble up. This test is marked
+        as expectedFailure until timeout handling is implemented to be graceful.
         """
         # Mock timeout
         mock_post.side_effect = requests.Timeout("Request timed out")
-        
-        # Should handle timeout gracefully, not crash
-        try:
-            self.alert_system.send_alert(self.test_report)
-        except requests.Timeout:
-            # If timeout bubbles up, that's the current behavior
-            # This documents that timeout handling should be improved
-            pass
 
-
+        # Desired: should handle timeout gracefully, not crash.
+        # For now, we let any Timeout bubble up and cause the test to fail,
+        # and rely on expectedFailure to keep CI results meaningful.
+        self.alert_system.send_alert(self.test_report)
 class TestSlackNotifications(unittest.TestCase):
     """Test Slack webhook notifications"""
 

@@ -213,22 +213,13 @@ class TestIntegrationWorkflow(unittest.TestCase):
 
         # Simulate NLP analyzer failure
         with patch.object(self.nlp_analyzer, 'analyze', side_effect=Exception("NLP service unavailable")):
-            # Should not raise exception - graceful degradation
-            try:
-                nlp_result = self.nlp_analyzer.analyze(email_data)
-                # If exception is caught internally, result might be None or default
-                # This depends on implementation
-            except Exception as e:
-                # Pipeline should handle this gracefully
-                nlp_result = NLPAnalysisResult(
-                    threat_score=0.0,
-                    social_engineering_indicators=[],
-                    urgency_markers=[],
-                    authority_impersonation=[],
-                    psychological_triggers=[],
-                    risk_level="low"
-                )
+            # Verify that the NLP analyzer call fails as expected
+            with self.assertRaises(Exception):
+                self.nlp_analyzer.analyze(email_data)
 
+            # In the real pipeline, a failed NLP analysis should result in no NLP result
+            # being passed to the report generator (graceful degradation).
+            nlp_result = None
         # Other analyzers should still work
         spam_result = self.spam_analyzer.analyze(email_data)
         self.assertIsNotNone(spam_result)
