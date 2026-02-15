@@ -35,3 +35,7 @@
 ## 2026-03-05 - Multipart Email Parsing Efficiency
 **Learning:** String concatenation in a loop (`body += part`) for potentially many parts leads to O(N^2) complexity, which can be a DoS vector for large emails with many small parts. Using `list.append()` followed by `"".join()` is O(N) and significantly safer and faster for large inputs.
 **Action:** Use list accumulation for string building in loops, especially when handling external input like email bodies.
+
+## 2026-03-08 - ThreadPoolExecutor Creation Overhead
+**Learning:** Creating a `ThreadPoolExecutor` inside a loop (or per item in a batch) is a significant performance anti-pattern (422us vs ~0us per item), especially for short-lived tasks. Reuse a single executor instance where possible.
+**Action:** Move `ThreadPoolExecutor` initialization to `__init__` or module level and reuse it across calls.

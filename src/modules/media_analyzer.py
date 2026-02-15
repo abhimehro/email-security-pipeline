@@ -61,6 +61,8 @@ class MediaAuthenticityAnalyzer:
         self.config = config
         self.logger = logging.getLogger("MediaAuthenticityAnalyzer")
         self.face_cascade = None
+        # Optimization: Reuse thread pool for deepfake detection to avoid overhead
+        self._deepfake_executor = concurrent.futures.ThreadPoolExecutor(max_workers=4)
 
     def analyze(self, email_data: EmailData) -> MediaAnalysisResult:
         """
@@ -135,9 +137,8 @@ class MediaAuthenticityAnalyzer:
             # Only proceed if the file hasn't already been flagged as dangerous/suspicious (score >= 5.0)
             # This prevents processing of potentially malicious files (e.g., disguised executables)
             if self.config.deepfake_detection_enabled and threat_score < 5.0:
-                executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
                 try:
-                    future = executor.submit(
+                    future = self._deepfake_executor.submit(
                         self._check_deepfake_indicators,
                         filename,
                         data,
@@ -155,9 +156,9 @@ class MediaAuthenticityAnalyzer:
                     size_anomalies.append(f"Deepfake analysis timed out: {filename}")
                 except Exception as e:
                     self.logger.error(f"Deepfake analysis failed for {filename}: {e}")
-                finally:
-                    # Do not wait for the thread to finish if it's stuck
-                    executor.shutdown(wait=False, cancel_futures=True)
+                # Note: We cannot shutdown the shared executor here.
+                # If the thread is stuck, it will consume a slot in the pool until completion or process exit.
+                # max_workers limits the impact of such stuck threads.
 
         # Calculate risk level
         risk_level = self._calculate_risk_level(threat_score)
@@ -734,3 +735,8 @@ class MediaAuthenticityAnalyzer:
             return "medium"
         else:
             return "low"
+
+    def shutdown(self):
+        """Shutdown the thread pool executor"""
+        if hasattr(self, '_deepfake_executor'):
+            self._deepfake_executor.shutdown(wait=True)
