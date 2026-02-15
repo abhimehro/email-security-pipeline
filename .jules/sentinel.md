@@ -57,3 +57,8 @@
 **Vulnerability:** Email ingestion was vulnerable to DoS via "MIME bombs" (emails with an excessive number of parts). Iterating over thousands of MIME parts in `parse_email` consumed excessive CPU and memory, even if individual parts were small.
 **Learning:** Limiting data size is not enough; the complexity of the data structure (e.g., nesting depth, number of elements) must also be bounded.
 **Prevention:** Implemented `MAX_MIME_PARTS` limit (100) in `IMAPClient.parse_email`. Processing halts and remaining parts are truncated if the limit is exceeded.
+
+## 2025-02-23 - [Information Leakage in Logs]
+**Vulnerability:** Slack and Discord webhook URLs contain secrets (tokens) in their path, which leak into logs when request exceptions occur.
+**Learning:** Sanitizing query parameters is insufficient for APIs that use path-based secrets. Exception messages from `requests` often include the full URL.
+**Prevention:** Sanitize exception messages by redacting known sensitive URL patterns (both query params and paths) before logging.
