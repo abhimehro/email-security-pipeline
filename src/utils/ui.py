@@ -82,10 +82,11 @@ class Spinner:
     """
     Displays a loading spinner in the terminal.
     """
-    def __init__(self, message: str = "Loading", delay: float = 0.1):
+    def __init__(self, message: str = "Loading", delay: float = 0.1, persist: bool = True):
         self.spinner = itertools.cycle(['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'])
         self.message = message
         self.delay = delay
+        self.persist = persist
         self.busy = False
         self.thread = None
 
@@ -114,4 +115,12 @@ class Spinner:
             if self.thread:
                 self.thread.join()
             sys.stdout.write(f"\r\033[K") # Clear line
+
+            if exc_type is not None:
+                # Failure always persists
+                sys.stdout.write(f"{Colors.RED}✘{Colors.RESET} {self.message}\n")
+            elif self.persist:
+                # Success only persists if requested
+                sys.stdout.write(f"{Colors.GREEN}✔{Colors.RESET} {self.message}\n")
+
             sys.stdout.flush()
