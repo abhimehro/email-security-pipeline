@@ -209,13 +209,13 @@ class AlertSystem:
             time_str = report.timestamp
 
         # Sender truncated
-        sanitized_sender = self._sanitize_text(report.sender)
+        sanitized_sender = self._sanitize_text(report.sender, csv_safe=True)
         sender = sanitized_sender[:25]
         if len(sanitized_sender) > 25:
             sender += "..."
 
         # Subject truncated
-        sanitized_subject = self._sanitize_text(report.subject)
+        sanitized_subject = self._sanitize_text(report.subject, csv_safe=True)
         if not sanitized_subject:
             sanitized_subject = "(No Subject)"
 
