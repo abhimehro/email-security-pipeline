@@ -1,45 +1,149 @@
 """Tests for Colors utility class."""
 
 import unittest
-from src.utils.colors import Colors
+import sys
+import os
+import importlib
+from unittest.mock import patch, MagicMock
+from src.utils import colors
 
 
 class TestColors(unittest.TestCase):
     """Test color utility methods."""
 
+    def tearDown(self):
+        # Ensure we restore the module to a usable state after tests
+        # This is critical because reload modifies the global module object
+        importlib.reload(colors)
+
+    def _reload_colors(self, mock_tty=True, mock_no_color=None):
+        """Helper to reload Colors module with specific environment"""
+
+        # Prepare mock stdout
+        mock_stdout = MagicMock()
+        mock_stdout.isatty.return_value = mock_tty
+
+        with patch('sys.stdout', mock_stdout):
+            # Manage environment variable
+            # We use patch.dict to restore environment after block
+            with patch.dict(os.environ):
+                if mock_no_color is not None:
+                    os.environ['NO_COLOR'] = mock_no_color
+                elif 'NO_COLOR' in os.environ:
+                    del os.environ['NO_COLOR']
+
+                # Reload module
+                importlib.reload(colors)
+                return colors.Colors
+
     def test_get_risk_symbol_high(self):
-        self.assertEqual(Colors.get_risk_symbol("high"), "🔴")
+        Cls = self._reload_colors(mock_tty=True)
+        self.assertEqual(Cls.get_risk_symbol("high"), "🔴")
 
     def test_get_risk_symbol_medium(self):
-        self.assertEqual(Colors.get_risk_symbol("medium"), "🟡")
+        Cls = self._reload_colors(mock_tty=True)
+        self.assertEqual(Cls.get_risk_symbol("medium"), "🟡")
 
     def test_get_risk_symbol_low(self):
-        self.assertEqual(Colors.get_risk_symbol("low"), "🟢")
+        Cls = self._reload_colors(mock_tty=True)
+        self.assertEqual(Cls.get_risk_symbol("low"), "🟢")
 
     def test_get_risk_symbol_unknown(self):
-        self.assertEqual(Colors.get_risk_symbol("unknown"), "⚪")
+        Cls = self._reload_colors(mock_tty=True)
+        self.assertEqual(Cls.get_risk_symbol("unknown"), "⚪")
 
     def test_get_risk_symbol_case_insensitive(self):
-        self.assertEqual(Colors.get_risk_symbol("HIGH"), "🔴")
-        self.assertEqual(Colors.get_risk_symbol("Medium"), "🟡")
-        self.assertEqual(Colors.get_risk_symbol("Low"), "🟢")
+        Cls = self._reload_colors(mock_tty=True)
+        self.assertEqual(Cls.get_risk_symbol("HIGH"), "🔴")
+        self.assertEqual(Cls.get_risk_symbol("Medium"), "🟡")
+        self.assertEqual(Cls.get_risk_symbol("Low"), "🟢")
 
     def test_get_risk_color_high(self):
-        self.assertEqual(Colors.get_risk_color("high"), Colors.RED)
+        Cls = self._reload_colors(mock_tty=True)
+        self.assertEqual(Cls.get_risk_color("high"), Cls.RED)
+        self.assertNotEqual(Cls.RED, "")
 
     def test_get_risk_color_medium(self):
-        self.assertEqual(Colors.get_risk_color("medium"), Colors.YELLOW)
+        Cls = self._reload_colors(mock_tty=True)
+        self.assertEqual(Cls.get_risk_color("medium"), Cls.YELLOW)
 
     def test_get_risk_color_low(self):
-        self.assertEqual(Colors.get_risk_color("low"), Colors.GREEN)
+        Cls = self._reload_colors(mock_tty=True)
+        self.assertEqual(Cls.get_risk_color("low"), Cls.GREEN)
 
     def test_get_risk_color_unknown(self):
-        self.assertEqual(Colors.get_risk_color("unknown"), Colors.WHITE)
+        Cls = self._reload_colors(mock_tty=True)
+        self.assertEqual(Cls.get_risk_color("unknown"), Cls.WHITE)
 
     def test_colorize(self):
-        result = Colors.colorize("test", Colors.RED)
-        self.assertEqual(result, f"{Colors.RED}test{Colors.RESET}")
+        Cls = self._reload_colors(mock_tty=True)
+        result = Cls.colorize("test", Cls.RED)
+        self.assertEqual(result, f"{Cls.RED}test{Cls.RESET}")
+
+    def test_no_color_env(self):
+        """Test that NO_COLOR disables colors"""
+        Cls = self._reload_colors(mock_tty=True, mock_no_color="1")
+        self.assertFalse(Cls.ENABLED)
+        self.assertEqual(Cls.RED, "")
+        self.assertEqual(Cls.colorize("test", "\033[91m"), "test")
+        self.assertEqual(Cls.get_risk_color("high"), "")
+
+    def test_no_color_env_empty_string(self):
+        """Test that NO_COLOR='' also disables colors per spec"""
+        # According to the NO_COLOR spec, any presence of the variable,
+        # even with an empty value, must disable color output.
+        Cls = self._reload_colors(mock_tty=True, mock_no_color="")
+        self.assertFalse(Cls.ENABLED)
+        self.assertEqual(Cls.RED, "")
+        self.assertEqual(Cls.colorize("test", "\033[91m"), "test")
+        self.assertEqual(Cls.get_risk_color("high"), "")
+    def test_no_color_env_empty(self):
+        """Test that an empty NO_COLOR env var disables colors"""
+        Cls = self._reload_colors(mock_tty=True, mock_no_color="")
+        self.assertFalse(Cls.ENABLED)
+        self.assertEqual(Cls.RED, "")
+        self.assertEqual(Cls.colorize("test", "\033[91m"), "test")
+        self.assertEqual(Cls.get_risk_color("high"), "")
 
 
+        """Test that non-TTY disables colors"""
+        Cls = self._reload_colors(mock_tty=False)
+        self.assertFalse(Cls.ENABLED)
+        self.assertEqual(Cls.RED, "")
+        self.assertEqual(Cls.colorize("test", "\033[91m"), "test")
+
+    def test_stdout_without_isatty(self):
+        """Test that lack of isatty attribute disables colors via hasattr(sys.stdout, 'isatty')."""
+
+        class StdoutWithoutIsatty:
+            """Minimal stdout-like object without an isatty attribute.
+
+            We provide write/flush so that any code writing to stdout
+            during module import won't fail, but deliberately omit
+            isatty so hasattr(sys.stdout, "isatty") returns False.
+            """
+
+            def write(self, data):
+                # No-op writer; we don't care about captured output here.
+                pass
+
+            def flush(self):
+                # No-op flush to satisfy file-like interface expectations.
+                pass
+
+        mock_stdout = StdoutWithoutIsatty()
+
+        # Ensure NO_COLOR is not forcing colors off so we only test
+        # the hasattr(sys.stdout, "isatty") fallback behavior.
+        with patch('sys.stdout', mock_stdout):
+            with patch.dict(os.environ):
+                if 'NO_COLOR' in os.environ:
+                    del os.environ['NO_COLOR']
+                importlib.reload(colors)
+                Cls = colors.Colors
+
+        self.assertFalse(Cls.ENABLED)
+        self.assertEqual(Cls.RED, "")
+        self.assertEqual(Cls.colorize("test", "\033[91m"), "test")
 if __name__ == "__main__":
     unittest.main()
