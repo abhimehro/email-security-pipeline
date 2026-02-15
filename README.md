@@ -273,17 +273,20 @@ Best for production and log aggregation tools (Splunk, ELK, CloudWatch):
 
 **Querying JSON logs:**
 ```bash
-# Find all HIGH severity threats
-grep '"risk_level":"HIGH"' logs/email_security.log | jq .
-
-# Find all analysis errors
+# Find all ERROR level logs
 grep '"level":"ERROR"' logs/email_security.log | jq .
 
-# Count threats by type
-grep 'threat_type' logs/email_security.log | jq -r .threat_type | sort | uniq -c
+# Find logs from specific module
+grep '"module":"main"' logs/email_security.log | jq .
 
-# Find slow processing (>1000ms)
-grep 'time=' logs/email_security.log | jq 'select(.message | contains("time=") and (. | match("time=([0-9]+)ms") | .captures[0].string | tonumber) > 1000)'
+# Find all analysis completion messages
+grep 'Analysis complete' logs/email_security.log | jq .
+
+# Count log messages by level
+grep -o '"level":"[A-Z]*"' logs/email_security.log | sort | uniq -c
+
+# View logs from the last hour (requires timestamps)
+grep "$(date -u -d '1 hour ago' '+%Y-%m-%d %H')" logs/email_security.log | jq .
 ```
 
 ### Metrics Collection
