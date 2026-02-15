@@ -326,7 +326,7 @@ class EmailParser:
         new_part: str,
         body_type: str,
         safe_email_id: str
-    ) -> tuple[List[str], int]:
+    ) -> Tuple[List[str], int]:
         """
         Append body part with size checking and truncation
         
