@@ -48,10 +48,13 @@ Line  Mem usage  Increment  Line Contents
 
 ```python
 def process_attachment_safely(part):
-    content = part.get_content()
+    # get_payload(decode=True) returns the full decoded bytes for this part
+    payload = part.get_payload(decode=True)
     chunk_size = 1024 * 1024  # 1MB chunks
-    
-    for chunk in iter(lambda: content.read(chunk_size), b''):
+
+    # Process the payload in fixed-size chunks to keep peak memory bounded
+    for i in range(0, len(payload), chunk_size):
+        chunk = payload[i:i + chunk_size]
         analyze_chunk(chunk)  # Incremental analysis
 ```
 
