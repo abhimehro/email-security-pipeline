@@ -1,0 +1,47 @@
+---
+name: 'Performance Improver Build Steps'
+description: 'Validated build, test, and lint commands'
+author: 'Daily Perf Improver Workflow'
+
+# This action encapsulates the standard build/test/lint workflow
+# Security: Uses only commands from existing CI
+# No external dependencies or network calls beyond package managers
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Verify Python Installation
+      shell: bash
+      run: |
+        python --version
+        python -m pip --version
+
+    - name: Install Dependencies
+      shell: bash
+      run: |
+        # Use CI requirements for fast, lightweight testing
+        # Omits torch/transformers to keep builds fast
+        python -m pip install --upgrade pip
+        python -m pip install -r requirements-ci.txt
+
+    - name: Run Linters
+      shell: bash
+      run: |
+        # Uses trunk.yaml configuration (python@3.10.8 runtime)
+        # Key linters: ruff, black, isort, bandit
+        # Security: Bandit catches common security issues
+        trunk check --ci
+
+    - name: Run Tests
+      shell: bash
+      run: |
+        # Runs full test suite using pytest.ini configuration
+        # Target: <60s execution (maintainer goal)
+        python -m pytest -v
+
+    - name: Test Summary
+      shell: bash
+      if: always()
+      run: |
+        echo "Build steps completed."
+        echo "Performance goal: Tests <60s"
