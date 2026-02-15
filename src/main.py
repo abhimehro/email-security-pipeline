@@ -278,12 +278,15 @@ class EmailSecurityPipeline:
                 # Record threats detected with consistent classification
                 if threat_report.risk_level != "CLEAN":
                     # Determine threat type based on highest scoring layer
-                    # Priority order (highest first): spam, nlp, media
-                    # This ensures consistent classification even with equal scores
+                    # Priority order for tie-breaking: spam > phishing > malware
+                    # (i.e., spam_result > nlp_result > media_result)
                     threat_type = "unknown"
                     max_score = max(spam_result.score, nlp_result.threat_score, media_result.threat_score)
                     
-                    if spam_result.score == max_score:
+                    # If all scores are 0, default to "spam" for consistency
+                    if max_score == 0:
+                        threat_type = "spam"
+                    elif spam_result.score == max_score:
                         threat_type = "spam"
                     elif nlp_result.threat_score == max_score:
                         threat_type = "phishing"

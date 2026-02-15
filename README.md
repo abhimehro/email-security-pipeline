@@ -285,8 +285,11 @@ grep 'Analysis complete' logs/email_security.log | jq .
 # Count log messages by level
 grep -o '"level":"[A-Z]*"' logs/email_security.log | sort | uniq -c
 
-# View logs from the last hour (requires timestamps)
+# View recent logs (Linux: use -d, macOS: use -v)
+# Linux:
 grep "$(date -u -d '1 hour ago' '+%Y-%m-%d %H')" logs/email_security.log | jq .
+# macOS:
+grep "$(date -u -v-1H '+%Y-%m-%d %H')" logs/email_security.log | jq .
 ```
 
 ### Metrics Collection
