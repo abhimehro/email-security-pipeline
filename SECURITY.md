@@ -15,8 +15,12 @@ We take security vulnerabilities seriously. If you discover a security issue in 
 
 ### How to Report
 
-1. **Open a GitHub Issue**: Create a new issue in the [Issues tab](https://github.com/abhimehro/email-security-pipeline/issues) with the label `security`
-2. **Include Details**: Please provide:
+**For security vulnerabilities, please use private reporting to prevent exploitation before a fix is available:**
+
+1. **GitHub Security Advisories (Recommended)**: Report privately via [Security Advisories](https://github.com/abhimehro/email-security-pipeline/security/advisories/new)
+2. **Alternative - Public Issue**: If Security Advisories are unavailable, create a new issue in the [Issues tab](https://github.com/abhimehro/email-security-pipeline/issues) with the label `security` (only for low-severity issues that don't risk immediate exploitation)
+
+**Include Details**: Please provide:
    - A description of the vulnerability
    - Steps to reproduce the issue
    - Potential impact assessment
@@ -35,7 +39,7 @@ We take security vulnerabilities seriously. If you discover a security issue in 
 ### Security Best Practices
 
 When deploying this pipeline:
-- **Never commit credentials**: Use environment variables (`.env` file) and restrict permissions (`chmod 600 .env`)
+- **Never commit credentials**: Use environment variables (`.env` file) and restrict permissions (`chmod 600 .env`). The `.env` file is already protected in `.gitignore` to prevent accidental commits.
 - **Keep dependencies updated**: Regularly update Python packages to address known vulnerabilities
 - **Use App Passwords**: For Gmail/Outlook integration, use app-specific passwords, not your primary account password
 - **Docker Security**: The provided Docker configuration includes security best practices (non-root user, read-only filesystem, resource limits)
