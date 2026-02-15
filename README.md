@@ -32,6 +32,13 @@ A self-hosted, containerized email security analysis system that monitors IMAP f
 - Customizable threat thresholds
 - Actionable threat recommendations
 
+### Observability & Monitoring
+
+- **Structured Logging**: JSON format for log aggregation tools (Splunk, ELK, CloudWatch)
+- **Metrics Collection**: Track emails processed, threats detected, and processing performance
+- **Log Rotation**: Automatic log file rotation to prevent disk space issues
+- **Configurable Formats**: Switch between human-readable text and machine-parseable JSON
+
 ## Architecture
 
 ```
@@ -239,6 +246,72 @@ MAX_EMAILS_PER_BATCH=50        # Max emails to process per cycle
 RATE_LIMIT_DELAY=1              # Delay between IMAP operations (seconds)
 ```
 
+### Logging Configuration
+
+The pipeline supports both text and JSON logging formats:
+
+```env
+# Logging format
+LOG_FORMAT=text                 # Options: "text" (colored console) or "json" (structured)
+LOG_ROTATION_SIZE_MB=10        # Max size per log file before rotation
+LOG_ROTATION_KEEP_FILES=5      # Number of rotated log files to keep
+LOG_FILE=logs/email_security.log
+```
+
+#### Text Format (Default)
+Best for local development and human reading. Includes colored output for better visibility:
+```
+2024-02-15 10:30:45 - EmailSecurityPipeline - INFO - Analyzing email: Important update...
+2024-02-15 10:30:45 - EmailSecurityPipeline - INFO - Analysis complete: overall_score=25.50, risk=LOW, time=150ms
+```
+
+#### JSON Format
+Best for production and log aggregation tools (Splunk, ELK, CloudWatch):
+```json
+{"timestamp":"2024-02-15 10:30:45","level":"INFO","logger":"EmailSecurityPipeline","message":"Analysis complete: overall_score=25.50, risk=LOW, time=150ms","module":"main","function":"_analyze_email","line":291}
+```
+
+**Querying JSON logs:**
+```bash
+# Find all HIGH severity threats
+grep '"risk_level":"HIGH"' logs/email_security.log | jq .
+
+# Find all analysis errors
+grep '"level":"ERROR"' logs/email_security.log | jq .
+
+# Count threats by type
+grep 'threat_type' logs/email_security.log | jq -r .threat_type | sort | uniq -c
+
+# Find slow processing (>1000ms)
+grep 'time=' logs/email_security.log | jq 'select(.message | contains("time=") and (. | match("time=([0-9]+)ms") | .captures[0].string | tonumber) > 1000)'
+```
+
+### Metrics Collection
+
+The pipeline tracks operational metrics when `ENABLE_METRICS=true`:
+
+```env
+ENABLE_METRICS=true
+```
+
+**Metrics tracked:**
+- **Emails processed**: Total count since startup
+- **Threats detected**: Breakdown by type (spam, phishing, malware) and severity
+- **Processing time**: Min, max, average, p50, p95, p99 percentiles
+- **Errors**: Categorized error counts
+
+**Viewing metrics:**
+Metrics are logged every 10 monitoring cycles:
+```
+INFO - Metrics Summary: 150 emails processed, 12 threat types detected, avg processing time: 145ms
+```
+
+**Use cases:**
+- **Performance monitoring**: Identify slow processing
+- **Threat patterns**: Track threat types over time
+- **Capacity planning**: Understand email volume
+- **Alerting**: Set up monitoring for metric thresholds (e.g., "alert if avg processing time > 1000ms")
+
 ## Project Structure
 
 ```
@@ -252,7 +325,10 @@ email-security-pipeline/
 │   │   ├── media_analyzer.py   # Layer 3: Media authenticity
 │   │   └── alert_system.py     # Alert & notification system
 │   └── utils/
-│       └── config.py            # Configuration management
+│       ├── config.py            # Configuration management
+│       ├── structured_logging.py  # JSON logging formatter
+│       ├── metrics.py           # Metrics collection
+│       └── logging_utils.py     # Colored console logging
 ├── logs/                        # Application logs
 ├── data/                        # Optional database
 ├── .env                         # Configuration (create from .env.example)
