@@ -2,7 +2,7 @@
 description: |
   This workflow performs systematic backlog management by working through issues and pull requests.
   Operates in two phases: research entire backlog to categorize and prioritize items, then
-  systematically close, resolve, or advance selected items. Creates tracking issues to track
+  systematically close, resolve, or advance selected items. Creates tracking issues to record
   progress and gather maintainer feedback, helping reduce technical debt.
 
 on:
