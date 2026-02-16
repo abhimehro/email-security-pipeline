@@ -16,8 +16,8 @@ class TestSpinner(unittest.TestCase):
             pass
 
         output = mock_stdout.getvalue()
-        # Verify checkmark is present
-        # Note: Colors might be empty strings if not a TTY, but we can check for the symbol
+        # Verify checkmark and message are present. We mock isatty() to True above,
+        # so Colors.ENABLED should be True and the spinner should use colored output.
         self.assertIn("✔ Testing Success", output)
         self.assertIn("Testing Success", output)
 
