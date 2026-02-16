@@ -17,7 +17,6 @@ permissions: read-all
 
 safe-outputs:
   create-issue:
-    title-prefix: "${{ github.workflow }}"
     labels: [backlog-management, automation]
     max: 3
   add-comment:
