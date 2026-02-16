@@ -79,87 +79,133 @@ class AlertSystem:
             self._slack_alert(threat_report)
     
     def _console_alert(self, report: ThreatReport):
-        """Print alert to console"""
+        """Print alert to console with enhanced UX"""
+        # Configuration
+        WIDTH = 70
         risk_color = Colors.get_risk_color(report.risk_level)
-        header_bar = Colors.colorize("="*80, risk_color)
+        risk_symbol = Colors.get_risk_symbol(report.risk_level)
         
-        # Format timestamp nicely
+        # Helper for printing rows with a left border
+        def print_row(text, indent=0):
+            # We add the left border '│' plus spaces
+            prefix = Colors.colorize("│", risk_color) + " " * (2 + indent)
+            print(f"{prefix}{text}")
+
+        # Format timestamp
         try:
             dt = datetime.fromisoformat(report.timestamp)
             formatted_time = dt.strftime("%b %d, %Y at %H:%M:%S")
         except ValueError:
             formatted_time = report.timestamp
 
-        print("\n" + header_bar)
-        print(Colors.colorize(f"🚨 SECURITY ALERT - {report.risk_level.upper()} RISK", risk_color + Colors.BOLD))
-        print(header_bar)
+        print()
+        # Top Border
+        print(Colors.colorize(f"┌{'─'*WIDTH}", risk_color))
 
-        print(f"{Colors.BOLD}Timestamp:{Colors.RESET} {formatted_time}")
-        print(f"{Colors.BOLD}Subject:{Colors.RESET}   {self._sanitize_text(report.subject, csv_safe=True)}")
-        print(f"{Colors.BOLD}From:{Colors.RESET}      {self._sanitize_text(report.sender, csv_safe=True)}")
-        print(f"{Colors.BOLD}To:{Colors.RESET}        {self._sanitize_text(report.recipient, csv_safe=True)}")
+        # Header Row: "🚨 SECURITY ALERT" ...... "HIGH RISK 🔴"
+        title = "🚨 SECURITY ALERT"
+        risk_label = f"{report.risk_level.upper()} RISK"
 
-        # Threat meter
+        # Simple spacing calculation (approximate due to unicode/emoji)
+        # title is ~18 chars, risk_label depends.
+        # We just use a generous fixed space or justify.
+        padding_len = WIDTH - len(title) - len(risk_label) - 5
+        padding = " " * max(1, padding_len)
+
+        print(
+            Colors.colorize("│  ", risk_color) +
+            Colors.colorize(title, Colors.BOLD) +
+            padding +
+            Colors.colorize(risk_label, risk_color + Colors.BOLD) +
+            " " + risk_symbol
+        )
+
+        print(Colors.colorize(f"├{'─'*WIDTH}", risk_color))
+
+        # Metadata
+        # Truncate fields to prevent wrapping mess
+        max_field_len = WIDTH - 15
+
+        def safe_field(val):
+            s = self._sanitize_text(val, csv_safe=True)
+            if len(s) > max_field_len:
+                return s[:max_field_len-3] + "..."
+            return s
+
+        print_row(f"{Colors.BOLD}Timestamp:{Colors.RESET} {formatted_time}")
+        print_row(f"{Colors.BOLD}Subject:{Colors.RESET}   {safe_field(report.subject)}")
+        print_row(f"{Colors.BOLD}From:{Colors.RESET}      {safe_field(report.sender)}")
+        print_row(f"{Colors.BOLD}To:{Colors.RESET}        {safe_field(report.recipient)}")
+        print_row("")
+
+        # Threat Meter
         score_val = min(max(report.overall_threat_score, 0), 100)
-        meter_len = 20
+        meter_len = 40
         filled_len = int(score_val / 100 * meter_len)
         bar = "█" * filled_len + "░" * (meter_len - filled_len)
         meter_color = Colors.get_risk_color(report.risk_level)
-
-        risk_symbol = Colors.get_risk_symbol(report.risk_level)
-        print(f"{Colors.BOLD}Score:{Colors.RESET}     {Colors.colorize(bar, meter_color)} {report.overall_threat_score:.2f}/100")
-        print(
-            f"{Colors.BOLD}Risk:{Colors.RESET}      "
-            f"{Colors.colorize(report.risk_level.upper(), risk_color + Colors.BOLD)}"
-            f" {risk_symbol}"
-        )
-
-        # Spam Analysis Section
-        print(f"\n{Colors.BOLD}📧 SPAM ANALYSIS{Colors.RESET}")
-        spam = report.spam_analysis
-        has_spam_indicators = False
-        if spam.get('indicators'):
-            has_spam_indicators = True
-            for indicator in spam['indicators'][:5]:  # Show first 5
-                print(f"  {Colors.colorize('•', Colors.CYAN)} {indicator}")
         
-        if not has_spam_indicators:
-            print(f"  {Colors.colorize('✓', Colors.GREEN)} No suspicious patterns detected")
+        print_row(f"{Colors.BOLD}THREAT SCORE:{Colors.RESET} {report.overall_threat_score:.2f}/100")
+        print_row(f"{Colors.colorize(bar, meter_color)}")
 
-        # NLP Analysis Section
-        print(f"\n{Colors.BOLD}🧠 NLP THREAT ANALYSIS{Colors.RESET}")
+        # Analysis Section
+        print(Colors.colorize(f"├{'─'*WIDTH}", risk_color))
+        print_row(Colors.colorize("ANALYSIS DETAILS", Colors.BOLD))
+        print_row("")
+
+        # Helper for analysis sections
+        def print_analysis_section(title, analysis_data):
+            level = analysis_data.get('risk_level', 'unknown')
+            color = Colors.get_risk_color(level)
+            symbol = Colors.get_risk_symbol(level)
+
+            print_row(f"{Colors.BOLD}{title}:{Colors.RESET} {Colors.colorize(level.upper(), color)} {symbol}")
+            return level
+
+        # Spam
+        print_analysis_section("📧 SPAM", report.spam_analysis)
+        if report.spam_analysis.get('indicators'):
+            for indicator in report.spam_analysis['indicators'][:5]:
+                print_row(f"{Colors.colorize('•', Colors.GREY)} {indicator}", indent=3)
+        else:
+            print_row(f"{Colors.colorize('✓', Colors.GREEN)} No suspicious patterns", indent=3)
+        print_row("")
+
+        # NLP
+        print_analysis_section("🧠 NLP", report.nlp_analysis)
         nlp = report.nlp_analysis
-        has_nlp_issues = False
-
+        has_nlp = False
         if nlp.get('social_engineering_indicators'):
-            has_nlp_issues = True
-            print(f"  {Colors.BOLD}Social Engineering:{Colors.RESET}")
-            for indicator in nlp['social_engineering_indicators'][:3]:
-                print(f"    {Colors.colorize('•', Colors.RED)} {indicator}")
+            print_row(f"{Colors.BOLD}Social Engineering:{Colors.RESET}", indent=3)
+            for ind in nlp['social_engineering_indicators'][:3]:
+                print_row(f"{Colors.colorize('•', Colors.RED)} {ind}", indent=5)
+            has_nlp = True
 
         if nlp.get('authority_impersonation'):
-            has_nlp_issues = True
-            print(f"  {Colors.BOLD}Authority Impersonation:{Colors.RESET}")
-            for indicator in nlp['authority_impersonation'][:3]:
-                print(f"    {Colors.colorize('•', Colors.RED)} {indicator}")
+            print_row(f"{Colors.BOLD}Authority Impersonation:{Colors.RESET}", indent=3)
+            for ind in nlp['authority_impersonation'][:3]:
+                print_row(f"{Colors.colorize('•', Colors.RED)} {ind}", indent=5)
+            has_nlp = True
 
-        if not has_nlp_issues:
-            print(f"  {Colors.colorize('✓', Colors.GREEN)} No psychological triggers or impersonation detected")
-        
-        # Media Analysis Section
-        print(f"\n{Colors.BOLD}📎 MEDIA ANALYSIS{Colors.RESET}")
+        if not has_nlp:
+             print_row(f"{Colors.colorize('✓', Colors.GREEN)} No psychological triggers", indent=3)
+        print_row("")
+
+        # Media
+        print_analysis_section("📎 MEDIA", report.media_analysis)
         media = report.media_analysis
-        has_media_issues = False
         if media.get('file_type_warnings'):
-            has_media_issues = True
-            print(f"  {Colors.BOLD}File Warnings:{Colors.RESET}")
+            print_row(f"{Colors.BOLD}File Warnings:{Colors.RESET}", indent=3)
             for warning in media['file_type_warnings'][:3]:
-                print(f"    {Colors.colorize('•', Colors.YELLOW)} {warning}")
+                print_row(f"{Colors.colorize('•', Colors.YELLOW)} {warning}", indent=5)
+        else:
+            print_row(f"{Colors.colorize('✓', Colors.GREEN)} Attachments appear safe", indent=3)
 
-        if not has_media_issues:
-            print(f"  {Colors.colorize('✓', Colors.GREEN)} Attachments appear safe")
+        # Recommendations
+        print(Colors.colorize(f"├{'─'*WIDTH}", risk_color))
+        print_row(Colors.colorize("RECOMMENDATIONS", Colors.BOLD))
+        print_row("")
         
-        print(f"\n{Colors.BOLD}🛡️  RECOMMENDATIONS{Colors.RESET}")
         for rec in report.recommendations:
             color = Colors.GREEN
             rec_upper = rec.upper()
@@ -167,9 +213,12 @@ class AlertSystem:
                 color = Colors.RED
             elif any(key in rec_upper for key in ["SUSPICIOUS", "VERIFY", "URGENCY", "IMPERSONATION"]):
                 color = Colors.YELLOW
-            print(f"  {Colors.colorize('►', color)} {rec}")
-        
-        print(header_bar + "\n")
+
+            print_row(f"{Colors.colorize('►', color)} {rec}")
+
+        # Bottom Border
+        print(Colors.colorize(f"└{'─'*WIDTH}", risk_color))
+        print()
     
     def _console_clean_report(self, report: ThreatReport):
         """Print clean report to console"""
