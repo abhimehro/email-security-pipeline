@@ -548,11 +548,10 @@ This repository includes automated workflows powered by GitHub Actions and AI ag
 - **Daily Perf Improver** - Identifies and implements performance optimizations
 - **Daily QA** - Performs quality assurance checks and suggests improvements
 - **Daily Backlog Burner** - Helps work through backlog items systematically
-- **Daily Repo Status** - Provides repository health and status updates
 
 ### Prerequisites for Agentic Workflows
 
-These workflows require **GitHub Discussions** to be enabled for coordination and planning.
+Some workflows require **GitHub Discussions** to be enabled for coordination and planning.
 
 **⚠️ If you see workflow failures** about "Failed to create discussion", you need to enable Discussions:
 

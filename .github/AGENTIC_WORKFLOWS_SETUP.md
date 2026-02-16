@@ -9,7 +9,10 @@ Several agentic workflows in this repository require **GitHub Discussions** to b
 - **Daily Perf Improver** - Creates discussions to share performance research and improvement plans
 - **Daily QA** - Creates discussions for quality assurance coordination
 - **Daily Backlog Burner** - Creates discussions to track backlog item progress
-- **Discussion Task Miner** - Monitors discussions to mine tasks and creates issues (reads discussions only; does not create discussions or require discussions:write permission)
+
+### Workflows that benefit from Discussions (but don't create them):
+
+- **Discussion Task Miner** - Reads discussions to mine tasks and creates issues (requires discussions to be enabled for reading, but does not create discussions)
 
 ## Enabling GitHub Discussions
 
@@ -22,7 +25,7 @@ This means GitHub Discussions are not enabled for your repository.
 
 ### Steps to Enable Discussions:
 
-1. Go to your repository on GitHub: `https://github.com/abhimehro/email-security-pipeline`
+1. Go to your repository on GitHub: `https://github.com/your-username/your-repository`
 
 2. Click on **Settings** tab
 
@@ -34,16 +37,16 @@ This means GitHub Discussions are not enabled for your repository.
 
 6. Choose discussion categories (recommended categories):
    - **Announcements** - For workflow announcements and updates
-   - **Ideas** - For workflow research and proposals (used by daily-perf-improver)
+   - **Ideas** - For workflow research and proposals (used by Daily Perf Improver and Daily Backlog Burner)
+   - **General** - For general discussions (used by Daily QA)
    - **Q&A** - For questions and troubleshooting
-   - **General** - For other discussions
 
 ### Verifying Discussions are Enabled:
 
 After enabling discussions, you should see a new **Discussions** tab in your repository navigation.
 
 You can verify discussions are working by:
-- Visiting: `https://github.com/abhimehro/email-security-pipeline/discussions`
+- Visiting: `https://github.com/your-username/your-repository/discussions`
 - You should see the discussions interface, not a 404 error
 
 ## Re-running Failed Workflows
@@ -64,9 +67,11 @@ gh workflow run daily-perf-improver.lock.yml
 
 If discussions are enabled but you still see errors about invalid categories:
 
-1. Check that the "Ideas" category exists in your discussions
-2. The workflow uses `category: "ideas"` - ensure this category is available
-3. You can add categories in: Settings → Discussions → Categories
+1. Check that the required categories exist in your discussions:
+   - **Ideas** - Used by Daily Perf Improver and Daily Backlog Burner (slug: `ideas`)
+   - **General** - Used by Daily QA
+2. You can add or verify categories in: Settings → Discussions → Categories
+3. GitHub accepts both category names (e.g., "Ideas") and slugs (e.g., "ideas")
 
 ### Issue: "Insufficient permissions" error
 

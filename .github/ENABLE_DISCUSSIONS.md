@@ -23,7 +23,7 @@ Enable GitHub Discussions for this repository:
 ### Steps:
 
 1. **Go to Repository Settings**
-   - Navigate to: https://github.com/abhimehro/email-security-pipeline/settings
+   - Navigate to: https://github.com/your-username/your-repository/settings
 
 2. **Enable Discussions Feature**
    - Scroll down to the **Features** section
@@ -32,13 +32,11 @@ Enable GitHub Discussions for this repository:
 
 3. **Configure Discussion Categories** (recommended)
    - **Announcements** - For workflow announcements
-   - **Ideas** - For workflow research and proposals (required by Daily Perf Improver)
-   - **Q&A** (slug: `q-a`) - For questions and troubleshooting (required by Daily QA workflow)
-   - **General** - For other discussions
-
-   > Note: When you create a **Q&A** category in GitHub's UI, GitHub automatically creates the `q-a` slug that the Daily QA workflow expects. Do not rename this slug.
+   - **Ideas** - For workflow research and proposals (required by Daily Perf Improver and Daily Backlog Burner)
+   - **General** - For general discussions (required by Daily QA)
+   - **Q&A** - For questions and troubleshooting
 4. **Verify Setup**
-   - Visit: https://github.com/abhimehro/email-security-pipeline/discussions
+   - Visit: https://github.com/your-username/your-repository/discussions
    - You should see the discussions interface
 
 5. **Re-run Failed Workflows**
@@ -50,7 +48,7 @@ Enable GitHub Discussions for this repository:
 ## Documentation
 
 For more details, see:
-- [Agentic Workflows Setup Guide](.github/AGENTIC_WORKFLOWS_SETUP.md)
+- [Agentic Workflows Setup Guide](AGENTIC_WORKFLOWS_SETUP.md)
 - [GitHub Discussions Documentation](https://docs.github.com/en/discussions/quickstart)
 
 ## Impact
@@ -71,5 +69,5 @@ After enabling discussions:
 
 If you have any questions or need help with this setup, please:
 - Comment on this issue
-- Check the [setup guide](.github/AGENTIC_WORKFLOWS_SETUP.md)
+- Check the [setup guide](AGENTIC_WORKFLOWS_SETUP.md)
 - Review the [GitHub Discussions documentation](https://docs.github.com/en/discussions)
