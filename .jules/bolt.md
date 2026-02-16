@@ -37,5 +37,5 @@
 **Action:** Use list accumulation for string building in loops, especially when handling external input like email bodies.
 
 ## 2026-03-08 - ThreadPoolExecutor Creation Overhead
-**Learning:** Creating a `ThreadPoolExecutor` inside a loop (or per item in a batch) is a significant performance anti-pattern (422us vs ~0us per item), especially for short-lived tasks. Reuse a single executor instance where possible.
+**Learning:** In one benchmark, creating a `ThreadPoolExecutor` inside a loop (or per item in a batch) added ~340us of overhead per attachment, with total per-item overhead around 422us compared to reusing a shared executor (~0us incremental cost). Reusing a single executor instance is critical, especially for short-lived tasks.
 **Action:** Move `ThreadPoolExecutor` initialization to `__init__` or module level and reuse it across calls.
