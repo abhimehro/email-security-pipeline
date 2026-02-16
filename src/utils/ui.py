@@ -114,13 +114,13 @@ class Spinner:
             self.busy = False
             if self.thread:
                 self.thread.join()
-            sys.stdout.write(f"\r\033[K") # Clear line
-
+            final_message = ""
             if exc_type is not None:
                 # Failure always persists
-                sys.stdout.write(f"{Colors.RED}✘{Colors.RESET} {self.message}\n")
+                final_message = f"{Colors.RED}✘{Colors.RESET} {self.message}\n"
             elif self.persist:
                 # Success only persists if requested
-                sys.stdout.write(f"{Colors.GREEN}✔{Colors.RESET} {self.message}\n")
+                final_message = f"{Colors.GREEN}✔{Colors.RESET} {self.message}\n"
+            sys.stdout.write(f"\r\033[K{final_message}")
 
             sys.stdout.flush()
