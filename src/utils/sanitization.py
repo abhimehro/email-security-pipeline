@@ -101,3 +101,27 @@ def sanitize_for_csv(text: str) -> str:
         return "'" + text
 
     return text
+
+def redact_email(email: str) -> str:
+    """
+    Redact email address for logging, keeping only the domain or partial info.
+    Example: 'user@example.com' -> 'u***@example.com'
+
+    Args:
+        email: The email address to redact.
+
+    Returns:
+        Redacted email string.
+    """
+    if not email or '@' not in email:
+        return email
+
+    try:
+        user, domain = email.split('@', 1)
+        if len(user) <= 1:
+            redacted_user = "*" * len(user)
+        else:
+            redacted_user = user[0] + "*" * (len(user) - 1)
+        return f"{redacted_user}@{domain}"
+    except Exception:
+        return email

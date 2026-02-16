@@ -20,7 +20,7 @@ import logging
 from typing import List, Dict, Any, Optional, Tuple
 
 from ..utils.config import EmailAccountConfig
-from ..utils.sanitization import sanitize_for_logging
+from ..utils.sanitization import sanitize_for_logging, redact_email
 
 # Import from refactored modules
 from .email_data import EmailData
@@ -164,7 +164,7 @@ class IMAPClient:
             # Sync with connection_manager for other methods
             self.connection_manager.connection = self.connection
             
-            self.logger.info(f"Successfully connected to {self.config.email}")
+            self.logger.info(f"Successfully connected to {redact_email(self.config.email)}")
             return True
             
         except imaplib.IMAP4.error as e:
@@ -380,7 +380,7 @@ class EmailIngestionManager:
                 self.clients[account.email] = client
                 success_count += 1
             else:
-                self.logger.error(f"Failed to connect to {account.email}")
+                self.logger.error(f"Failed to connect to {redact_email(account.email)}")
         
         if success_count == 0:
             self.logger.error("No email accounts connected successfully")
@@ -410,13 +410,13 @@ class EmailIngestionManager:
             for folder in account.folders:
                 if not client.ensure_connection():
                     self.logger.error(
-                        f"Unable to reconnect to {account.email}; "
+                        f"Unable to reconnect to {redact_email(account.email)}; "
                         f"skipping remaining folders"
                     )
                     break
                 
                 self.logger.info(
-                    f"Fetching from {account.email}/"
+                    f"Fetching from {redact_email(account.email)}/"
                     f"{sanitize_for_logging(folder)}"
                 )
                 
@@ -455,11 +455,11 @@ class EmailIngestionManager:
         
         if not account_to_diagnose:
             self.logger.error(
-                f"Account '{email_address}' not found in configuration."
+                f"Account '{redact_email(email_address)}' not found in configuration."
             )
             return None
         
-        self.logger.info(f"Running diagnostics for {email_address}...")
+        self.logger.info(f"Running diagnostics for {redact_email(email_address)}...")
         
         # Create a temporary client for diagnostics
         client = IMAPClient(
