@@ -118,9 +118,15 @@ def redact_email(email: str) -> str:
 
     try:
         user, domain = email.split('@', 1)
-        if len(user) <= 1:
+        # Handle empty username explicitly so redaction is visible
+        if len(user) == 0:
+            # Use a non-empty placeholder to indicate redaction occurred
+            redacted_user = "***"
+        elif len(user) == 1:
+            # Preserve existing behavior: single-character username becomes a single '*'
             redacted_user = "*" * len(user)
         else:
+            # Preserve first character, redact the rest
             redacted_user = user[0] + "*" * (len(user) - 1)
         return f"{redacted_user}@{domain}"
     except Exception:
