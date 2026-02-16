@@ -33,9 +33,10 @@ Enable GitHub Discussions for this repository:
 3. **Configure Discussion Categories** (recommended)
    - **Announcements** - For workflow announcements
    - **Ideas** - For workflow research and proposals (required by Daily Perf Improver)
-   - **Q&A** - For questions and troubleshooting
+   - **Q&A** (slug: `q-a`) - For questions and troubleshooting (required by Daily QA workflow)
    - **General** - For other discussions
 
+   > Note: When you create a **Q&A** category in GitHub's UI, GitHub automatically creates the `q-a` slug that the Daily QA workflow expects. Do not rename this slug.
 4. **Verify Setup**
    - Visit: https://github.com/abhimehro/email-security-pipeline/discussions
    - You should see the discussions interface
