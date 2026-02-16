@@ -20,7 +20,7 @@ from typing import List, Tuple, Optional, Dict, Any
 from datetime import datetime
 
 from ..utils.config import EmailAccountConfig
-from ..utils.sanitization import sanitize_for_logging
+from ..utils.sanitization import sanitize_for_logging, redact_email
 from ..utils.security_validators import (
     create_secure_ssl_context,
     calculate_max_email_size
@@ -102,7 +102,7 @@ class IMAPConnection:
             
             # Authenticate
             self.connection.login(self.config.email, self.config.app_password)
-            self.logger.info(f"Successfully connected to {self.config.email}")
+            self.logger.info(f"Successfully connected to {redact_email(self.config.email)}")
             return True
             
         except imaplib.IMAP4.error as e:
@@ -480,7 +480,7 @@ class IMAPDiagnostics:
         Returns:
             Dictionary with diagnostic results for each check
         """
-        self.logger.info(f"Running diagnostics for {self.config.email}...")
+        self.logger.info(f"Running diagnostics for {redact_email(self.config.email)}...")
         
         return {
             "server_reachable": self._check_server_reachability(),
