@@ -70,15 +70,15 @@ If discussions are enabled but you still see errors about invalid categories:
 
 ### Issue: "Insufficient permissions" error
 
-The workflow needs the following permissions:
-- `discussions: write` - To create and update discussions
+The agentic workflows in this repository request **read-only** permissions (for example, `permissions: all: read` or `permissions: read-all`) so they can read repository state and existing discussions.
 
-These permissions are already configured in the workflow files. If you still see permission errors:
+**Discussion creation and updates are handled by the agentic workflow system's safe-outputs framework**, which uses its own GitHub App permissions. The workflows themselves do **not** require `discussions: write` on the `GITHUB_TOKEN`.
 
-1. Check that the `GITHUB_TOKEN` has the required permissions
-2. Verify that branch protection rules aren't blocking the workflow
-3. Ensure you're not using a custom `GITHUB_TOKEN` with restricted permissions
+If you still see permission-related errors around discussions:
 
+1. First verify that GitHub Discussions are enabled for the repository (see the steps above).
+2. Check the workflow run logs (especially the "conclusion" or summary step) for the exact permission error message.
+3. Review your agentic workflow / safe-outputs configuration or documentation to confirm that the GitHub App used for safe-outputs has `discussions: write` where required.
 ## Alternative: Using Issues Instead (Not Recommended)
 
 If you cannot enable discussions for some reason, you could modify the workflows to use issues instead. However, this is **not recommended** because:
