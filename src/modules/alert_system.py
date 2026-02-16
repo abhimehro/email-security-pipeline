@@ -209,21 +209,31 @@ class AlertSystem:
         except ValueError:
             time_str = report.timestamp
 
+        # Sender truncated
+        sanitized_sender = self._sanitize_text(report.sender, csv_safe=True)
+        sender = sanitized_sender[:25]
+        if len(sanitized_sender) > 25:
+            sender += "..."
+
         # Subject truncated
-        sanitized_subject = self._sanitize_text(report.subject)
-        subject = sanitized_subject[:50]
-        if len(sanitized_subject) > 50:
+        sanitized_subject = self._sanitize_text(report.subject, csv_safe=True)
+        if not sanitized_subject:
+            sanitized_subject = "(No Subject)"
+
+        subject = sanitized_subject[:40]
+        if len(sanitized_subject) > 40:
             subject += "..."
 
         # Separator
         sep = Colors.colorize("│", Colors.GREY)
 
         # Format:
-        # ✓ CLEAN | HH:MM:SS | Score: XX.X [■■···] | Subject
+        # ✓ CLEAN | HH:MM:SS | Score: XX.X [■■···] | From: Sender                       | Subject
         print(
             f"{Colors.GREEN}✓ CLEAN{Colors.RESET} "
             f"{sep} {time_str} "
             f"{sep} Score: {score_val:4.1f} {visual_bar} "
+            f"{sep} From: {sender:<28} "
             f"{sep} {subject}"
         )
 
