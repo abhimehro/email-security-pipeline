@@ -44,3 +44,7 @@
 ## 2025-05-23 - FFT Optimization in OpenCV
 **Learning:** `np.fft.fftshift` involves a full array copy and memory allocation. For spectral analysis where only magnitude is needed, masking the corners of the unshifted spectrum is mathematically equivalent to masking the center of the shifted spectrum but avoids the copy, yielding ~1.4x-1.5x speedup.
 **Action:** Avoid `fftshift` in real-time video processing pipelines if the operation can be done on unshifted data (e.g. magnitude thresholding).
+
+## 2026-03-09 - Redundant URL Processing in Spam Analysis
+**Learning:** Parsing URLs with `urllib.parse` is relatively expensive (O(N) for N characters). When analyzing emails with many duplicate URLs (e.g., signatures, tracking pixels), redundant parsing causes significant performance overhead (18x-32x slower).
+**Action:** Use a local cache (e.g., `dict`) to store parsing/analysis results for unique items when iterating over potentially large collections with duplicates.
