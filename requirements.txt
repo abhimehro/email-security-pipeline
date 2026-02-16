@@ -1,7 +1,7 @@
 # Core dependencies
 python-dotenv>=1.0.0
 requests>=2.31.0
-numpy>=1.26.0
+numpy>=1.26.0,<2.0.0
 opencv-python-headless>=4.8.0
 
 # Optional: NLP and ML (uncomment when needed)
@@ -14,7 +14,7 @@ opencv-python-headless>=4.10.0
 # sqlite3  # Built-in to Python
 
 # Optional: Media Analysis (uncomment when needed)
-numpy>=1.24.0
+numpy>=1.24.0,<2.0.0
 opencv-python-headless>=4.8.0
 
 # Development dependencies (optional)
