@@ -105,19 +105,21 @@ class TestAlertSystemSecurity(unittest.TestCase):
         Test that BiDi override characters and other invisible control characters
         are removed from sanitized text.
         """
-        # U+202E is Right-to-Left Override
-        bidi_char = '\u202e'
-        malicious_text = f"evil{bidi_char}exe.pdf"
+        test_cases = {
+            "bidi_spoofing": (f"evil{'\u202e'}exe.pdf", "evilexe.pdf"),
+            "zero_width_space": (f"hello{'\u200b'}world", "helloworld"),
+            "control_char": (f"text{'\x01'}with_control", "textwith_control"),
+        }
 
-        # Test basic sanitization (used for console)
-        sanitized = self.alert_system._sanitize_text(malicious_text)
-        self.assertNotIn(bidi_char, sanitized)
-        self.assertEqual(sanitized, "evilexe.pdf")
+        for name, (malicious_text, expected) in test_cases.items():
+            with self.subTest(name=name):
+                # Test basic sanitization (used for console)
+                sanitized = self.alert_system._sanitize_text(malicious_text)
+                self.assertEqual(sanitized, expected)
 
-        # Test Slack sanitization (uses _sanitize_text internally)
-        slack_safe = self.alert_system._sanitize_for_slack(malicious_text)
-        self.assertNotIn(bidi_char, slack_safe)
-        self.assertEqual(slack_safe, "evilexe.pdf")
+                # Test Slack sanitization (uses _sanitize_text internally)
+                slack_safe = self.alert_system._sanitize_for_slack(malicious_text)
+                self.assertEqual(slack_safe, expected)
 
 if __name__ == '__main__':
     unittest.main()
