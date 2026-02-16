@@ -18,7 +18,7 @@ network: defaults
 safe-outputs:
   create-discussion:
     title-prefix: "${{ github.workflow }}"
-    category: "q-a"
+    category: "General"
     max: 1
   add-comment:
     target: "*" # all issues, PRs, and discussions
