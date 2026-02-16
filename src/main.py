@@ -176,7 +176,7 @@ class EmailSecurityPipeline:
 
             try:
                 # Fetch emails
-                with Spinner("Checking for new emails..."):
+                with Spinner("Checking for new emails...", persist=False):
                     emails = self.ingestion_manager.fetch_all_emails(
                         self.config.system.max_emails_per_batch
                     )

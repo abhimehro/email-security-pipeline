@@ -100,5 +100,26 @@ class TestAlertSystemSecurity(unittest.TestCase):
             sanitized = self.alert_system._sanitize_for_slack(input_str)
             self.assertEqual(sanitized, expected, f"Failed for input: {input_str}")
 
+    def test_unicode_bidi_spoofing(self):
+        """
+        Test that BiDi override characters and other invisible control characters
+        are removed from sanitized text.
+        """
+        test_cases = {
+            "bidi_spoofing": (f"evil{'\u202e'}exe.pdf", "evilexe.pdf"),
+            "zero_width_space": (f"hello{'\u200b'}world", "helloworld"),
+            "control_char": (f"text{'\x01'}with_control", "textwith_control"),
+        }
+
+        for name, (malicious_text, expected) in test_cases.items():
+            with self.subTest(name=name):
+                # Test basic sanitization (used for console)
+                sanitized = self.alert_system._sanitize_text(malicious_text)
+                self.assertEqual(sanitized, expected)
+
+                # Test Slack sanitization (uses _sanitize_text internally)
+                slack_safe = self.alert_system._sanitize_for_slack(malicious_text)
+                self.assertEqual(slack_safe, expected)
+
 if __name__ == '__main__':
     unittest.main()
