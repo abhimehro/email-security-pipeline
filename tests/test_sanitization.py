@@ -29,6 +29,11 @@ class TestSanitization(unittest.TestCase):
             "v*****************@sub.domain.com"
         )
 
+        # Emails with multiple '@' symbols should treat everything after the first '@' as the domain
+        self.assertEqual(
+            redact_email("user@domain@extra.com"),
+            "u***@domain@extra.com"
+        )
     def test_basic_sanitization(self):
         """Test basic string sanitization"""
         self.assertEqual(sanitize_for_logging("Hello World"), "Hello World")
