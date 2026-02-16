@@ -75,6 +75,7 @@ def run_benchmark():
     duration = end_time - start_time
     print(f"Time to analyze 500 attachments: {duration:.4f} seconds")
     print(f"ThreadPoolExecutor created {tpe_creation_count} times")
+    analyzer.shutdown()
     return duration
 
 if __name__ == "__main__":
