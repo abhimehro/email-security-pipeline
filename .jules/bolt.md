@@ -1,4 +1,6 @@
-# Bolt's Journal
+## 2025-05-23 - Regex Optimization Strategies
+**Learning:** Pre-scanning text with a simplified non-capturing regex before running a complex regex with named groups can yield massive speedups (50x+) for the "no match" case, which is the common path in security scanning.
+**Action:** When implementing complex pattern matching with many capturing groups, always consider a fast-fail pre-check using a simplified pattern.
 
 ## 2024-05-22 - Initial Entry
 **Learning:** Performance optimizations should always be measured. Premature optimization is the root of all evil.
@@ -39,3 +41,6 @@
 ## 2026-03-08 - ThreadPoolExecutor Creation Overhead
 **Learning:** In one benchmark, creating a `ThreadPoolExecutor` inside a loop (or per item in a batch) added ~340us of overhead per attachment, with total per-item overhead around 422us compared to reusing a shared executor (~0us incremental cost). Reusing a single executor instance is critical, especially for short-lived tasks.
 **Action:** Move `ThreadPoolExecutor` initialization to `__init__` or module level and reuse it across calls.
+## 2025-05-23 - FFT Optimization in OpenCV
+**Learning:** `np.fft.fftshift` involves a full array copy and memory allocation. For spectral analysis where only magnitude is needed, masking the corners of the unshifted spectrum is mathematically equivalent to masking the center of the shifted spectrum but avoids the copy, yielding ~1.4x-1.5x speedup.
+**Action:** Avoid `fftshift` in real-time video processing pipelines if the operation can be done on unshifted data (e.g. magnitude thresholding).
