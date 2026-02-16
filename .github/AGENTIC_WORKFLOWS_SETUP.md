@@ -9,7 +9,7 @@ Several agentic workflows in this repository require **GitHub Discussions** to b
 - **Daily Perf Improver** - Creates discussions to share performance research and improvement plans
 - **Daily QA** - Creates discussions for quality assurance coordination
 - **Daily Backlog Burner** - Creates discussions to track backlog item progress
-- **Discussion Task Miner** - Monitors and mines tasks from discussions
+- **Discussion Task Miner** - Monitors discussions to mine tasks and creates issues (reads discussions only; does not create discussions or require discussions:write permission)
 
 ## Enabling GitHub Discussions
 
