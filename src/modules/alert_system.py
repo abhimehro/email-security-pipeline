@@ -5,6 +5,7 @@ Handles threat notifications and alerting across multiple channels
 
 import logging
 import json
+import re
 import requests
 from typing import Dict, List
 from dataclasses import dataclass, asdict
@@ -252,8 +253,77 @@ class AlertSystem:
                 self.logger.warning(f"Webhook alert failed: {response.status_code}")
                 
         except Exception as e:
-            self.logger.error(f"Failed to send webhook alert: {e}")
+            self.logger.error(f"Failed to send webhook alert: {self._sanitize_error_message(e)}")
+
+    def _sanitize_error_message(self, error: Exception) -> str:
+        """
+        Sanitize exception messages to prevent leaking sensitive URLs/tokens.
+        Detects URLs in the error message and redacts them.
+        """
+        msg = str(error)
+        try:
+            # Find all URLs in the message
+            # Simple regex for http/https URLs to catch full URLs including query params
+            urls = re.findall(r'https?://[^\s<>"]+|www\.[^\s<>"]+', msg)
+
+            for url in urls:
+                # Clean up trailing punctuation that might have been matched
+                clean_url = url.rstrip('.,;:)\'')
+
+                # Apply redaction
+                redacted = self._redact_url_secrets(clean_url)
+
+                # If redaction changed anything, update the message
+                if redacted != clean_url:
+                    msg = msg.replace(clean_url, redacted)
+
+            return msg
+        except Exception:
+            return "An error occurred (details redacted for security)"
     
+    def _redact_url_secrets(self, url: str) -> str:
+        """
+        Redact sensitive information from URL (query params and specific paths).
+        Handles Slack/Discord webhooks and sensitive query parameters.
+        """
+        try:
+            if not url:
+                return ""
+
+            # 1. Redact sensitive query parameters (reusing logic)
+            url = self._redact_sensitive_url_params(url)
+
+            parsed = urlparse(url)
+
+            # 2. Redact Slack Webhooks
+            # Format: /services/T000/B000/TOKEN
+            netloc = parsed.netloc.lower()
+            if (netloc == "hooks.slack.com" or netloc.endswith(".slack.com")) and parsed.path.startswith("/services/"):
+                parts = parsed.path.split('/')
+                # parts[0] is empty, parts[1] is 'services'
+                # parts[2] is Team ID, parts[3] is Bot ID, parts[4] is Token
+                # We redact the token (last part)
+                if len(parts) >= 5:
+                    parts[-1] = "[REDACTED]"
+                    new_path = "/".join(parts)
+                    parsed = parsed._replace(path=new_path)
+                    return urlunparse(parsed)
+
+            # 3. Redact Discord Webhooks
+            # Format: /api/webhooks/ID/TOKEN
+            if (netloc == "discord.com" or netloc.endswith(".discord.com")) and parsed.path.startswith("/api/webhooks/"):
+                parts = parsed.path.split('/')
+                # parts[-1] is likely the token
+                if len(parts) >= 5:
+                    parts[-1] = "[REDACTED]"
+                    new_path = "/".join(parts)
+                    parsed = parsed._replace(path=new_path)
+                    return urlunparse(parsed)
+
+            return url
+        except Exception:
+            return url
+
     def _redact_sensitive_url_params(self, url: str) -> str:
         """
         Redact sensitive query parameters from URL.
@@ -392,7 +462,7 @@ class AlertSystem:
                 self.logger.warning(f"Slack alert failed: {response.status_code}")
                 
         except Exception as e:
-            self.logger.error(f"Failed to send Slack alert: {e}")
+            self.logger.error(f"Failed to send Slack alert: {self._sanitize_error_message(e)}")
 
 
 def generate_threat_report(
