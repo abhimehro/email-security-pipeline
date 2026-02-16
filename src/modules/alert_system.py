@@ -303,7 +303,7 @@ class AlertSystem:
             return ""
 
         # Replace newlines and tabs with spaces
-        sanitized = text.replace('\n', ' ').replace('\r', ' ').replace('\t', ' ')
+        sanitized = text.translate(str.maketrans('\n\r\t', '   '))
 
         # Remove non-printable characters (including BiDi overrides, control chars, etc.)
         # Only keep characters that are printable or separators (Zs)
