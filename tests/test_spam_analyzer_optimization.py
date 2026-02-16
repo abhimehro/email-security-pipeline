@@ -1,9 +1,7 @@
 
-import pytest
 import time
+import pytest
 from src.modules.spam_analyzer import SpamAnalyzer
-from src.utils.config import AnalysisConfig
-
 class MockConfig:
     spam_threshold = 5.0
     spam_check_headers = True
