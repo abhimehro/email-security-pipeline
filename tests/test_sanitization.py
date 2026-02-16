@@ -3,9 +3,31 @@ Tests for Sanitization Utility
 """
 
 import unittest
-from src.utils.sanitization import sanitize_for_logging
+from src.utils.sanitization import sanitize_for_logging, redact_email
 
 class TestSanitization(unittest.TestCase):
+
+    def test_redact_email(self):
+        """Test email redaction"""
+        # Standard emails
+        self.assertEqual(redact_email("john.doe@example.com"), "j*******@example.com")
+        self.assertEqual(redact_email("jane@example.com"), "j***@example.com")
+
+        # Short usernames
+        self.assertEqual(redact_email("abc@example.com"), "a**@example.com")
+        self.assertEqual(redact_email("ab@example.com"), "a*@example.com")
+        self.assertEqual(redact_email("a@example.com"), "*@example.com")
+
+        # Edge cases
+        self.assertEqual(redact_email(""), "")
+        self.assertEqual(redact_email(None), None)
+        self.assertEqual(redact_email("not-an-email"), "not-an-email")
+
+        # Complex emails
+        self.assertEqual(
+            redact_email("very.long.name+tag@sub.domain.com"),
+            "v*****************@sub.domain.com"
+        )
 
     def test_basic_sanitization(self):
         """Test basic string sanitization"""
