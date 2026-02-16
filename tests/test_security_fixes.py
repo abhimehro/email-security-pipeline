@@ -4,12 +4,13 @@ import sys
 import logging
 from pathlib import Path
 
-# Add project root to path
+# Add project root to path (conftest.py also does this, but keeping this makes the
+# file runnable directly via `python tests/test_security_fixes.py`).
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-# Mock cv2 and numpy before importing modules that use them
-sys.modules['cv2'] = MagicMock()
-sys.modules['numpy'] = MagicMock()
+# NOTE: Do NOT stub out `numpy` / `cv2` in `sys.modules` at import time.
+# That pattern leaks into the rest of the test session and can break unrelated
+# tests (e.g., anything that imports `numpy.random`).
 
 from src.main import EmailSecurityPipeline
 from src.modules.email_ingestion import IMAPClient, EmailAccountConfig
