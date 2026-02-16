@@ -259,26 +259,47 @@ class SpamAnalyzer:
         score = 0.0
         suspicious = []
 
+        # Cache results for unique URLs to avoid re-parsing
+        checked_urls = {}
+
         for url in urls:
+            if url in checked_urls:
+                # Retrieve cached results
+                url_score, append_count = checked_urls[url]
+                score += url_score
+                # Replicate the exact number of appends
+                if append_count > 0:
+                    suspicious.extend([url] * append_count)
+                continue
+
             try:
                 parsed = urlparse(url)
                 domain = parsed.netloc
+
+                current_url_score = 0.0
+                append_count = 0
 
                 # Check against combined suspicious patterns first
                 if self.COMBINED_URL_PATTERN.search(domain):
                     # If matched, we just mark it. The original code broke after first match
                     # in the loop, effectively counting only one match per URL from this list.
-                    score += 0.5
-                    suspicious.append(url)
+                    current_url_score += 0.5
+                    append_count += 1
 
                 # Check for URL shorteners
                 # Original code logic was separate and could add another 0.5 score
                 if self.SHORTENER_PATTERN.search(domain):
-                    score += 0.5
-                    suspicious.append(url)
+                    current_url_score += 0.5
+                    append_count += 1
+
+                score += current_url_score
+                if append_count > 0:
+                    suspicious.extend([url] * append_count)
+
+                checked_urls[url] = (current_url_score, append_count)
 
             except Exception:
-                pass
+                checked_urls[url] = (0.0, 0)
 
         return score, suspicious
 
