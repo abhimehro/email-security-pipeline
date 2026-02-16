@@ -74,6 +74,10 @@ class SystemConfig:
     """Configuration for system settings"""
     log_level: str
     log_file: str
+    log_format: str  # Options: "text" or "json"
+    log_rotation_size_mb: int
+    log_rotation_keep_files: int
+    enable_metrics: bool
     check_interval: int
     max_emails_per_batch: int
     rate_limit_delay: int
@@ -189,6 +193,10 @@ class Config:
         return SystemConfig(
             log_level=os.getenv("LOG_LEVEL", "INFO"),
             log_file=os.getenv("LOG_FILE", "logs/email_security.log"),
+            log_format=os.getenv("LOG_FORMAT", "text"),  # Options: "text" or "json"
+            log_rotation_size_mb=int(os.getenv("LOG_ROTATION_SIZE_MB", "10")),
+            log_rotation_keep_files=int(os.getenv("LOG_ROTATION_KEEP_FILES", "5")),
+            enable_metrics=self._get_bool("ENABLE_METRICS", True),
             check_interval=int(os.getenv("CHECK_INTERVAL", "300")),
             max_emails_per_batch=int(os.getenv("MAX_EMAILS_PER_BATCH", "50")),
             rate_limit_delay=int(os.getenv("RATE_LIMIT_DELAY", "1")),
@@ -279,6 +287,15 @@ class Config:
 
         if getattr(logging, self.system.log_level.upper(), None) is None:
             errors.append(f"Invalid log level: {self.system.log_level}")
+
+        if self.system.log_format not in ("text", "json"):
+            errors.append(f"Invalid log format: {self.system.log_format}. Must be 'text' or 'json'")
+
+        if self.system.log_rotation_size_mb <= 0:
+            errors.append("LOG_ROTATION_SIZE_MB must be greater than zero")
+
+        if self.system.log_rotation_keep_files <= 0:
+            errors.append("LOG_ROTATION_KEEP_FILES must be greater than zero")
 
         if not (self.alerts.threat_low < self.alerts.threat_medium < self.alerts.threat_high):
             errors.append(
