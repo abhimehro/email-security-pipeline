@@ -148,10 +148,10 @@ Consider applying the same fix to these workflows if they encounter similar fail
 
 ## Security Considerations
 
-✅ This fix maintains the same security posture:
-- Issues require the same permissions as Discussions
-- Workflow still operates in read-only mode for repository content
-- Safe-outputs configuration prevents unauthorized actions
+✅ This fix keeps the overall security posture similar while changing **where** writes occur:
+- The workflow now uses Issue permissions (e.g., `issues: write`) instead of Discussion permissions (e.g., `discussions: write`); no broader write scopes are introduced
+- The workflow continues to create/update tracking Issues (and any configured PR comments) via `safe-outputs`, but it does not modify repository source files or branches directly
+- The `safe-outputs` configuration constrains what can be written (titles, labels, bodies, counts), reducing the risk of arbitrary or attacker-controlled writes while still allowing the necessary Issue/PR updates
 
 ## Support
 
