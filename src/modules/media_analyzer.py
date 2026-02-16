@@ -156,9 +156,18 @@ class MediaAuthenticityAnalyzer:
                     size_anomalies.append(f"Deepfake analysis timed out: {filename}")
                 except Exception as e:
                     self.logger.error(f"Deepfake analysis failed for {filename}: {e}")
-                # Note: We cannot shutdown the shared executor here.
-                # If the thread is stuck, it will consume a slot in the pool until completion or process exit.
-                # max_workers limits the impact of such stuck threads.
+                # Note: We intentionally do not shut down the shared executor here.
+                # The executor is shared across attachments/requests, so shutting it down
+                # would cancel or block unrelated work. In the previous per-attachment
+                # design, we used shutdown(wait=False, cancel_futures=True) to aggressively
+                # clean up stuck tasks. With a shared pool, we instead rely on the timeout
+                # above (future.result(timeout=media_analysis_timeout)) to prevent the caller
+                # from blocking indefinitely. However, if a worker thread actually leaks or
+                # hangs beyond the timeout, it will continue to occupy a slot in the limited
+                # max_workers pool until completion or process exit. This is an explicit
+                # tradeoff: improved throughput and lower executor-creation overhead at the
+                # cost of reduced resilience to leaked/hung threads and potential gradual
+                # degradation of pool capacity over time.
 
         # Calculate risk level
         risk_level = self._calculate_risk_level(threat_score)
