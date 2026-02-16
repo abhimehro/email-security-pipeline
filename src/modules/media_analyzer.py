@@ -61,6 +61,8 @@ class MediaAuthenticityAnalyzer:
         self.config = config
         self.logger = logging.getLogger("MediaAuthenticityAnalyzer")
         self.face_cascade = None
+        # Optimization: Reuse thread pool for deepfake detection to avoid overhead
+        self._deepfake_executor = concurrent.futures.ThreadPoolExecutor()
 
     def analyze(self, email_data: EmailData) -> MediaAnalysisResult:
         """
@@ -135,9 +137,8 @@ class MediaAuthenticityAnalyzer:
             # Only proceed if the file hasn't already been flagged as dangerous/suspicious (score >= 5.0)
             # This prevents processing of potentially malicious files (e.g., disguised executables)
             if self.config.deepfake_detection_enabled and threat_score < 5.0:
-                executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
                 try:
-                    future = executor.submit(
+                    future = self._deepfake_executor.submit(
                         self._check_deepfake_indicators,
                         filename,
                         data,
@@ -155,9 +156,18 @@ class MediaAuthenticityAnalyzer:
                     size_anomalies.append(f"Deepfake analysis timed out: {filename}")
                 except Exception as e:
                     self.logger.error(f"Deepfake analysis failed for {filename}: {e}")
-                finally:
-                    # Do not wait for the thread to finish if it's stuck
-                    executor.shutdown(wait=False, cancel_futures=True)
+                # Note: We intentionally do not shut down the shared executor here.
+                # The executor is shared across attachments/requests, so shutting it down
+                # would cancel or block unrelated work. In the previous per-attachment
+                # design, we used shutdown(wait=False, cancel_futures=True) to aggressively
+                # clean up stuck tasks. With a shared pool, we instead rely on the timeout
+                # above (future.result(timeout=media_analysis_timeout)) to prevent the caller
+                # from blocking indefinitely. However, if a worker thread actually leaks or
+                # hangs beyond the timeout, it will continue to occupy a slot in the limited
+                # max_workers pool until completion or process exit. This is an explicit
+                # tradeoff: improved throughput and lower executor-creation overhead at the
+                # cost of reduced resilience to leaked/hung threads and potential gradual
+                # degradation of pool capacity over time.
 
         # Calculate risk level
         risk_level = self._calculate_risk_level(threat_score)
@@ -737,3 +747,8 @@ class MediaAuthenticityAnalyzer:
             return "medium"
         else:
             return "low"
+
+    def shutdown(self):
+        """Shutdown the thread pool executor"""
+        if hasattr(self, '_deepfake_executor'):
+            self._deepfake_executor.shutdown(wait=True)
