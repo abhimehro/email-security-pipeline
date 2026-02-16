@@ -62,7 +62,7 @@ class MediaAuthenticityAnalyzer:
         self.logger = logging.getLogger("MediaAuthenticityAnalyzer")
         self.face_cascade = None
         # Optimization: Reuse thread pool for deepfake detection to avoid overhead
-        self._deepfake_executor = concurrent.futures.ThreadPoolExecutor(max_workers=4)
+        self._deepfake_executor = concurrent.futures.ThreadPoolExecutor()
 
     def analyze(self, email_data: EmailData) -> MediaAnalysisResult:
         """
