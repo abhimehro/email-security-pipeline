@@ -541,6 +541,27 @@ When optimizing for your use case:
 - [ ] Support for Microsoft Graph API (Exchange/O365)
 - [ ] Sandboxed attachment analysis
 
+## GitHub Actions & Agentic Workflows
+
+This repository includes automated workflows powered by GitHub Actions and AI agents:
+
+- **Daily Perf Improver** - Identifies and implements performance optimizations
+- **Daily QA** - Performs quality assurance checks and suggests improvements
+- **Daily Backlog Burner** - Helps work through backlog items systematically
+- **Daily Repo Status** - Provides repository health and status updates
+
+### Prerequisites for Agentic Workflows
+
+These workflows require **GitHub Discussions** to be enabled for coordination and planning.
+
+**⚠️ If you see workflow failures** about "Failed to create discussion", you need to enable Discussions:
+
+1. Go to your repository **Settings**
+2. Scroll to **Features** section
+3. Enable **Discussions**
+
+For detailed setup instructions, see [Agentic Workflows Setup Guide](.github/AGENTIC_WORKFLOWS_SETUP.md).
+
 ## License
 
 MIT License - See LICENSE file for details
