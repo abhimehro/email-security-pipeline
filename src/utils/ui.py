@@ -124,3 +124,12 @@ class Spinner:
             sys.stdout.write(f"\r\033[K{final_message}")
 
             sys.stdout.flush()
+        else:
+            # Non-TTY: provide simple success/failure feedback without ANSI codes
+            if exc_type is not None:
+                # Failure always persists
+                sys.stdout.write(f"✘ {self.message}\n")
+            elif self.persist:
+                # Success only persists if requested
+                sys.stdout.write(f"✔ {self.message}\n")
+            sys.stdout.flush()
