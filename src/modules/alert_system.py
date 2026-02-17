@@ -20,6 +20,9 @@ from .nlp_analyzer import NLPAnalysisResult
 from .media_analyzer import MediaAnalysisResult
 from ..utils.colors import Colors
 
+# Regex pattern for stripping ANSI codes (compiled once for performance)
+ANSI_PATTERN = re.compile(r'\x1b\[[0-9;]*m')
+
 
 @dataclass
 class ThreatReport:
@@ -95,9 +98,7 @@ class AlertSystem:
             return
         
         # Strip ANSI codes to measure actual text length
-        import re
-        ansi_pattern = re.compile(r'\x1b\[[0-9;]*m')
-        clean_text = ansi_pattern.sub('', text)
+        clean_text = ANSI_PATTERN.sub('', text)
         
         # If text fits, print it with right border aligned
         if len(clean_text) <= content_width:
@@ -114,7 +115,7 @@ class AlertSystem:
             current_length = 0
             
             for word in words:
-                clean_word = ansi_pattern.sub('', word)
+                clean_word = ANSI_PATTERN.sub('', word)
                 word_length = len(clean_word)
                 
                 # Check if adding this word would exceed the width
@@ -135,7 +136,7 @@ class AlertSystem:
             
             # Print each wrapped line
             for line in lines:
-                clean_line = ansi_pattern.sub('', line)
+                clean_line = ANSI_PATTERN.sub('', line)
                 prefix = Colors.colorize("│", risk_color) + " " * left_padding
                 padding_needed = available_width - left_padding - len(clean_line)
                 suffix = " " * padding_needed + Colors.colorize("│", risk_color)
@@ -145,8 +146,8 @@ class AlertSystem:
     def _print_alert_header(self, risk_level: str, timestamp: str, width: int, risk_color: str, risk_symbol: str):
         """Print the alert header"""
         print()
-        # Top Border
-        print(Colors.colorize(f"┌{'─'*width}┐", risk_color))
+        # Top Border (width-2 to account for corner characters)
+        print(Colors.colorize(f"┌{'─'*(width-2)}┐", risk_color))
 
         # Header Row
         title = "🚨 SECURITY ALERT"
@@ -163,7 +164,7 @@ class AlertSystem:
             " " + risk_symbol
         )
 
-        print(Colors.colorize(f"├{'─'*width}┤", risk_color))
+        print(Colors.colorize(f"├{'─'*(width-2)}┤", risk_color))
 
     def _print_alert_metadata(self, report: ThreatReport, width: int, risk_color: str, formatted_time: str):
         """Print alert metadata (Timestamp, Subject, From, To)"""
@@ -194,7 +195,7 @@ class AlertSystem:
 
     def _print_analysis_details(self, report: ThreatReport, width: int, risk_color: str):
         """Print detailed analysis sections"""
-        print(Colors.colorize(f"├{'─'*width}┤", risk_color))
+        print(Colors.colorize(f"├{'─'*(width-2)}┤", risk_color))
         self._print_alert_row(Colors.colorize("ANALYSIS DETAILS", Colors.BOLD), risk_color, width=width)
         self._print_alert_row("", risk_color, width=width)
 
@@ -246,7 +247,7 @@ class AlertSystem:
 
     def _print_recommendations(self, recommendations: List[str], width: int, risk_color: str):
         """Print recommendations section"""
-        print(Colors.colorize(f"├{'─'*width}┤", risk_color))
+        print(Colors.colorize(f"├{'─'*(width-2)}┤", risk_color))
         self._print_alert_row(Colors.colorize("RECOMMENDATIONS", Colors.BOLD), risk_color, width=width)
         self._print_alert_row("", risk_color, width=width)
         
@@ -260,8 +261,8 @@ class AlertSystem:
 
             self._print_alert_row(f"{Colors.colorize('►', color)} {rec}", risk_color, width=width)
 
-        # Bottom Border
-        print(Colors.colorize(f"└{'─'*width}┘", risk_color))
+        # Bottom Border (width-2 to account for corner characters)
+        print(Colors.colorize(f"└{'─'*(width-2)}┘", risk_color))
         print()
 
     def _console_alert(self, report: ThreatReport):
