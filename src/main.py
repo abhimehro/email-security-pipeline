@@ -162,9 +162,23 @@ class EmailSecurityPipeline:
         self.logger.info("Stopping Email Security Pipeline")
         self.running = False
         self.ingestion_manager.close_all_connections()
+        
+        # Cleanup thread pool resources in media analyzer
+        if hasattr(self, 'media_analyzer') and self.media_analyzer:
+            self.media_analyzer.shutdown()
+        
         if hasattr(self, 'executor'):
             self.executor.shutdown(wait=True)
         self.logger.info("Pipeline stopped")
+
+    def __enter__(self):
+        """Context manager entry"""
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """Context manager exit - ensures cleanup"""
+        self.stop()
+        return False
 
     def _monitoring_loop(self):
         """Main monitoring loop"""
