@@ -81,7 +81,7 @@ class AlertSystem:
     def _console_alert(self, report: ThreatReport):
         """Print alert to console"""
         risk_color = Colors.get_risk_color(report.risk_level)
-        header_bar = Colors.colorize("="*80, risk_color)
+        risk_symbol = Colors.get_risk_symbol(report.risk_level)
         
         # Format timestamp nicely
         try:
@@ -90,86 +90,114 @@ class AlertSystem:
         except ValueError:
             formatted_time = report.timestamp
 
-        print("\n" + header_bar)
-        print(Colors.colorize(f"🚨 SECURITY ALERT - {report.risk_level.upper()} RISK", risk_color + Colors.BOLD))
-        print(header_bar)
+        # Header Box
+        width = 80
+        title = f" 🚨 SECURITY ALERT • {report.risk_level.upper()} RISK "
+        # Subtract extra 2 for emoji visual width (🚨 and 🔴 are width 2 but len 1)
+        padding = width - len(title) - 6
+        if padding < 0: padding = 0
 
-        print(f"{Colors.BOLD}Timestamp:{Colors.RESET} {formatted_time}")
-        print(f"{Colors.BOLD}Subject:{Colors.RESET}   {self._sanitize_text(report.subject, csv_safe=True)}")
-        print(f"{Colors.BOLD}From:{Colors.RESET}      {self._sanitize_text(report.sender, csv_safe=True)}")
-        print(f"{Colors.BOLD}To:{Colors.RESET}        {self._sanitize_text(report.recipient, csv_safe=True)}")
+        print(f"\n{Colors.colorize('╭' + '─' * (width - 2) + '╮', risk_color)}")
+        print(
+            f"{Colors.colorize('│', risk_color)}"
+            f"{Colors.colorize(title, risk_color + Colors.BOLD)}"
+            f"{' ' * padding}"
+            f"{risk_symbol} "
+            f"{Colors.colorize('│', risk_color)}"
+        )
+        print(f"{Colors.colorize('╰' + '─' * (width - 2) + '╯', risk_color)}")
 
-        # Threat meter
+        # Metadata
+        print(f"  📅 {Colors.BOLD}Time:{Colors.RESET}    {formatted_time}")
+        print(f"  ✉️  {Colors.BOLD}Subject:{Colors.RESET} {self._sanitize_text(report.subject, csv_safe=True)}")
+        print(f"  👤 {Colors.BOLD}From:{Colors.RESET}    {self._sanitize_text(report.sender, csv_safe=True)}")
+        print(f"  🎯 {Colors.BOLD}To:{Colors.RESET}      {self._sanitize_text(report.recipient, csv_safe=True)}")
+
+        # Threat Score Bar
+        print(f"\n  📊 {Colors.BOLD}Threat Score:{Colors.RESET} {report.overall_threat_score:.2f}/100")
+
         score_val = min(max(report.overall_threat_score, 0), 100)
-        meter_len = 20
+        meter_len = 30
         filled_len = int(score_val / 100 * meter_len)
         bar = "█" * filled_len + "░" * (meter_len - filled_len)
         meter_color = Colors.get_risk_color(report.risk_level)
 
-        risk_symbol = Colors.get_risk_symbol(report.risk_level)
-        print(f"{Colors.BOLD}Score:{Colors.RESET}     {Colors.colorize(bar, meter_color)} {report.overall_threat_score:.2f}/100")
-        print(
-            f"{Colors.BOLD}Risk:{Colors.RESET}      "
-            f"{Colors.colorize(report.risk_level.upper(), risk_color + Colors.BOLD)}"
-            f" {risk_symbol}"
-        )
+        print(f"  [{Colors.colorize(bar, meter_color)}]")
 
-        # Spam Analysis Section
-        print(f"\n{Colors.BOLD}📧 SPAM ANALYSIS{Colors.RESET}")
+        # Separator
+        separator = Colors.colorize("─" * width, Colors.GREY)
+        print(f"\n{separator}")
+
+        # Analysis Sections
+        # Helper to print sections cleanly
+        def print_section(title, icon, items, empty_msg):
+            print(f"\n  {icon} {Colors.BOLD}{title}{Colors.RESET}")
+            if items:
+                for item in items:
+                    print(f"    • {item}")
+            else:
+                print(f"    {Colors.colorize('✓', Colors.GREEN)} {empty_msg}")
+
+        # Spam Analysis
         spam = report.spam_analysis
-        has_spam_indicators = False
+        spam_items = []
         if spam.get('indicators'):
-            has_spam_indicators = True
-            for indicator in spam['indicators'][:5]:  # Show first 5
-                print(f"  {Colors.colorize('•', Colors.CYAN)} {indicator}")
-        
-        if not has_spam_indicators:
-            print(f"  {Colors.colorize('✓', Colors.GREEN)} No suspicious patterns detected")
+            spam_items.extend([Colors.colorize(i, Colors.CYAN) for i in spam['indicators'][:5]])
+        print_section("SPAM ANALYSIS", "📧", spam_items, "No suspicious patterns detected")
 
-        # NLP Analysis Section
-        print(f"\n{Colors.BOLD}🧠 NLP THREAT ANALYSIS{Colors.RESET}")
+        # NLP Analysis
+        print(f"\n  🧠 {Colors.BOLD}NLP THREAT ANALYSIS{Colors.RESET}")
         nlp = report.nlp_analysis
         has_nlp_issues = False
 
         if nlp.get('social_engineering_indicators'):
             has_nlp_issues = True
-            print(f"  {Colors.BOLD}Social Engineering:{Colors.RESET}")
+            print(f"    {Colors.BOLD}Social Engineering:{Colors.RESET}")
             for indicator in nlp['social_engineering_indicators'][:3]:
-                print(f"    {Colors.colorize('•', Colors.RED)} {indicator}")
+                print(f"      • {Colors.colorize(indicator, Colors.RED)}")
 
         if nlp.get('authority_impersonation'):
             has_nlp_issues = True
-            print(f"  {Colors.BOLD}Authority Impersonation:{Colors.RESET}")
+            print(f"    {Colors.BOLD}Authority Impersonation:{Colors.RESET}")
             for indicator in nlp['authority_impersonation'][:3]:
-                print(f"    {Colors.colorize('•', Colors.RED)} {indicator}")
+                print(f"      • {Colors.colorize(indicator, Colors.RED)}")
 
         if not has_nlp_issues:
-            print(f"  {Colors.colorize('✓', Colors.GREEN)} No psychological triggers or impersonation detected")
+            print(f"    {Colors.colorize('✓', Colors.GREEN)} No psychological triggers detected")
         
-        # Media Analysis Section
-        print(f"\n{Colors.BOLD}📎 MEDIA ANALYSIS{Colors.RESET}")
+        # Media Analysis
         media = report.media_analysis
-        has_media_issues = False
+        media_items = []
         if media.get('file_type_warnings'):
-            has_media_issues = True
-            print(f"  {Colors.BOLD}File Warnings:{Colors.RESET}")
-            for warning in media['file_type_warnings'][:3]:
-                print(f"    {Colors.colorize('•', Colors.YELLOW)} {warning}")
+            media_items.extend([Colors.colorize(w, Colors.YELLOW) for w in media['file_type_warnings'][:3]])
+        print_section("MEDIA ANALYSIS", "📎", media_items, "Attachments appear safe")
 
-        if not has_media_issues:
-            print(f"  {Colors.colorize('✓', Colors.GREEN)} Attachments appear safe")
+        print(f"\n{separator}")
         
-        print(f"\n{Colors.BOLD}🛡️  RECOMMENDATIONS{Colors.RESET}")
+        # Recommendations
+        print(f"\n  🛡️  {Colors.BOLD}RECOMMENDATIONS{Colors.RESET}")
         for rec in report.recommendations:
             color = Colors.GREEN
             rec_upper = rec.upper()
+            icon = "►"
             if any(key in rec_upper for key in ["HIGH RISK", "DANGEROUS", "PHISHING"]):
                 color = Colors.RED
+                icon = "⚠️ "
             elif any(key in rec_upper for key in ["SUSPICIOUS", "VERIFY", "URGENCY", "IMPERSONATION"]):
                 color = Colors.YELLOW
-            print(f"  {Colors.colorize('►', color)} {rec}")
+                icon = "⚠️ "
+
+            # Clean up existing icons in text if present to avoid duplication
+            clean_rec = rec
+            prefixes = ["⚠️ ", "🎣 ", "🔗 ", "⏰ ", "📎 ", "👤 "]
+            for prefix in prefixes:
+                if clean_rec.startswith(prefix):
+                    clean_rec = clean_rec[len(prefix):]
+                    break
+
+            print(f"    {Colors.colorize(icon, color)} {clean_rec}")
         
-        print(header_bar + "\n")
+        print(f"\n{separator}\n")
     
     def _console_clean_report(self, report: ThreatReport):
         """Print clean report to console"""

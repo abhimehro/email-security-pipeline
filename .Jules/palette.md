@@ -43,3 +43,7 @@
 ## 2026-05-15 - Information Density in "Clean" Logs
 **Learning:** Security logs often strip context from "clean" events to reduce noise, but hiding the sender makes it impossible to verify false negatives at a glance.
 **Action:** Always include key metadata (Sender, Subject) in summary logs, even for success states, using truncation and alignment to maintain readability.
+
+## 2026-05-20 - Visual Hierarchy for High Severity Alerts
+**Learning:** Security alerts often get lost in scrolling console logs. Using a distinct card-like layout with box-drawing characters (╭──╮) creates a visual anchor that immediately draws attention to critical information.
+**Action:** Use box-drawing characters and clear separators to frame high-severity alerts, ensuring critical metadata is aligned and distinct from detailed analysis.
