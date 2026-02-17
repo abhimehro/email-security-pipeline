@@ -36,13 +36,17 @@ class MediaAuthenticityAnalyzer:
         '.exe', '.bat', '.cmd', '.com', '.pif', '.scr', '.vbs', '.js',
         '.jar', '.msi', '.dll', '.hta', '.wsf', '.ps1', '.sh', '.bash', '.app',
         '.php', '.php3', '.php4', '.php5', '.phtml', '.pl', '.py', '.rb',
-        '.asp', '.aspx', '.jsp', '.jspx', '.cgi'
+        '.asp', '.aspx', '.jsp', '.jspx', '.cgi',
+        # Additional dangerous extensions
+        '.vbe', '.jse', '.wsh', '.scf', '.lnk', '.inf', '.reg',
+        '.iso', '.img', '.vhd', '.vhdx'
     ]
 
     # Suspicious file extensions (commonly used for disguise)
     SUSPICIOUS_EXTENSIONS = [
         '.pdf.exe', '.doc.exe', '.jpg.exe', '.zip.exe',
-        '.docm', '.xlsm', '.pptm', '.dotm'  # Macro-enabled Office files
+        '.docm', '.xlsm', '.pptm', '.dotm',  # Macro-enabled Office files
+        '.html', '.htm', '.svg'  # Web content (potential Phishing/XSS)
     ]
 
     # Audio/video file extensions for deepfake detection
@@ -402,6 +406,11 @@ class MediaAuthenticityAnalyzer:
                         if ext in contained_lower:
                             score += 3.0
                             warnings.append(f"Zip {filename} contains suspicious file: {contained_file}")
+
+                    # Check for nested archives (potential evasion)
+                    if contained_lower.endswith(('.zip', '.rar', '.7z', '.tar', '.gz', '.iso', '.img', '.vhd', '.vhdx')):
+                        score += 2.0
+                        warnings.append(f"Zip {filename} contains nested archive: {contained_file}")
 
         except zipfile.BadZipFile:
             # Not a valid zip file, might be corrupted or just named .zip
