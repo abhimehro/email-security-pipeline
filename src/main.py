@@ -164,6 +164,9 @@ class EmailSecurityPipeline:
         self.ingestion_manager.close_all_connections()
         if hasattr(self, 'executor'):
             self.executor.shutdown(wait=True)
+        # Ensure pending alerts are delivered before shutdown
+        if hasattr(self, 'alert_system') and hasattr(self.alert_system, 'shutdown'):
+            self.alert_system.shutdown()
         self.logger.info("Pipeline stopped")
 
     def _monitoring_loop(self):
