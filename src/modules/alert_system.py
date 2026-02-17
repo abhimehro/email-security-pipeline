@@ -44,6 +44,9 @@ class ThreatReport:
 class AlertSystem:
     """Manages alerts and notifications"""
     
+    # Card layout constants
+    CARD_WIDTH = 70  # Total width of the console alert card
+    
     def __init__(self, config):
         """
         Initialize alert system
@@ -81,8 +84,18 @@ class AlertSystem:
         if self.config.slack_enabled and self.config.slack_webhook:
             self._slack_alert(threat_report)
     
-    def _print_alert_row(self, text: str, risk_color: str, indent: int = 0, width: int = 70):
-        """Helper to print a row with left and right borders, wrapping long content"""
+    def _print_alert_row(self, text: str, risk_color: str, indent: int = 0, width: int = None):
+        """Helper to print a row with left and right borders, wrapping long content
+        
+        Args:
+            text: Text to print (may contain ANSI color codes)
+            risk_color: Color for the borders
+            indent: Additional left indentation in spaces
+            width: Total card width (defaults to CARD_WIDTH)
+        """
+        if width is None:
+            width = self.CARD_WIDTH
+            
         # Calculate available width: total width - left border (1) - right border (1)
         available_width = width - 2
         
@@ -117,6 +130,22 @@ class AlertSystem:
             for word in words:
                 clean_word = ANSI_PATTERN.sub('', word)
                 word_length = len(clean_word)
+                
+                # Handle words longer than content_width by truncating
+                if word_length > content_width:
+                    # If we have content in current line, save it first
+                    if current_line:
+                        lines.append(' '.join(current_line))
+                        current_line = []
+                        current_length = 0
+                    # Truncate the long word
+                    truncated = clean_word[:content_width-3] + "..."
+                    # Reconstruct with ANSI codes if present
+                    if word != clean_word:
+                        # Word has ANSI codes, preserve the color
+                        truncated = word[:word.find(clean_word[0])] + truncated + Colors.RESET
+                    lines.append(truncated)
+                    continue
                 
                 # Check if adding this word would exceed the width
                 space_length = 1 if current_line else 0
@@ -268,7 +297,7 @@ class AlertSystem:
     def _console_alert(self, report: ThreatReport):
         """Print alert to console with enhanced UX"""
         # Configuration
-        WIDTH = 70
+        WIDTH = self.CARD_WIDTH
         risk_color = Colors.get_risk_color(report.risk_level)
         risk_symbol = Colors.get_risk_symbol(report.risk_level)
 
