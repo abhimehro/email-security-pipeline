@@ -82,16 +82,21 @@ class AlertSystem:
         """Print alert to console"""
         risk_color = Colors.get_risk_color(report.risk_level)
         risk_symbol = Colors.get_risk_symbol(report.risk_level)
-        
-        # Format timestamp nicely
-        try:
-            dt = datetime.fromisoformat(report.timestamp)
-            formatted_time = dt.strftime("%b %d, %Y at %H:%M:%S")
-        except ValueError:
-            formatted_time = report.timestamp
-
-        # Header Box
         width = 80
+        separator = Colors.colorize("─" * width, Colors.GREY)
+
+        self._print_alert_header(report, risk_color, risk_symbol, width)
+        self._print_alert_metadata(report)
+        self._print_threat_score(report, width)
+
+        print(f"\n{separator}")
+        self._print_analysis_sections(report)
+        print(f"\n{separator}")
+        self._print_recommendations(report)
+        print(f"\n{separator}\n")
+
+    def _print_alert_header(self, report: ThreatReport, risk_color: str, risk_symbol: str, width: int):
+        """Print the box header for the alert"""
         title = f" 🚨 SECURITY ALERT • {report.risk_level.upper()} RISK "
         # Subtract extra 2 for emoji visual width (🚨 and 🔴 are width 2 but len 1)
         padding = width - len(title) - 6
@@ -107,13 +112,21 @@ class AlertSystem:
         )
         print(f"{Colors.colorize('╰' + '─' * (width - 2) + '╯', risk_color)}")
 
-        # Metadata
+    def _print_alert_metadata(self, report: ThreatReport):
+        """Print email metadata (Time, Subject, From, To)"""
+        try:
+            dt = datetime.fromisoformat(report.timestamp)
+            formatted_time = dt.strftime("%b %d, %Y at %H:%M:%S")
+        except ValueError:
+            formatted_time = report.timestamp
+
         print(f"  📅 {Colors.BOLD}Time:{Colors.RESET}    {formatted_time}")
         print(f"  ✉️  {Colors.BOLD}Subject:{Colors.RESET} {self._sanitize_text(report.subject, csv_safe=True)}")
         print(f"  👤 {Colors.BOLD}From:{Colors.RESET}    {self._sanitize_text(report.sender, csv_safe=True)}")
         print(f"  🎯 {Colors.BOLD}To:{Colors.RESET}      {self._sanitize_text(report.recipient, csv_safe=True)}")
 
-        # Threat Score Bar
+    def _print_threat_score(self, report: ThreatReport, width: int):
+        """Print the threat score bar"""
         print(f"\n  📊 {Colors.BOLD}Threat Score:{Colors.RESET} {report.overall_threat_score:.2f}/100")
 
         score_val = min(max(report.overall_threat_score, 0), 100)
@@ -124,11 +137,8 @@ class AlertSystem:
 
         print(f"  [{Colors.colorize(bar, meter_color)}]")
 
-        # Separator
-        separator = Colors.colorize("─" * width, Colors.GREY)
-        print(f"\n{separator}")
-
-        # Analysis Sections
+    def _print_analysis_sections(self, report: ThreatReport):
+        """Print analysis details for Spam, NLP, and Media layers"""
         # Helper to print sections cleanly
         def print_section(title, icon, items, empty_msg):
             print(f"\n  {icon} {Colors.BOLD}{title}{Colors.RESET}")
@@ -172,9 +182,8 @@ class AlertSystem:
             media_items.extend([Colors.colorize(w, Colors.YELLOW) for w in media['file_type_warnings'][:3]])
         print_section("MEDIA ANALYSIS", "📎", media_items, "Attachments appear safe")
 
-        print(f"\n{separator}")
-        
-        # Recommendations
+    def _print_recommendations(self, report: ThreatReport):
+        """Print actionable recommendations"""
         print(f"\n  🛡️  {Colors.BOLD}RECOMMENDATIONS{Colors.RESET}")
         for rec in report.recommendations:
             color = Colors.GREEN
@@ -196,9 +205,7 @@ class AlertSystem:
                     break
 
             print(f"    {Colors.colorize(icon, color)} {clean_rec}")
-        
-        print(f"\n{separator}\n")
-    
+
     def _console_clean_report(self, report: ThreatReport):
         """Print clean report to console"""
         # Compact format for clean emails
