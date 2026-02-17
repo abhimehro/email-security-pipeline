@@ -138,12 +138,8 @@ class AlertSystem:
                         lines.append(' '.join(current_line))
                         current_line = []
                         current_length = 0
-                    # Truncate the long word
+                    # Truncate the long word (use clean version for simplicity)
                     truncated = clean_word[:content_width-3] + "..."
-                    # Reconstruct with ANSI codes if present
-                    if word != clean_word:
-                        # Word has ANSI codes, preserve the color
-                        truncated = word[:word.find(clean_word[0])] + truncated + Colors.RESET
                     lines.append(truncated)
                     continue
                 
