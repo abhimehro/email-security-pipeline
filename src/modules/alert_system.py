@@ -91,19 +91,46 @@ class AlertSystem:
     
     def _print_alert_row(self, text: str, risk_color: str, indent: int = 0):
         """Helper to print a row with the left border"""
+        # Note: We don't print the right border '│' because calculating visual width
+        # with ANSI codes and unicode/emojis is complex without external dependencies.
+        # The design uses an open-sided card metaphor for text rows.
         prefix = Colors.colorize("│", risk_color) + " " * (2 + indent)
         print(f"{prefix}{text}")
 
     def _print_alert_header(self, risk_level: str, timestamp: str, width: int, risk_color: str, risk_symbol: str):
         """Print the alert header"""
         print()
-        # Top Border
-        print(Colors.colorize(f"┌{'─'*width}", risk_color))
+        # Top Border (┌───┐)
+        # Width adjustment: -2 for the corners
+        border_len = width - 2
+        print(Colors.colorize(f"┌{'─'*border_len}┐", risk_color))
 
         # Header Row
         title = "🚨 SECURITY ALERT"
         risk_label = f"{risk_level.upper()} RISK"
 
+        # Padding calculation:
+        # Width - (left_border + space) - title_len - padding - risk_label_len - (space + symbol + right_border)
+        # Visual estimation:
+        # │  (3 chars visual)
+        # title (~18 chars visual with emoji)
+        # risk_label (variable)
+        # symbol (1-2 chars visual)
+        # right_border (not printed in header row in original, but let's add it if we can align)
+
+        # Simpler approach for header: Just use the same layout but maybe without the right border for the text row
+        # strictly if alignment is hard. But the PR comment asked for closed borders.
+        # Let's try to close the top/bottom/separators first as requested.
+
+        # Padding for the header text row:
+        # We need to fill the space between title and risk label.
+        # Fixed width = width
+        # Content = "│  " + title + PADDING + risk_label + " " + symbol
+        # We don't print a right border '│' here because alignment is tricky with emojis.
+        # But we can try to approximate.
+
+        # Magic number explanation:
+        # 5 comes from: 3 chars for left prefix ("│  ") + 1 char space before symbol + 1 char approx for symbol/emoji width variance
         padding_len = width - len(title) - len(risk_label) - 5
         padding = " " * max(1, padding_len)
 
@@ -115,7 +142,8 @@ class AlertSystem:
             " " + risk_symbol
         )
 
-        print(Colors.colorize(f"├{'─'*width}", risk_color))
+        # Separator (├───┤)
+        print(Colors.colorize(f"├{'─'*border_len}┤", risk_color))
 
     def _print_alert_metadata(self, report: ThreatReport, width: int, risk_color: str, formatted_time: str):
         """Print alert metadata (Timestamp, Subject, From, To)"""
@@ -146,7 +174,8 @@ class AlertSystem:
 
     def _print_analysis_details(self, report: ThreatReport, width: int, risk_color: str):
         """Print detailed analysis sections"""
-        print(Colors.colorize(f"├{'─'*width}", risk_color))
+        border_len = width - 2
+        print(Colors.colorize(f"├{'─'*border_len}┤", risk_color))
         self._print_alert_row(Colors.colorize("ANALYSIS DETAILS", Colors.BOLD), risk_color)
         self._print_alert_row("", risk_color)
 
@@ -183,7 +212,7 @@ class AlertSystem:
             has_nlp = True
 
         if not has_nlp:
-             self._print_alert_row(f"{Colors.colorize('✓', Colors.GREEN)} No psychological triggers", risk_color, indent=3)
+             self._print_alert_row(f"{Colors.colorize('✓', Colors.GREEN)} No social engineering or impersonation detected", risk_color, indent=3)
         self._print_alert_row("", risk_color)
 
         # Media
@@ -198,7 +227,8 @@ class AlertSystem:
 
     def _print_recommendations(self, recommendations: List[str], width: int, risk_color: str):
         """Print recommendations section"""
-        print(Colors.colorize(f"├{'─'*width}", risk_color))
+        border_len = width - 2
+        print(Colors.colorize(f"├{'─'*border_len}┤", risk_color))
         self._print_alert_row(Colors.colorize("RECOMMENDATIONS", Colors.BOLD), risk_color)
         self._print_alert_row("", risk_color)
         
@@ -210,10 +240,16 @@ class AlertSystem:
             elif any(key in rec_upper for key in ["SUSPICIOUS", "VERIFY", "URGENCY", "IMPERSONATION"]):
                 color = Colors.YELLOW
 
+            # Truncate long recommendations to fit within the card
+            # Width - 2 (left border/space) - 2 (symbol space) - 5 (padding) = ~Width - 9
+            max_rec_len = width - 10
+            if len(rec) > max_rec_len:
+                rec = rec[:max_rec_len-3] + "..."
+
             self._print_alert_row(f"{Colors.colorize('►', color)} {rec}", risk_color)
 
-        # Bottom Border
-        print(Colors.colorize(f"└{'─'*width}", risk_color))
+        # Bottom Border (└───┘)
+        print(Colors.colorize(f"└{'─'*border_len}┘", risk_color))
         print()
 
     def _console_alert(self, report: ThreatReport):
