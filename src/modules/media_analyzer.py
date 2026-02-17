@@ -527,42 +527,49 @@ class MediaAuthenticityAnalyzer:
                 return frames
 
             total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+
             if total_frames <= 0:
                 # Fallback if frame count is unknown
-                success, frame = cap.read()
-                count = 0
-                while success and count < max_frames:
-                    if frame is not None:
-                        frames.append(self._resize_frame_if_needed(frame, max_dim))
-                    success, frame = cap.read()
-                    count += 1
+                frames = self._extract_frames_sequential(cap, max_frames, max_dim)
             else:
                 # Sample evenly distributed frames
                 step = max(1, total_frames // max_frames)
 
                 # Optimization: For sequential access (step=1), avoid expensive seek operations
                 if step == 1:
-                    count = 0
-                    while count < max_frames:
-                        success, frame = cap.read()
-                        if not success:
-                            break
-                        if frame is not None:
-                            frames.append(self._resize_frame_if_needed(frame, max_dim))
-                        count += 1
+                    frames = self._extract_frames_sequential(cap, max_frames, max_dim)
                 else:
-                    for i in range(0, total_frames, step):
-                        cap.set(cv2.CAP_PROP_POS_FRAMES, i)
-                        success, frame = cap.read()
-                        if success and frame is not None:
-                            frames.append(self._resize_frame_if_needed(frame, max_dim))
-                        if len(frames) >= max_frames:
-                            break
+                    frames = self._extract_frames_sampled(cap, total_frames, step, max_frames, max_dim)
 
             cap.release()
         except Exception as e:
             self.logger.error(f"Error extracting frames: {e}")
 
+        return frames
+
+    def _extract_frames_sequential(self, cap, max_frames: int, max_dim: int) -> List[np.ndarray]:
+        """Extract frames sequentially without seeking"""
+        frames = []
+        count = 0
+        while count < max_frames:
+            success, frame = cap.read()
+            if not success:
+                break
+            if frame is not None:
+                frames.append(self._resize_frame_if_needed(frame, max_dim))
+            count += 1
+        return frames
+
+    def _extract_frames_sampled(self, cap, total_frames: int, step: int, max_frames: int, max_dim: int) -> List[np.ndarray]:
+        """Extract frames using seeking for sampling"""
+        frames = []
+        for i in range(0, total_frames, step):
+            cap.set(cv2.CAP_PROP_POS_FRAMES, i)
+            success, frame = cap.read()
+            if success and frame is not None:
+                frames.append(self._resize_frame_if_needed(frame, max_dim))
+            if len(frames) >= max_frames:
+                break
         return frames
 
     def _resize_frame_if_needed(self, frame: np.ndarray, max_dim: int = 1920) -> np.ndarray:
