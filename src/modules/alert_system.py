@@ -78,16 +78,75 @@ class AlertSystem:
         if self.config.slack_enabled and self.config.slack_webhook:
             self._slack_alert(threat_report)
     
-    def _print_alert_row(self, text: str, risk_color: str, indent: int = 0):
-        """Helper to print a row with the left border"""
-        prefix = Colors.colorize("│", risk_color) + " " * (2 + indent)
-        print(f"{prefix}{text}")
+    def _print_alert_row(self, text: str, risk_color: str, indent: int = 0, width: int = 70):
+        """Helper to print a row with left and right borders, wrapping long content"""
+        # Calculate available width: total width - left border (1) - right border (1)
+        available_width = width - 2
+        
+        # Account for the left padding (2 spaces base + indent)
+        left_padding = 2 + indent
+        content_width = available_width - left_padding
+        
+        # Handle empty text
+        if not text:
+            prefix = Colors.colorize("│", risk_color) + " " * available_width
+            suffix = Colors.colorize("│", risk_color)
+            print(f"{prefix}{suffix}")
+            return
+        
+        # Strip ANSI codes to measure actual text length
+        import re
+        ansi_pattern = re.compile(r'\x1b\[[0-9;]*m')
+        clean_text = ansi_pattern.sub('', text)
+        
+        # If text fits, print it with right border aligned
+        if len(clean_text) <= content_width:
+            prefix = Colors.colorize("│", risk_color) + " " * left_padding
+            # Calculate padding needed to reach the right border
+            padding_needed = available_width - left_padding - len(clean_text)
+            suffix = " " * padding_needed + Colors.colorize("│", risk_color)
+            print(f"{prefix}{text}{suffix}")
+        else:
+            # Wrap long text across multiple lines
+            words = text.split()
+            lines = []
+            current_line = []
+            current_length = 0
+            
+            for word in words:
+                clean_word = ansi_pattern.sub('', word)
+                word_length = len(clean_word)
+                
+                # Check if adding this word would exceed the width
+                space_length = 1 if current_line else 0
+                if current_length + space_length + word_length <= content_width:
+                    current_line.append(word)
+                    current_length += space_length + word_length
+                else:
+                    # Start a new line
+                    if current_line:
+                        lines.append(' '.join(current_line))
+                    current_line = [word]
+                    current_length = word_length
+            
+            # Add the last line
+            if current_line:
+                lines.append(' '.join(current_line))
+            
+            # Print each wrapped line
+            for line in lines:
+                clean_line = ansi_pattern.sub('', line)
+                prefix = Colors.colorize("│", risk_color) + " " * left_padding
+                padding_needed = available_width - left_padding - len(clean_line)
+                suffix = " " * padding_needed + Colors.colorize("│", risk_color)
+                print(f"{prefix}{line}{suffix}")
+
 
     def _print_alert_header(self, risk_level: str, timestamp: str, width: int, risk_color: str, risk_symbol: str):
         """Print the alert header"""
         print()
         # Top Border
-        print(Colors.colorize(f"┌{'─'*width}", risk_color))
+        print(Colors.colorize(f"┌{'─'*width}┐", risk_color))
 
         # Header Row
         title = "🚨 SECURITY ALERT"
@@ -104,7 +163,7 @@ class AlertSystem:
             " " + risk_symbol
         )
 
-        print(Colors.colorize(f"├{'─'*width}", risk_color))
+        print(Colors.colorize(f"├{'─'*width}┤", risk_color))
 
     def _print_alert_metadata(self, report: ThreatReport, width: int, risk_color: str, formatted_time: str):
         """Print alert metadata (Timestamp, Subject, From, To)"""
@@ -116,11 +175,11 @@ class AlertSystem:
                 return s[:max_field_len-3] + "..."
             return s
 
-        self._print_alert_row(f"{Colors.BOLD}Timestamp:{Colors.RESET} {formatted_time}", risk_color)
-        self._print_alert_row(f"{Colors.BOLD}Subject:{Colors.RESET}   {safe_field(report.subject)}", risk_color)
-        self._print_alert_row(f"{Colors.BOLD}From:{Colors.RESET}      {safe_field(report.sender)}", risk_color)
-        self._print_alert_row(f"{Colors.BOLD}To:{Colors.RESET}        {safe_field(report.recipient)}", risk_color)
-        self._print_alert_row("", risk_color)
+        self._print_alert_row(f"{Colors.BOLD}Timestamp:{Colors.RESET} {formatted_time}", risk_color, width=width)
+        self._print_alert_row(f"{Colors.BOLD}Subject:{Colors.RESET}   {safe_field(report.subject)}", risk_color, width=width)
+        self._print_alert_row(f"{Colors.BOLD}From:{Colors.RESET}      {safe_field(report.sender)}", risk_color, width=width)
+        self._print_alert_row(f"{Colors.BOLD}To:{Colors.RESET}        {safe_field(report.recipient)}", risk_color, width=width)
+        self._print_alert_row("", risk_color, width=width)
 
     def _print_threat_score(self, score: float, risk_level: str, width: int, risk_color: str):
         """Print the threat score and progress bar"""
@@ -130,66 +189,66 @@ class AlertSystem:
         bar = "█" * filled_len + "░" * (meter_len - filled_len)
         meter_color = Colors.get_risk_color(risk_level)
 
-        self._print_alert_row(f"{Colors.BOLD}THREAT SCORE:{Colors.RESET} {score:.2f}/100", risk_color)
-        self._print_alert_row(f"{Colors.colorize(bar, meter_color)}", risk_color)
+        self._print_alert_row(f"{Colors.BOLD}THREAT SCORE:{Colors.RESET} {score:.2f}/100", risk_color, width=width)
+        self._print_alert_row(f"{Colors.colorize(bar, meter_color)}", risk_color, width=width)
 
     def _print_analysis_details(self, report: ThreatReport, width: int, risk_color: str):
         """Print detailed analysis sections"""
-        print(Colors.colorize(f"├{'─'*width}", risk_color))
-        self._print_alert_row(Colors.colorize("ANALYSIS DETAILS", Colors.BOLD), risk_color)
-        self._print_alert_row("", risk_color)
+        print(Colors.colorize(f"├{'─'*width}┤", risk_color))
+        self._print_alert_row(Colors.colorize("ANALYSIS DETAILS", Colors.BOLD), risk_color, width=width)
+        self._print_alert_row("", risk_color, width=width)
 
         # Helper for analysis sections
         def print_section_header(title, analysis_data):
             level = analysis_data.get('risk_level', 'unknown')
             color = Colors.get_risk_color(level)
             symbol = Colors.get_risk_symbol(level)
-            self._print_alert_row(f"{Colors.BOLD}{title}:{Colors.RESET} {Colors.colorize(level.upper(), color)} {symbol}", risk_color)
+            self._print_alert_row(f"{Colors.BOLD}{title}:{Colors.RESET} {Colors.colorize(level.upper(), color)} {symbol}", risk_color, width=width)
 
         # Spam
         print_section_header("📧 SPAM", report.spam_analysis)
         if report.spam_analysis.get('indicators'):
             for indicator in report.spam_analysis['indicators'][:5]:
-                self._print_alert_row(f"{Colors.colorize('•', Colors.GREY)} {indicator}", risk_color, indent=3)
+                self._print_alert_row(f"{Colors.colorize('•', Colors.GREY)} {indicator}", risk_color, indent=3, width=width)
         else:
-            self._print_alert_row(f"{Colors.colorize('✓', Colors.GREEN)} No suspicious patterns", risk_color, indent=3)
-        self._print_alert_row("", risk_color)
+            self._print_alert_row(f"{Colors.colorize('✓', Colors.GREEN)} No suspicious patterns", risk_color, indent=3, width=width)
+        self._print_alert_row("", risk_color, width=width)
 
         # NLP
         print_section_header("🧠 NLP", report.nlp_analysis)
         nlp = report.nlp_analysis
         has_nlp = False
         if nlp.get('social_engineering_indicators'):
-            self._print_alert_row(f"{Colors.BOLD}Social Engineering:{Colors.RESET}", risk_color, indent=3)
+            self._print_alert_row(f"{Colors.BOLD}Social Engineering:{Colors.RESET}", risk_color, indent=3, width=width)
             for ind in nlp['social_engineering_indicators'][:3]:
-                self._print_alert_row(f"{Colors.colorize('•', Colors.RED)} {ind}", risk_color, indent=5)
+                self._print_alert_row(f"{Colors.colorize('•', Colors.RED)} {ind}", risk_color, indent=5, width=width)
             has_nlp = True
 
         if nlp.get('authority_impersonation'):
-            self._print_alert_row(f"{Colors.BOLD}Authority Impersonation:{Colors.RESET}", risk_color, indent=3)
+            self._print_alert_row(f"{Colors.BOLD}Authority Impersonation:{Colors.RESET}", risk_color, indent=3, width=width)
             for ind in nlp['authority_impersonation'][:3]:
-                self._print_alert_row(f"{Colors.colorize('•', Colors.RED)} {ind}", risk_color, indent=5)
+                self._print_alert_row(f"{Colors.colorize('•', Colors.RED)} {ind}", risk_color, indent=5, width=width)
             has_nlp = True
 
         if not has_nlp:
-             self._print_alert_row(f"{Colors.colorize('✓', Colors.GREEN)} No psychological triggers", risk_color, indent=3)
-        self._print_alert_row("", risk_color)
+             self._print_alert_row(f"{Colors.colorize('✓', Colors.GREEN)} No psychological triggers", risk_color, indent=3, width=width)
+        self._print_alert_row("", risk_color, width=width)
 
         # Media
         print_section_header("📎 MEDIA", report.media_analysis)
         media = report.media_analysis
         if media.get('file_type_warnings'):
-            self._print_alert_row(f"{Colors.BOLD}File Warnings:{Colors.RESET}", risk_color, indent=3)
+            self._print_alert_row(f"{Colors.BOLD}File Warnings:{Colors.RESET}", risk_color, indent=3, width=width)
             for warning in media['file_type_warnings'][:3]:
-                self._print_alert_row(f"{Colors.colorize('•', Colors.YELLOW)} {warning}", risk_color, indent=5)
+                self._print_alert_row(f"{Colors.colorize('•', Colors.YELLOW)} {warning}", risk_color, indent=5, width=width)
         else:
-            self._print_alert_row(f"{Colors.colorize('✓', Colors.GREEN)} Attachments appear safe", risk_color, indent=3)
+            self._print_alert_row(f"{Colors.colorize('✓', Colors.GREEN)} Attachments appear safe", risk_color, indent=3, width=width)
 
     def _print_recommendations(self, recommendations: List[str], width: int, risk_color: str):
         """Print recommendations section"""
-        print(Colors.colorize(f"├{'─'*width}", risk_color))
-        self._print_alert_row(Colors.colorize("RECOMMENDATIONS", Colors.BOLD), risk_color)
-        self._print_alert_row("", risk_color)
+        print(Colors.colorize(f"├{'─'*width}┤", risk_color))
+        self._print_alert_row(Colors.colorize("RECOMMENDATIONS", Colors.BOLD), risk_color, width=width)
+        self._print_alert_row("", risk_color, width=width)
         
         for rec in recommendations:
             color = Colors.GREEN
@@ -199,10 +258,10 @@ class AlertSystem:
             elif any(key in rec_upper for key in ["SUSPICIOUS", "VERIFY", "URGENCY", "IMPERSONATION"]):
                 color = Colors.YELLOW
 
-            self._print_alert_row(f"{Colors.colorize('►', color)} {rec}", risk_color)
+            self._print_alert_row(f"{Colors.colorize('►', color)} {rec}", risk_color, width=width)
 
         # Bottom Border
-        print(Colors.colorize(f"└{'─'*width}", risk_color))
+        print(Colors.colorize(f"└{'─'*width}┘", risk_color))
         print()
 
     def _console_alert(self, report: ThreatReport):
