@@ -4,11 +4,6 @@ import cv2
 import numpy as np
 import tempfile
 import os
-import sys
-
-# Add src to path
-sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-
 from src.modules.media_analyzer import MediaAuthenticityAnalyzer
 from unittest.mock import MagicMock
 
