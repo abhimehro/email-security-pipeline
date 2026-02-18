@@ -109,7 +109,7 @@ class AlertSystem:
             f"{' ' * padding}"
             f"{risk_symbol} "
             f"{Colors.colorize('│', risk_color)}"
-        print(f"  ✉️ {Colors.BOLD}Subject:{Colors.RESET}  {self._sanitize_text(report.subject, csv_safe=True)}")
+        )
         print(f"{Colors.colorize('╰' + '─' * (width - 2) + '╯', risk_color)}")
 
     def _print_alert_metadata(self, report: ThreatReport):
