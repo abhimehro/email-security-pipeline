@@ -4,12 +4,6 @@ from unittest.mock import MagicMock
 from datetime import datetime
 import zipfile
 import io
-import sys
-import os
-
-# Add src to path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
 from src.modules.media_analyzer import MediaAuthenticityAnalyzer
 from src.modules.email_ingestion import EmailData
 from src.utils.config import AnalysisConfig
