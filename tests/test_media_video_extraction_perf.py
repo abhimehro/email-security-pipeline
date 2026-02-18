@@ -18,6 +18,13 @@ class TestMediaVideoExtractionPerf(unittest.TestCase):
     def create_dummy_video(self, filename, frames=100, width=64, height=48):
         fourcc = cv2.VideoWriter_fourcc(*'mp4v')
         out = cv2.VideoWriter(filename, fourcc, 20.0, (width, height))
+        if not out.isOpened():
+            # Skip the test if VideoWriter can't be opened. This typically indicates
+            # missing codec/FFmpeg support in the current environment (e.g., CI).
+            self.skipTest(
+                "OpenCV VideoWriter could not be opened; required codec/FFmpeg "
+                "support may be unavailable in this environment."
+            )
         for i in range(frames):
             # Create frame with index encoded in pixel to verify order
             # Use large steps to avoid compression artifacts merging values
