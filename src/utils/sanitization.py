@@ -122,12 +122,10 @@ def redact_email(email: str) -> str:
         if len(user) == 0:
             # Use a non-empty placeholder to indicate redaction occurred
             redacted_user = "***"
-    try:
-        user, domain = email.split('@', 1)
-        if len(user) <= 1:
-            redacted_user = "*" * len(user)
+        elif len(user) == 1:
+            redacted_user = "*"
         else:
             redacted_user = user[0] + "*" * (len(user) - 1)
         return sanitize_for_logging(f"{redacted_user}@{domain}")
     except Exception:
-        return sanitize_for_for_logging(email)
+        return sanitize_for_logging(email)
