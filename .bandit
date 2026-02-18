@@ -1,0 +1,8 @@
+[bandit]
+# Exclude test directories
+exclude_dirs = ['/tests/', '/test/', '/.venv/', '/venv/']
+
+# Only report medium and high severity issues
+skips = B101,B601
+# B101: assert_used (common in tests)
+# B601: paramiko_calls (if used for legitimate SSH purposes)
