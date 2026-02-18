@@ -46,7 +46,7 @@ def create_email_with_attachment(filename, data=b"dummy content"):
 def test_missing_dangerous_extensions(analyzer):
     """Test extensions that are currently missing from the blocklist"""
     # List of extensions that SHOULD be blocked but might be missing
-    extensions = ['.vbe', '.jse', '.wsh', '.scf', '.lnk', '.inf', '.reg', '.iso', '.img']
+    extensions = ['.vbe', '.jse', '.wsh', '.scf', '.lnk', '.inf', '.reg', '.iso', '.img', '.vhd', '.vhdx']
 
     for ext in extensions:
         filename = f"malware{ext}"
