@@ -8,6 +8,7 @@ import json
 import re
 import requests
 import unicodedata
+import shutil
 from typing import Dict, List
 from dataclasses import dataclass, asdict
 from datetime import datetime
@@ -81,7 +82,10 @@ class AlertSystem:
     def _console_alert(self, report: ThreatReport):
         """Print alert to console"""
         risk_color = Colors.get_risk_color(report.risk_level)
-        header_bar = Colors.colorize("="*80, risk_color)
+
+        # Dynamic width based on terminal size (default 80)
+        terminal_width = shutil.get_terminal_size((80, 24)).columns
+        header_bar = Colors.colorize("=" * terminal_width, risk_color)
         
         # Format timestamp nicely
         try:
@@ -210,20 +214,43 @@ class AlertSystem:
         except ValueError:
             time_str = report.timestamp
 
+        # Determine available width based on terminal size
+        terminal_width = shutil.get_terminal_size((80, 24)).columns
+
+        # Fixed parts visual length calculation:
+        # "✓ CLEAN " (8) + "│ " (2) + HH:MM:SS (8) + " │ " (3) +
+        # "Score: XX.X " (11) + "[..........] " (13) + "│ " (2) +
+        # "From: " (6) + " │ " (3)
+        # Total fixed visual width = approx 56 chars
+        # We add 1 char buffer
+        fixed_width = 57
+        available_width = max(20, terminal_width - fixed_width)
+
+        # Allocate width: 35% for sender, 65% for subject
+        sender_target = int(available_width * 0.35)
+        # Minimum reduced to 8 to fit 80-column terminals better
+        sender_width = max(8, sender_target)
+
+        subject_width = available_width - sender_width
+        # Ensure subject has at least some space
+        subject_width = max(10, subject_width)
+
         # Sender truncated
         sanitized_sender = self._sanitize_text(report.sender, csv_safe=True)
-        sender = sanitized_sender[:25]
-        if len(sanitized_sender) > 25:
-            sender += "..."
+        if len(sanitized_sender) > sender_width:
+            sender = sanitized_sender[:sender_width-3] + "..."
+        else:
+            sender = sanitized_sender
 
         # Subject truncated
         sanitized_subject = self._sanitize_text(report.subject, csv_safe=True)
         if not sanitized_subject:
             sanitized_subject = "(No Subject)"
 
-        subject = sanitized_subject[:40]
-        if len(sanitized_subject) > 40:
-            subject += "..."
+        if len(sanitized_subject) > subject_width:
+            subject = sanitized_subject[:subject_width-3] + "..."
+        else:
+            subject = sanitized_subject
 
         # Separator
         sep = Colors.colorize("│", Colors.GREY)
@@ -234,7 +261,7 @@ class AlertSystem:
             f"{Colors.GREEN}✓ CLEAN{Colors.RESET} "
             f"{sep} {time_str} "
             f"{sep} Score: {score_val:4.1f} {visual_bar} "
-            f"{sep} From: {sender:<28} "
+            f"{sep} From: {sender:<{sender_width}} "
             f"{sep} {subject}"
         )
 
