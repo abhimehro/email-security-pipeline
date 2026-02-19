@@ -409,7 +409,7 @@ class MediaAuthenticityAnalyzer:
 
                     # Check for suspicious extensions
                     for ext in self.SUSPICIOUS_EXTENSIONS:
-                        if ext in contained_lower:
+                        if contained_lower.endswith(ext):
                             score += 3.0
                             warnings.append(f"Zip {filename} contains suspicious file: {contained_file}")
 
