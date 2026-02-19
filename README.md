@@ -418,7 +418,80 @@ tail -f logs/email_security.log
 - Check email is marked as "unread" (pipeline monitors UNSEEN)
 - Increase `MAX_EMAILS_PER_BATCH` if needed
 
+## Development
+
+### Setting Up Development Environment
+
+1. **Clone and install dependencies**
+   ````bash
+   git clone <repository-url> email-security-pipeline
+   cd email-security-pipeline
+   python -m pip install -r requirements-ci.txt
+   ````
+
+2. **Install pre-commit hooks**
+   ````bash
+   pre-commit install
+   ````
+
+   This will automatically run code quality checks before each commit, including:
+   - Trailing whitespace removal
+   - End-of-file fixing
+   - YAML/JSON validation
+   - Security scanning (bandit)
+   - Python syntax checks
+   - Large file detection
+
+3. **Run pre-commit manually**
+   ````bash
+   # Run on all files
+   pre-commit run --all-files
+   
+   # Run on specific files
+   pre-commit run --files src/main.py
+   ````
+
+4. **Bypass hooks (use sparingly)**
+   ````bash
+   git commit --no-verify -m "Emergency fix"
+   ````
+
+### Running Tests
+
+````bash
+# Run all tests
+python -m pytest
+
+# Run with coverage (requires pytest-cov, not included in requirements-ci.txt)
+python -m pip install pytest-cov
+python -m pytest --cov=src --cov-report=html
+
+# Run specific test file
+python -m pytest tests/test_config.py
+````
+
+### Code Quality Tools
+
+The project uses the following tools (configured in `.pre-commit-config.yaml`):
+
+- **bandit**: Security linting (`.bandit` config)
+- **pre-commit-hooks**: Basic file quality checks
+- **pygrep-hooks**: Python-specific linting
+
+### Troubleshooting Pre-commit
+
+**Hooks failing?**
+- Update hooks: `pre-commit autoupdate`
+- Clear cache: `pre-commit clean`
+- Reinstall: `pre-commit uninstall && pre-commit install`
+
+**Need to skip a specific hook?**
+````bash
+SKIP=bandit git commit -m "Message"
+````
+
 ## Advanced Features
+
 
 ### Adding Custom Analysis Rules
 
