@@ -1,12 +1,6 @@
 import unittest
 from unittest.mock import MagicMock, patch
 import numpy as np
-import sys
-import os
-
-# Add src to path
-sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-
 from src.modules.media_analyzer import MediaAuthenticityAnalyzer
 
 class TestMediaFaceOptimization(unittest.TestCase):
