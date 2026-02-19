@@ -462,7 +462,8 @@ tail -f logs/email_security.log
 # Run all tests
 python -m pytest
 
-# Run with coverage
+# Run with coverage (requires pytest-cov, not included in requirements-ci.txt)
+python -m pip install pytest-cov
 python -m pytest --cov=src --cov-report=html
 
 # Run specific test file

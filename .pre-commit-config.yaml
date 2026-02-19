@@ -22,7 +22,7 @@ repos:
     rev: 1.7.6
     hooks:
       - id: bandit
-        args: ['-r', 'src/', '-ll', '-c', '.bandit']
+        args: ['-ll', '-c', '.bandit']
         files: ^src/
 
   # Python syntax validation
