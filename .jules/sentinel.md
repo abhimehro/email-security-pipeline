@@ -39,3 +39,8 @@
 **Vulnerability:** The account email change endpoint was protected only by cookies and lacked CSRF defenses, allowing attackers to trigger email changes via crafted links.
 **Learning:** Any state-changing action that relies on ambient authentication (cookies, headers) must be protected against CSRF.
 **Prevention:** Implement synchronized tokens or same-site-safe CSRF protections on all sensitive POST/PUT/PATCH/DELETE endpoints, and verify origin headers where applicable.
+
+## 2025-02-17 - [Incomplete Blocklist & Nested Archive Evasion]
+**Vulnerability:** The Media Analyzer's blocklist missed critical dangerous extensions (.vbe, .iso, .img, .lnk) and failed to detect nested archives (e.g. zip inside zip), allowing malware evasion.
+**Learning:** Blocklists are often incomplete and attackers use obscure extensions or nesting to bypass simple checks. Recursive analysis or flagging nested structures is essential.
+**Prevention:** Use comprehensive extension lists (including Windows script/shortcut types and disk images) and implement depth-limited recursive inspection for archives.

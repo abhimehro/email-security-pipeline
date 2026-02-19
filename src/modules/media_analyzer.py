@@ -46,8 +46,7 @@ class MediaAuthenticityAnalyzer:
     SUSPICIOUS_EXTENSIONS = [
         '.pdf.exe', '.doc.exe', '.jpg.exe', '.zip.exe',
         '.docm', '.xlsm', '.pptm', '.dotm',  # Macro-enabled Office files
-        # Added suspicious extensions
-        '.html', '.htm', '.svg'
+        '.html', '.htm', '.svg'  # Web content (potential Phishing/XSS)
     ]
 
     # Audio/video file extensions for deepfake detection
@@ -376,10 +375,15 @@ class MediaAuthenticityAnalyzer:
 
         return score, warning
 
-    def _inspect_zip_contents(self, filename: str, data: bytes) -> Tuple[float, List[str]]:
-        """Inspect contents of zip file for dangerous files"""
+    def _inspect_zip_contents(self, filename: str, data: bytes, depth: int = 0) -> Tuple[float, List[str]]:
+        """Inspect contents of zip file for dangerous files, with recursion"""
         score = 0.0
         warnings = []
+
+        # Max recursion depth to prevent zip bombs
+        if depth > 2:
+            return score, warnings
+
         try:
             # Use io.BytesIO to treat bytes as file-like object
             with zipfile.ZipFile(io.BytesIO(data)) as zf:
@@ -412,6 +416,32 @@ class MediaAuthenticityAnalyzer:
                         if contained_lower.endswith(ext):
                             score += 3.0
                             warnings.append(f"Zip {filename} contains suspicious file: {contained_file}")
+
+                    # Check for nested archives (potential evasion)
+                    if contained_lower.endswith(('.zip', '.rar', '.7z', '.tar', '.gz', '.iso', '.img', '.vhd', '.vhdx')):
+                        score += 2.0
+                        warnings.append(f"Zip {filename} contains nested archive: {contained_file}")
+
+                        # Recursively inspect nested zip files if depth allows and size is reasonable
+                        if contained_lower.endswith('.zip') and depth < 2:
+                            try:
+                                info = zf.getinfo(contained_file)
+                                # Limit nested zip size to 10MB to prevent memory exhaustion
+                                if info.file_size < 10 * 1024 * 1024:
+                                    nested_data = zf.read(contained_file)
+                                    nested_score, nested_warnings = self._inspect_zip_contents(
+                                        f"{filename}/{contained_file}",
+                                        nested_data,
+                                        depth + 1
+                                    )
+                                    score += nested_score
+                                    warnings.extend(nested_warnings)
+
+                                    # If we found a critical threat in nested zip, return immediately
+                                    if nested_score >= 5.0:
+                                        return score, warnings
+                            except Exception as e:
+                                self.logger.warning(f"Error inspecting nested zip {contained_file}: {e}")
 
         except zipfile.BadZipFile:
             # Not a valid zip file, might be corrupted or just named .zip
