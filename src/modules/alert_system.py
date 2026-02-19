@@ -45,9 +45,9 @@ class ThreatReport:
 class AlertSystem:
     """Manages alerts and notifications"""
     
-    # Card layout constants
-    CARD_WIDTH = 70  # Total width of the console alert card
-    
+    # Common prefixes for recommendations to strip during display to prevent duplication
+    RECOMMENDATION_PREFIXES = ["⚠️ ", "🎣 ", "🔗 ", "⏰ ", "📎 ", "👤 "]
+
     def __init__(self, config):
         """
         Initialize alert system
@@ -241,8 +241,10 @@ class AlertSystem:
         for rec in recommendations:
             color = Colors.GREEN
             rec_upper = rec.upper()
+            icon = "►"
             if any(key in rec_upper for key in ["HIGH RISK", "DANGEROUS", "PHISHING"]):
                 color = Colors.RED
+                icon = "⚠️ "
             elif any(key in rec_upper for key in ["SUSPICIOUS", "VERIFY", "URGENCY", "IMPERSONATION"]):
                 color = Colors.YELLOW
 
