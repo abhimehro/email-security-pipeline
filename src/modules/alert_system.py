@@ -8,7 +8,7 @@ import json
 import re
 import requests
 import unicodedata
-import shutil
+import concurrent.futures
 from typing import Dict, List
 from dataclasses import dataclass, asdict
 from datetime import datetime
@@ -51,6 +51,12 @@ class AlertSystem:
         """
         self.config = config
         self.logger = logging.getLogger("AlertSystem")
+        # Performance optimization: Use ThreadPoolExecutor for non-blocking HTTP alerts
+        # This prevents slow webhooks/Slack from blocking the analysis pipeline
+        self._alert_executor = concurrent.futures.ThreadPoolExecutor(
+            max_workers=2,
+            thread_name_prefix="alert-dispatcher"
+        )
     
     def send_alert(self, threat_report: ThreatReport):
         """
@@ -67,17 +73,21 @@ class AlertSystem:
                 self._console_clean_report(threat_report)
             return
         
-        # Console alert
+        # Console alert (synchronous - fast, no I/O)
         if self.config.console:
             self._console_alert(threat_report)
         
-        # Webhook alert
+        # Webhook alert (asynchronous - non-blocking HTTP)
         if self.config.webhook_enabled and self.config.webhook_url:
-            self._webhook_alert(threat_report)
+            self._alert_executor.submit(self._webhook_alert, threat_report)
         
-        # Slack alert
+        # Slack alert (asynchronous - non-blocking HTTP)
         if self.config.slack_enabled and self.config.slack_webhook:
-            self._slack_alert(threat_report)
+            self._alert_executor.submit(self._slack_alert, threat_report)
+    
+    def shutdown(self):
+        """Shutdown the alert dispatcher and wait for pending alerts"""
+        self._alert_executor.shutdown(wait=True)
     
     def _console_alert(self, report: ThreatReport):
         """Print alert to console"""
