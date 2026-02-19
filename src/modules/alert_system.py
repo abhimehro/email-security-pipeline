@@ -8,7 +8,7 @@ import json
 import re
 import requests
 import unicodedata
-import concurrent.futures
+import shutil
 from typing import Dict, List
 from dataclasses import dataclass, asdict
 from datetime import datetime
@@ -51,12 +51,6 @@ class AlertSystem:
         """
         self.config = config
         self.logger = logging.getLogger("AlertSystem")
-        # Performance optimization: Use ThreadPoolExecutor for non-blocking HTTP alerts
-        # This prevents slow webhooks/Slack from blocking the analysis pipeline
-        self._alert_executor = concurrent.futures.ThreadPoolExecutor(
-            max_workers=2,
-            thread_name_prefix="alert-dispatcher"
-        )
     
     def send_alert(self, threat_report: ThreatReport):
         """
@@ -73,28 +67,49 @@ class AlertSystem:
                 self._console_clean_report(threat_report)
             return
         
-        # Console alert (synchronous - fast, no I/O)
+        # Console alert
         if self.config.console:
             self._console_alert(threat_report)
         
-        # Webhook alert (asynchronous - non-blocking HTTP)
+        # Webhook alert
         if self.config.webhook_enabled and self.config.webhook_url:
-            self._alert_executor.submit(self._webhook_alert, threat_report)
+            self._webhook_alert(threat_report)
         
-        # Slack alert (asynchronous - non-blocking HTTP)
+        # Slack alert
         if self.config.slack_enabled and self.config.slack_webhook:
-            self._alert_executor.submit(self._slack_alert, threat_report)
+            self._slack_alert(threat_report)
     
-    def shutdown(self):
-        """Shutdown the alert dispatcher and wait for pending alerts"""
-        self._alert_executor.shutdown(wait=True)
-    
+    def _get_terminal_width(self, default: int = 80) -> int:
+        """Get terminal width with a default fallback"""
+        try:
+            return shutil.get_terminal_size((default, 24)).columns
+        except Exception:
+            return default
+
+    def _truncate_text(self, text: str, width: int) -> str:
+        """Truncate text to fit within width, appending ellipsis"""
+        if not text:
+            return ""
+
+        if len(text) <= width:
+            return text
+
+        if width <= 3:
+            return "..."[:width]
+
+        return text[:width-3] + "..."
+
+    def _get_visual_length(self, text: str) -> int:
+        """Get the visual length of a string, ignoring ANSI codes"""
+        ansi_escape = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
+        return len(ansi_escape.sub('', text))
+
     def _console_alert(self, report: ThreatReport):
         """Print alert to console"""
         risk_color = Colors.get_risk_color(report.risk_level)
 
-        # Dynamic width based on terminal size (default 80)
-        terminal_width = shutil.get_terminal_size((80, 24)).columns
+        # Dynamic width based on terminal size
+        terminal_width = self._get_terminal_width()
         header_bar = Colors.colorize("=" * terminal_width, risk_color)
         
         # Format timestamp nicely
@@ -225,15 +240,24 @@ class AlertSystem:
             time_str = report.timestamp
 
         # Determine available width based on terminal size
-        terminal_width = shutil.get_terminal_size((80, 24)).columns
+        terminal_width = self._get_terminal_width()
 
-        # Fixed parts visual length calculation:
-        # "✓ CLEAN " (8) + "│ " (2) + HH:MM:SS (8) + " │ " (3) +
-        # "Score: XX.X " (11) + "[..........] " (13) + "│ " (2) +
-        # "From: " (6) + " │ " (3)
-        # Total fixed visual width = approx 56 chars
+        # Calculate width of fixed parts dynamically
+        # Structure: "✓ CLEAN | HH:MM:SS | Score: XX.X [■■···] | From: " + sender + " | " + subject
+
+        sep = Colors.colorize("│", Colors.GREY)
+        sep_len = self._get_visual_length(sep)
+
+        prefix = f"{Colors.GREEN}✓ CLEAN{Colors.RESET} {sep} {time_str} {sep} Score: {score_val:4.1f} {visual_bar} {sep} From: "
+        prefix_len = self._get_visual_length(prefix)
+
+        suffix_sep = f" {sep} "
+        suffix_sep_len = self._get_visual_length(suffix_sep)
+
+        # Fixed width is prefix + space for suffix separator
         # We add 1 char buffer
-        fixed_width = 57
+        fixed_width = prefix_len + suffix_sep_len + 1
+
         available_width = max(20, terminal_width - fixed_width)
 
         # Allocate width: 35% for sender, 65% for subject
@@ -247,23 +271,14 @@ class AlertSystem:
 
         # Sender truncated
         sanitized_sender = self._sanitize_text(report.sender, csv_safe=True)
-        if len(sanitized_sender) > sender_width:
-            sender = sanitized_sender[:sender_width-3] + "..."
-        else:
-            sender = sanitized_sender
+        sender = self._truncate_text(sanitized_sender, sender_width)
 
         # Subject truncated
         sanitized_subject = self._sanitize_text(report.subject, csv_safe=True)
         if not sanitized_subject:
             sanitized_subject = "(No Subject)"
 
-        if len(sanitized_subject) > subject_width:
-            subject = sanitized_subject[:subject_width-3] + "..."
-        else:
-            subject = sanitized_subject
-
-        # Separator
-        sep = Colors.colorize("│", Colors.GREY)
+        subject = self._truncate_text(sanitized_subject, subject_width)
 
         # Format:
         # ✓ CLEAN | HH:MM:SS | Score: XX.X [■■···] | From: Sender                       | Subject
