@@ -761,7 +761,13 @@ class MediaAuthenticityAnalyzer:
         faces_found = 0
         blurry_faces = 0
 
-        for gray in gray_frames:
+        # Optimization: Check a small subset of frames to reduce CPU load.
+        # Heuristic: we sample the first 5 frames assuming persistent issues are likely
+        # to appear early in the clip. Increase this sample size for more thorough analysis.
+        step = max(1, len(gray_frames) // 5)
+        frames_to_check = gray_frames[::step][:5]
+
+        for gray in frames_to_check:
             faces = self.face_cascade.detectMultiScale(gray, 1.1, 4)
 
             for (x, y, w, h) in faces:

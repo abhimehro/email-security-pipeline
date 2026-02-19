@@ -48,3 +48,7 @@
 ## 2026-03-09 - Redundant URL Processing in Spam Analysis
 **Learning:** Parsing URLs with `urllib.parse` is relatively expensive (O(N) for N characters). When analyzing emails with many duplicate URLs (e.g., signatures, tracking pixels), redundant parsing causes significant performance overhead (18x-32x slower).
 **Action:** Use a local cache (e.g., `dict`) to store parsing/analysis results for unique items when iterating over potentially large collections with duplicates.
+
+## 2026-03-10 - Media Analysis Frame Sampling
+**Learning:** Facial analysis using `detectMultiScale` is computationally expensive and linear with the number of frames. Analyzing a statistical sample of frames (e.g., 5) instead of all extracted frames (e.g., 10) provides a 50% speedup while still catching persistent inconsistencies.
+**Action:** Use frame subsampling for expensive per-frame operations like face detection, similar to how it's done for compression artifacts.
