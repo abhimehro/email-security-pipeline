@@ -81,7 +81,7 @@ class TestMediaZipBomb(unittest.TestCase):
                 break
 
         if not found_warning:
-             print(f"\nDEBUG: Warnings found: {result.suspicious_attachments}")
+            print(f"\nDEBUG: Warnings found: {result.suspicious_attachments}")
 
         self.assertTrue(found_warning, "Failed to detect zip bomb or handling error")
         self.assertGreaterEqual(result.threat_score, 5.0, "Threat score should be high for zip bomb")
