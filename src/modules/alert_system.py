@@ -21,6 +21,9 @@ from .nlp_analyzer import NLPAnalysisResult
 from .media_analyzer import MediaAnalysisResult
 from ..utils.colors import Colors
 
+# Regex pattern for stripping ANSI codes (compiled once for performance)
+ANSI_PATTERN = re.compile(r'\x1b\[[0-9;]*m')
+
 
 @dataclass
 class ThreatReport:
@@ -41,6 +44,9 @@ class ThreatReport:
 
 class AlertSystem:
     """Manages alerts and notifications"""
+    
+    # Card layout constants
+    CARD_WIDTH = 70  # Total width of the console alert card
     
     def __init__(self, config):
         """
