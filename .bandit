@@ -1,0 +1,8 @@
+[bandit]
+# Exclude test directories and local virtual environments (relative to project root)
+exclude_dirs = ['tests/', 'test/', '.venv/', 'venv/']
+
+# Only report medium and high severity issues
+severity = MEDIUM
+skips = B101
+# B101: assert_used (common in tests)
