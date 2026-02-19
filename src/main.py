@@ -165,7 +165,30 @@ class EmailSecurityPipeline:
         if hasattr(self, 'executor'):
             self.executor.shutdown(wait=True)
         if hasattr(self, 'media_analyzer'):
-            self.media_analyzer.shutdown()
+            # Run media_analyzer.shutdown() in a background thread so that
+            # pipeline shutdown is not indefinitely blocked by long-running
+            # or stuck deepfake analysis tasks.
+            try:
+                shutdown_executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
+                future = shutdown_executor.submit(self.media_analyzer.shutdown)
+                try:
+                    # Allow a short grace period for a clean shutdown.
+                    future.result(timeout=5)
+                except concurrent.futures.TimeoutError:
+                    # If shutdown takes too long, log and continue shutting down
+                    # the pipeline while media analyzer finishes in the background.
+                    self.logger.warning(
+                        "Media analyzer shutdown is taking longer than expected; "
+                        "continuing pipeline shutdown in background."
+                    )
+                finally:
+                    # Do not block on the executor; allow background thread to finish.
+                    shutdown_executor.shutdown(wait=False)
+            except Exception as e:
+                # Never let shutdown errors crash the pipeline teardown.
+                self.logger.error(
+                    "Error while shutting down media analyzer: %s", e, exc_info=True
+                )
         self.logger.info("Pipeline stopped")
 
     def _monitoring_loop(self):
