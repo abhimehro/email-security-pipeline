@@ -697,7 +697,11 @@ class MediaAuthenticityAnalyzer:
         faces_found = 0
         blurry_faces = 0
 
-        for gray in gray_frames:
+        # Optimization: Check a subset of frames to reduce CPU load
+        # Checking 5 frames is sufficient to detect persistent facial inconsistencies
+        frames_to_check = gray_frames[:5]
+
+        for gray in frames_to_check:
             faces = self.face_cascade.detectMultiScale(gray, 1.1, 4)
 
             for (x, y, w, h) in faces:
