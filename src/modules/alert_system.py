@@ -21,6 +21,9 @@ from .nlp_analyzer import NLPAnalysisResult
 from .media_analyzer import MediaAnalysisResult
 from ..utils.colors import Colors
 
+# Regex pattern for stripping ANSI codes (compiled once for performance)
+ANSI_PATTERN = re.compile(r'\x1b\[[0-9;]*m')
+
 
 @dataclass
 class ThreatReport:
