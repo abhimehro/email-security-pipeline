@@ -41,6 +41,9 @@ class ThreatReport:
 class AlertSystem:
     """Manages alerts and notifications"""
     
+    # Common prefixes for recommendations to strip during display to prevent duplication
+    RECOMMENDATION_PREFIXES = ["⚠️ ", "🎣 ", "🔗 ", "⏰ ", "📎 ", "👤 "]
+
     def __init__(self, config):
         """
         Initialize alert system
@@ -98,7 +101,16 @@ class AlertSystem:
     def _print_alert_header(self, report: ThreatReport, risk_color: str, risk_symbol: str, width: int):
         """Print the box header for the alert"""
         title = f" 🚨 SECURITY ALERT • {report.risk_level.upper()} RISK "
-        # Subtract extra 2 for emoji visual width (🚨 and 🔴 are width 2 but len 1)
+
+        # Calculate padding, accounting for borders and double-width emoji characters.
+        # Total visual width = 1 (left │)
+        #                    + (len(title) + 1) (title text + 1 for 🚨 emoji)
+        #                    + padding
+        #                    + 2 (risk_symbol emoji)
+        #                    + 1 (space)
+        #                    + 1 (right │)
+        # This simplifies to: len(title) + padding + 6.
+        # So, padding = width - len(title) - 6.
         padding = width - len(title) - 6
         if padding < 0: padding = 0
 
@@ -160,17 +172,19 @@ class AlertSystem:
         nlp = report.nlp_analysis
         has_nlp_issues = False
 
-        if nlp.get('social_engineering_indicators'):
-            has_nlp_issues = True
-            print(f"    {Colors.BOLD}Social Engineering:{Colors.RESET}")
-            for indicator in nlp['social_engineering_indicators'][:3]:
-                print(f"      • {Colors.colorize(indicator, Colors.RED)}")
+        # Configurable sections for NLP analysis to reduce duplication
+        nlp_sections = [
+            ("Social Engineering", 'social_engineering_indicators'),
+            ("Authority Impersonation", 'authority_impersonation'),
+        ]
 
-        if nlp.get('authority_impersonation'):
-            has_nlp_issues = True
-            print(f"    {Colors.BOLD}Authority Impersonation:{Colors.RESET}")
-            for indicator in nlp['authority_impersonation'][:3]:
-                print(f"      • {Colors.colorize(indicator, Colors.RED)}")
+        for title, key in nlp_sections:
+            indicators = nlp.get(key)
+            if indicators:
+                has_nlp_issues = True
+                print(f"    {Colors.BOLD}{title}:{Colors.RESET}")
+                for indicator in indicators[:3]:
+                    print(f"      • {Colors.colorize(indicator, Colors.RED)}")
 
         if not has_nlp_issues:
             print(f"    {Colors.colorize('✓', Colors.GREEN)} No psychological triggers detected")
@@ -198,8 +212,7 @@ class AlertSystem:
 
             # Clean up existing icons in text if present to avoid duplication
             clean_rec = rec
-            prefixes = ["⚠️ ", "🎣 ", "🔗 ", "⏰ ", "📎 ", "👤 "]
-            for prefix in prefixes:
+            for prefix in self.RECOMMENDATION_PREFIXES:
                 if clean_rec.startswith(prefix):
                     clean_rec = clean_rec[len(prefix):]
                     break
