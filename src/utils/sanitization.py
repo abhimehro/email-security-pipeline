@@ -48,7 +48,7 @@ def sanitize_for_logging(text: str, max_length: int = 255) -> str:
     # that could be used for obfuscation (like BiDi overrides).
     # We explicitly allow Tab as it is useful for formatting and harmless.
     # Optimization: Use isprintable() which is faster than unicodedata.category()
-    # isprintable() returns True for L, M, N, P, S, and Zs (space only).
+    # isprintable() returns True for L, M, N, P, S, Zs (space only).
     # It returns False for Cc, Cf, Cs, Co, Cn, Zl, Zp, and Zs (non-space).
     # So we keep ch if it's '\t', printable, or a Zs (separator) character.
     text = "".join(
@@ -118,12 +118,10 @@ def redact_email(email: str) -> str:
 
     try:
         user, domain = email.split('@', 1)
-        # Handle empty username explicitly so redaction is visible
         if len(user) == 0:
-            # Use a non-empty placeholder to indicate redaction occurred
             redacted_user = "***"
-        elif len(user) == 1:
-            redacted_user = "*"
+        elif len(user) <= 1:
+            redacted_user = "*" * len(user)
         else:
             redacted_user = user[0] + "*" * (len(user) - 1)
         return sanitize_for_logging(f"{redacted_user}@{domain}")
