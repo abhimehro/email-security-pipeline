@@ -224,17 +224,39 @@ class AlertSystem:
         # Total fixed visual width = approx 56 chars
         # We add 1 char buffer
         fixed_width = 57
-        available_width = max(20, terminal_width - fixed_width)
+        # Clamp available width so we never exceed the terminal width on small terminals.
+        # Using max(0, ...) instead of a fixed minimum prevents forced wrapping.
+        available_width = max(0, terminal_width - fixed_width)
 
-        # Allocate width: 35% for sender, 65% for subject
-        sender_target = int(available_width * 0.35)
-        # Minimum reduced to 8 to fit 80-column terminals better
-        sender_width = max(8, sender_target)
+        # If there is no extra space beyond the fixed portion, omit sender/subject columns.
+        if available_width <= 0:
+            sender_width = 0
+            subject_width = 0
+        else:
+            # Allocate width: 35% for sender, 65% for subject as a starting point.
+            sender_target = int(available_width * 0.35)
+            sender_width = max(0, min(sender_target, available_width))
 
-        subject_width = available_width - sender_width
-        # Ensure subject has at least some space
-        subject_width = max(10, subject_width)
+            # Initial subject width uses the remainder.
+            subject_width = max(0, available_width - sender_width)
 
+            # Preferred minimums when there is enough room for both.
+            min_sender = 8
+            min_subject = 10
+
+            if available_width >= (min_sender + min_subject):
+                # Enforce minimums without exceeding available_width.
+                sender_width = max(min_sender, sender_width)
+                # Recompute subject as the remainder and then enforce its minimum.
+                subject_width = max(min_subject, available_width - sender_width)
+                # Guard against rare rounding-induced overflow.
+                if sender_width + subject_width > available_width:
+                    subject_width = max(0, available_width - sender_width)
+            else:
+                # Not enough space for both minimums; prioritize keeping some subject visible.
+                min_subject = min(available_width, 4)
+                subject_width = min_subject
+                sender_width = max(0, available_width - subject_width)
         # Sender truncated
         sanitized_sender = self._sanitize_text(report.sender, csv_safe=True)
         if len(sanitized_sender) > sender_width:
