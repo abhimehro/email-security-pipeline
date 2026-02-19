@@ -23,16 +23,8 @@ def _is_valid_email(email: str) -> bool:
     """Check if the email format is valid."""
     # Disallow consecutive dots
     if ".." in email:
-    """
-    Perform a basic email format validation.
-
-    Note:
-        This is a lightweight, non–RFC 5322–compliant check intended only for
-        interactive setup. It may accept some technically invalid addresses
-        (for example, those with consecutive dots, leading/trailing dots in
-        the local part, or domain labels with leading/trailing hyphens).
-    """
-    # Simple, best-effort regex for email validation (supports aliases with +)
+        return False
+    # Simple regex for email validation (supports aliases with +)
     pattern = r"^[\w\.\-\+]+@[\w\.-]+\.\w+$"
     return re.match(pattern, email) is not None
 
