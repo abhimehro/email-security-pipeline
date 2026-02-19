@@ -19,6 +19,12 @@ except ImportError:
         @classmethod
         def colorize(cls, text, color): return text
 
+def _is_valid_email(email: str) -> bool:
+    """Check if the email format is valid."""
+    # Simple regex for email validation (supports aliases with +)
+    pattern = r"^[\w\.\-\+]+@[\w\.-]+\.\w+$"
+    return re.match(pattern, email) is not None
+
 def _select_provider() -> str:
     """Prompt user to select an email provider."""
     print(f"\n{Colors.CYAN}Step 1: Choose your email provider{Colors.RESET}")
@@ -41,10 +47,16 @@ def _get_credentials(choice: str, provider_name: str) -> tuple[str, str]:
     print(f"\n{Colors.CYAN}Step 2: Configure {provider_name} Credentials{Colors.RESET}")
 
     try:
-        email = input(f"Enter your {provider_name} email address: ").strip()
-        while not email:
-            print(f"{Colors.YELLOW}Email is required.{Colors.RESET}")
+        while True:
             email = input(f"Enter your {provider_name} email address: ").strip()
+            if not email:
+                print(f"{Colors.YELLOW}Email is required.{Colors.RESET}")
+                continue
+
+            if _is_valid_email(email):
+                break
+
+            print(f"{Colors.YELLOW}Invalid email format. Please enter a valid email address (e.g., user@example.com).{Colors.RESET}")
 
         # Context-specific help
         if choice == '1': # Gmail
