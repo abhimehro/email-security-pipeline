@@ -163,9 +163,37 @@ class EmailSecurityPipeline:
         self.running = False
         self.ingestion_manager.close_all_connections()
         
-        # Cleanup thread pool resources in media analyzer
+        # Cleanup thread pool resources in media analyzer.
+        # NOTE:
+        # MediaAuthenticityAnalyzer.shutdown() is known to call an internal
+        # executor.shutdown(wait=True) and, in some timeout scenarios, may not
+        # cancel pending futures. Calling it directly from here could therefore
+        # block pipeline shutdown indefinitely (e.g., on SIGINT/SIGTERM).
+        #
+        # To keep shutdown reliable, we invoke shutdown() in a helper thread
+        # and bound how long we wait for it to complete. If it hangs, we log
+        # a warning and continue shutting down the rest of the pipeline.
         if hasattr(self, 'media_analyzer') and self.media_analyzer:
-            self.media_analyzer.shutdown()
+            shutdown_timeout_seconds = 10.0  # bounded wait to avoid hanging stop()
+            with concurrent.futures.ThreadPoolExecutor(max_workers=1) as _shutdown_executor:
+                future = _shutdown_executor.submit(self.media_analyzer.shutdown)
+                try:
+                    future.result(timeout=shutdown_timeout_seconds)
+                except concurrent.futures.TimeoutError:
+                    self.logger.warning(
+                        "Media analyzer shutdown is taking longer than "
+                        "expected; proceeding with pipeline shutdown without "
+                        "waiting indefinitely."
+                    )
+                except Exception:
+                    # Log and continue shutdown; failures here should not block
+                    # the entire pipeline from stopping.
+                    self.logger.error(
+                        "Error while shutting down media analyzer",
+                        exc_info=True,
+                    )
+                # The context manager for _shutdown_executor will call
+                # shutdown(wait=False) on exit, so it won't block here.
         
         if hasattr(self, 'executor'):
             self.executor.shutdown(wait=True)
