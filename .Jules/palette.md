@@ -47,3 +47,6 @@
 ## 2026-05-20 - Visual Hierarchy for High Severity Alerts
 **Learning:** Security alerts often get lost in scrolling console logs. Using a distinct card-like layout with box-drawing characters (╭──╮) creates a visual anchor that immediately draws attention to critical information.
 **Action:** Use box-drawing characters and clear separators to frame high-severity alerts, ensuring critical metadata is aligned and distinct from detailed analysis.
+## 2026-06-15 - Structured Card Layouts for Alerts
+**Learning:** Dense textual alerts are hard to scan quickly. Using box-drawing characters (┌, ─, ┐) to create structured "cards" significantly improves readability and professionalism of CLI output.
+**Action:** Implement card-based layouts for critical alerts, grouping related information visually and using distinct headers and separators.
