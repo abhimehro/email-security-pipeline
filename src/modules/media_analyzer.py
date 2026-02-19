@@ -95,83 +95,26 @@ class MediaAuthenticityAnalyzer:
         potential_deepfakes = []
 
         for attachment in email_data.attachments:
+            # Analyze metadata and basic file properties
+            meta_results = self._analyze_attachment_metadata(attachment)
+
+            # Aggregate results
+            threat_score += meta_results['score']
+            size_anomalies.extend(meta_results['size_anomalies'])
+            file_type_warnings.extend(meta_results['file_type_warnings'])
+            suspicious_attachments.extend(meta_results['suspicious_attachments'])
+
             filename = attachment.get('filename', '')
-            content_type = attachment.get('content_type', '')
-            size = attachment.get('size', 0)
             data = attachment.get('data', b'')
-            truncated = attachment.get('truncated', False)
-
-            if truncated:
-                size_anomalies.append(f"Attachment truncated for scanning: {filename}")
-
-            # Check file extension
-            ext_score, ext_warnings = self._check_file_extension(filename)
-            threat_score += ext_score
-            file_type_warnings.extend(ext_warnings)
-
-            # Check content type mismatch
-            mismatch_score, mismatch_warnings = self._check_content_type_mismatch(
-                filename, content_type, data
-            )
-            threat_score += mismatch_score
-            if mismatch_warnings:
-                suspicious_attachments.append(f"{filename}: {mismatch_warnings}")
-
-            # Check file size anomalies
-            size_score, size_warning = self._check_size_anomaly(filename, size)
-            threat_score += size_score
-            if size_warning:
-                size_anomalies.append(size_warning)
-
-            # Check for dangerous contents in archives (e.g. Zip files)
-            # We check if it looks like a zip (magic bytes or extension)
-            is_zip = False
-            if data and data.startswith(b'PK\x03\x04'):
-                is_zip = True
-            elif filename.lower().endswith('.zip'):
-                is_zip = True
-
-            if is_zip:
-                zip_score, zip_warnings = self._inspect_zip_contents(filename, data)
-                threat_score += zip_score
-                if zip_warnings:
-                    suspicious_attachments.extend(zip_warnings)
+            content_type = attachment.get('content_type', '')
 
             # Check for potential deepfakes
             # Only proceed if the file hasn't already been flagged as dangerous/suspicious (score >= 5.0)
-            # This prevents processing of potentially malicious files (e.g., disguised executables)
             if self.config.deepfake_detection_enabled and threat_score < 5.0:
-                try:
-                    future = self._deepfake_executor.submit(
-                        self._check_deepfake_indicators,
-                        filename,
-                        data,
-                        content_type
-                    )
-                    deepfake_score, deepfake_indicators = future.result(
-                        timeout=self.config.media_analysis_timeout
-                    )
-                    threat_score += deepfake_score
-                    potential_deepfakes.extend(deepfake_indicators)
-                except concurrent.futures.TimeoutError:
-                    self.logger.warning(
-                        f"Deepfake analysis timed out for {filename} (>{self.config.media_analysis_timeout}s)"
-                    )
-                    size_anomalies.append(f"Deepfake analysis timed out: {filename}")
-                except Exception as e:
-                    self.logger.error(f"Deepfake analysis failed for {filename}: {e}")
-                # Note: We intentionally do not shut down the shared executor here.
-                # The executor is shared across attachments/requests, so shutting it down
-                # would cancel or block unrelated work. In the previous per-attachment
-                # design, we used shutdown(wait=False, cancel_futures=True) to aggressively
-                # clean up stuck tasks. With a shared pool, we instead rely on the timeout
-                # above (future.result(timeout=media_analysis_timeout)) to prevent the caller
-                # from blocking indefinitely. However, if a worker thread actually leaks or
-                # hangs beyond the timeout, it will continue to occupy a slot in the limited
-                # max_workers pool until completion or process exit. This is an explicit
-                # tradeoff: improved throughput and lower executor-creation overhead at the
-                # cost of reduced resilience to leaked/hung threads and potential gradual
-                # degradation of pool capacity over time.
+                deepfake_results = self._analyze_deepfake_threat(filename, data, content_type)
+                threat_score += deepfake_results['score']
+                potential_deepfakes.extend(deepfake_results['indicators'])
+                size_anomalies.extend(deepfake_results['errors'])
 
         # Calculate risk level
         risk_level = self._calculate_risk_level(threat_score)
@@ -189,6 +132,93 @@ class MediaAuthenticityAnalyzer:
             potential_deepfakes=potential_deepfakes,
             risk_level=risk_level
         )
+
+    def _analyze_attachment_metadata(self, attachment: dict) -> dict:
+        """
+        Analyze attachment metadata and basic properties.
+        Returns a dict with scores and warnings.
+        """
+        filename = attachment.get('filename', '')
+        content_type = attachment.get('content_type', '')
+        size = attachment.get('size', 0)
+        data = attachment.get('data', b'')
+        truncated = attachment.get('truncated', False)
+
+        result = {
+            'score': 0.0,
+            'size_anomalies': [],
+            'file_type_warnings': [],
+            'suspicious_attachments': []
+        }
+
+        if truncated:
+            result['size_anomalies'].append(f"Attachment truncated for scanning: {filename}")
+
+        # Check file extension
+        ext_score, ext_warnings = self._check_file_extension(filename)
+        result['score'] += ext_score
+        result['file_type_warnings'].extend(ext_warnings)
+
+        # Check content type mismatch
+        mismatch_score, mismatch_warnings = self._check_content_type_mismatch(
+            filename, content_type, data
+        )
+        result['score'] += mismatch_score
+        if mismatch_warnings:
+            result['suspicious_attachments'].append(f"{filename}: {mismatch_warnings}")
+
+        # Check file size anomalies
+        size_score, size_warning = self._check_size_anomaly(filename, size)
+        result['score'] += size_score
+        if size_warning:
+            result['size_anomalies'].append(size_warning)
+
+        # Check for dangerous contents in archives (e.g. Zip files)
+        is_zip = False
+        if data and data.startswith(b'PK\x03\x04'):
+            is_zip = True
+        elif filename.lower().endswith('.zip'):
+            is_zip = True
+
+        if is_zip:
+            zip_score, zip_warnings = self._inspect_zip_contents(filename, data)
+            result['score'] += zip_score
+            if zip_warnings:
+                result['suspicious_attachments'].extend(zip_warnings)
+
+        return result
+
+    def _analyze_deepfake_threat(self, filename: str, data: bytes, content_type: str) -> dict:
+        """
+        Execute deepfake analysis logic.
+        """
+        result = {
+            'score': 0.0,
+            'indicators': [],
+            'errors': []
+        }
+
+        try:
+            future = self._deepfake_executor.submit(
+                self._check_deepfake_indicators,
+                filename,
+                data,
+                content_type
+            )
+            deepfake_score, deepfake_indicators = future.result(
+                timeout=self.config.media_analysis_timeout
+            )
+            result['score'] = deepfake_score
+            result['indicators'] = deepfake_indicators
+        except concurrent.futures.TimeoutError:
+            self.logger.warning(
+                f"Deepfake analysis timed out for {filename} (>{self.config.media_analysis_timeout}s)"
+            )
+            result['errors'].append(f"Deepfake analysis timed out: {filename}")
+        except Exception as e:
+            self.logger.error(f"Deepfake analysis failed for {filename}: {e}")
+
+        return result
 
     def _check_file_extension(self, filename: str) -> Tuple[float, List[str]]:
         """Check if file extension is dangerous"""
@@ -565,11 +595,24 @@ class MediaAuthenticityAnalyzer:
                 # Sample evenly distributed frames
                 step = max(1, total_frames // max_frames)
 
-                # Optimization: For sequential access (step=1), avoid expensive seek operations
+                # Optimization: For step=1 (sequential reading), avoid expensive seek operations
                 if step == 1:
-                    frames = self._extract_frames_sequential(cap, max_frames, max_dim)
+                    count = 0
+                    while count < max_frames:
+                        success, frame = cap.read()
+                        if not success:
+                            break
+                        if frame is not None:
+                            frames.append(self._resize_frame_if_needed(frame, max_dim))
+                        count += 1
                 else:
-                    frames = self._extract_frames_sampled(cap, total_frames, step, max_frames, max_dim)
+                    for i in range(0, total_frames, step):
+                        cap.set(cv2.CAP_PROP_POS_FRAMES, i)
+                        success, frame = cap.read()
+                        if success and frame is not None:
+                            frames.append(self._resize_frame_if_needed(frame, max_dim))
+                        if len(frames) >= max_frames:
+                            break
 
             cap.release()
         except Exception as e:
