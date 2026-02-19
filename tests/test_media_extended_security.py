@@ -4,6 +4,12 @@ from unittest.mock import MagicMock
 from datetime import datetime
 import zipfile
 import io
+import sys
+import os
+
+# Add src to path
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 from src.modules.media_analyzer import MediaAuthenticityAnalyzer
 from src.modules.email_ingestion import EmailData
 from src.utils.config import AnalysisConfig
@@ -47,15 +53,10 @@ def test_missing_dangerous_extensions(analyzer):
         email = create_email_with_attachment(filename)
         result = analyzer.analyze(email)
 
-        # We expect these to be flagged, but currently they might not be
-        # If this test fails, it confirms the vulnerability exists (or rather, the test passes if I assert 0.0)
-        # But I want to fail if they are NOT detected once I fix it.
-        # For reproduction, I'll assert that they ARE detected, and expect failure.
-
         assert result.threat_score >= 5.0, f"Failed to detect dangerous extension: {ext}"
 
 def test_nested_zip_evasion(analyzer):
-    """Test that nested archives are flagged"""
+    """Test that nested archives are flagged and inspected recursively"""
     # Create inner zip
     inner_buffer = io.BytesIO()
     with zipfile.ZipFile(inner_buffer, 'w') as zf:
@@ -71,17 +72,14 @@ def test_nested_zip_evasion(analyzer):
     email = create_email_with_attachment("archive.zip", outer_zip)
     result = analyzer.analyze(email)
 
-    # Currently, this might pass (score 0) because .zip is not dangerous and we don't recurse
-    # or flag nested zips.
-    # We want it to be flagged.
+    # 2.0 for nested archive + 5.0 for .exe inside it (via recursion) = 7.0
 
-    found_warning = False
-    for warning in result.suspicious_attachments:
-        if "nested archive" in warning or "dangerous file" in warning:
-            found_warning = True
-            break
+    found_nested_warning = any("nested archive" in w for w in result.suspicious_attachments)
+    found_exe_warning = any("dangerous file" in w for w in result.suspicious_attachments)
 
-    assert found_warning or result.threat_score >= 2.0, "Failed to detect nested archive"
+    assert found_nested_warning, "Failed to detect nested archive wrapper"
+    assert found_exe_warning, "Failed to detect dangerous file inside nested archive (recursion failed)"
+    assert result.threat_score >= 7.0, f"Threat score too low: {result.threat_score}"
 
 def test_html_attachment(analyzer):
     """Test that HTML attachments are flagged as suspicious"""
