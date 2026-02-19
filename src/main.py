@@ -162,9 +162,54 @@ class EmailSecurityPipeline:
         self.logger.info("Stopping Email Security Pipeline")
         self.running = False
         self.ingestion_manager.close_all_connections()
+        
+        # Cleanup thread pool resources in media analyzer.
+        # NOTE:
+        # MediaAuthenticityAnalyzer.shutdown() is known to call an internal
+        # executor.shutdown(wait=True) and, in some timeout scenarios, may not
+        # cancel pending futures. Calling it directly from here could therefore
+        # block pipeline shutdown indefinitely (e.g., on SIGINT/SIGTERM).
+        #
+        # To keep shutdown reliable, we invoke shutdown() in a helper thread
+        # and bound how long we wait for it to complete. If it hangs, we log
+        # a warning and continue shutting down the rest of the pipeline.
+        if hasattr(self, 'media_analyzer') and self.media_analyzer:
+            shutdown_timeout_seconds = 10.0  # bounded wait to avoid hanging stop()
+            with concurrent.futures.ThreadPoolExecutor(max_workers=1) as _shutdown_executor:
+                future = _shutdown_executor.submit(self.media_analyzer.shutdown)
+                try:
+                    future.result(timeout=shutdown_timeout_seconds)
+                except concurrent.futures.TimeoutError:
+                    self.logger.warning(
+                        "Media analyzer shutdown is taking longer than "
+                        "expected; proceeding with pipeline shutdown without "
+                        "waiting indefinitely."
+                    )
+                except Exception:
+                    # Log and continue shutdown; failures here should not block
+                    # the entire pipeline from stopping.
+                    self.logger.error(
+                        "Error while shutting down media analyzer",
+                        exc_info=True,
+                    )
+                # The context manager for _shutdown_executor will call
+                # shutdown(wait=False) on exit, so it won't block here.
+        
         if hasattr(self, 'executor'):
             self.executor.shutdown(wait=True)
+        # Ensure pending alerts are delivered before shutdown
+        if hasattr(self, 'alert_system') and hasattr(self.alert_system, 'shutdown'):
+            self.alert_system.shutdown()
         self.logger.info("Pipeline stopped")
+
+    def __enter__(self):
+        """Context manager entry"""
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """Context manager exit - ensures cleanup"""
+        self.stop()
+        return False
 
     def _monitoring_loop(self):
         """Main monitoring loop"""
