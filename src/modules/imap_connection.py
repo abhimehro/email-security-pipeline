@@ -30,6 +30,35 @@ from ..utils.security_validators import (
 logger = logging.getLogger(__name__)
 
 
+def _apply_ssl_overrides(
+    context: ssl.SSLContext,
+    verify_ssl: bool,
+    log_warning: callable
+) -> None:
+    """
+    Apply SSL verification overrides to an SSL context.
+
+    SECURITY STORY: This centralizes SSL override logic. When verify_ssl is False,
+    we disable certificate validation. This should ONLY be used for:
+    - Testing environments with self-signed certificates
+    - Troubleshooting connection issues
+
+    MAINTENANCE WISDOM: Module-level function lets both IMAPConnection and
+    IMAPDiagnostics share the same SSL override behaviour without inheritance.
+    Future security controls (certificate pinning, TLS version enforcement, etc.)
+    only need to be added here.
+
+    Args:
+        context: SSL context to configure
+        verify_ssl: When False, hostname checking and cert validation are disabled
+        log_warning: Callable used to emit a warning when verification is disabled
+    """
+    if not verify_ssl:
+        context.check_hostname = False
+        context.verify_mode = ssl.CERT_NONE
+        log_warning("SSL verification disabled - use only for testing!")
+
+
 class IMAPConnection:
     """
     Manages IMAP connection and folder operations
@@ -59,27 +88,6 @@ class IMAPConnection:
         self.connection: Optional[imaplib.IMAP4_SSL] = None
         self.logger = logging.getLogger(f"IMAPConnection.{config.provider}")
     
-    def _apply_ssl_overrides(self, context: ssl.SSLContext) -> None:
-        """
-        Apply SSL verification overrides if configured
-        
-        SECURITY STORY: This centralizes SSL override logic. When verify_ssl is False,
-        we disable certificate validation. This should ONLY be used for:
-        - Testing environments with self-signed certificates
-        - Troubleshooting connection issues
-        
-        MAINTENANCE WISDOM: By centralizing this pattern, we ensure all SSL contexts
-        are configured consistently and make it easy to add additional security controls
-        (like logging, metrics, or stricter validation) in one place.
-        
-        Args:
-            context: SSL context to configure
-        """
-        if not self.config.verify_ssl:
-            context.check_hostname = False
-            context.verify_mode = ssl.CERT_NONE
-            self.logger.warning("SSL verification disabled - use only for testing!")
-    
     def connect(self) -> bool:
         """
         Establish connection to IMAP server with secure TLS
@@ -99,7 +107,7 @@ class IMAPConnection:
             
             # Create secure SSL context (TLS 1.2+ enforced)
             context = create_secure_ssl_context()
-            self._apply_ssl_overrides(context)
+            _apply_ssl_overrides(context, self.config.verify_ssl, self.logger.warning)
             
             if self.config.use_ssl:
                 self.connection = imaplib.IMAP4_SSL(
@@ -540,7 +548,7 @@ class IMAPDiagnostics:
         result = {"valid": False, "expires_in_days": None, "error": None}
         try:
             context = create_secure_ssl_context()
-            self._apply_ssl_overrides(context)
+            _apply_ssl_overrides(context, self.config.verify_ssl, self.logger.warning)
             
             with socket.create_connection(
                 (self.config.imap_server, self.config.imap_port), 
@@ -572,7 +580,7 @@ class IMAPDiagnostics:
         result = {"valid": False, "error": None}
         try:
             context = create_secure_ssl_context()
-            self._apply_ssl_overrides(context)
+            _apply_ssl_overrides(context, self.config.verify_ssl, self.logger.warning)
             
             if self.config.use_ssl:
                 conn = imaplib.IMAP4_SSL(
