@@ -23,6 +23,10 @@ class TestSanitization(unittest.TestCase):
         self.assertEqual(redact_email(None), None)
         self.assertEqual(redact_email("not-an-email"), "not-an-email")
 
+        # Empty local part (requested by reviewer)
+        self.assertEqual(redact_email("@example.com"), "***@example.com")
+        self.assertEqual(redact_email("@"), "***@")
+
         # Complex emails
         self.assertEqual(
             redact_email("very.long.name+tag@sub.domain.com"),
@@ -34,6 +38,7 @@ class TestSanitization(unittest.TestCase):
             redact_email("user@domain@extra.com"),
             "u***@domain@extra.com"
         )
+
     def test_basic_sanitization(self):
         """Test basic string sanitization"""
         self.assertEqual(sanitize_for_logging("Hello World"), "Hello World")

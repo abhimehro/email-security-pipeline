@@ -8,7 +8,7 @@ import json
 import re
 import requests
 import unicodedata
-import concurrent.futures
+import shutil
 from typing import Dict, List
 from dataclasses import dataclass, asdict
 from datetime import datetime
@@ -57,12 +57,6 @@ class AlertSystem:
         """
         self.config = config
         self.logger = logging.getLogger("AlertSystem")
-        # Performance optimization: Use ThreadPoolExecutor for non-blocking HTTP alerts
-        # This prevents slow webhooks/Slack from blocking the analysis pipeline
-        self._alert_executor = concurrent.futures.ThreadPoolExecutor(
-            max_workers=2,
-            thread_name_prefix="alert-dispatcher"
-        )
     
     def send_alert(self, threat_report: ThreatReport):
         """
@@ -79,21 +73,17 @@ class AlertSystem:
                 self._console_clean_report(threat_report)
             return
         
-        # Console alert (synchronous - fast, no I/O)
+        # Console alert
         if self.config.console:
             self._console_alert(threat_report)
         
-        # Webhook alert (asynchronous - non-blocking HTTP)
+        # Webhook alert
         if self.config.webhook_enabled and self.config.webhook_url:
-            self._alert_executor.submit(self._webhook_alert, threat_report)
+            self._webhook_alert(threat_report)
         
-        # Slack alert (asynchronous - non-blocking HTTP)
+        # Slack alert
         if self.config.slack_enabled and self.config.slack_webhook:
-            self._alert_executor.submit(self._slack_alert, threat_report)
-    
-    def shutdown(self):
-        """Shutdown the alert dispatcher and wait for pending alerts"""
-        self._alert_executor.shutdown(wait=True)
+            self._slack_alert(threat_report)
     
     def _print_alert_row(self, text: str, risk_color: str, indent: int = 0):
         """Helper to print a row with the left border"""
@@ -319,23 +309,46 @@ class AlertSystem:
         except ValueError:
             time_str = report.timestamp
 
+        # Determine available width based on terminal size
+        terminal_width = self._get_terminal_width()
+
+        # Calculate width of fixed parts dynamically
+        # Structure: "✓ CLEAN | HH:MM:SS | Score: XX.X [■■···] | From: " + sender + " | " + subject
+
+        sep = Colors.colorize("│", Colors.GREY)
+        sep_len = self._get_visual_length(sep)
+
+        prefix = f"{Colors.GREEN}✓ CLEAN{Colors.RESET} {sep} {time_str} {sep} Score: {score_val:4.1f} {visual_bar} {sep} From: "
+        prefix_len = self._get_visual_length(prefix)
+
+        suffix_sep = f" {sep} "
+        suffix_sep_len = self._get_visual_length(suffix_sep)
+
+        # Fixed width is prefix + space for suffix separator
+        # We add 1 char buffer
+        fixed_width = prefix_len + suffix_sep_len + 1
+
+        available_width = max(20, terminal_width - fixed_width)
+
+        # Allocate width: 35% for sender, 65% for subject
+        sender_target = int(available_width * 0.35)
+        # Minimum reduced to 8 to fit 80-column terminals better
+        sender_width = max(8, sender_target)
+
+        subject_width = available_width - sender_width
+        # Ensure subject has at least some space
+        subject_width = max(10, subject_width)
+
         # Sender truncated
         sanitized_sender = self._sanitize_text(report.sender, csv_safe=True)
-        sender = sanitized_sender[:25]
-        if len(sanitized_sender) > 25:
-            sender += "..."
+        sender = self._truncate_text(sanitized_sender, sender_width)
 
         # Subject truncated
         sanitized_subject = self._sanitize_text(report.subject, csv_safe=True)
         if not sanitized_subject:
             sanitized_subject = "(No Subject)"
 
-        subject = sanitized_subject[:40]
-        if len(sanitized_subject) > 40:
-            subject += "..."
-
-        # Separator
-        sep = Colors.colorize("│", Colors.GREY)
+        subject = self._truncate_text(sanitized_subject, subject_width)
 
         # Format:
         # ✓ CLEAN | HH:MM:SS | Score: XX.X [■■···] | From: Sender                       | Subject
@@ -343,7 +356,7 @@ class AlertSystem:
             f"{Colors.GREEN}✓ CLEAN{Colors.RESET} "
             f"{sep} {time_str} "
             f"{sep} Score: {score_val:4.1f} {visual_bar} "
-            f"{sep} From: {sender:<28} "
+            f"{sep} From: {sender:<{sender_width}} "
             f"{sep} {subject}"
         )
 
