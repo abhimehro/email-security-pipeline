@@ -21,6 +21,9 @@ from .nlp_analyzer import NLPAnalysisResult
 from .media_analyzer import MediaAnalysisResult
 from ..utils.colors import Colors
 
+# Regex pattern for stripping ANSI codes (compiled once for performance)
+ANSI_PATTERN = re.compile(r'\x1b\[[0-9;]*m')
+
 
 @dataclass
 class ThreatReport:
@@ -42,6 +45,9 @@ class ThreatReport:
 class AlertSystem:
     """Manages alerts and notifications"""
     
+    # Common prefixes for recommendations to strip during display to prevent duplication
+    RECOMMENDATION_PREFIXES = ["⚠️ ", "🎣 ", "🔗 ", "⏰ ", "📎 ", "👤 "]
+
     def __init__(self, config):
         """
         Initialize alert system
@@ -235,8 +241,10 @@ class AlertSystem:
         for rec in recommendations:
             color = Colors.GREEN
             rec_upper = rec.upper()
+            icon = "►"
             if any(key in rec_upper for key in ["HIGH RISK", "DANGEROUS", "PHISHING"]):
                 color = Colors.RED
+                icon = "⚠️ "
             elif any(key in rec_upper for key in ["SUSPICIOUS", "VERIFY", "URGENCY", "IMPERSONATION"]):
                 color = Colors.YELLOW
 

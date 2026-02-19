@@ -124,6 +124,8 @@ def redact_email(email: str) -> str:
             redacted_user = "*" * len(user)
         else:
             redacted_user = user[0] + "*" * (len(user) - 1)
+
         return sanitize_for_logging(f"{redacted_user}@{domain}")
     except Exception:
+        # Fallback if splitting fails (unlikely given check above)
         return sanitize_for_logging(email)
