@@ -8,6 +8,7 @@ import json
 import re
 import requests
 import unicodedata
+import concurrent.futures
 from typing import Dict, List
 from dataclasses import dataclass, asdict
 from datetime import datetime
@@ -56,6 +57,12 @@ class AlertSystem:
         """
         self.config = config
         self.logger = logging.getLogger("AlertSystem")
+        # Performance optimization: Use ThreadPoolExecutor for non-blocking HTTP alerts
+        # This prevents slow webhooks/Slack from blocking the analysis pipeline
+        self._alert_executor = concurrent.futures.ThreadPoolExecutor(
+            max_workers=2,
+            thread_name_prefix="alert-dispatcher"
+        )
     
     def send_alert(self, threat_report: ThreatReport):
         """
@@ -72,17 +79,21 @@ class AlertSystem:
                 self._console_clean_report(threat_report)
             return
         
-        # Console alert
+        # Console alert (synchronous - fast, no I/O)
         if self.config.console:
             self._console_alert(threat_report)
         
-        # Webhook alert
+        # Webhook alert (asynchronous - non-blocking HTTP)
         if self.config.webhook_enabled and self.config.webhook_url:
-            self._webhook_alert(threat_report)
+            self._alert_executor.submit(self._webhook_alert, threat_report)
         
-        # Slack alert
+        # Slack alert (asynchronous - non-blocking HTTP)
         if self.config.slack_enabled and self.config.slack_webhook:
-            self._slack_alert(threat_report)
+            self._alert_executor.submit(self._slack_alert, threat_report)
+    
+    def shutdown(self):
+        """Shutdown the alert dispatcher and wait for pending alerts"""
+        self._alert_executor.shutdown(wait=True)
     
     def _print_alert_row(self, text: str, risk_color: str, indent: int = 0):
         """Helper to print a row with the left border"""
@@ -150,11 +161,11 @@ class AlertSystem:
                 return s[:max_field_len-3] + "..."
             return s
 
-        self._print_alert_row(f"{Colors.BOLD}Timestamp:{Colors.RESET} {formatted_time}", risk_color, width=width)
-        self._print_alert_row(f"{Colors.BOLD}Subject:{Colors.RESET}   {safe_field(report.subject)}", risk_color, width=width)
-        self._print_alert_row(f"{Colors.BOLD}From:{Colors.RESET}      {safe_field(report.sender)}", risk_color, width=width)
-        self._print_alert_row(f"{Colors.BOLD}To:{Colors.RESET}        {safe_field(report.recipient)}", risk_color, width=width)
-        self._print_alert_row("", risk_color, width=width)
+        self._print_alert_row(f"{Colors.BOLD}Timestamp:{Colors.RESET} {formatted_time}", risk_color)
+        self._print_alert_row(f"{Colors.BOLD}Subject:{Colors.RESET}   {safe_field(report.subject)}", risk_color)
+        self._print_alert_row(f"{Colors.BOLD}From:{Colors.RESET}      {safe_field(report.sender)}", risk_color)
+        self._print_alert_row(f"{Colors.BOLD}To:{Colors.RESET}        {safe_field(report.recipient)}", risk_color)
+        self._print_alert_row("", risk_color)
 
     def _print_threat_score(self, score: float, risk_level: str, width: int, risk_color: str):
         """Print the threat score and progress bar"""
@@ -164,8 +175,8 @@ class AlertSystem:
         bar = "█" * filled_len + "░" * (meter_len - filled_len)
         meter_color = Colors.get_risk_color(risk_level)
 
-        self._print_alert_row(f"{Colors.BOLD}THREAT SCORE:{Colors.RESET} {score:.2f}/100", risk_color, width=width)
-        self._print_alert_row(f"{Colors.colorize(bar, meter_color)}", risk_color, width=width)
+        self._print_alert_row(f"{Colors.BOLD}THREAT SCORE:{Colors.RESET} {score:.2f}/100", risk_color)
+        self._print_alert_row(f"{Colors.colorize(bar, meter_color)}", risk_color)
 
     def _print_analysis_details(self, report: ThreatReport, width: int, risk_color: str):
         """Print detailed analysis sections"""
@@ -179,31 +190,31 @@ class AlertSystem:
             level = analysis_data.get('risk_level', 'unknown')
             color = Colors.get_risk_color(level)
             symbol = Colors.get_risk_symbol(level)
-            self._print_alert_row(f"{Colors.BOLD}{title}:{Colors.RESET} {Colors.colorize(level.upper(), color)} {symbol}", risk_color, width=width)
+            self._print_alert_row(f"{Colors.BOLD}{title}:{Colors.RESET} {Colors.colorize(level.upper(), color)} {symbol}", risk_color)
 
         # Spam
         print_section_header("📧 SPAM", report.spam_analysis)
         if report.spam_analysis.get('indicators'):
             for indicator in report.spam_analysis['indicators'][:5]:
-                self._print_alert_row(f"{Colors.colorize('•', Colors.GREY)} {indicator}", risk_color, indent=3, width=width)
+                self._print_alert_row(f"{Colors.colorize('•', Colors.GREY)} {indicator}", risk_color, indent=3)
         else:
-            self._print_alert_row(f"{Colors.colorize('✓', Colors.GREEN)} No suspicious patterns", risk_color, indent=3, width=width)
-        self._print_alert_row("", risk_color, width=width)
+            self._print_alert_row(f"{Colors.colorize('✓', Colors.GREEN)} No suspicious patterns", risk_color, indent=3)
+        self._print_alert_row("", risk_color)
 
         # NLP
         print_section_header("🧠 NLP", report.nlp_analysis)
         nlp = report.nlp_analysis
         has_nlp = False
         if nlp.get('social_engineering_indicators'):
-            self._print_alert_row(f"{Colors.BOLD}Social Engineering:{Colors.RESET}", risk_color, indent=3, width=width)
+            self._print_alert_row(f"{Colors.BOLD}Social Engineering:{Colors.RESET}", risk_color, indent=3)
             for ind in nlp['social_engineering_indicators'][:3]:
-                self._print_alert_row(f"{Colors.colorize('•', Colors.RED)} {ind}", risk_color, indent=5, width=width)
+                self._print_alert_row(f"{Colors.colorize('•', Colors.RED)} {ind}", risk_color, indent=5)
             has_nlp = True
 
         if nlp.get('authority_impersonation'):
-            self._print_alert_row(f"{Colors.BOLD}Authority Impersonation:{Colors.RESET}", risk_color, indent=3, width=width)
+            self._print_alert_row(f"{Colors.BOLD}Authority Impersonation:{Colors.RESET}", risk_color, indent=3)
             for ind in nlp['authority_impersonation'][:3]:
-                self._print_alert_row(f"{Colors.colorize('•', Colors.RED)} {ind}", risk_color, indent=5, width=width)
+                self._print_alert_row(f"{Colors.colorize('•', Colors.RED)} {ind}", risk_color, indent=5)
             has_nlp = True
 
         if not has_nlp:
@@ -214,11 +225,11 @@ class AlertSystem:
         print_section_header("📎 MEDIA", report.media_analysis)
         media = report.media_analysis
         if media.get('file_type_warnings'):
-            self._print_alert_row(f"{Colors.BOLD}File Warnings:{Colors.RESET}", risk_color, indent=3, width=width)
+            self._print_alert_row(f"{Colors.BOLD}File Warnings:{Colors.RESET}", risk_color, indent=3)
             for warning in media['file_type_warnings'][:3]:
-                self._print_alert_row(f"{Colors.colorize('•', Colors.YELLOW)} {warning}", risk_color, indent=5, width=width)
+                self._print_alert_row(f"{Colors.colorize('•', Colors.YELLOW)} {warning}", risk_color, indent=5)
         else:
-            self._print_alert_row(f"{Colors.colorize('✓', Colors.GREEN)} Attachments appear safe", risk_color, indent=3, width=width)
+            self._print_alert_row(f"{Colors.colorize('✓', Colors.GREEN)} Attachments appear safe", risk_color, indent=3)
 
     def _print_recommendations(self, recommendations: List[str], width: int, risk_color: str):
         """Print recommendations section"""
@@ -250,7 +261,7 @@ class AlertSystem:
     def _console_alert(self, report: ThreatReport):
         """Print alert to console with enhanced UX"""
         # Configuration
-        WIDTH = self.CARD_WIDTH
+        WIDTH = 70
         risk_color = Colors.get_risk_color(report.risk_level)
         risk_symbol = Colors.get_risk_symbol(report.risk_level)
 
