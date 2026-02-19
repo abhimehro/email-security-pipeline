@@ -55,6 +55,8 @@ class MediaAuthenticityAnalyzer:
         '.mp3', '.wav', '.aac', '.flac', '.ogg', '.m4a'
     ]
 
+    MAX_NESTED_ZIP_SIZE = 10 * 1024 * 1024  # 10MB limit for nested zips
+
     def __init__(self, config):
         """
         Initialize media analyzer
@@ -455,23 +457,45 @@ class MediaAuthenticityAnalyzer:
                         # Recursively inspect nested zip files if depth allows and size is reasonable
                         if contained_lower.endswith('.zip') and depth < 2:
                             try:
+                                # We still check info.file_size as a first pass, but don't trust it fully
                                 info = zf.getinfo(contained_file)
-                                # Limit nested zip size to 10MB to prevent memory exhaustion
-                                if info.file_size < 10 * 1024 * 1024:
-                                    nested_data = zf.read(contained_file)
-                                    nested_score, nested_warnings = self._inspect_zip_contents(
-                                        f"{filename}/{contained_file}",
-                                        nested_data,
-                                        depth + 1
-                                    )
-                                    score += nested_score
-                                    warnings.extend(nested_warnings)
 
-                                    # If we found a critical threat in nested zip, return immediately
-                                    if nested_score >= 5.0:
-                                        return score, warnings
+                                # Skip if declared size is too large (honest large file)
+                                if info.file_size >= self.MAX_NESTED_ZIP_SIZE:
+                                    self.logger.warning(f"Skipping nested zip {contained_file} (declared size {info.file_size} > limit)")
+                                    continue
+
+                                # Use secure read instead of zf.read()
+                                # This enforces the limit on the ACTUAL decompressed data
+                                nested_data = self._read_zip_member_securely(
+                                    zf, contained_file, self.MAX_NESTED_ZIP_SIZE
+                                )
+
+                                nested_score, nested_warnings = self._inspect_zip_contents(
+                                    f"{filename}/{contained_file}",
+                                    nested_data,
+                                    depth + 1
+                                )
+                                score += nested_score
+                                warnings.extend(nested_warnings)
+
+                                # If we found a critical threat in nested zip, return immediately
+                                if nested_score >= 5.0:
+                                    return score, warnings
+
+                            except ValueError as e:
+                                # Catch our size limit exception
+                                score += 5.0
+                                warnings.append(f"Zip bomb detected: {filename}/{contained_file} ({str(e)})")
+                                return score, warnings
+
                             except Exception as e:
+                                # Detection failed due to zip error (CRC, tampering, etc.)
+                                # We should treat this as suspicious.
+                                # If we can't scan it, we treat it as high risk (evasion attempt or corruption).
                                 self.logger.warning(f"Error inspecting nested zip {contained_file}: {e}")
+                                score += 3.0
+                                warnings.append(f"Failed to inspect nested zip {contained_file}: {str(e)}")
 
         except zipfile.BadZipFile:
             # Not a valid zip file, might be corrupted or just named .zip
@@ -480,6 +504,46 @@ class MediaAuthenticityAnalyzer:
             self.logger.warning(f"Error inspecting zip {filename}: {e}")
 
         return score, warnings
+
+    def _read_zip_member_securely(self, zf: zipfile.ZipFile, filename: str, max_size: int) -> bytes:
+        """
+        Read a zip member securely with a size limit to prevent zip bombs.
+
+        Args:
+            zf: ZipFile object
+            filename: Name of the file to read
+            max_size: Maximum allowed size in bytes
+
+        Returns:
+            Decompressed bytes
+
+        Raises:
+            ValueError: If decompressed size exceeds max_size
+        """
+        content = io.BytesIO()
+        total_read = 0
+        chunk_size = 8192
+
+        # Don't use 'with' to avoid implicit close() which might trigger CRC check on partial read
+        # causing the ValueError to be masked by BadZipFile exception
+        f = zf.open(filename)
+        try:
+            while True:
+                chunk = f.read(chunk_size)
+                if not chunk:
+                    break
+                total_read += len(chunk)
+                if total_read > max_size:
+                    raise ValueError(f"Zip member {filename} exceeds maximum size of {max_size} bytes")
+                content.write(chunk)
+        finally:
+            try:
+                f.close()
+            except zipfile.BadZipFile:
+                # Ignore errors on close (like CRC mismatch due to partial read)
+                self.logger.debug(f"Ignored error closing zip stream for {filename}: {e}")
+
+        return content.getvalue()
 
     def _check_deepfake_indicators(self, filename: str, data: bytes, content_type: str) -> Tuple[float, List[str]]:
         """
