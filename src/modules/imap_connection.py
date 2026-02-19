@@ -30,6 +30,35 @@ from ..utils.security_validators import (
 logger = logging.getLogger(__name__)
 
 
+def _apply_ssl_overrides(
+    context: ssl.SSLContext,
+    verify_ssl: bool,
+    log_warning: callable
+) -> None:
+    """
+    Apply SSL verification overrides to an SSL context.
+
+    SECURITY STORY: This centralizes SSL override logic. When verify_ssl is False,
+    we disable certificate validation. This should ONLY be used for:
+    - Testing environments with self-signed certificates
+    - Troubleshooting connection issues
+
+    MAINTENANCE WISDOM: Module-level function lets both IMAPConnection and
+    IMAPDiagnostics share the same SSL override behaviour without inheritance.
+    Future security controls (certificate pinning, TLS version enforcement, etc.)
+    only need to be added here.
+
+    Args:
+        context: SSL context to configure
+        verify_ssl: When False, hostname checking and cert validation are disabled
+        log_warning: Callable used to emit a warning when verification is disabled
+    """
+    if not verify_ssl:
+        context.check_hostname = False
+        context.verify_mode = ssl.CERT_NONE
+        log_warning("SSL verification disabled - use only for testing!")
+
+
 class IMAPConnection:
     """
     Manages IMAP connection and folder operations
@@ -78,12 +107,7 @@ class IMAPConnection:
             
             # Create secure SSL context (TLS 1.2+ enforced)
             context = create_secure_ssl_context()
-            
-            # Override verification if configured (for testing/self-signed certs)
-            if not self.config.verify_ssl:
-                context.check_hostname = False
-                context.verify_mode = ssl.CERT_NONE
-                self.logger.warning("SSL verification disabled - use only for testing!")
+            _apply_ssl_overrides(context, self.config.verify_ssl, self.logger.warning)
             
             if self.config.use_ssl:
                 self.connection = imaplib.IMAP4_SSL(
@@ -524,11 +548,7 @@ class IMAPDiagnostics:
         result = {"valid": False, "expires_in_days": None, "error": None}
         try:
             context = create_secure_ssl_context()
-            
-            # Override verification if configured
-            if not self.config.verify_ssl:
-                context.check_hostname = False
-                context.verify_mode = ssl.CERT_NONE
+            _apply_ssl_overrides(context, self.config.verify_ssl, self.logger.warning)
             
             with socket.create_connection(
                 (self.config.imap_server, self.config.imap_port), 
@@ -560,11 +580,7 @@ class IMAPDiagnostics:
         result = {"valid": False, "error": None}
         try:
             context = create_secure_ssl_context()
-            
-            # Override verification if configured
-            if not self.config.verify_ssl:
-                context.check_hostname = False
-                context.verify_mode = ssl.CERT_NONE
+            _apply_ssl_overrides(context, self.config.verify_ssl, self.logger.warning)
             
             if self.config.use_ssl:
                 conn = imaplib.IMAP4_SSL(
