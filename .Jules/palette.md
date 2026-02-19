@@ -43,3 +43,7 @@
 ## 2026-05-15 - Information Density in "Clean" Logs
 **Learning:** Security logs often strip context from "clean" events to reduce noise, but hiding the sender makes it impossible to verify false negatives at a glance.
 **Action:** Always include key metadata (Sender, Subject) in summary logs, even for success states, using truncation and alignment to maintain readability.
+
+## 2026-06-15 - Structured Card Layouts for Alerts
+**Learning:** Dense textual alerts are hard to scan quickly. Using box-drawing characters (┌, ─, ┐) to create structured "cards" significantly improves readability and professionalism of CLI output.
+**Action:** Implement card-based layouts for critical alerts, grouping related information visually and using distinct headers and separators.
