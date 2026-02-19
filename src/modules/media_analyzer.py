@@ -697,8 +697,9 @@ class MediaAuthenticityAnalyzer:
         faces_found = 0
         blurry_faces = 0
 
-        # Optimization: Check a subset of frames to reduce CPU load
-        # Checking 5 frames is sufficient to detect persistent facial inconsistencies
+        # Optimization: Check a small subset of frames to reduce CPU load.
+        # Heuristic: we sample the first 5 frames assuming persistent issues are likely
+        # to appear early in the clip. Increase this sample size for more thorough analysis.
         frames_to_check = gray_frames[:5]
 
         for gray in frames_to_check:
