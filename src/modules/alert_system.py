@@ -257,7 +257,7 @@ class AlertSystem:
             has_nlp = True
 
         if not has_nlp:
-             self._print_alert_row(f"{Colors.colorize('✓', Colors.GREEN)} No psychological triggers", risk_color, indent=3, width=width)
+            self._print_alert_row(f"{Colors.colorize('✓', Colors.GREEN)} No psychological triggers", risk_color, indent=3, width=width)
         self._print_alert_row("", risk_color, width=width)
 
         # Media
