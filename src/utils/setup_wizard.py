@@ -19,13 +19,14 @@ except ImportError:
         @classmethod
         def colorize(cls, text, color): return text
 
-# Pre-compiled regex for email validation to avoid recompiling on each call
-EMAIL_VALIDATION_PATTERN = re.compile(r"^[\w\.\-\+]+@[\w\.-]+\.\w+$")
-
 def _is_valid_email(email: str) -> bool:
     """Check if the email format is valid."""
-    # Use pre-compiled pattern for performance and consistency with codebase convention
-    return EMAIL_VALIDATION_PATTERN.match(email) is not None
+    # Disallow consecutive dots
+    if ".." in email:
+        return False
+    # Simple regex for email validation (supports aliases with +)
+    pattern = r"^[\w\.\-\+]+@[\w\.-]+\.\w+$"
+    return re.match(pattern, email) is not None
 
 def _select_provider() -> str:
     """Prompt user to select an email provider."""

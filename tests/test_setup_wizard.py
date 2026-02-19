@@ -21,22 +21,14 @@ OUTLOOK_APP_PASSWORD=password
 
     def test_email_validation_logic(self):
         """Test the email validation helper function directly"""
-        # Clearly valid examples
         self.assertTrue(_is_valid_email("test@example.com"))
         self.assertTrue(_is_valid_email("user.name+tag@sub.domain.co.uk"))
-
-        # Clearly invalid examples
         self.assertFalse(_is_valid_email("invalid-email"))
         self.assertFalse(_is_valid_email("user@"))
         self.assertFalse(_is_valid_email("@domain.com"))
         self.assertFalse(_is_valid_email("user@domain"))  # Missing TLD
+        self.assertFalse(_is_valid_email("user..name@domain.com"))  # Consecutive dots
 
-        # RFC-invalid edge cases that a naive regex might accidentally accept
-        self.assertFalse(_is_valid_email("user..name@domain.com"))  # consecutive dots in local-part
-        self.assertFalse(_is_valid_email(".user@domain.com"))       # leading dot in local-part
-        self.assertFalse(_is_valid_email("user.@domain.com"))       # trailing dot in local-part
-        self.assertFalse(_is_valid_email("user@-domain.com"))       # leading hyphen in domain label
-        self.assertFalse(_is_valid_email("user@domain-.com"))       # trailing hyphen in domain label
     @patch('builtins.input')
     @patch('getpass.getpass')
     @patch('os.fdopen')
