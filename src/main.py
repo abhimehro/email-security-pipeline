@@ -164,6 +164,8 @@ class EmailSecurityPipeline:
         self.ingestion_manager.close_all_connections()
         if hasattr(self, 'executor'):
             self.executor.shutdown(wait=True)
+        if hasattr(self, 'media_analyzer'):
+            self.media_analyzer.shutdown()
         self.logger.info("Pipeline stopped")
 
     def _monitoring_loop(self):
