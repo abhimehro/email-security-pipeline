@@ -1,6 +1,6 @@
 import unittest
 from unittest.mock import patch, mock_open, call, MagicMock
-from src.utils.setup_wizard import run_setup_wizard
+from src.utils.setup_wizard import run_setup_wizard, _is_valid_email
 import os
 
 class TestSetupWizard(unittest.TestCase):
@@ -18,6 +18,16 @@ OUTLOOK_ENABLED=false
 OUTLOOK_EMAIL=test@outlook.com
 OUTLOOK_APP_PASSWORD=password
 """
+
+    def test_email_validation_logic(self):
+        """Test the email validation helper function directly"""
+        self.assertTrue(_is_valid_email("test@example.com"))
+        self.assertTrue(_is_valid_email("user.name+tag@sub.domain.co.uk"))
+        self.assertFalse(_is_valid_email("invalid-email"))
+        self.assertFalse(_is_valid_email("user@"))
+        self.assertFalse(_is_valid_email("@domain.com"))
+        self.assertFalse(_is_valid_email("user@domain"))  # Missing TLD
+        self.assertFalse(_is_valid_email("user..name@domain.com"))  # Consecutive dots
 
     @patch('builtins.input')
     @patch('getpass.getpass')
@@ -91,6 +101,36 @@ OUTLOOK_APP_PASSWORD=password
         self.assertIn("PROTON_EMAIL=myuser@pm.me", written_content)
         self.assertIn("PROTON_APP_PASSWORD=protonpass", written_content)
         self.assertIn("GMAIL_ENABLED=false", written_content) # Should be disabled
+
+    @patch('builtins.input')
+    @patch('getpass.getpass')
+    @patch('os.fdopen')
+    @patch('os.open')
+    @patch('builtins.open', new_callable=mock_open)
+    @patch('pathlib.Path.exists')
+    def test_invalid_email_retry(self, mock_exists, mock_read_file, mock_os_open, mock_os_fdopen, mock_getpass, mock_input):
+        """Test that the wizard rejects invalid emails and prompts again"""
+        mock_exists.return_value = True
+        mock_read_file.return_value.read.return_value = self.example_content
+        mock_os_open.return_value = 123
+        mock_write_handle = MagicMock()
+        mock_os_fdopen.return_value.__enter__.return_value = mock_write_handle
+
+        # User inputs:
+        # 1. Choice: '1' (Gmail)
+        # 2. Email: 'invalid-email' (should prompt again)
+        # 3. Email: 'also@bad' (missing TLD, prompt again)
+        # 4. Email: 'valid@gmail.com' (success)
+        # 5. Password: 'pass'
+
+        mock_input.side_effect = ['1', 'invalid-email', 'also@bad', 'valid@gmail.com']
+        mock_getpass.return_value = 'pass'
+
+        result = run_setup_wizard(config_file=".env", template_file=".env.example")
+        self.assertTrue(result)
+
+        written_content = "".join(call.args[0] for call in mock_write_handle.write.call_args_list)
+        self.assertIn("GMAIL_EMAIL=valid@gmail.com", written_content)
 
     @patch('builtins.input')
     @patch('pathlib.Path.exists')
