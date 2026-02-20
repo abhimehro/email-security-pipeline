@@ -16,6 +16,7 @@ from typing import List, Tuple, Optional
 from dataclasses import dataclass
 
 from .email_ingestion import EmailData
+from ..utils.threat_scoring import calculate_risk_level
 
 
 @dataclass
@@ -57,6 +58,10 @@ class MediaAuthenticityAnalyzer:
     ]
 
     MAX_NESTED_ZIP_SIZE = 10 * 1024 * 1024  # 10MB limit for nested zips
+
+    # Risk level thresholds for media threat scoring
+    MEDIA_RISK_LOW_THRESHOLD = 2.0
+    MEDIA_RISK_HIGH_THRESHOLD = 5.0
 
     def __init__(self, config):
         """
@@ -1039,12 +1044,11 @@ class MediaAuthenticityAnalyzer:
 
     def _calculate_risk_level(self, score: float) -> str:
         """Calculate risk level based on media threat score"""
-        if score >= 5.0:
-            return "high"
-        elif score >= 2.0:
-            return "medium"
-        else:
-            return "low"
+        return calculate_risk_level(
+            score,
+            self.MEDIA_RISK_LOW_THRESHOLD,
+            self.MEDIA_RISK_HIGH_THRESHOLD,
+        )
 
     def shutdown(self):
         """Shutdown the thread pool executor"""
