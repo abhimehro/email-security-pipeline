@@ -18,6 +18,7 @@ from dataclasses import dataclass
 from .email_ingestion import EmailData
 from ..utils.security_validators import sanitize_filename
 from ..utils.sanitization import sanitize_for_logging
+from ..utils.threat_scoring import calculate_risk_level
 
 
 @dataclass
@@ -62,6 +63,10 @@ class MediaAuthenticityAnalyzer:
 
     # Archive extensions used for nested archive detection
     ARCHIVE_EXTENSIONS = {'.zip', '.rar', '.7z', '.tar', '.gz', '.iso', '.img', '.vhd', '.vhdx'}
+
+    # Risk level thresholds for media threat scoring
+    MEDIA_RISK_LOW_THRESHOLD = 2.0
+    MEDIA_RISK_HIGH_THRESHOLD = 5.0
 
     def __init__(self, config):
         """
@@ -1057,12 +1062,11 @@ class MediaAuthenticityAnalyzer:
 
     def _calculate_risk_level(self, score: float) -> str:
         """Calculate risk level based on media threat score"""
-        if score >= 5.0:
-            return "high"
-        elif score >= 2.0:
-            return "medium"
-        else:
-            return "low"
+        return calculate_risk_level(
+            score,
+            self.MEDIA_RISK_LOW_THRESHOLD,
+            self.MEDIA_RISK_HIGH_THRESHOLD,
+        )
 
     def shutdown(self):
         """Shutdown the thread pool executor"""
