@@ -227,10 +227,10 @@ class EmailParser:
         to avoid O(N^2) performance (which could be a DoS vector).
         """
         # Use lists for efficient accumulation
-        body_text_parts = []
-        body_html_parts = []
-        body_text_len = 0
-        body_html_len = 0
+        body_dict: Dict[str, Any] = {
+            'text_parts': [], 'text_len': 0,
+            'html_parts': [], 'html_len': 0,
+        }
 
         attachments = []
         current_total_size = 0
@@ -249,25 +249,10 @@ class EmailParser:
 
             content_type = part.get_content_type()
             content_disposition = str(part.get("Content-Disposition", ""))
-
-            # Extract text body
-            if content_type == "text/plain" and "attachment" not in content_disposition:
-                if body_text_len < self.max_body_size:
-                    text_part = self._decode_part_payload(part)
-                    body_text_parts, body_text_len = self._append_body_part(
-                        body_text_parts, body_text_len, text_part,
-                        "Body text", safe_email_id
-                    )
-
-            # Extract HTML body
-            elif content_type == "text/html" and "attachment" not in content_disposition:
-                if body_html_len < self.max_body_size:
-                    html_part = self._decode_part_payload(part)
-                    body_html_parts, body_html_len = self._append_body_part(
-                        body_html_parts, body_html_len, html_part,
-                        "Body HTML", safe_email_id
-                    )
-
+            # Extract text/HTML body
+            if content_type in ("text/plain", "text/html") and "attachment" not in content_disposition:
+                decoded_part = self._decode_part_payload(part)
+                self._add_body_content(content_type, decoded_part, body_dict, safe_email_id)
             # Extract attachments
             elif "attachment" in content_disposition:
                 attachment = self._extract_attachment(
@@ -278,9 +263,8 @@ class EmailParser:
                     current_total_size += attachment["size"]
 
         # Join accumulated parts
-        body_text = "".join(body_text_parts)
-        body_html = "".join(body_html_parts)
-
+        body_text = "".join(body_dict['text_parts'])
+        body_html = "".join(body_dict['html_parts'])
         return body_text, body_html, attachments
 
     def _extract_singlepart_content(
@@ -291,31 +275,17 @@ class EmailParser:
         """
         Extract content from single-part email
         """
-        body_text = ""
-        body_html = ""
+        body_dict: Dict[str, Any] = {
+            'text_parts': [], 'text_len': 0,
+            'html_parts': [], 'html_len': 0,
+        }
 
         content_type = msg.get_content_type()
         try:
             payload = msg.get_payload(decode=True)
             if payload:
                 decoded = self._decode_bytes(payload, msg.get_content_charset())
-
-                if content_type == "text/html":
-                    if len(decoded) > self.max_body_size:
-                        decoded = decoded[:self.max_body_size]
-                        self.logger.warning(
-                            f"Body HTML truncated to {self.max_body_size} bytes "
-                            f"for email {safe_email_id}"
-                        )
-                    body_html = decoded
-                else:
-                    if len(decoded) > self.max_body_size:
-                        decoded = decoded[:self.max_body_size]
-                        self.logger.warning(
-                            f"Body text truncated to {self.max_body_size} bytes "
-                            f"for email {safe_email_id}"
-                        )
-                    body_text = decoded
+                self._add_body_content(content_type, decoded, body_dict, safe_email_id)
         except UnicodeDecodeError as e:
             self.logger.warning(
                 f"Failed to decode email payload for {safe_email_id}: {e}"
@@ -326,8 +296,7 @@ class EmailParser:
                 f"{type(e).__name__}: {e}"
             )
 
-        return body_text, body_html, []
-
+        return "".join(body_dict['text_parts']), "".join(body_dict['html_parts']), []
     def _append_body_part(
         self,
         parts: List[str],
@@ -365,6 +334,43 @@ class EmailParser:
             parts.append(new_part)
             return parts, current_len + len(new_part)
 
+    def _add_body_content(
+        self,
+        content_type: str,
+        part_data: str,
+        body_dict: Dict[str, Any],
+        safe_email_id: str
+    ) -> None:
+        """
+        Unified body content handler with size limiting.
+
+        SECURITY STORY: Centralizes max_body_size enforcement so both multipart
+        and singlepart paths share the same memory exhaustion protection.
+
+        MAINTENANCE WISDOM: DRY - size-limiting logic lives in one place,
+        so future limit changes only require updating this method.
+
+        Args:
+            content_type: MIME content type ("text/plain" or "text/html")
+            part_data: Decoded content string to add
+            body_dict: Mutable dict with 'text_parts'/'html_parts' lists and
+                       'text_len'/'html_len' counters
+            safe_email_id: Sanitized email ID for logging
+        """
+        key = 'html' if content_type == 'text/html' else 'text'
+        label = "Body HTML" if key == 'html' else "Body text"
+        current_len = body_dict[f'{key}_len']
+
+        if current_len < self.max_body_size:
+            parts, new_len = self._append_body_part(
+                body_dict[f'{key}_parts'],
+                current_len,
+                part_data,
+                label,
+                safe_email_id
+            )
+            body_dict[f'{key}_parts'] = parts
+            body_dict[f'{key}_len'] = new_len
     def _extract_attachment(
         self,
         part: Message,
