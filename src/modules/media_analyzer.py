@@ -407,6 +407,17 @@ class MediaAuthenticityAnalyzer:
 
         return score, warning
 
+    def _check_nested_archives(self, filename: str, contained_file: str, contained_lower: str) -> Tuple[float, List[str]]:
+        """Check if a contained file is a nested archive format.
+
+        SECURITY STORY: Nested archives are commonly used to evade scanning
+        tools by hiding malicious payloads inside multiple compression layers.
+        Flagging them ensures each layer is inspected and scored appropriately.
+        """
+        if contained_lower.endswith(('.zip', '.rar', '.7z', '.tar', '.gz', '.iso', '.img', '.vhd', '.vhdx')):
+            return 2.0, [f"Zip {filename} contains nested archive: {contained_file}"]
+        return 0.0, []
+
     def _inspect_zip_contents(self, filename: str, data: bytes, depth: int = 0) -> Tuple[float, List[str]]:
         """Inspect contents of zip file for dangerous files, with recursion"""
         score = 0.0
@@ -438,11 +449,6 @@ class MediaAuthenticityAnalyzer:
                             warnings.append(f"Zip {filename} contains dangerous file: {contained_file}")
                             return score, warnings  # Return immediately on high threat
 
-                    # Check for nested archives (potential evasion)
-                    if contained_lower.endswith(('.zip', '.rar', '.7z', '.tar', '.gz', '.iso', '.img', '.vhd', '.vhdx')):
-                        score += 2.0
-                        warnings.append(f"Zip {filename} contains nested archive: {contained_file}")
-
                     # Check for suspicious extensions
                     for ext in self.SUSPICIOUS_EXTENSIONS:
                         if contained_lower.endswith(ext):
@@ -450,52 +456,52 @@ class MediaAuthenticityAnalyzer:
                             warnings.append(f"Zip {filename} contains suspicious file: {contained_file}")
 
                     # Check for nested archives (potential evasion)
-                    if contained_lower.endswith(('.zip', '.rar', '.7z', '.tar', '.gz', '.iso', '.img', '.vhd', '.vhdx')):
-                        score += 2.0
-                        warnings.append(f"Zip {filename} contains nested archive: {contained_file}")
+                    nested_score, nested_warnings = self._check_nested_archives(filename, contained_file, contained_lower)
+                    score += nested_score
+                    warnings.extend(nested_warnings)
 
-                        # Recursively inspect nested zip files if depth allows and size is reasonable
-                        if contained_lower.endswith('.zip') and depth < 2:
-                            try:
-                                # We still check info.file_size as a first pass, but don't trust it fully
-                                info = zf.getinfo(contained_file)
+                    # Recursively inspect nested zip files if depth allows and size is reasonable
+                    if contained_lower.endswith('.zip') and depth < 2:
+                        try:
+                            # We still check info.file_size as a first pass, but don't trust it fully
+                            info = zf.getinfo(contained_file)
 
-                                # Skip if declared size is too large (honest large file)
-                                if info.file_size >= self.MAX_NESTED_ZIP_SIZE:
-                                    self.logger.warning(f"Skipping nested zip {contained_file} (declared size {info.file_size} > limit)")
-                                    continue
+                            # Skip if declared size is too large (honest large file)
+                            if info.file_size >= self.MAX_NESTED_ZIP_SIZE:
+                                self.logger.warning(f"Skipping nested zip {contained_file} (declared size {info.file_size} > limit)")
+                                continue
 
-                                # Use secure read instead of zf.read()
-                                # This enforces the limit on the ACTUAL decompressed data
-                                nested_data = self._read_zip_member_securely(
-                                    zf, contained_file, self.MAX_NESTED_ZIP_SIZE
-                                )
+                            # Use secure read instead of zf.read()
+                            # This enforces the limit on the ACTUAL decompressed data
+                            nested_data = self._read_zip_member_securely(
+                                zf, contained_file, self.MAX_NESTED_ZIP_SIZE
+                            )
 
-                                nested_score, nested_warnings = self._inspect_zip_contents(
-                                    f"{filename}/{contained_file}",
-                                    nested_data,
-                                    depth + 1
-                                )
-                                score += nested_score
-                                warnings.extend(nested_warnings)
+                            nested_score, nested_warnings = self._inspect_zip_contents(
+                                f"{filename}/{contained_file}",
+                                nested_data,
+                                depth + 1
+                            )
+                            score += nested_score
+                            warnings.extend(nested_warnings)
 
-                                # If we found a critical threat in nested zip, return immediately
-                                if nested_score >= 5.0:
-                                    return score, warnings
-
-                            except ValueError as e:
-                                # Catch our size limit exception
-                                score += 5.0
-                                warnings.append(f"Zip bomb detected: {filename}/{contained_file} ({str(e)})")
+                            # If we found a critical threat in nested zip, return immediately
+                            if nested_score >= 5.0:
                                 return score, warnings
 
-                            except Exception as e:
-                                # Detection failed due to zip error (CRC, tampering, etc.)
-                                # We should treat this as suspicious.
-                                # If we can't scan it, we treat it as high risk (evasion attempt or corruption).
-                                self.logger.warning(f"Error inspecting nested zip {contained_file}: {e}")
-                                score += 3.0
-                                warnings.append(f"Failed to inspect nested zip {contained_file}: {str(e)}")
+                        except ValueError as e:
+                            # Catch our size limit exception
+                            score += 5.0
+                            warnings.append(f"Zip bomb detected: {filename}/{contained_file} ({str(e)})")
+                            return score, warnings
+
+                        except Exception as e:
+                            # Detection failed due to zip error (CRC, tampering, etc.)
+                            # We should treat this as suspicious.
+                            # If we can't scan it, we treat it as high risk (evasion attempt or corruption).
+                            self.logger.warning(f"Error inspecting nested zip {contained_file}: {e}")
+                            score += 3.0
+                            warnings.append(f"Failed to inspect nested zip {contained_file}: {str(e)}")
 
         except zipfile.BadZipFile:
             # Not a valid zip file, might be corrupted or just named .zip
