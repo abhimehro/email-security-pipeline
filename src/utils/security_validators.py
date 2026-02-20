@@ -26,6 +26,15 @@ DEFAULT_MAX_EMAIL_SIZE = 500 * 1024 * 1024
 FILENAME_SANITIZE_PATTERN = re.compile(r"[^\w\s\-_\.]")
 FILENAME_COLLAPSE_DOTS_PATTERN = re.compile(r"\.{2,}")
 
+# Windows reserved filenames that cannot be used regardless of extension
+# SECURITY STORY: Even on Linux, we sanitize these to prevent issues if files
+# are transferred to Windows systems or if the application runs on Windows.
+WINDOWS_RESERVED_NAMES = {
+    "CON", "PRN", "AUX", "NUL",
+    "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9",
+    "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9"
+}
+
 logger = logging.getLogger(__name__)
 
 
@@ -74,6 +83,13 @@ def sanitize_filename(filename: str) -> str:
     if not sanitized:
         return "unnamed_attachment"
     
+    # Check for Windows reserved filenames (CON, PRN, AUX, etc.)
+    # These are reserved regardless of extension (e.g., CON.txt is invalid)
+    # We check the base name (part before the first dot)
+    base_name = sanitized.split('.')[0].upper()
+    if base_name in WINDOWS_RESERVED_NAMES:
+        sanitized = "_" + sanitized
+
     # Truncate to reasonable length (255 is typical filesystem limit)
     return sanitized[:255]
 
