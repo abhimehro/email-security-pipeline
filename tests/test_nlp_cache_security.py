@@ -1,6 +1,8 @@
 import unittest
+import time
 import hashlib
 from src.modules.nlp_analyzer import NLPThreatAnalyzer
+from src.utils.caching import TTLCache
 
 # Mock Config
 class MockConfig:
@@ -22,8 +24,8 @@ class TestNLPCacheSecurity(unittest.TestCase):
         self.call_count = 0
         self.analyzer._analyze_core_impl = self._mock_analyze_core_impl
 
-        # Clear cache
-        self.analyzer._cache = {}
+        # Clear the TTLCache so each test starts with an empty cache
+        self.analyzer._cache.clear()
 
     def _mock_analyze_core_impl(self, text):
         self.call_count += 1
@@ -61,25 +63,25 @@ class TestNLPCacheSecurity(unittest.TestCase):
         self.assertNotIn(text, keys)
 
     def test_cache_eviction(self):
-        # Fill cache with 1024 items
-        for i in range(1024):
+        # Fill cache to max capacity (512 entries)
+        for i in range(512):
             self.analyzer.analyze_with_transformer(f"Email {i}")
 
-        self.assertEqual(len(self.analyzer._cache), 1024)
-        self.assertEqual(self.call_count, 1024)
+        self.assertEqual(len(self.analyzer._cache), 512)
+        self.assertEqual(self.call_count, 512)
 
-        # Add one more
-        self.analyzer.analyze_with_transformer("Email 1024")
+        # Add one more — oldest entry (Email 0) must be evicted
+        self.analyzer.analyze_with_transformer("Email 512")
 
-        self.assertEqual(len(self.analyzer._cache), 1024, "Cache size should remain 1024")
+        self.assertEqual(len(self.analyzer._cache), 512, "Cache size should remain at max_size")
 
         # Verify oldest (Email 0) is gone
         hash0 = hashlib.sha256(b"Email 0").hexdigest()
         self.assertNotIn(hash0, self.analyzer._cache)
 
         # Verify newest is present
-        hash1024 = hashlib.sha256(b"Email 1024").hexdigest()
-        self.assertIn(hash1024, self.analyzer._cache)
+        hash512 = hashlib.sha256(b"Email 512").hexdigest()
+        self.assertIn(hash512, self.analyzer._cache)
 
     def test_lru_behavior(self):
         # Add 3 items
@@ -95,6 +97,30 @@ class TestNLPCacheSecurity(unittest.TestCase):
         keys = list(self.analyzer._cache.keys())
         hash1 = hashlib.sha256(b"Item 1").hexdigest()
         self.assertEqual(keys[-1], hash1, "Item 1 should be last (most recent)")
+
+    def test_ttl_eviction(self):
+        """Entries older than TTL must be evicted on next access (lazy TTL)."""
+        # Use a cache with a very short TTL so the test doesn't have to wait long
+        short_ttl_cache = TTLCache(max_size=512, ttl_seconds=1)
+        self.analyzer._cache = short_ttl_cache
+
+        text = "TTL test email"
+        text_hash = hashlib.sha256(text.encode()).hexdigest()
+
+        # Populate the cache
+        self.analyzer.analyze_with_transformer(text)
+        self.assertIsNotNone(self.analyzer._cache.get(text_hash),
+                             "Entry should be present before TTL expires")
+
+        # Wait for TTL to expire
+        time.sleep(1.1)
+
+        # get() should now return None (lazy expiration) and remove the entry
+        result = self.analyzer._cache.get(text_hash)
+        self.assertIsNone(result, "Expired entry should return None after TTL")
+
+        # Confirm the key is no longer accessible via the public API
+        self.assertNotIn(text_hash, self.analyzer._cache)
 
 if __name__ == '__main__':
     unittest.main()
