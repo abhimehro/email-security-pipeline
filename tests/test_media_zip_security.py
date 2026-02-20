@@ -101,5 +101,46 @@ class TestMediaZipSecurity(unittest.TestCase):
         self.assertEqual(result.threat_score, 0.0)
         self.assertEqual(result.suspicious_attachments, [])
 
+    def test_nested_archive_scored_once(self):
+        """Test that a nested archive is scored exactly once (2.0), not twice (4.0).
+
+        SECURITY STORY: Prevents false positives where legitimate nested archives
+        (e.g., backup.zip containing archive.tar.gz) receive inflated threat scores,
+        reducing alert fatigue and improving analyst trust in the system.
+        """
+        zip_content = self._create_zip_with_file("backup.tar.gz")
+
+        email_data = EmailData(
+            message_id="test",
+            subject="Test Zip",
+            sender="user@example.com",
+            recipient="me@example.com",
+            date=datetime.now(),
+            body_text="",
+            body_html="",
+            headers={},
+            attachments=[{
+                "filename": "archive.zip",
+                "content_type": "application/zip",
+                "size": len(zip_content),
+                "data": zip_content,
+                "truncated": False
+            }],
+            raw_email=None,
+            account_email="me@example.com",
+            folder="INBOX"
+        )
+
+        result = self.analyzer.analyze(email_data)
+
+        # Nested archive should add exactly 2.0, not 4.0 from a duplicate check
+        self.assertEqual(result.threat_score, 2.0,
+                         "Nested archive should be scored exactly once (2.0), not twice (4.0)")
+
+        # Exactly one warning for the nested archive
+        nested_warnings = [w for w in result.suspicious_attachments if "contains nested archive" in w]
+        self.assertEqual(len(nested_warnings), 1,
+                         "Should produce exactly one nested archive warning, not two")
+
 if __name__ == '__main__':
     unittest.main()

@@ -57,6 +57,9 @@ class MediaAuthenticityAnalyzer:
 
     MAX_NESTED_ZIP_SIZE = 10 * 1024 * 1024  # 10MB limit for nested zips
 
+    # Archive extensions used for nested archive detection
+    ARCHIVE_EXTENSIONS = {'.zip', '.rar', '.7z', '.tar', '.gz', '.iso', '.img', '.vhd', '.vhdx'}
+
     def __init__(self, config):
         """
         Initialize media analyzer
@@ -407,6 +410,10 @@ class MediaAuthenticityAnalyzer:
 
         return score, warning
 
+    def _is_nested_archive(self, filename: str) -> bool:
+        """Check if filename is a nested archive type."""
+        return any(filename.lower().endswith(ext) for ext in self.ARCHIVE_EXTENSIONS)
+
     def _inspect_zip_contents(self, filename: str, data: bytes, depth: int = 0) -> Tuple[float, List[str]]:
         """Inspect contents of zip file for dangerous files, with recursion"""
         score = 0.0
@@ -438,19 +445,8 @@ class MediaAuthenticityAnalyzer:
                             warnings.append(f"Zip {filename} contains dangerous file: {contained_file}")
                             return score, warnings  # Return immediately on high threat
 
-                    # Check for nested archives (potential evasion)
-                    if contained_lower.endswith(('.zip', '.rar', '.7z', '.tar', '.gz', '.iso', '.img', '.vhd', '.vhdx')):
-                        score += 2.0
-                        warnings.append(f"Zip {filename} contains nested archive: {contained_file}")
-
-                    # Check for suspicious extensions
-                    for ext in self.SUSPICIOUS_EXTENSIONS:
-                        if contained_lower.endswith(ext):
-                            score += 3.0
-                            warnings.append(f"Zip {filename} contains suspicious file: {contained_file}")
-
-                    # Check for nested archives (potential evasion)
-                    if contained_lower.endswith(('.zip', '.rar', '.7z', '.tar', '.gz', '.iso', '.img', '.vhd', '.vhdx')):
+                    # Check for nested archives (potential evasion) - scored once per file
+                    if self._is_nested_archive(contained_file):
                         score += 2.0
                         warnings.append(f"Zip {filename} contains nested archive: {contained_file}")
 
@@ -496,6 +492,12 @@ class MediaAuthenticityAnalyzer:
                                 self.logger.warning(f"Error inspecting nested zip {contained_file}: {e}")
                                 score += 3.0
                                 warnings.append(f"Failed to inspect nested zip {contained_file}: {str(e)}")
+
+                    # Check for suspicious extensions
+                    for ext in self.SUSPICIOUS_EXTENSIONS:
+                        if contained_lower.endswith(ext):
+                            score += 3.0
+                            warnings.append(f"Zip {filename} contains suspicious file: {contained_file}")
 
         except zipfile.BadZipFile:
             # Not a valid zip file, might be corrupted or just named .zip
