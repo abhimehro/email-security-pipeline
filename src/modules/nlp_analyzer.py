@@ -7,10 +7,11 @@ urgency markers, and psychological manipulation
 import re
 import logging
 import hashlib
-import threading
 from typing import List, Dict, Tuple, Optional
 from collections import defaultdict
 from dataclasses import dataclass
+
+from ..utils.caching import TTLCache
 
 from .email_ingestion import EmailData
 
@@ -110,8 +111,10 @@ class NLPThreatAnalyzer:
         self.model = None
         self.tokenizer = None
         self.device = None
-        self._cache = {}
-        self._lock = threading.Lock()
+        # TTL cache: max 512 entries, entries expire after 1 hour.
+        # MAINTENANCE WISDOM: bounded size + TTL prevents memory growth in
+        # long-running daemon mode regardless of email volume or pattern diversity.
+        self._cache: TTLCache = TTLCache(max_size=512, ttl_seconds=3600)
 
         # Compile combined master pattern for performance
         # We combine all regex patterns into a single master regex to scan the text
@@ -434,30 +437,20 @@ class NLPThreatAnalyzer:
         truncated_text = text[:4096]
 
         # Calculate hash for cache key to avoid storing raw text
+        # SECURITY STORY: hashing means sensitive email content never appears
+        # in the cache's key space, reducing exposure in heap dumps / logs.
         text_hash = hashlib.sha256(truncated_text.encode()).hexdigest()
 
-        # Check cache
-        with self._lock:
-            if text_hash in self._cache:
-                # Move to end (LRU)
-                val = self._cache.pop(text_hash)
-                self._cache[text_hash] = val
-                return val
+        # Check cache (TTL-aware, thread-safe lookup + LRU promotion)
+        cached = self._cache.get(text_hash)
+        if cached is not None:
+            return cached
 
-        # Compute result
+        # Compute result outside the lock to avoid blocking other threads
         result = self._analyze_core_impl(truncated_text)
 
-        # Store in cache
-        with self._lock:
-            self._cache[text_hash] = result
-
-            # Enforce size limit
-            if len(self._cache) > 1024:
-                # Remove oldest (first inserted)
-                try:
-                    self._cache.pop(next(iter(self._cache)))
-                except (StopIteration, KeyError):
-                    pass
+        # Store in cache — TTLCache handles size eviction and thread safety
+        self._cache.put(text_hash, result)
 
         return result
 
