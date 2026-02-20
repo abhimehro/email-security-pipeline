@@ -11,6 +11,7 @@ from urllib.parse import urlparse
 
 from .email_ingestion import EmailData
 from ..utils.pattern_compiler import compile_named_group_pattern, compile_patterns
+from .scoring_utils import ThreatScorer
 
 
 @dataclass
@@ -100,15 +101,12 @@ class SpamAnalyzer:
         Returns:
             SpamAnalysisResult
         """
-        score = 0.0
-        indicators = []
+        scorer = ThreatScorer()
         suspicious_urls = []
         header_issues = []
 
         # Analyze subject line
-        subject_score, subject_indicators = self._analyze_subject(email_data.subject)
-        score += subject_score
-        indicators.extend(subject_indicators)
+        scorer.add(*self._analyze_subject(email_data.subject))
 
         # Extract URLs once for both body analysis and URL checking
         # Optimization: Process parts separately to avoid large string concatenation
@@ -118,33 +116,26 @@ class SpamAnalyzer:
         link_count = len(extracted_urls)
 
         # Analyze body content
-        body_score, body_indicators = self._analyze_body(
+        scorer.add(*self._analyze_body(
             email_data.body_text, email_data.body_html, link_count
-        )
-        score += body_score
-        indicators.extend(body_indicators)
+        ))
 
         # Check for suspicious URLs
         if self.config.spam_check_urls:
             url_score, found_urls = self._check_urls(extracted_urls)
-            score += url_score
+            scorer.add(url_score)
             suspicious_urls.extend(found_urls)
 
         # Analyze headers
         if self.config.spam_check_headers:
             header_score, issues = self._analyze_headers(email_data.headers)
-            score += header_score
+            scorer.add(header_score)
             header_issues.extend(issues)
 
         # Check sender reputation
-        sender_score, sender_indicators = self._check_sender(
-            email_data.sender, email_data.headers
-        )
-        score += sender_score
-        indicators.extend(sender_indicators)
+        scorer.add(*self._check_sender(email_data.sender, email_data.headers))
 
-        # Determine risk level
-        risk_level = self._calculate_risk_level(score)
+        score, risk_level = scorer.finalize(self._calculate_risk_level)
 
         self.logger.debug(
             f"Spam analysis complete: score={score:.2f}, risk={risk_level}"
@@ -152,7 +143,7 @@ class SpamAnalyzer:
 
         return SpamAnalysisResult(
             score=score,
-            indicators=indicators,
+            indicators=scorer.indicators,
             suspicious_urls=suspicious_urls,
             header_issues=header_issues,
             risk_level=risk_level,

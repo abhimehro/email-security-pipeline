@@ -16,6 +16,7 @@ from typing import List, Tuple, Optional
 from dataclasses import dataclass
 
 from .email_ingestion import EmailData
+from .scoring_utils import ThreatScorer
 
 
 @dataclass
@@ -91,7 +92,7 @@ class MediaAuthenticityAnalyzer:
                 risk_level="low"
             )
 
-        threat_score = 0.0
+        scorer = ThreatScorer()
         suspicious_attachments = []
         file_type_warnings = []
         size_anomalies = []
@@ -102,7 +103,7 @@ class MediaAuthenticityAnalyzer:
             meta_results = self._analyze_attachment_metadata(attachment)
 
             # Aggregate results
-            threat_score += meta_results['score']
+            scorer.add(meta_results['score'])
             size_anomalies.extend(meta_results['size_anomalies'])
             file_type_warnings.extend(meta_results['file_type_warnings'])
             suspicious_attachments.extend(meta_results['suspicious_attachments'])
@@ -113,14 +114,13 @@ class MediaAuthenticityAnalyzer:
 
             # Check for potential deepfakes
             # Only proceed if the file hasn't already been flagged as dangerous/suspicious (score >= 5.0)
-            if self.config.deepfake_detection_enabled and threat_score < 5.0:
+            if self.config.deepfake_detection_enabled and scorer.score < 5.0:
                 deepfake_results = self._analyze_deepfake_threat(filename, data, content_type)
-                threat_score += deepfake_results['score']
+                scorer.add(deepfake_results['score'])
                 potential_deepfakes.extend(deepfake_results['indicators'])
                 size_anomalies.extend(deepfake_results['errors'])
 
-        # Calculate risk level
-        risk_level = self._calculate_risk_level(threat_score)
+        threat_score, risk_level = scorer.finalize(self._calculate_risk_level)
 
         self.logger.debug(
             f"Media analysis complete: {len(email_data.attachments)} attachments, "

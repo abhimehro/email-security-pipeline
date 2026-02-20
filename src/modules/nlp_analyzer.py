@@ -15,6 +15,7 @@ from ..utils.caching import TTLCache
 
 from .email_ingestion import EmailData
 from ..utils.pattern_compiler import compile_patterns, check_redos_safety
+from .scoring_utils import ThreatScorer
 
 # Optional imports at module level
 try:
@@ -203,7 +204,7 @@ class NLPThreatAnalyzer:
         Returns:
             NLPAnalysisResult
         """
-        threat_score = 0.0
+        scorer = ThreatScorer()
         social_engineering = []
         urgency_markers = []
         authority_impersonation = []
@@ -218,13 +219,13 @@ class NLPThreatAnalyzer:
         # Check for social engineering
         if self.config.check_social_engineering:
             score, indicators = self._detect_social_engineering(matches_by_category["SE"])
-            threat_score += score
+            scorer.add(score)
             social_engineering.extend(indicators)
 
         # Check for urgency markers
         if self.config.check_urgency_markers:
             score, indicators = self._detect_urgency(exclamation_count, caps_count, matches_by_category["UG"])
-            threat_score += score
+            scorer.add(score)
             urgency_markers.extend(indicators)
 
         # Check for authority impersonation
@@ -232,23 +233,22 @@ class NLPThreatAnalyzer:
             score, indicators = self._detect_authority_impersonation(
                 email_data.sender, matches_by_category["AU"]
             )
-            threat_score += score
+            scorer.add(score)
             authority_impersonation.extend(indicators)
 
         # Detect psychological triggers
         if getattr(self.config, "check_psychological_triggers", False):
             score, indicators = self._detect_psychological_triggers(matches_by_category["PS"])
-            threat_score += score
+            scorer.add(score)
             psychological_triggers.extend(indicators)
 
         # Integration of Transformer Model Predictions into Threat Scoring
         if self.model and self.tokenizer:
             ml_score, ml_indicators = self._run_transformer_analysis(email_data)
-            threat_score += ml_score
+            scorer.add(ml_score)
             social_engineering.extend(ml_indicators)
 
-        # Calculate risk level
-        risk_level = self._calculate_risk_level(threat_score)
+        threat_score, risk_level = scorer.finalize(self._calculate_risk_level)
 
         self.logger.debug(
             f"NLP analysis complete: score={threat_score:.2f}, risk={risk_level}"
