@@ -39,6 +39,11 @@ ENV/
 *~
 .DS_Store
 
+# Personal/editor config (machine-specific symlinks)
+.cursorrules
+.gitmessage
+skills
+
 # Logs
 logs/
 *.log
