@@ -78,13 +78,13 @@ class EmailSecurityPipeline:
     def _setup_logging(self):
         """
         Setup logging configuration.
-        
+
         Supports both text (colored, human-readable) and JSON (structured, machine-parseable) formats.
-        
+
         TEACHING MOMENT: We use different formatters for file vs console because:
         - File logs should be machine-parseable (JSON) when LOG_FORMAT=json
         - Console logs should be human-readable with colors for local development
-        
+
         This is similar to how nginx can log JSON to files but show colored output to stdout.
         """
         log_format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
@@ -102,7 +102,7 @@ class EmailSecurityPipeline:
             maxBytes=self.config.system.log_rotation_size_mb * 1024 * 1024,
             backupCount=self.config.system.log_rotation_keep_files
         )
-        
+
         # Choose formatter based on LOG_FORMAT configuration
         if self.config.system.log_format == "json":
             # JSON format: structured logs for log aggregation tools
@@ -149,7 +149,7 @@ class EmailSecurityPipeline:
             print(f"\n{Colors.RED}❌ Configuration Error:{Colors.RESET}")
             for error in e.args[0]:
                 print(f"  • {Colors.YELLOW}{error}{Colors.RESET}")
-            print(f"\nPlease check your configuration file.")
+            print("\nPlease check your configuration file.")
             self.stop()
             sys.exit(1)
         except Exception as e:
@@ -245,7 +245,7 @@ class EmailSecurityPipeline:
         """
         # Track processing time for performance monitoring
         start_time = time.time()
-        
+
         try:
             safe_subject = sanitize_for_logging(email_data.subject, max_length=50)
             self.logger.info(f"Analyzing email: {safe_subject}...")
@@ -299,7 +299,7 @@ class EmailSecurityPipeline:
             if self.metrics:
                 self.metrics.record_email_processed()
                 self.metrics.record_processing_time(processing_time_ms)
-                
+
                 # Record threats detected with consistent classification
                 # Only treat medium/high risk emails as "threats" in metrics.
                 # Using .lower() here keeps us robust if upstream ever changes casing.
@@ -309,7 +309,7 @@ class EmailSecurityPipeline:
                     # (i.e., spam_result > nlp_result > media_result)
                     threat_type = "unknown"
                     max_score = max(spam_result.score, nlp_result.threat_score, media_result.threat_score)
-                    
+
                     # If all scores are 0, default to "spam" for consistency
                     if max_score == 0:
                         threat_type = "spam"
@@ -319,7 +319,7 @@ class EmailSecurityPipeline:
                         threat_type = "phishing"
                     elif media_result.threat_score == max_score:
                         threat_type = "malware"
-                    
+
                     self.metrics.record_threat(threat_type, threat_report.risk_level.lower())
 
             self.logger.info(
@@ -336,27 +336,27 @@ class EmailSecurityPipeline:
     def _log_metrics_summary(self):
         """
         Log a summary of collected metrics.
-        
+
         TEACHING MOMENT: We log metrics periodically instead of on every email
         because it reduces log volume. Imagine processing 1000 emails - you don't
         want 1000 metric log entries, you want a summary every N iterations.
-        
+
         INDUSTRY CONTEXT: Professional teams export these metrics to monitoring
         systems like Prometheus or CloudWatch every 60 seconds for dashboards
         and alerting.
         """
         if not self.metrics:
             return
-        
+
         summary = self.metrics.get_summary()
-        
+
         # Log with extra fields for structured logging
         self.logger.info(
             f"Metrics Summary: {summary['emails_processed']} emails processed, "
             f"{len(summary['threats_detected'])} threat types detected, "
             f"avg processing time: {summary['processing_time_stats'].get('avg_ms', 0):.0f}ms"
         )
-        
+
         # Log detailed metrics at debug level
         self.logger.debug(f"Detailed metrics: {summary}")
 
@@ -449,14 +449,14 @@ def main():
                 print(f"\n{Colors.CYAN}Would you like to run the interactive setup wizard?{Colors.RESET}")
                 print(f"{Colors.GREY}(This will help you configure your email provider){Colors.RESET}")
 
-                response = input(f"Run setup wizard? [Y/n] ").strip().lower()
+                response = input("Run setup wizard? [Y/n] ").strip().lower()
                 if response in ('', 'y', 'yes'):
                     if run_setup_wizard(config_file):
                         # Setup successful
                         sys.exit(0)
                     else:
-                         # Wizard failed or skipped
-                         print(f"{Colors.YELLOW}Setup skipped.{Colors.RESET}")
+                        # Wizard failed or skipped
+                        print(f"{Colors.YELLOW}Setup skipped.{Colors.RESET}")
 
                 # Fallback to copy only if wizard wasn't run or failed
                 if not Path(config_file).exists():
