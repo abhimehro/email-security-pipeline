@@ -240,7 +240,7 @@ class MediaAuthenticityAnalyzer:
 
         # Check for suspicious extensions
         for ext in self.SUSPICIOUS_EXTENSIONS:
-            if ext in filename_lower:
+            if filename_lower.endswith(ext):
                 score += 3.0
                 warnings.append(f"Suspicious file extension: {filename}")
                 break
