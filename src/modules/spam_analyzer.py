@@ -5,7 +5,9 @@ Traditional spam scoring based on headers, content patterns, and URLs
 
 import logging
 import re
+from collections import Counter
 from dataclasses import dataclass
+from functools import lru_cache
 from typing import Dict, List, Tuple, Union
 from urllib.parse import urlparse
 
@@ -259,49 +261,54 @@ class SpamAnalyzer:
         score = 0.0
         suspicious = []
 
-        # Cache results for unique URLs to avoid re-parsing
-        checked_urls = {}
+        # Cache results for unique URLs to avoid re-parsing (local cache)
+        # Note: We now have an LRU cache on _check_single_url, but we still
+        # want to process each unique URL once per email to correctly handle
+        # the suspicious list extension logic.
 
-        for url in urls:
-            if url in checked_urls:
-                # Retrieve cached results
-                url_score, append_count = checked_urls[url]
-                score += url_score
-                # Replicate the exact number of appends
-                if append_count > 0:
-                    suspicious.extend([url] * append_count)
-                continue
+        # Use Counter to handle duplicates efficiently
+        url_counts = Counter(urls)
 
-            try:
-                parsed = urlparse(url)
-                domain = parsed.netloc
+        for url, count in url_counts.items():
+            url_score, append_count = self._check_single_url(url)
 
-                current_url_score = 0.0
-                append_count = 0
-
-                # Check against combined suspicious patterns first
-                if self.COMBINED_URL_PATTERN.search(domain):
-                    # If matched, we just mark it. The original code broke after first match
-                    # in the loop, effectively counting only one match per URL from this list.
-                    current_url_score += 0.5
-                    append_count += 1
-
-                # Check for URL shorteners
-                # Original code logic was separate and could add another 0.5 score
-                if self.SHORTENER_PATTERN.search(domain):
-                    current_url_score += 0.5
-                    append_count += 1
-
-                score += current_url_score
-                if append_count > 0:
-                    suspicious.extend([url] * append_count)
-
-                checked_urls[url] = (current_url_score, append_count)
-
-            except Exception:
-                checked_urls[url] = (0.0, 0)
+            score += url_score * count
+            if append_count > 0:
+                # If the URL is suspicious, we add it 'append_count' times per occurrence
+                suspicious.extend([url] * (append_count * count))
 
         return score, suspicious
+
+    @lru_cache(maxsize=1024)
+    def _check_single_url(self, url: str) -> Tuple[float, int]:
+        """
+        Check a single URL for suspicious patterns.
+        Cached to improve performance across emails.
+
+        Returns:
+            Tuple[float, int]: (score_contribution, append_count)
+        """
+        try:
+            parsed = urlparse(url)
+            domain = parsed.netloc
+
+            current_url_score = 0.0
+            append_count = 0
+
+            # Check against combined suspicious patterns first
+            if self.COMBINED_URL_PATTERN.search(domain):
+                current_url_score += 0.5
+                append_count += 1
+
+            # Check for URL shorteners
+            if self.SHORTENER_PATTERN.search(domain):
+                current_url_score += 0.5
+                append_count += 1
+
+            return current_url_score, append_count
+
+        except Exception:
+            return 0.0, 0
 
     def _analyze_headers(
         self, headers: Dict[str, Union[str, List[str]]]
