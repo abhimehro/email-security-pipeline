@@ -536,6 +536,14 @@ class AlertSystem:
         # Reference: https://api.slack.com/reference/surfaces/formatting#escaping
         return text.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
 
+    def _create_slack_field(self, title: str, risk: str, score: float, indicator: str) -> Dict:
+        """Helper to create a standard Slack field dictionary"""
+        return {
+            "title": title,
+            "value": f"{risk} ({score:.1f}){indicator}",
+            "short": True
+        }
+
     def _slack_alert(self, report: ThreatReport):
         """Send alert to Slack"""
         try:
@@ -546,31 +554,81 @@ class AlertSystem:
                 "high": "#ff0000"
             }.get(report.risk_level, "#808080")
             
+            fields = [
+                {
+                    "title": "Subject",
+                    "value": self._sanitize_for_slack(report.subject),
+                    "short": False
+                },
+                {
+                    "title": "From",
+                    "value": self._sanitize_for_slack(report.sender),
+                    "short": True
+                },
+                {
+                    "title": "Threat Score",
+                    "value": f"{report.overall_threat_score:.2f}",
+                    "short": True
+                }
+            ]
+
+            # Add analysis breakdown using helper method
+            # Spam
+            spam = report.spam_analysis or {}
+            spam_ind = ""
+            if spam.get('indicators'):
+                spam_ind = f" - {spam['indicators'][0]}"
+            elif spam.get('suspicious_urls'):
+                spam_ind = " - Suspicious URLs"
+
+            fields.append(self._create_slack_field(
+                "📧 Spam Analysis",
+                spam.get('risk_level', 'low').upper(),
+                spam.get('score', 0),
+                spam_ind
+            ))
+
+            # NLP
+            nlp = report.nlp_analysis or {}
+            nlp_ind = ""
+            if nlp.get('social_engineering_indicators'):
+                nlp_ind = f" - {nlp['social_engineering_indicators'][0]}"
+            elif nlp.get('authority_impersonation'):
+                nlp_ind = f" - {nlp['authority_impersonation'][0]}"
+
+            fields.append(self._create_slack_field(
+                "🧠 NLP Analysis",
+                nlp.get('risk_level', 'low').upper(),
+                nlp.get('score', 0),
+                nlp_ind
+            ))
+
+            # Media
+            media = report.media_analysis or {}
+            media_ind = ""
+            if media.get('file_type_warnings'):
+                media_ind = f" - {media['file_type_warnings'][0]}"
+            elif media.get('potential_deepfakes'):
+                media_ind = " - Deepfake Detected"
+
+            fields.append(self._create_slack_field(
+                "📎 Media Analysis",
+                media.get('risk_level', 'low').upper(),
+                media.get('score', 0),
+                media_ind
+            ))
+
+            # Top Recommendation
+            fields.append({
+                "title": "Top Recommendation",
+                "value": report.recommendations[0] if report.recommendations else "Review email",
+                "short": False
+            })
+
             attachments = [{
                 "color": color,
                 "title": f"🚨 Security Alert - {report.risk_level.upper()} Risk",
-                "fields": [
-                    {
-                        "title": "Subject",
-                        "value": self._sanitize_for_slack(report.subject),
-                        "short": False
-                    },
-                    {
-                        "title": "From",
-                        "value": self._sanitize_for_slack(report.sender),
-                        "short": True
-                    },
-                    {
-                        "title": "Threat Score",
-                        "value": f"{report.overall_threat_score:.2f}",
-                        "short": True
-                    },
-                    {
-                        "title": "Top Recommendation",
-                        "value": report.recommendations[0] if report.recommendations else "Review email",
-                        "short": False
-                    }
-                ],
+                "fields": fields,
                 "footer": "Email Security Pipeline",
                 "ts": int(datetime.now().timestamp())
             }]
