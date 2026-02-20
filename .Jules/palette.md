@@ -75,6 +75,11 @@
 **Learning:** Setup wizards that only validate format but not function (e.g., verifying credentials work) lead to a frustrating "configure -> run -> fail -> reconfigure" loop.
 **Action:** Implement real-time functional tests (like a test connection) during setup steps to catch configuration errors immediately.
 
+## 2026-06-30 - Context-Rich Alert Payloads
+
+**Learning:** Minimalist alert notifications (e.g., just "High Risk") force operators to context-switch to logs to understand _why_. Providing a detailed breakdown of risk factors (Spam, NLP, Media) directly in the alert payload significantly reduces triage time.
+**Action:** Enhance external notifications (Slack/Webhooks) to include specific sub-scores and key indicators, mirroring the detail available in console logs.
+
 ## 2026-07-28 - Text Wrapping for Readability
 
 **Learning:** Truncating long security recommendations (e.g., "Verify sender identity because...") hides critical instructions, forcing users to guess the action. Text wrapping within the card layout improves clarity without breaking the visual structure.

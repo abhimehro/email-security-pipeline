@@ -1,0 +1,1 @@
+WRN 2026-02-28T05:42:05.174 ?.63179    vim_mktempdir:3325: tempdir create failed: operation not permitted: /var/folders/l6/wfn0tx8n0y5dvd9x1c0gn_fm0000gn/T/nvim.speedybee/XXXXXX
