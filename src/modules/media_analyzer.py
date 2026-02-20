@@ -60,6 +60,9 @@ class MediaAuthenticityAnalyzer:
 
     MAX_NESTED_ZIP_SIZE = 10 * 1024 * 1024  # 10MB limit for nested zips
 
+    # Archive extensions used for nested archive detection
+    ARCHIVE_EXTENSIONS = {'.zip', '.rar', '.7z', '.tar', '.gz', '.iso', '.img', '.vhd', '.vhdx'}
+
     def __init__(self, config):
         """
         Initialize media analyzer
@@ -422,6 +425,10 @@ class MediaAuthenticityAnalyzer:
 
         return score, warning
 
+    def _is_nested_archive(self, filename: str) -> bool:
+        """Check if filename is a nested archive type."""
+        return any(filename.lower().endswith(ext) for ext in self.ARCHIVE_EXTENSIONS)
+
     def _inspect_zip_contents(self, filename: str, data: bytes, depth: int = 0) -> Tuple[float, List[str]]:
         """Inspect contents of zip file for dangerous files, with recursion"""
         score = 0.0
@@ -491,7 +498,7 @@ class MediaAuthenticityAnalyzer:
                 return score, warnings
 
         # Check for nested archives
-        is_nested = member_lower.endswith(('.zip', '.rar', '.7z', '.tar', '.gz', '.iso', '.img', '.vhd', '.vhdx'))
+        is_nested = self._is_nested_archive(member_lower)
         if is_nested:
             score += 2.0
             warnings.append(f"Archive {parent_filename} contains nested archive: {safe_member_name}")
