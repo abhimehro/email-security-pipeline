@@ -5,7 +5,7 @@ Handles loading and validation of environment variables and settings
 
 import logging
 import os
-from typing import Dict, List, Optional
+from typing import List, Optional
 from dataclasses import dataclass, field
 from dotenv import load_dotenv
 from urllib.parse import urlparse
