@@ -47,6 +47,7 @@
 ## 2026-05-20 - Visual Hierarchy for High Severity Alerts
 **Learning:** Security alerts often get lost in scrolling console logs. Using a distinct card-like layout with box-drawing characters (╭──╮) creates a visual anchor that immediately draws attention to critical information.
 **Action:** Use box-drawing characters and clear separators to frame high-severity alerts, ensuring critical metadata is aligned and distinct from detailed analysis.
+
 ## 2026-06-15 - Structured Card Layouts for Alerts
 **Learning:** Dense textual alerts are hard to scan quickly. Using box-drawing characters (┌, ─, ┐) to create structured "cards" significantly improves readability and professionalism of CLI output.
 **Action:** Implement card-based layouts for critical alerts, grouping related information visually and using distinct headers and separators.
@@ -54,3 +55,7 @@
 ## 2026-06-25 - Validation in Setup Wizards
 **Learning:** Setup wizards that blindly accept input lead to frustrating failures later. Immediate validation (e.g., regex checks) builds confidence and prevents configuration errors.
 **Action:** Always validate critical inputs like email addresses during setup, providing helpful feedback and allowing retry.
+
+## 2026-06-30 - Context-Rich Alert Payloads
+**Learning:** Minimalist alert notifications (e.g., just "High Risk") force operators to context-switch to logs to understand *why*. Providing a detailed breakdown of risk factors (Spam, NLP, Media) directly in the alert payload significantly reduces triage time.
+**Action:** Enhance external notifications (Slack/Webhooks) to include specific sub-scores and key indicators, mirroring the detail available in console logs.
