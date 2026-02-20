@@ -10,6 +10,7 @@ from typing import Dict, List, Tuple, Union
 from urllib.parse import urlparse
 
 from .email_ingestion import EmailData
+from ..utils.threat_scoring import calculate_risk_level
 
 
 @dataclass
@@ -456,9 +457,8 @@ class SpamAnalyzer:
 
     def _calculate_risk_level(self, score: float) -> str:
         """Calculate risk level based on spam score"""
-        if score >= self.config.spam_threshold * 2:
-            return "high"
-        elif score >= self.config.spam_threshold:
-            return "medium"
-        else:
-            return "low"
+        return calculate_risk_level(
+            score,
+            self.config.spam_threshold,
+            self.config.spam_threshold * 2,
+        )
