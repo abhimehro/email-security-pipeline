@@ -462,16 +462,16 @@ tail -f logs/email_security.log
 #### Option B: Docker Deployment
 ```bash
 # Build container
-docker-compose build
+docker compose build
 
 # Start pipeline
-docker-compose up -d
+docker compose up -d
 
 # View logs
-docker-compose logs -f email-security-pipeline
+docker compose logs -f email-security-pipeline
 
 # Stop pipeline
-docker-compose down
+docker compose down
 ```
 
 ### Post-Deployment Monitoring
@@ -698,9 +698,9 @@ python3 -m venv venv
 ./venv/bin/python3 src/main.py
 
 # Running (Docker)
-docker-compose up -d
-docker-compose logs -f
-docker-compose down
+docker compose up -d
+docker compose logs -f
+docker compose down
 
 # Monitoring
 tail -f logs/email_security.log
@@ -708,7 +708,7 @@ tail -f logs/email_security.log
 # Maintenance
 git pull
 ./venv/bin/pip install -r requirements.txt --upgrade
-docker-compose restart
+docker compose restart
 ```
 
 ---
