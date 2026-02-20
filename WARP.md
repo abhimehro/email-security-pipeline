@@ -54,16 +54,16 @@ python3 src/main.py path/to/config.env
 **Docker Compose (recommended for long-running / production-like):**
 ```bash
 # Build image
-docker-compose build
+docker compose build
 
 # Start in background
-docker-compose up -d
+docker compose up -d
 
 # Follow logs
-docker-compose logs -f email-security-pipeline
+docker compose logs -f email-security-pipeline
 
 # Stop containers
-docker-compose down
+docker compose down
 ```
 
 **macOS launchd daemon (background service on login):**
@@ -136,13 +136,13 @@ grep "SECURITY ALERT" logs/email_security.log || true
 **Docker logs:**
 ```bash
 # All logs
-docker-compose logs
+docker compose logs
 
 # Follow specific service
-docker-compose logs -f email-security-pipeline
+docker compose logs -f email-security-pipeline
 
 # Last 100 lines
-docker-compose logs --tail=100 email-security-pipeline
+docker compose logs --tail=100 email-security-pipeline
 ```
 
 **launchd daemon logs (macOS):**

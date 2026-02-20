@@ -51,13 +51,13 @@ GMAIL_APP_PASSWORD=your-16-char-app-password
 **Build and run:**
 ```bash
 # Build the Docker image
-docker-compose build
+docker compose build
 
 # Start the pipeline
-docker-compose up -d
+docker compose up -d
 
 # View logs
-docker-compose logs -f
+docker compose logs -f
 ```
 
 ### Using Python Locally
@@ -106,7 +106,7 @@ Within 5 minutes (default check interval), you should see an alert!
 
 **Docker:**
 ```bash
-docker-compose logs -f email-security-pipeline
+docker compose logs -f email-security-pipeline
 ```
 
 **Local:**
@@ -144,7 +144,7 @@ THREAT_LOW=40
    ```
 3. Restart pipeline:
    ```bash
-   docker-compose restart  # For Docker
+   docker compose restart  # For Docker
    # OR press Ctrl+C and restart for local
    ```
 
@@ -188,7 +188,7 @@ ALERT_WEBHOOK_URL=https://your-webhook-endpoint.com/alerts
 
 ## Getting Help
 
-- Check logs first: `docker-compose logs` or `tail -f logs/email_security.log`
+- Check logs first: `docker compose logs` or `tail -f logs/email_security.log`
 - Review the full README.md for detailed documentation
 - Open an issue on GitHub for bugs or feature requests
 

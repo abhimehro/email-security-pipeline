@@ -97,12 +97,12 @@ A self-hosted, containerized email security analysis system that monitors IMAP f
 
 3. **Build and run with Docker Compose**
    ```bash
-   docker-compose up -d
+   docker compose up -d
    ```
 
 4. **View logs**
    ```bash
-   docker-compose logs -f
+   docker compose logs -f
    ```
 
 ### Option 3: Background Execution (macOS/Darwin)
@@ -370,7 +370,7 @@ email-security-pipeline/
 
 **Docker:**
 ```bash
-docker-compose logs -f email-security-pipeline
+docker compose logs -f email-security-pipeline
 ```
 
 **Local:**
