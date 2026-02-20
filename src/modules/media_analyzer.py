@@ -539,7 +539,7 @@ class MediaAuthenticityAnalyzer:
         finally:
             try:
                 f.close()
-            except zipfile.BadZipFile:
+            except zipfile.BadZipFile as e:
                 # Ignore errors on close (like CRC mismatch due to partial read)
                 self.logger.debug(f"Ignored error closing zip stream for {filename}: {e}")
 
