@@ -13,8 +13,8 @@
 **Using Docker (Recommended for Production):**
 
 ```bash
-docker-compose up -d
-docker-compose logs -f
+docker compose up -d
+docker compose logs -f
 ```
 
 ### Stop the Pipeline
@@ -28,7 +28,7 @@ docker-compose logs -f
 **Docker:**
 
 ```bash
-docker-compose down
+docker compose down
 ```
 
 ## 🧪 Testing
@@ -64,13 +64,13 @@ grep ERROR logs/email_security.log
 
 ```bash
 # All logs
-docker-compose logs
+docker compose logs
 
 # Follow logs
-docker-compose logs -f
+docker compose logs -f
 
 # Last 100 lines
-docker-compose logs --tail=100
+docker compose logs --tail=100
 ```
 
 ## ⚙️ Configuration

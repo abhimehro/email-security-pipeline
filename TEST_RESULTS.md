@@ -93,8 +93,8 @@
 **Option B: Using Docker**
 
 ```bash
-docker-compose up -d
-docker-compose logs -f
+docker compose up -d
+docker compose logs -f
 ```
 
 ### 2. Monitor Logs
@@ -104,7 +104,7 @@ docker-compose logs -f
 tail -f logs/email_security.log
 
 # Or if using Docker
-docker-compose logs -f email-security-pipeline
+docker compose logs -f email-security-pipeline
 ```
 
 ### 3. Test with Sample Email
