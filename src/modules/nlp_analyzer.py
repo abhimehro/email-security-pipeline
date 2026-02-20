@@ -13,6 +13,7 @@ from collections import defaultdict
 from dataclasses import dataclass
 
 from .email_ingestion import EmailData
+from ..utils.threat_scoring import calculate_risk_level
 
 # Optional imports at module level
 try:
@@ -412,13 +413,7 @@ class NLPThreatAnalyzer:
     def _calculate_risk_level(self, score: float) -> str:
         """Calculate risk level based on NLP threat score"""
         threshold = self.config.nlp_threshold * 10  # Scale threshold
-
-        if score >= threshold * 2:
-            return "high"
-        elif score >= threshold:
-            return "medium"
-        else:
-            return "low"
+        return calculate_risk_level(score, threshold, threshold * 2)
 
     def analyze_with_transformer(self, text: str) -> Dict:
         """
