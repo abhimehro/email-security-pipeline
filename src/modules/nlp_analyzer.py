@@ -13,6 +13,7 @@ from collections import defaultdict
 from dataclasses import dataclass
 
 from .email_ingestion import EmailData
+from ..utils.pattern_compiler import compile_patterns, check_redos_safety
 
 # Optional imports at module level
 try:
@@ -138,6 +139,9 @@ class NLPThreatAnalyzer:
         Compile a list of regex patterns into a single combined regex.
         Returns the compiled regex and a mapping of group names to (prefix, description).
         """
+        raw_patterns = [pattern for pattern, _, _ in patterns]
+        check_redos_safety(raw_patterns)
+
         regex_parts = []
         group_map = {}
         prefix_counts: Dict[str, int] = defaultdict(int)
@@ -156,15 +160,8 @@ class NLPThreatAnalyzer:
         """
         Compile a simplified master pattern without named groups for fast presence check.
         """
-        # Join patterns with OR operator, wrapped in non-capturing groups if needed
-        # We rely on the fact that existing patterns capture what they need internally
-        # but for the simple check we just need ANY match.
-        regex_parts = []
-        for pattern, _, _ in patterns:
-            regex_parts.append(f"(?:{pattern})")
-
-        full_pattern = "|".join(regex_parts)
-        return re.compile(full_pattern, re.IGNORECASE)
+        raw_patterns = [pattern for pattern, _, _ in patterns]
+        return compile_patterns(raw_patterns, re.I)
 
     def _should_use_ml_model(self) -> bool:
         """Check if ML model should be loaded"""
