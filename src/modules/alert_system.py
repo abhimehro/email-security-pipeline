@@ -545,10 +545,19 @@ class AlertSystem:
                 "medium": "#ff9900",
                 "high": "#ff0000"
             }.get(report.risk_level, "#808080")
-            
+
+            # Helper to format risk field with emoji
+            def format_risk_field(analysis_dict):
+                level = analysis_dict.get('risk_level', 'unknown')
+                score = analysis_dict.get('score', 0)
+                symbol = Colors.get_risk_symbol(level)
+                return f"{symbol} {level.upper()} ({score:.2f})"
+
             attachments = [{
                 "color": color,
-                "title": f"🚨 Security Alert - {report.risk_level.upper()} Risk",
+                "title": (
+                    f"🚨 Security Alert - {report.risk_level.upper()} Risk"
+                ),
                 "fields": [
                     {
                         "title": "Subject",
@@ -561,8 +570,23 @@ class AlertSystem:
                         "short": True
                     },
                     {
-                        "title": "Threat Score",
+                        "title": "Overall Threat Score",
                         "value": f"{report.overall_threat_score:.2f}",
+                        "short": True
+                    },
+                    {
+                        "title": "Spam Analysis",
+                        "value": format_risk_field(report.spam_analysis),
+                        "short": True
+                    },
+                    {
+                        "title": "NLP Analysis",
+                        "value": format_risk_field(report.nlp_analysis),
+                        "short": True
+                    },
+                    {
+                        "title": "Media Analysis",
+                        "value": format_risk_field(report.media_analysis),
                         "short": True
                     },
                     {
