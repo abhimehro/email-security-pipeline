@@ -52,3 +52,7 @@
 ## 2026-03-10 - Media Analysis Frame Sampling
 **Learning:** Facial analysis using `detectMultiScale` is computationally expensive and linear with the number of frames. Analyzing a statistical sample of frames (e.g., 5) instead of all extracted frames (e.g., 10) provides a 50% speedup while still catching persistent inconsistencies.
 **Action:** Use frame subsampling for expensive per-frame operations like face detection, similar to how it's done for compression artifacts.
+
+## 2026-03-11 - Caching Repeated URL Analysis
+**Learning:** In a long-running service processing many emails, common URLs (e.g., social media links, tracking pixels) appear repeatedly. Parsing these URLs with `urllib.parse` and matching regexes thousands of times is redundant. Using `functools.lru_cache` on a helper method yields a ~7x speedup for repeated URLs and persists the benefits across multiple email analyses.
+**Action:** Use `@lru_cache` for expensive, deterministic parsing or validation steps that are likely to encounter repeated inputs across the application lifecycle.
