@@ -547,7 +547,7 @@ class AlertSystem:
             }.get(report.risk_level, "#808080")
 
             # Helper to format risk field with emoji
-            def format_risk_field(analysis_dict):
+            def _format_risk_field(self, analysis_dict):
                 level = analysis_dict.get('risk_level', 'unknown')
                 score = analysis_dict.get('score', 0)
                 symbol = Colors.get_risk_symbol(level)
