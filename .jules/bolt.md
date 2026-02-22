@@ -52,3 +52,7 @@
 ## 2026-03-10 - Media Analysis Frame Sampling
 **Learning:** Facial analysis using `detectMultiScale` is computationally expensive and linear with the number of frames. Analyzing a statistical sample of frames (e.g., 5) instead of all extracted frames (e.g., 10) provides a 50% speedup while still catching persistent inconsistencies.
 **Action:** Use frame subsampling for expensive per-frame operations like face detection, similar to how it's done for compression artifacts.
+
+## 2026-03-11 - Caching Instance Methods and Memory Leaks
+**Learning:** Using `@lru_cache` on an instance method creates a strong reference to `self` in the cache key. If the instance is short-lived or recreated frequently, this causes a memory leak and ineffective caching (0% hit rate). Refactoring to a `@staticmethod` or module-level function solves this by removing `self` from the cache key.
+**Action:** Always use `@staticmethod` or standalone functions when caching logic that doesn't strictly depend on instance state.
