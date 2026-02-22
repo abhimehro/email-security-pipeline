@@ -619,7 +619,8 @@ class AlertSystem:
 
             # Add analysis breakdown using helper method
             # Spam
-            spam = report.spam_analysis or {}
+            spam_ind = (f" - {spam['indicators'][0]}" if spam.get('indicators') else
+                        " - Suspicious URLs" if spam.get('suspicious_urls') else "")
             spam_ind = ""
             if spam.get('indicators'):
                 spam_ind = f" - {spam['indicators'][0]}"
