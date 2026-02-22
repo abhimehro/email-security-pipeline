@@ -207,5 +207,59 @@ class TestMediaTarSecurity(unittest.TestCase):
 
         self.assertTrue(found_warning, "Failed to detect dangerous file inside nested tar in zip")
 
+    def test_tar_with_path_traversal_members(self):
+        """Tar with path traversal and absolute-path members containing .exe should still be flagged."""
+        # Create tar with suspicious member names that still contain dangerous executable content.
+        # This simulates an attacker trying to hide payloads behind traversal-like paths.
+        tar_buffer = io.BytesIO()
+        with tarfile.open(fileobj=tar_buffer, mode='w') as tf:
+            malicious_content = b"malicious content"
+
+            # Relative path traversal member
+            traversal_info = tarfile.TarInfo(name="../../tmp/payload.exe")
+            traversal_info.size = len(malicious_content)
+            tf.addfile(traversal_info, io.BytesIO(malicious_content))
+
+            # Absolute path member
+            absolute_info = tarfile.TarInfo(name="/absolute/path/payload.exe")
+            absolute_info.size = len(malicious_content)
+            tf.addfile(absolute_info, io.BytesIO(malicious_content))
+
+        tar_content = tar_buffer.getvalue()
+
+        email_data = EmailData(
+            message_id="test",
+            subject="Test Tar Path Traversal Members",
+            sender="attacker@example.com",
+            recipient="victim@example.com",
+            date=datetime.now(),
+            body_text="",
+            body_html="",
+            headers={},
+            attachments=[{
+                "filename": "archive.tar",
+                "content_type": "application/x-tar",
+                "size": len(tar_content),
+                "data": tar_content,
+                "truncated": False
+            }],
+            raw_email=None,
+            account_email="me@example.com",
+            folder="INBOX"
+        )
+
+        result = self.analyzer.analyze(email_data)
+
+        # Expectation: Even with traversal/absolute paths, .exe files inside the tar are detected.
+        found_warning = False
+        for warning in result.suspicious_attachments:
+            if "contains dangerous file" in warning:
+                found_warning = True
+                break
+
+        self.assertTrue(
+            found_warning,
+            "Failed to detect dangerous files inside tar with path traversal or absolute-path members",
+        )
 if __name__ == '__main__':
     unittest.main()
