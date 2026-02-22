@@ -76,7 +76,8 @@ class TestMediaZipBomb(unittest.TestCase):
 
         found_warning = False
         for warning in result.suspicious_attachments:
-            if "Zip bomb detected" in warning or "exceeds maximum size" in warning or "Failed to inspect nested zip" in warning:
+            # We accept "Failed to inspect nested archive" as well, which is how our secure reader handles CRC/format errors
+            if "Zip bomb detected" in warning or "exceeds maximum size" in warning or "Failed to inspect nested" in warning:
                 found_warning = True
                 break
 
@@ -84,6 +85,8 @@ class TestMediaZipBomb(unittest.TestCase):
             print(f"\nDEBUG: Warnings found: {result.suspicious_attachments}")
 
         self.assertTrue(found_warning, "Failed to detect zip bomb or handling error")
+        # Note: If it fails with CRC error (due to spoofing), the score might be 3.0 + 2.0 (nested) = 5.0
+        # If it triggers the bomb detector directly, it's also 5.0+
         self.assertGreaterEqual(result.threat_score, 5.0, "Threat score should be high for zip bomb")
 
     def test_honest_large_file_skipped(self):

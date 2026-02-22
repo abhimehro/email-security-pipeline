@@ -7,6 +7,7 @@ import logging
 import tempfile
 import os
 import zipfile
+import tarfile
 import io
 import numpy as np
 import cv2
@@ -176,10 +177,11 @@ class MediaAuthenticityAnalyzer:
             result['size_anomalies'].append(size_warning)
 
         # Check for dangerous contents in archives (e.g. Zip files)
+        filename_lower = filename.lower()
         is_zip = False
         if data and data.startswith(b'PK\x03\x04'):
             is_zip = True
-        elif filename.lower().endswith('.zip'):
+        elif filename_lower.endswith('.zip'):
             is_zip = True
 
         if is_zip:
@@ -187,6 +189,17 @@ class MediaAuthenticityAnalyzer:
             result['score'] += zip_score
             if zip_warnings:
                 result['suspicious_attachments'].extend(zip_warnings)
+
+        # Check for tar archives
+        is_tar = False
+        if filename_lower.endswith(('.tar', '.tar.gz', '.tgz', '.gz')):
+            is_tar = True
+
+        if is_tar:
+            tar_score, tar_warnings = self._inspect_tar_contents(filename, data)
+            result['score'] += tar_score
+            if tar_warnings:
+                result['suspicious_attachments'].extend(tar_warnings)
 
         return result
 
@@ -417,93 +430,206 @@ class MediaAuthenticityAnalyzer:
             return score, warnings
 
         try:
-            # Use io.BytesIO to treat bytes as file-like object
             with zipfile.ZipFile(io.BytesIO(data)) as zf:
                 file_list = zf.namelist()
+                score, warnings = self._check_file_count(filename, file_list, score, warnings)
 
-                # Limit number of files to inspect to prevent DoS
-                if len(file_list) > 1000:
-                    score += 1.0
-                    warnings.append(f"Zip file {filename} contains too many files ({len(file_list)})")
-                    # We still check the first 1000
-                    file_list = file_list[:1000]
+                # We only check the first 1000 files if the limit was exceeded
+                files_to_check = file_list[:1000]
 
-                for contained_file in file_list:
-                    contained_lower = contained_file.lower()
+                for contained_file in files_to_check:
+                    member_score, member_warnings = self._inspect_archive_member(
+                        filename, contained_file,
+                        lambda: self._handle_nested_zip_member(zf, contained_file, filename, depth)
+                    )
+                    score += member_score
+                    warnings.extend(member_warnings)
 
-                    # Check for dangerous extensions
-                    for ext in self.DANGEROUS_EXTENSIONS:
-                        if contained_lower.endswith(ext):
-                            score += 5.0
-                            warnings.append(f"Zip {filename} contains dangerous file: {contained_file}")
-                            return score, warnings  # Return immediately on high threat
-
-                    # Check for nested archives (potential evasion)
-                    if contained_lower.endswith(('.zip', '.rar', '.7z', '.tar', '.gz', '.iso', '.img', '.vhd', '.vhdx')):
-                        score += 2.0
-                        warnings.append(f"Zip {filename} contains nested archive: {contained_file}")
-
-                    # Check for suspicious extensions
-                    for ext in self.SUSPICIOUS_EXTENSIONS:
-                        if contained_lower.endswith(ext):
-                            score += 3.0
-                            warnings.append(f"Zip {filename} contains suspicious file: {contained_file}")
-
-                    # Check for nested archives (potential evasion)
-                    if contained_lower.endswith(('.zip', '.rar', '.7z', '.tar', '.gz', '.iso', '.img', '.vhd', '.vhdx')):
-                        score += 2.0
-                        warnings.append(f"Zip {filename} contains nested archive: {contained_file}")
-
-                        # Recursively inspect nested zip files if depth allows and size is reasonable
-                        if contained_lower.endswith('.zip') and depth < 2:
-                            try:
-                                # We still check info.file_size as a first pass, but don't trust it fully
-                                info = zf.getinfo(contained_file)
-
-                                # Skip if declared size is too large (honest large file)
-                                if info.file_size >= self.MAX_NESTED_ZIP_SIZE:
-                                    self.logger.warning(f"Skipping nested zip {contained_file} (declared size {info.file_size} > limit)")
-                                    continue
-
-                                # Use secure read instead of zf.read()
-                                # This enforces the limit on the ACTUAL decompressed data
-                                nested_data = self._read_zip_member_securely(
-                                    zf, contained_file, self.MAX_NESTED_ZIP_SIZE
-                                )
-
-                                nested_score, nested_warnings = self._inspect_zip_contents(
-                                    f"{filename}/{contained_file}",
-                                    nested_data,
-                                    depth + 1
-                                )
-                                score += nested_score
-                                warnings.extend(nested_warnings)
-
-                                # If we found a critical threat in nested zip, return immediately
-                                if nested_score >= 5.0:
-                                    return score, warnings
-
-                            except ValueError as e:
-                                # Catch our size limit exception
-                                score += 5.0
-                                warnings.append(f"Zip bomb detected: {filename}/{contained_file} ({str(e)})")
-                                return score, warnings
-
-                            except Exception as e:
-                                # Detection failed due to zip error (CRC, tampering, etc.)
-                                # We should treat this as suspicious.
-                                # If we can't scan it, we treat it as high risk (evasion attempt or corruption).
-                                self.logger.warning(f"Error inspecting nested zip {contained_file}: {e}")
-                                score += 3.0
-                                warnings.append(f"Failed to inspect nested zip {contained_file}: {str(e)}")
+                    if score >= 5.0:
+                        return score, warnings
 
         except zipfile.BadZipFile:
-            # Not a valid zip file, might be corrupted or just named .zip
             pass
         except Exception as e:
             self.logger.warning(f"Error inspecting zip {filename}: {e}")
 
         return score, warnings
+
+    def _check_file_count(self, filename: str, file_list: List[str], score: float, warnings: List[str]) -> Tuple[float, List[str]]:
+        """Check if archive contains too many files"""
+        if len(file_list) > 1000:
+            score += 1.0
+            warnings.append(f"Archive {filename} contains too many files ({len(file_list)})")
+        return score, warnings
+
+    def _inspect_archive_member(self, parent_filename: str, member_name: str, nested_handler_fn) -> Tuple[float, List[str]]:
+        """
+        Inspect a single member of an archive.
+
+        Args:
+            parent_filename: Name of the parent archive
+            member_name: Name of the member file
+            nested_handler_fn: Function to call if member is a nested archive
+
+        Returns:
+            Tuple of (score, warnings)
+        """
+        score = 0.0
+        warnings = []
+        member_lower = member_name.lower()
+
+        # Check for dangerous extensions
+        for ext in self.DANGEROUS_EXTENSIONS:
+            if member_lower.endswith(ext):
+                score += 5.0
+                warnings.append(f"Archive {parent_filename} contains dangerous file: {member_name}")
+                return score, warnings
+
+        # Check for nested archives
+        is_nested = member_lower.endswith(('.zip', '.rar', '.7z', '.tar', '.gz', '.iso', '.img', '.vhd', '.vhdx'))
+        if is_nested:
+            score += 2.0
+            warnings.append(f"Archive {parent_filename} contains nested archive: {member_name}")
+
+            # Recurse
+            nested_score, nested_warnings = nested_handler_fn()
+            score += nested_score
+            warnings.extend(nested_warnings)
+
+            if score >= 5.0:
+                return score, warnings
+
+        # Check for suspicious extensions
+        for ext in self.SUSPICIOUS_EXTENSIONS:
+            if member_lower.endswith(ext):
+                score += 3.0
+                warnings.append(f"Archive {parent_filename} contains suspicious file: {member_name}")
+
+        return score, warnings
+
+    def _handle_nested_zip_member(self, zf: zipfile.ZipFile, member_name: str, parent_filename: str, depth: int) -> Tuple[float, List[str]]:
+        """Handle nested archive found inside a zip file"""
+        score = 0.0
+        warnings = []
+        member_lower = member_name.lower()
+
+        # Only recurse into supported formats
+        if not (member_lower.endswith('.zip') or member_lower.endswith(('.tar', '.tar.gz', '.tgz', '.gz'))) or depth >= 2:
+            return score, warnings
+
+        try:
+            # Check declared size
+            info = zf.getinfo(member_name)
+            if info.file_size >= self.MAX_NESTED_ZIP_SIZE:
+                self.logger.warning(f"Skipping nested archive {member_name} (declared size {info.file_size} > limit)")
+                return score, warnings
+
+            # Extract securely
+            nested_data = self._read_zip_member_securely(zf, member_name, self.MAX_NESTED_ZIP_SIZE)
+
+            # Recurse based on type
+            if member_lower.endswith('.zip'):
+                return self._inspect_zip_contents(f"{parent_filename}/{member_name}", nested_data, depth + 1)
+            else:
+                return self._inspect_tar_contents(f"{parent_filename}/{member_name}", nested_data, depth + 1)
+
+        except ValueError as e:
+            score += 5.0
+            warnings.append(f"Zip bomb detected: {parent_filename}/{member_name} ({str(e)})")
+        except Exception as e:
+            self.logger.warning(f"Error inspecting nested archive {member_name}: {e}")
+            score += 3.0
+            warnings.append(f"Failed to inspect nested archive {member_name}: {str(e)}")
+
+        return score, warnings
+
+    def _inspect_tar_contents(self, filename: str, data: bytes, depth: int = 0) -> Tuple[float, List[str]]:
+        """Inspect contents of tar file for dangerous files, with recursion"""
+        score = 0.0
+        warnings = []
+
+        if depth > 2:
+            return score, warnings
+
+        try:
+            with tarfile.open(fileobj=io.BytesIO(data), mode='r:*') as tf:
+                file_count = 0
+                max_files = 1000
+
+                for member in tf:
+                    file_count += 1
+                    if file_count > max_files:
+                        score += 1.0
+                        warnings.append(f"Tar file {filename} contains too many files (> {max_files})")
+                        break
+
+                    member_score, member_warnings = self._inspect_archive_member(
+                        filename, member.name,
+                        lambda: self._handle_nested_tar_member(tf, member, filename, depth)
+                    )
+                    score += member_score
+                    warnings.extend(member_warnings)
+
+                    if score >= 5.0:
+                        return score, warnings
+
+        except tarfile.TarError:
+             pass
+        except Exception as e:
+            self.logger.warning(f"Error inspecting tar {filename}: {e}")
+
+        return score, warnings
+
+    def _handle_nested_tar_member(self, tf: tarfile.TarFile, member: tarfile.TarInfo, parent_filename: str, depth: int) -> Tuple[float, List[str]]:
+        """Handle nested archive found inside a tar file"""
+        score = 0.0
+        warnings = []
+        member_name = member.name
+        member_lower = member_name.lower()
+
+        if not (member_lower.endswith('.zip') or member_lower.endswith(('.tar', '.tar.gz', '.tgz', '.gz'))) or depth >= 2:
+            return score, warnings
+
+        # Skip if declared size is too large
+        if member.size >= self.MAX_NESTED_ZIP_SIZE:
+            self.logger.warning(f"Skipping nested archive {member_name} (declared size {member.size} > limit)")
+            return score, warnings
+
+        try:
+            f = tf.extractfile(member)
+            if f:
+                nested_data = self._read_file_securely(f, member_name, self.MAX_NESTED_ZIP_SIZE)
+
+                if member_lower.endswith('.zip'):
+                    return self._inspect_zip_contents(f"{parent_filename}/{member_name}", nested_data, depth + 1)
+                else:
+                    return self._inspect_tar_contents(f"{parent_filename}/{member_name}", nested_data, depth + 1)
+
+        except Exception as e:
+            self.logger.warning(f"Error inspecting nested archive {member_name} inside tar: {e}")
+            score += 3.0
+            warnings.append(f"Failed to inspect nested archive {member_name}: {str(e)}")
+
+        return score, warnings
+
+    def _read_file_securely(self, f, filename: str, max_size: int) -> bytes:
+        """
+        Read a file-like object securely with a size limit.
+        """
+        content = io.BytesIO()
+        total_read = 0
+        chunk_size = 8192
+
+        while True:
+            chunk = f.read(chunk_size)
+            if not chunk:
+                break
+            total_read += len(chunk)
+            if total_read > max_size:
+                raise ValueError(f"File {filename} exceeds maximum size of {max_size} bytes")
+            content.write(chunk)
+
+        return content.getvalue()
 
     def _read_zip_member_securely(self, zf: zipfile.ZipFile, filename: str, max_size: int) -> bytes:
         """
