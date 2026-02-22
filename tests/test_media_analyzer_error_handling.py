@@ -3,7 +3,6 @@ import unittest
 from unittest.mock import MagicMock
 import zipfile
 from src.modules.media_analyzer import MediaAuthenticityAnalyzer
-from src.utils.config import Config
 
 class TestMediaAnalyzerBug(unittest.TestCase):
     def test_read_zip_member_securely_name_error_fixed(self):
