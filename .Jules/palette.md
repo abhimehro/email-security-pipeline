@@ -54,3 +54,7 @@
 ## 2026-06-25 - Validation in Setup Wizards
 **Learning:** Setup wizards that blindly accept input lead to frustrating failures later. Immediate validation (e.g., regex checks) builds confidence and prevents configuration errors.
 **Action:** Always validate critical inputs like email addresses during setup, providing helpful feedback and allowing retry.
+
+## 2026-07-15 - Immediate Feedback on Credentials
+**Learning:** Users often confuse regular passwords with App Passwords during IMAP setup. Without immediate verification, they complete setup with invalid credentials and fail later.
+**Action:** Always verify credentials immediately after input in setup wizards, especially for external integrations like IMAP.
