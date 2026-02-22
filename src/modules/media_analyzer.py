@@ -551,6 +551,16 @@ class MediaAuthenticityAnalyzer:
                         break
 
                     contained_file = member.name
+                    # Normalize separators for consistent security checks
+                    normalized_name = contained_file.replace("\\", "/")
+
+                    # Security: avoid processing tar members with absolute or traversal paths
+                    # This prevents confusion/log injection where a file appears to be outside the archive
+                    if os.path.isabs(normalized_name) or ".." in [part for part in normalized_name.split("/") if part]:
+                        self.logger.warning(
+                            f"Skipping tar member with unsafe path inside {filename}: {contained_file}"
+                        )
+                        continue
                     contained_lower = contained_file.lower()
 
                     # Check for dangerous extensions
