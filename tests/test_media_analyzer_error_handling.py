@@ -1,9 +1,7 @@
 
 import unittest
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 import zipfile
-import io
-import logging
 from src.modules.media_analyzer import MediaAuthenticityAnalyzer
 from src.utils.config import Config
 
