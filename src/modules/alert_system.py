@@ -536,6 +536,13 @@ class AlertSystem:
         # Reference: https://api.slack.com/reference/surfaces/formatting#escaping
         return text.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
 
+    def _format_risk_field(self, analysis_dict: Dict) -> str:
+        """Helper to format risk field with emoji for Slack"""
+        level = analysis_dict.get('risk_level', 'unknown')
+        score = analysis_dict.get('score', 0)
+        symbol = Colors.get_risk_symbol(level)
+        return f"{symbol} {level.upper()} ({score:.2f})"
+
     def _slack_alert(self, report: ThreatReport):
         """Send alert to Slack"""
         try:
@@ -545,10 +552,12 @@ class AlertSystem:
                 "medium": "#ff9900",
                 "high": "#ff0000"
             }.get(report.risk_level, "#808080")
-            
+
             attachments = [{
                 "color": color,
-                "title": f"🚨 Security Alert - {report.risk_level.upper()} Risk",
+                "title": (
+                    f"🚨 Security Alert - {report.risk_level.upper()} Risk"
+                ),
                 "fields": [
                     {
                         "title": "Subject",
@@ -561,8 +570,23 @@ class AlertSystem:
                         "short": True
                     },
                     {
-                        "title": "Threat Score",
+                        "title": "Overall Threat Score",
                         "value": f"{report.overall_threat_score:.2f}",
+                        "short": True
+                    },
+                    {
+                        "title": "Spam Analysis",
+                        "value": self._format_risk_field(report.spam_analysis),
+                        "short": True
+                    },
+                    {
+                        "title": "NLP Analysis",
+                        "value": self._format_risk_field(report.nlp_analysis),
+                        "short": True
+                    },
+                    {
+                        "title": "Media Analysis",
+                        "value": self._format_risk_field(report.media_analysis),
                         "short": True
                     },
                     {
