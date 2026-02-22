@@ -540,7 +540,7 @@ class AlertSystem:
         """Helper to create a standard Slack field dictionary"""
         return {
             "title": title,
-            "value": f"{risk} ({score:.1f}){indicator}",
+            "value": f"{risk} ({score:.1f}){indicator if indicator else ''}",
             "short": True
         }
 
