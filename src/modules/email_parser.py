@@ -16,6 +16,8 @@ This module enforces limits and sanitization at every step.
 
 import email
 import logging
+import mimetypes
+import uuid
 from typing import Dict, List, Optional, Union, Any, Tuple
 from email.message import Message
 from email.header import decode_header, make_header
@@ -384,8 +386,21 @@ class EmailParser:
         
         # Get and sanitize filename
         raw_filename = self._decode_header_value(part.get_filename() or "")
+
+        # SECURITY FIX: Handle missing filenames to prevent analysis bypass
+        # If no filename is provided, generate a fallback name to ensure
+        # the attachment is analyzed instead of silently dropped.
         if not raw_filename:
-            return None
+            content_type = part.get_content_type()
+            # Guess extension from MIME type (e.g. image/jpeg -> .jpg)
+            ext = mimetypes.guess_extension(content_type) or ".bin"
+            # Generate unique fallback name
+            raw_filename = f"unnamed_attachment_{uuid.uuid4().hex[:8]}{ext}"
+
+            self.logger.warning(
+                f"Attachment in email {safe_email_id} has no filename. "
+                f"Assigned fallback name: {raw_filename}"
+            )
         
         filename = sanitize_filename(raw_filename)
         safe_filename = sanitize_for_logging(filename)
