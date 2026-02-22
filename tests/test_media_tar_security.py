@@ -259,7 +259,8 @@ class TestMediaTarSecurity(unittest.TestCase):
 
         self.assertTrue(
             found_warning,
-            "Failed to detect dangerous files inside tar with path traversal or absolute-path members",
+            "Failed to detect dangerous files inside tar with path traversal or absolute-path members"
         )
+
 if __name__ == '__main__':
     unittest.main()
