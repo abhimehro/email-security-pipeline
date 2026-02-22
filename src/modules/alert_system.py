@@ -619,45 +619,44 @@ class AlertSystem:
 
             # Add analysis breakdown using helper method
             # Spam
-            spam_ind = (f" - {spam['indicators'][0]}" if spam.get('indicators') else
-                        " - Suspicious URLs" if spam.get('suspicious_urls') else "")
+            spam_data = report.spam_analysis or {}
             spam_ind = ""
-            if spam.get('indicators'):
-                spam_ind = f" - {spam['indicators'][0]}"
-            elif spam.get('suspicious_urls'):
+            if spam_data.get('indicators'):
+                spam_ind = f" - {spam_data['indicators'][0]}"
+            elif spam_data.get('suspicious_urls'):
                 spam_ind = " - Suspicious URLs"
 
             fields.append(self._create_slack_field(
-                "Spam Analysis",
-                spam,
+                "📧 Spam Analysis",
+                spam_data,
                 spam_ind
             ))
 
             # NLP
-            nlp = report.nlp_analysis or {}
+            nlp_data = report.nlp_analysis or {}
             nlp_ind = ""
-            if nlp.get('social_engineering_indicators'):
-                nlp_ind = f" - {nlp['social_engineering_indicators'][0]}"
-            elif nlp.get('authority_impersonation'):
-                nlp_ind = f" - {nlp['authority_impersonation'][0]}"
+            if nlp_data.get('social_engineering_indicators'):
+                nlp_ind = f" - {nlp_data['social_engineering_indicators'][0]}"
+            elif nlp_data.get('authority_impersonation'):
+                nlp_ind = f" - {nlp_data['authority_impersonation'][0]}"
 
             fields.append(self._create_slack_field(
-                "NLP Analysis",
-                nlp,
+                "🧠 NLP Analysis",
+                nlp_data,
                 nlp_ind
             ))
 
             # Media
-            media = report.media_analysis or {}
+            media_data = report.media_analysis or {}
             media_ind = ""
-            if media.get('file_type_warnings'):
-                media_ind = f" - {media['file_type_warnings'][0]}"
-            elif media.get('potential_deepfakes'):
+            if media_data.get('file_type_warnings'):
+                media_ind = f" - {media_data['file_type_warnings'][0]}"
+            elif media_data.get('potential_deepfakes'):
                 media_ind = " - Deepfake Detected"
 
             fields.append(self._create_slack_field(
-                "Media Analysis",
-                media,
+                "📎 Media Analysis",
+                media_data,
                 media_ind
             ))
 
