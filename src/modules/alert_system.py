@@ -540,7 +540,7 @@ class AlertSystem:
         """Helper to create a standard Slack field dictionary"""
         return {
             "title": title,
-            "value": f"{risk} ({score:.1f}){indicator if indicator else ''}",
+            "value": f"{risk} ({score:.1f}){indicator}",
             "short": True
         }
 
@@ -574,48 +574,47 @@ class AlertSystem:
 
             # Add analysis breakdown using helper method
             # Spam
-            spam_ind = (f" - {spam['indicators'][0]}" if spam.get('indicators') else
-                        " - Suspicious URLs" if spam.get('suspicious_urls') else "")
+            spam_data = report.spam_analysis or {}
             spam_ind = ""
-            if spam.get('indicators'):
-                spam_ind = f" - {spam['indicators'][0]}"
-            elif spam.get('suspicious_urls'):
+            if spam_data.get('indicators'):
+                spam_ind = f" - {spam_data['indicators'][0]}"
+            elif spam_data.get('suspicious_urls'):
                 spam_ind = " - Suspicious URLs"
 
             fields.append(self._create_slack_field(
                 "📧 Spam Analysis",
-                spam.get('risk_level', 'low').upper(),
-                spam.get('score', 0),
+                spam_data.get('risk_level', 'low').upper(),
+                spam_data.get('score', 0),
                 spam_ind
             ))
 
             # NLP
-            nlp = report.nlp_analysis or {}
+            nlp_data = report.nlp_analysis or {}
             nlp_ind = ""
-            if nlp.get('social_engineering_indicators'):
-                nlp_ind = f" - {nlp['social_engineering_indicators'][0]}"
-            elif nlp.get('authority_impersonation'):
-                nlp_ind = f" - {nlp['authority_impersonation'][0]}"
+            if nlp_data.get('social_engineering_indicators'):
+                nlp_ind = f" - {nlp_data['social_engineering_indicators'][0]}"
+            elif nlp_data.get('authority_impersonation'):
+                nlp_ind = f" - {nlp_data['authority_impersonation'][0]}"
 
             fields.append(self._create_slack_field(
                 "🧠 NLP Analysis",
-                nlp.get('risk_level', 'low').upper(),
-                nlp.get('score', 0),
+                nlp_data.get('risk_level', 'low').upper(),
+                nlp_data.get('score', 0),
                 nlp_ind
             ))
 
             # Media
-            media = report.media_analysis or {}
+            media_data = report.media_analysis or {}
             media_ind = ""
-            if media.get('file_type_warnings'):
-                media_ind = f" - {media['file_type_warnings'][0]}"
-            elif media.get('potential_deepfakes'):
+            if media_data.get('file_type_warnings'):
+                media_ind = f" - {media_data['file_type_warnings'][0]}"
+            elif media_data.get('potential_deepfakes'):
                 media_ind = " - Deepfake Detected"
 
             fields.append(self._create_slack_field(
                 "📎 Media Analysis",
-                media.get('risk_level', 'low').upper(),
-                media.get('score', 0),
+                media_data.get('risk_level', 'low').upper(),
+                media_data.get('score', 0),
                 media_ind
             ))
 
