@@ -54,3 +54,7 @@
 ## 2026-06-25 - Validation in Setup Wizards
 **Learning:** Setup wizards that blindly accept input lead to frustrating failures later. Immediate validation (e.g., regex checks) builds confidence and prevents configuration errors.
 **Action:** Always validate critical inputs like email addresses during setup, providing helpful feedback and allowing retry.
+
+## 2026-07-20 - Immediate Connection Feedback
+**Learning:** Users often assume their credentials are correct until runtime failure. Validating connection during setup prevents this frustration loop.
+**Action:** Implement real-time connectivity checks for credentials in CLI wizards, using spinners to indicate activity and providing immediate feedback.
