@@ -109,7 +109,8 @@ def test_url_cache_lru_eviction(spam_analyzer):
             spam_analyzer._check_urls([f"http://example{i}.com"])
 
         assert len(spam_analyzer._url_cache) == 5
-        assert "http://example0.com" in spam_analyzer._url_cache
+        # Use .keys() to be explicit about dictionary lookup (avoids CodeQL substring check warning)
+        assert "http://example0.com" in spam_analyzer._url_cache.keys()
 
         # Add one more to trigger eviction
         spam_analyzer._check_urls(["http://example5.com"])
@@ -117,9 +118,9 @@ def test_url_cache_lru_eviction(spam_analyzer):
         # Check size maintained
         assert len(spam_analyzer._url_cache) == 5
         # Check oldest evicted (example0)
-        assert "http://example0.com" not in spam_analyzer._url_cache
+        assert "http://example0.com" not in spam_analyzer._url_cache.keys()
         # Check newest added
-        assert "http://example5.com" in spam_analyzer._url_cache
+        assert "http://example5.com" in spam_analyzer._url_cache.keys()
 
         # Access an existing item to move it to MRU
         spam_analyzer._check_urls(["http://example1.com"])
@@ -128,9 +129,9 @@ def test_url_cache_lru_eviction(spam_analyzer):
         spam_analyzer._check_urls(["http://example6.com"])
 
         # example1 should still be there (was moved to MRU)
-        assert "http://example1.com" in spam_analyzer._url_cache
+        assert "http://example1.com" in spam_analyzer._url_cache.keys()
         # example2 should be evicted (was oldest)
-        assert "http://example2.com" not in spam_analyzer._url_cache
+        assert "http://example2.com" not in spam_analyzer._url_cache.keys()
 
     finally:
         spam_analyzer._max_cache_size = original_size

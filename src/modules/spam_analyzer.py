@@ -97,7 +97,7 @@ class SpamAnalyzer:
         """
         self.config = config
         self.logger = logging.getLogger("SpamAnalyzer")
-        self._url_cache = {}
+        self._url_cache: Dict[str, Tuple[float, int]] = {}
         self._cache_lock = threading.Lock()
         self._max_cache_size = 1000
 
