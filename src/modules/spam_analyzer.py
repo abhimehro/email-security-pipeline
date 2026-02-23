@@ -339,6 +339,7 @@ class SpamAnalyzer:
         auth_results = get_header_list("authentication-results")
         dkim_auth_fail = False
         spf_auth_fail = False
+        dmarc_fail = False
 
         for result in auth_results:
             result_lower = result.lower()
@@ -354,6 +355,10 @@ class SpamAnalyzer:
             if "spf=fail" in result_lower or "spf=permerror" in result_lower:
                 spf_auth_fail = True
 
+            # Check DMARC results (CRITICAL for anti-spoofing)
+            if "dmarc=fail" in result_lower or "dmarc=permerror" in result_lower:
+                dmarc_fail = True
+
         if dkim_auth_fail:
             score += 2.5
             issues.append("DKIM verification failed (Authentication-Results)")
@@ -362,6 +367,11 @@ class SpamAnalyzer:
         if spf_auth_fail and not spf_fail:
             score += 2.0
             issues.append("SPF verification failed (Authentication-Results)")
+
+        if dmarc_fail:
+            # DMARC fail is a strong signal of spoofing
+            score += 3.0
+            issues.append("DMARC verification failed (Authentication-Results)")
 
         # Check DKIM presence
         dkim = get_header_list("dkim-signature")
