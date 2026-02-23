@@ -70,10 +70,67 @@ def test_check_urls_performance_large_dataset(spam_analyzer):
 
     # On a reasonably fast machine, processing 10k URLs with optimization should be very fast (< 0.1s)
     # Without optimization it takes ~0.05s for 5k URLs -> ~0.1s for 10k.
-    # Wait, my benchmark showed 0.02s for 5k without optimization?
-    # Let's set a loose threshold, but enough to fail if it becomes extremely slow (e.g. O(N^2)).
-    # The main point is that it runs successfully and correctly.
-    # We can print the duration.
-
+    # With shared cache, repeated URLs are O(1) hash lookup
     print(f"Processed {len(urls)} URLs in {duration:.4f}s")
-    assert duration < 1.0  # Should be well under 1s
+    assert duration < 1.0
+
+def test_url_cache_persistence(spam_analyzer):
+    """Test that URL analysis results are cached across calls"""
+    url = "http://bit.ly/suspicious-cache-test"
+
+    # First call - should calculate and cache
+    score1, suspicious1 = spam_analyzer._check_urls([url])
+
+    # Second call - should retrieve from cache
+    score2, suspicious2 = spam_analyzer._check_urls([url])
+
+    assert score1 == score2
+    assert suspicious1 == suspicious2
+
+    # Verify cache internals directly
+    if hasattr(spam_analyzer, '_url_cache'):
+        assert url in spam_analyzer._url_cache
+        # Tuple of (score, append_count)
+        # 0.5 (combined) + 0.5 (shortener) = 1.0, 2 appends
+        assert spam_analyzer._url_cache[url] == (1.0, 2)
+
+def test_url_cache_lru_eviction(spam_analyzer):
+    """Test that cache respects size limit and evicts properly"""
+    if not hasattr(spam_analyzer, '_url_cache'):
+        pytest.skip("Shared cache not implemented")
+
+    # Temporarily reduce max cache size for testing
+    original_size = spam_analyzer._max_cache_size
+    spam_analyzer._max_cache_size = 5
+
+    try:
+        # Fill cache
+        for i in range(5):
+            spam_analyzer._check_urls([f"http://example{i}.com"])
+
+        assert len(spam_analyzer._url_cache) == 5
+        assert "http://example0.com" in spam_analyzer._url_cache
+
+        # Add one more to trigger eviction
+        spam_analyzer._check_urls(["http://example5.com"])
+
+        # Check size maintained
+        assert len(spam_analyzer._url_cache) == 5
+        # Check oldest evicted (example0)
+        assert "http://example0.com" not in spam_analyzer._url_cache
+        # Check newest added
+        assert "http://example5.com" in spam_analyzer._url_cache
+
+        # Access an existing item to move it to MRU
+        spam_analyzer._check_urls(["http://example1.com"])
+
+        # Add another item
+        spam_analyzer._check_urls(["http://example6.com"])
+
+        # example1 should still be there (was moved to MRU)
+        assert "http://example1.com" in spam_analyzer._url_cache
+        # example2 should be evicted (was oldest)
+        assert "http://example2.com" not in spam_analyzer._url_cache
+
+    finally:
+        spam_analyzer._max_cache_size = original_size

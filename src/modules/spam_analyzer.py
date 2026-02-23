@@ -5,6 +5,7 @@ Traditional spam scoring based on headers, content patterns, and URLs
 
 import logging
 import re
+import threading
 from dataclasses import dataclass
 from typing import Dict, List, Tuple, Union
 from urllib.parse import urlparse
@@ -96,6 +97,9 @@ class SpamAnalyzer:
         """
         self.config = config
         self.logger = logging.getLogger("SpamAnalyzer")
+        self._url_cache = {}
+        self._cache_lock = threading.Lock()
+        self._max_cache_size = 1000
 
     def analyze(self, email_data: EmailData) -> SpamAnalysisResult:
         """
@@ -259,19 +263,23 @@ class SpamAnalyzer:
         score = 0.0
         suspicious = []
 
-        # Cache results for unique URLs to avoid re-parsing
-        checked_urls = {}
-
         for url in urls:
-            if url in checked_urls:
-                # Retrieve cached results
-                url_score, append_count = checked_urls[url]
+            # Check shared cache first
+            cached_result = None
+            with self._cache_lock:
+                if url in self._url_cache:
+                    # Move to end (LRU)
+                    cached_result = self._url_cache.pop(url)
+                    self._url_cache[url] = cached_result
+
+            if cached_result:
+                url_score, append_count = cached_result
                 score += url_score
-                # Replicate the exact number of appends
                 if append_count > 0:
                     suspicious.extend([url] * append_count)
                 continue
 
+            # Process new URL
             try:
                 parsed = urlparse(url)
                 domain = parsed.netloc
@@ -296,10 +304,31 @@ class SpamAnalyzer:
                 if append_count > 0:
                     suspicious.extend([url] * append_count)
 
-                checked_urls[url] = (current_url_score, append_count)
+                # Store in shared cache
+                with self._cache_lock:
+                    # If already added by another thread, just update order
+                    if url in self._url_cache:
+                        self._url_cache.pop(url)
+
+                    self._url_cache[url] = (current_url_score, append_count)
+
+                    # Evict if full
+                    if len(self._url_cache) > self._max_cache_size:
+                        # Remove oldest (first inserted)
+                        try:
+                            self._url_cache.pop(next(iter(self._url_cache)))
+                        except (StopIteration, KeyError):
+                            pass
 
             except Exception:
-                checked_urls[url] = (0.0, 0)
+                # Cache failures as 0 score to avoid retrying
+                with self._cache_lock:
+                    self._url_cache[url] = (0.0, 0)
+                    if len(self._url_cache) > self._max_cache_size:
+                         try:
+                            self._url_cache.pop(next(iter(self._url_cache)))
+                         except (StopIteration, KeyError):
+                            pass
 
         return score, suspicious
 
