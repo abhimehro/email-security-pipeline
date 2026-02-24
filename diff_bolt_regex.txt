@@ -4,7 +4,7 @@ index cca4a49..af756fc 100644
 +++ b/src/modules/spam_analyzer.py
 @@ -38,15 +38,17 @@ class SpamAnalyzer:
      ]
-     
+
      # Pre-compiled regex patterns for performance
 +    SPAM_KEYWORD_REGEXES = [re.compile(p, re.IGNORECASE) for p in SPAM_KEYWORDS]
      COMBINED_SPAM_PATTERN = re.compile('|'.join(SPAM_KEYWORDS), re.IGNORECASE)
@@ -20,13 +20,13 @@ index cca4a49..af756fc 100644
 -    DISPLAY_NAME_PATTERN = re.compile(r'^([^<]+)<')
 +    SENDER_DOMAIN_PATTERN = re.compile(r'[\w\.-]+@([\w\.-]+)', re.IGNORECASE)
 +    DISPLAY_NAME_PATTERN = re.compile(r'^([^<]+)<', re.IGNORECASE)
- 
+
      # Suspicious URL patterns
      SUSPICIOUS_URL_PATTERNS = [
 @@ -57,23 +59,13 @@ class SpamAnalyzer:
          re.compile(r'[a-z0-9\-]{30,}'),  # Very long subdomain/path
      ]
- 
+
 -    # Pre-compiled regex patterns
 -    MONEY_REGEX = re.compile(r'\$\d+|\d+\s*(dollar|usd|euro)', re.IGNORECASE)
 -    LINK_REGEX = re.compile(r'https?://', re.IGNORECASE)
@@ -43,7 +43,7 @@ index cca4a49..af756fc 100644
      # Pre-compiled combined pattern for performance
      # To join them, we need the pattern strings
      COMBINED_URL_PATTERN = re.compile('|'.join(p.pattern for p in SUSPICIOUS_URL_PATTERNS), re.IGNORECASE)
- 
+
 +    # Additional shorteners specific check regex
 +    SHORTENER_PATTERN = re.compile(r'(bit\.ly|tinyurl|t\.co|goo\.gl)', re.IGNORECASE)
 +
@@ -51,7 +51,7 @@ index cca4a49..af756fc 100644
          """
          Initialize spam analyzer
 @@ -167,14 +159,12 @@ class SpamAnalyzer:
-         
+
          # Check spam keywords
          if self.COMBINED_SPAM_PATTERN.search(subject_lower):
 -            # We use search here because we just want to know if ANY exist, but iterating
@@ -67,13 +67,13 @@ index cca4a49..af756fc 100644
                      score += 1.5
 -                    indicators.append(f"Spam keyword in subject: {pattern}")
 +                    indicators.append(f"Spam keyword in subject: {pattern_str}")
-         
+
          # Check for numbers indicating money
          if self.MONEY_PATTERN.search(subject_lower):
 @@ -247,21 +237,19 @@ class SpamAnalyzer:
                  parsed = urlparse(url)
                  domain = parsed.netloc
-                 
+
 -                # Check against suspicious patterns
 -                for pattern in self.SUSPICIOUS_URL_PATTERNS:
 -                    if pattern.search(domain):
@@ -86,17 +86,16 @@ index cca4a49..af756fc 100644
 +                     # in the loop, effectively counting only one match per URL from this list.
 +                     score += 0.5
 +                     suspicious.append(url)
-                 
+
                  # Check for URL shorteners
 -                if any(shortener in domain for shortener in ['bit.ly', 'tinyurl', 't.co', 'goo.gl']):
 +                # Original code logic was separate and could add another 0.5 score
 +                if self.SHORTENER_PATTERN.search(domain):
                      score += 0.5
                      suspicious.append(url)
-                 
+
 -                # Check for mismatched display text and actual URL
 -                # This would require more context from HTML parsing
--                
+-
              except Exception:
                  pass
-         

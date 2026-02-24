@@ -13,14 +13,14 @@ from typing import Dict, List
 class Metrics:
     """
     Collects operational metrics for monitoring system health.
-    
+
     PATTERN RECOGNITION: This is similar to how web servers track request counts,
     response times, and error rates. Professional teams use this data to:
     - Set up alerting (e.g., "alert if threat detection drops to 0 for 1 hour")
     - Create dashboards showing trends over time
     - Identify performance bottlenecks (e.g., "media analysis is slow")
     - Capacity planning (e.g., "we process 1000 emails/day, need to scale")
-    
+
     INDUSTRY CONTEXT: Professional teams handle this by sending metrics to
     systems like Prometheus, Datadog, or CloudWatch. This class provides the
     foundation for that integration - you can periodically export these metrics
@@ -50,7 +50,7 @@ class Metrics:
     def record_email_processed(self):
         """
         Record that an email was processed.
-        
+
         Call this for every email, whether it was clean or threatening.
         """
         self.emails_processed += 1
@@ -58,11 +58,11 @@ class Metrics:
     def record_threat(self, threat_type: str, severity: str = "unknown"):
         """
         Record that a threat was detected.
-        
+
         Args:
             threat_type: Type of threat (e.g., "phishing", "spam", "malware")
             severity: Threat severity (e.g., "low", "medium", "high", "critical")
-            
+
         Example:
             metrics.record_threat("phishing", "high")
         """
@@ -73,10 +73,10 @@ class Metrics:
     def record_processing_time(self, time_ms: float):
         """
         Record how long it took to process an email.
-        
+
         Args:
             time_ms: Processing time in milliseconds
-            
+
         TEACHING MOMENT: We use milliseconds instead of seconds because
         email processing should be fast (< 1 second typically). Using
         milliseconds gives us better precision for performance analysis.
@@ -86,7 +86,7 @@ class Metrics:
     def record_error(self, error_type: str):
         """
         Record that an error occurred.
-        
+
         Args:
             error_type: Type of error (e.g., "imap_connection", "analysis_timeout")
         """
@@ -95,10 +95,10 @@ class Metrics:
     def get_summary(self) -> Dict:
         """
         Get a summary of all metrics.
-        
+
         Returns:
             Dictionary containing metrics summary suitable for logging or export
-            
+
         INDUSTRY CONTEXT: Professional teams export this summary to monitoring
         systems every 60 seconds. You can pipe this to a file, send it to an
         API endpoint, or display it in a dashboard.
@@ -129,7 +129,7 @@ class Metrics:
     def reset(self):
         """
         Reset all metrics to initial state.
-        
+
         TEACHING MOMENT: Use this carefully! You typically only reset metrics
         when you're exporting them to a monitoring system and starting a new
         collection window. Don't reset if you want cumulative statistics since

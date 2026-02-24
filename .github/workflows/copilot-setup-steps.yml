@@ -37,7 +37,7 @@ jobs:
             console.log('🤝 Development Partner Protocol Activated');
             console.log('Repository:', context.repo.owner + '/' + context.repo.repo);
             console.log('Event:', context.eventName);
-            
+
             // Log the request if provided via workflow_dispatch
             const request = '${{ github.event.inputs.request }}';
             if (request) {

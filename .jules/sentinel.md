@@ -44,3 +44,8 @@
 **Vulnerability:** The Media Analyzer's blocklist missed critical dangerous extensions (.vbe, .iso, .img, .lnk) and failed to detect nested archives (e.g. zip inside zip), allowing malware evasion.
 **Learning:** Blocklists are often incomplete and attackers use obscure extensions or nesting to bypass simple checks. Recursive analysis or flagging nested structures is essential.
 **Prevention:** Use comprehensive extension lists (including Windows script/shortcut types and disk images) and implement depth-limited recursive inspection for archives.
+
+## 2026-05-20 - Missing DMARC Validation Gap
+**Vulnerability:** The Spam Analyzer verified SPF and DKIM results but ignored DMARC policy failures, allowing spoofed emails that passed individual checks (e.g. unaligned) to bypass detection.
+**Learning:** Checking SPF and DKIM in isolation is insufficient for modern email security; DMARC is the policy layer that ties them to the domain identity.
+**Prevention:** Always validate the 'dmarc' result in Authentication-Results headers and treat failures as high-confidence indicators of spoofing.

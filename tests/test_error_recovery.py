@@ -44,20 +44,20 @@ class TestIMAPErrorRecovery(unittest.TestCase):
         SECURITY STORY: This tests timeout handling to prevent hanging indefinitely.
         Attackers might set up honeypot IMAP servers that never respond, attempting
         to consume our resources. Proper timeout handling prevents this DoS attack.
-        
+
         PATTERN RECOGNITION: This is similar to circuit breaker patterns where we
         fail fast rather than waiting indefinitely for a dead service.
         """
         with patch('src.modules.email_ingestion.imaplib.IMAP4_SSL') as mock_imap:
             # Simulate connection timeout
             mock_imap.side_effect = socket.timeout("Connection timed out")
-            
+
             # Attempt to connect
             result = self.client.connect()
-            
+
             # Should return False and not crash
             self.assertFalse(result)
-            
+
             # Should log the error
             self.client.logger.error.assert_called()
 
@@ -70,10 +70,10 @@ class TestIMAPErrorRecovery(unittest.TestCase):
         with patch('src.modules.email_ingestion.imaplib.IMAP4_SSL') as mock_imap:
             # Simulate SSL certificate error
             mock_imap.side_effect = ssl.SSLError("certificate verify failed")
-            
+
             # Attempt to connect
             result = self.client.connect()
-            
+
             # Should fail securely
             self.assertFalse(result)
             self.client.logger.error.assert_called()
@@ -87,13 +87,13 @@ class TestIMAPErrorRecovery(unittest.TestCase):
         with patch('src.modules.email_ingestion.imaplib.IMAP4_SSL') as mock_imap:
             mock_connection = MagicMock()
             mock_imap.return_value = mock_connection
-            
+
             # Simulate authentication failure
             mock_connection.login.side_effect = imaplib.IMAP4.error("Authentication failed")
-            
+
             # Attempt to connect
             result = self.client.connect()
-            
+
             # Should handle gracefully
             self.assertFalse(result)
             self.client.logger.error.assert_called()
@@ -105,13 +105,13 @@ class TestIMAPErrorRecovery(unittest.TestCase):
         this without crashing and potentially retry.
         """
         self.client.connection = MagicMock()
-        
+
         # Simulate connection reset
         self.client.connection.select.side_effect = imaplib.IMAP4.abort("Connection reset")
-        
+
         # Attempt to fetch unseen emails
         emails = self.client.fetch_unseen_emails("INBOX", limit=10)
-        
+
         # Should return empty list, not crash
         self.assertEqual(emails, [])
         self.client.logger.error.assert_called()
@@ -124,10 +124,10 @@ class TestIMAPErrorRecovery(unittest.TestCase):
         """
         # Create intentionally malformed email data
         malformed_email = b"This is not a valid email format"
-        
+
         # Attempt to parse
         result = self.client.parse_email("1", malformed_email, "INBOX")
-        
+
         # Should handle gracefully - either return None or minimal data
         # The exact behavior depends on implementation
         if result is None:
@@ -143,21 +143,21 @@ class TestIMAPErrorRecovery(unittest.TestCase):
         skip it rather than processing corrupted data which could bypass security checks.
         """
         self.client.connection = MagicMock()
-        
+
         # Simulate partial fetch
         self.client.connection.select.return_value = ('OK', [b'10'])
         self.client.connection.search.return_value = ('OK', [b'1 2 3'])
-        
+
         # First two emails succeed, third fails mid-download
         self.client.connection.fetch.side_effect = [
             ('OK', [(b'1 (RFC822 {1000}', b'email1data')]),
             ('OK', [(b'2 (RFC822 {1000}', b'email2data')]),
             imaplib.IMAP4.abort("Connection lost during fetch")
         ]
-        
+
         # Should recover and return the successfully fetched emails
         emails = self.client.fetch_unseen_emails("INBOX", limit=10)
-        
+
         # Should have processed the first 2 emails successfully
         # Exact behavior depends on implementation
         self.assertIsInstance(emails, list)
@@ -178,12 +178,12 @@ class TestAnalyzerTimeoutHandling(unittest.TestCase):
         SECURITY STORY: This tests timeout enforcement for media analysis.
         Attackers could send specially crafted media files that take forever to process,
         causing a DoS. Timeouts ensure we bound resource consumption per email.
-        
+
         MAINTENANCE WISDOM: Future you will thank present you for this test when
         investigating why some emails take too long to process.
         """
         analyzer = MediaAuthenticityAnalyzer(self.analysis_config)
-        
+
         # Create email with attachment
         email_data = EmailData(
             message_id="test-123",
@@ -207,7 +207,7 @@ class TestAnalyzerTimeoutHandling(unittest.TestCase):
 
         # Analysis should complete or timeout, not hang
         result = analyzer.analyze(email_data)
-        
+
         # Should return a result (even if it indicates timeout/error)
         self.assertIsNotNone(result)
 
@@ -251,7 +251,7 @@ class TestEmailIngestionManagerRecovery(unittest.TestCase):
         SECURITY STORY: This tests graceful handling when some accounts fail to initialize.
         In production, one account might have wrong credentials while others are fine.
         We should continue monitoring working accounts rather than failing completely.
-        
+
         PATTERN RECOGNITION: This is similar to the "fail-open" vs "fail-closed" debate.
         Here we fail-open for availability, but log failures for investigation.
         """
@@ -259,15 +259,15 @@ class TestEmailIngestionManagerRecovery(unittest.TestCase):
             # First account succeeds, second fails
             mock_client1 = MagicMock()
             mock_client1.connect.return_value = True
-            
+
             mock_client2 = MagicMock()
             mock_client2.connect.return_value = False
-            
+
             mock_client_class.side_effect = [mock_client1, mock_client2]
-            
+
             # Initialize clients
             result = self.manager.initialize_clients()
-            
+
             # Should succeed even if one account fails
             # Exact behavior depends on implementation
             self.assertIsInstance(result, bool)
@@ -281,15 +281,15 @@ class TestEmailIngestionManagerRecovery(unittest.TestCase):
         # Setup mock clients
         client1 = MagicMock()
         client1.fetch_emails.return_value = [MagicMock()]  # Returns 1 email
-        
+
         client2 = MagicMock()
         client2.fetch_emails.side_effect = Exception("Fetch failed")
-        
+
         self.manager.clients = [client1, client2]
-        
+
         # Fetch from all accounts
         emails = self.manager.fetch_all_emails(max_per_folder=10)
-        
+
         # Should get emails from working account despite other account's failure
         self.assertIsInstance(emails, list)
 
@@ -298,25 +298,25 @@ class TestEmailIngestionManagerRecovery(unittest.TestCase):
         SECURITY STORY: This tests automatic reconnection after connection loss.
         IMAP connections can timeout or be closed by the server. We must detect
         this and reconnect automatically to maintain continuous monitoring.
-        
+
         INDUSTRY CONTEXT: Professional teams handle this by implementing connection
         pooling with health checks and automatic reconnection logic.
         """
         mock_client = MagicMock()
         mock_client.ensure_connection.return_value = True
         mock_client.fetch_unseen_emails.return_value = []
-        
+
         self.manager.clients = {
             self.accounts[0].email: mock_client
         }
-        
+
         # Simulate connection lost, then reconnected
         mock_client.connection = None
         mock_client.connect.return_value = True
-        
+
         # Should attempt reconnection via ensure_connection
         emails = self.manager.fetch_all_emails(max_per_folder=10)
-        
+
         # Should handle gracefully
         self.assertIsInstance(emails, list)
 
@@ -361,9 +361,9 @@ class TestGracefulDegradation(unittest.TestCase):
         analysis_config.check_media_attachments = True
         analysis_config.deepfake_detection_enabled = False
         analysis_config.media_analysis_timeout = 30
-        
+
         analyzer = MediaAuthenticityAnalyzer(analysis_config)
-        
+
         email_data = EmailData(
             message_id="corrupt-123",
             subject="Check this out",
@@ -387,7 +387,7 @@ class TestGracefulDegradation(unittest.TestCase):
         # Should handle gracefully and return a result
         result = analyzer.analyze(email_data)
         self.assertIsNotNone(result)
-        
+
         # Should indicate attachment was processed (even if analysis failed)
         # MediaAnalysisResult contains threat_score and warnings
         self.assertIsNotNone(result.threat_score)
@@ -397,7 +397,7 @@ class TestGracefulDegradation(unittest.TestCase):
         SECURITY STORY: This tests handling of network errors during external API calls.
         If we depend on external deepfake detection APIs, they might be unavailable.
         The pipeline should continue with degraded capabilities rather than failing.
-        
+
         MAINTENANCE WISDOM: Future you will thank present you for this test when
         the external API goes down and you need to understand system behavior.
         """
@@ -408,9 +408,9 @@ class TestGracefulDegradation(unittest.TestCase):
         analysis_config.deepfake_api_url = "https://api.example.com/detect"
         analysis_config.deepfake_api_key = "test-key"
         analysis_config.media_analysis_timeout = 30
-        
+
         analyzer = MediaAuthenticityAnalyzer(analysis_config)
-        
+
         # Test that analyzer is created successfully with API configuration
         # Network error handling during actual API calls would be tested if/when
         # external API integration is implemented

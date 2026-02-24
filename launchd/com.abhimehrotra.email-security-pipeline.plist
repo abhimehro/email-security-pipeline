@@ -4,7 +4,7 @@
 <dict>
     <key>Label</key>
     <string>com.abhimehrotra.email-security-pipeline</string>
-    
+
     <key>EnvironmentVariables</key>
     <dict>
         <key>PATH</key>
@@ -12,22 +12,22 @@
         <key>HOME</key>
         <string>/Users/speedybee</string>
     </dict>
-    
+
     <key>ProgramArguments</key>
     <array>
         <string>/Users/speedybee/Documents/dev/email-security-pipeline/venv/bin/python3</string>
         <string>/Users/speedybee/Documents/dev/email-security-pipeline/src/main.py</string>
     </array>
-    
+
     <key>WorkingDirectory</key>
     <string>/Users/speedybee/Documents/dev/email-security-pipeline</string>
-    
+
     <key>StandardOutPath</key>
     <string>/Users/speedybee/Library/Logs/email-security-pipeline/pipeline.out</string>
-    
+
     <key>StandardErrorPath</key>
     <string>/Users/speedybee/Library/Logs/email-security-pipeline/pipeline.err</string>
-    
+
     <!-- Keep the pipeline running continuously -->
     <key>KeepAlive</key>
     <dict>
@@ -38,15 +38,15 @@
         <key>Crashed</key>
         <true/>
     </dict>
-    
+
     <!-- Start automatically on login -->
     <key>RunAtLoad</key>
     <true/>
-    
+
     <!-- Throttle restarts to prevent rapid restart loops -->
     <key>ThrottleInterval</key>
     <integer>60</integer>
-    
+
     <!-- Nice priority (lower = less CPU priority) -->
     <key>Nice</key>
     <integer>5</integer>

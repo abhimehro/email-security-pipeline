@@ -30,9 +30,9 @@ class TestWebhookDelivery(unittest.TestCase):
         self.config.threat_low = 10
         self.config.threat_medium = 50
         self.config.threat_high = 80
-        
+
         self.alert_system = AlertSystem(self.config)
-        
+
         self.test_report = ThreatReport(
             email_id="test-123",
             subject="Suspicious Email",
@@ -61,13 +61,13 @@ class TestWebhookDelivery(unittest.TestCase):
         mock_response.status_code = 200
         mock_response.text = "OK"
         mock_post.return_value = mock_response
-        
+
         # Send alert
         self.alert_system.send_alert(self.test_report)
-        
+
         # Verify webhook was called
         self.assertTrue(mock_post.called)
-        
+
         # Verify correct URL
         call_args = mock_post.call_args
         if call_args[0]:  # Positional args
@@ -85,19 +85,19 @@ class TestWebhookDelivery(unittest.TestCase):
         mock_response = Mock()
         mock_response.status_code = 200
         mock_post.return_value = mock_response
-        
+
         # Send alert
         self.alert_system.send_alert(self.test_report)
-        
+
         # Extract the data sent
         call_args = mock_post.call_args
         sent_data = None
-        
+
         if call_args and 'json' in call_args[1]:
             sent_data = call_args[1]['json']
         elif call_args and 'data' in call_args[1]:
             sent_data = call_args[1]['data']
-        
+
         # Verify data was sent
         self.assertIsNotNone(sent_data)
 
@@ -107,7 +107,7 @@ class TestWebhookDelivery(unittest.TestCase):
         SECURITY STORY: This tests retry logic for failed webhook deliveries.
         Network issues or temporary endpoint unavailability shouldn't cause
         lost alerts. Retry logic ensures eventual delivery of critical threats.
-        
+
         PATTERN RECOGNITION: This is similar to message queue patterns with
         retry backoff. We attempt delivery multiple times before giving up.
         """
@@ -115,19 +115,19 @@ class TestWebhookDelivery(unittest.TestCase):
         mock_response_fail = Mock()
         mock_response_fail.status_code = 500
         mock_response_fail.raise_for_status.side_effect = requests.HTTPError("Server Error")
-        
+
         mock_response_success = Mock()
         mock_response_success.status_code = 200
-        
+
         mock_post.side_effect = [
             mock_response_fail,
             mock_response_success
         ]
-        
+
         # Send alert - implementation may or may not include retry logic
         # This test documents expected behavior
         self.alert_system.send_alert(self.test_report)
-        
+
         # If retry logic exists, would see multiple calls
         # If not, this documents that retry logic should be added
 
@@ -146,7 +146,7 @@ class TestWebhookDelivery(unittest.TestCase):
 
         # Should handle timeout gracefully, not crash
         self.alert_system.send_alert(self.test_report)
-        
+
         # Verify the post was attempted
         self.assertTrue(mock_post.called)
 class TestSlackNotifications(unittest.TestCase):
@@ -162,9 +162,9 @@ class TestSlackNotifications(unittest.TestCase):
         self.config.threat_low = 10
         self.config.threat_medium = 50
         self.config.threat_high = 80
-        
+
         self.alert_system = AlertSystem(self.config)
-        
+
         self.test_report = ThreatReport(
             email_id="test-456",
             subject="Phishing Attempt",
@@ -186,20 +186,20 @@ class TestSlackNotifications(unittest.TestCase):
         SECURITY STORY: This tests Slack message formatting for readability.
         Security teams review alerts in Slack. Well-formatted messages enable
         quick triage and response. Poor formatting could cause missed threats.
-        
+
         INDUSTRY CONTEXT: Professional teams use rich formatting (colors, fields)
         to make threat details scannable and actionable.
         """
         mock_response = Mock()
         mock_response.status_code = 200
         mock_post.return_value = mock_response
-        
+
         # Send alert
         self.alert_system.send_alert(self.test_report)
-        
+
         # Verify Slack webhook was called
         self.assertTrue(mock_post.called)
-        
+
         # Verify correct Slack URL
         call_args = mock_post.call_args
         if call_args[0]:
@@ -217,14 +217,14 @@ class TestSlackNotifications(unittest.TestCase):
         mock_response = Mock()
         mock_response.status_code = 200
         mock_post.return_value = mock_response
-        
+
         # Test high threat (should use red/danger color)
         high_threat_report = self.test_report
         high_threat_report.risk_level = "high"
         high_threat_report.overall_threat_score = 90.0
-        
+
         self.alert_system.send_alert(high_threat_report)
-        
+
         # Verify alert was sent
         self.assertTrue(mock_post.called)
 
@@ -238,7 +238,7 @@ class TestSlackNotifications(unittest.TestCase):
         mock_response = Mock()
         mock_response.status_code = 200
         mock_post.return_value = mock_response
-        
+
         # Create report with special characters
         malicious_report = ThreatReport(
             email_id="test-789",
@@ -254,10 +254,10 @@ class TestSlackNotifications(unittest.TestCase):
             recommendations=[],
             timestamp=datetime.now().isoformat()
         )
-        
+
         # Send alert - should escape special characters
         self.alert_system.send_alert(malicious_report)
-        
+
         # Verify it was sent (escaping is tested in detail in test_alert_system_security.py)
         self.assertTrue(mock_post.called)
 
@@ -275,7 +275,7 @@ class TestAlertDeduplication(unittest.TestCase):
         self.config.threat_low = 10
         self.config.threat_medium = 50
         self.config.threat_high = 80
-        
+
         self.alert_system = AlertSystem(self.config)
 
     @patch('src.modules.alert_system.requests.post')
@@ -285,14 +285,14 @@ class TestAlertDeduplication(unittest.TestCase):
         If the same threatening email is processed multiple times (e.g., due to
         retries or folder scanning), we shouldn't spam the security team with
         duplicate alerts. Deduplication prevents alert fatigue.
-        
+
         MAINTENANCE WISDOM: Future you will thank present you for this test when
         investigating why the security team got 50 alerts for the same email.
         """
         mock_response = Mock()
         mock_response.status_code = 200
         mock_post.return_value = mock_response
-        
+
         # Create identical reports
         report1 = ThreatReport(
             email_id="duplicate-123",
@@ -308,7 +308,7 @@ class TestAlertDeduplication(unittest.TestCase):
             recommendations=[],
             timestamp=datetime.now().isoformat()
         )
-        
+
         report2 = ThreatReport(
             email_id="duplicate-123",  # Same email_id
             subject="Same Threat",
@@ -323,11 +323,11 @@ class TestAlertDeduplication(unittest.TestCase):
             recommendations=[],
             timestamp=datetime.now().isoformat()
         )
-        
+
         # Send both alerts
         self.alert_system.send_alert(report1)
         self.alert_system.send_alert(report2)
-        
+
         # Current implementation: both get sent
         # Future enhancement: should deduplicate based on email_id
         # This test documents expected behavior for deduplication feature
@@ -353,15 +353,15 @@ class TestAlertDeduplication(unittest.TestCase):
             recommendations=[],
             timestamp=datetime.now().isoformat()
         )
-        
+
         with patch('src.modules.alert_system.requests.post') as mock_post:
             mock_response = Mock()
             mock_response.status_code = 200
             mock_post.return_value = mock_response
-            
+
             # Send alert
             self.alert_system.send_alert(low_threat_report)
-            
+
             # Should NOT send webhook for low-scoring email
             self.assertFalse(mock_post.called)
 
@@ -380,9 +380,9 @@ class TestAlertSystemReliability(unittest.TestCase):
         self.config.threat_low = 10
         self.config.threat_medium = 50
         self.config.threat_high = 80
-        
+
         self.alert_system = AlertSystem(self.config)
-        
+
         self.test_report = ThreatReport(
             email_id="test-999",
             subject="Test Threat",
@@ -405,13 +405,13 @@ class TestAlertSystemReliability(unittest.TestCase):
         If external webhooks are down, local console alerts should still work.
         Partial delivery is better than complete failure - at least someone
         running the system locally will see the threat.
-        
+
         PATTERN RECOGNITION: This is similar to fallback mechanisms in distributed
         systems where we degrade gracefully rather than failing completely.
         """
         # Mock webhook failure
         mock_post.side_effect = Exception("Webhook unavailable")
-        
+
         # Should not crash, console alert should still work
         try:
             self.alert_system.send_alert(self.test_report)
@@ -430,14 +430,14 @@ class TestAlertSystemReliability(unittest.TestCase):
         mock_response = Mock()
         mock_response.status_code = 200
         mock_post.return_value = mock_response
-        
+
         # Send alert with multiple channels enabled
         self.alert_system.send_alert(self.test_report)
-        
+
         # Should attempt to send to both webhook and Slack
         # Exact number of calls depends on implementation
         self.assertTrue(mock_post.called)
-        
+
         # With webhook + Slack both enabled, should see 2 POST calls
         if mock_post.call_count > 0:
             # Verify different endpoints were called
