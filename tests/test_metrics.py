@@ -182,6 +182,22 @@ class TestMetrics(unittest.TestCase):
         self.assertEqual(stats["p95_ms"], 123.5)
         self.assertEqual(stats["p99_ms"], 123.5)
 
+    def test_bounded_processing_time(self):
+        """Test that processing time metrics are bounded to prevent memory leaks"""
+        # Add 1500 data points (more than the limit of 1000)
+        for i in range(1500):
+            self.metrics.record_processing_time(float(i))
+
+        # Should be capped at 1000
+        self.assertEqual(len(self.metrics.processing_time_ms), 1000)
+
+        # Should keep the most recent values
+        # The values were 0..1499, so the last 1000 should be 500..1499
+        # The oldest value in the deque (index 0) should be 500.0
+        self.assertEqual(self.metrics.processing_time_ms[0], 500.0)
+        # The newest value (index -1) should be 1499.0
+        self.assertEqual(self.metrics.processing_time_ms[-1], 1499.0)
+
 
 if __name__ == '__main__':
     unittest.main()

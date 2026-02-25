@@ -3,10 +3,10 @@ Metrics Collection Module
 Tracks system performance and threat detection statistics
 """
 
-from collections import Counter
+from collections import Counter, deque
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Dict, List
+from typing import Dict, List, Deque
 
 
 @dataclass
@@ -38,8 +38,10 @@ class Metrics:
     # Processing time for each email in milliseconds
     # MAINTENANCE WISDOM: We store individual times rather than just an average
     # because you can calculate average, median, p95, p99 from the raw data
-    # but you can't go backwards from an average to individual times
-    processing_time_ms: List[float] = field(default_factory=list)
+    # but you can't go backwards from an average to individual times.
+    # SECURITY STORY: We use a bounded deque (maxlen=1000) to prevent memory
+    # leaks and CPU exhaustion (DoS) from sorting massive lists.
+    processing_time_ms: Deque[float] = field(default_factory=lambda: deque(maxlen=1000))
 
     # Count of errors by type
     errors_count: Counter = field(default_factory=Counter)

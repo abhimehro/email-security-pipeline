@@ -44,3 +44,8 @@
 **Vulnerability:** The Media Analyzer's blocklist missed critical dangerous extensions (.vbe, .iso, .img, .lnk) and failed to detect nested archives (e.g. zip inside zip), allowing malware evasion.
 **Learning:** Blocklists are often incomplete and attackers use obscure extensions or nesting to bypass simple checks. Recursive analysis or flagging nested structures is essential.
 **Prevention:** Use comprehensive extension lists (including Windows script/shortcut types and disk images) and implement depth-limited recursive inspection for archives.
+
+## 2026-02-25 - Unbounded Metrics Collection DoS
+**Vulnerability:** The `Metrics` class stored processing times in an unbounded list (`processing_time_ms`), which grew indefinitely with every email processed. This led to a linear memory leak and, more critically, an O(N log N) CPU spike during periodic sorting for stats calculation.
+**Learning:** Even internal monitoring tools can cause DoS if data structures are not bounded. The impact was amplified by the periodic sorting operation on the growing list.
+**Prevention:** Always use bounded collections (like `collections.deque(maxlen=N)`) for time-series data or rolling windows in long-running services. Avoid unbounded lists for metrics.
