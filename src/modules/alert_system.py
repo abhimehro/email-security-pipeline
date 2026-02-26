@@ -435,9 +435,9 @@ class AlertSystem:
                 parts = parsed.path.split('/')
                 # parts[0] is empty, parts[1] is 'services'
                 # parts[2] is Team ID, parts[3] is Bot ID, parts[4] is Token
-                # We redact the token (last part)
+                # We redact the token (index 4)
                 if len(parts) >= 5:
-                    parts[-1] = "[REDACTED]"
+                    parts[4] = "[REDACTED]"
                     new_path = "/".join(parts)
                     parsed = parsed._replace(path=new_path)
                     return urlunparse(parsed)
@@ -446,9 +446,9 @@ class AlertSystem:
             # Format: /api/webhooks/ID/TOKEN
             if (netloc == "discord.com" or netloc.endswith(".discord.com")) and parsed.path.startswith("/api/webhooks/"):
                 parts = parsed.path.split('/')
-                # parts[-1] is likely the token
+                # parts[0]='', parts[1]='api', parts[2]='webhooks', parts[3]='ID', parts[4]='TOKEN'
                 if len(parts) >= 5:
-                    parts[-1] = "[REDACTED]"
+                    parts[4] = "[REDACTED]"
                     new_path = "/".join(parts)
                     parsed = parsed._replace(path=new_path)
                     return urlunparse(parsed)
