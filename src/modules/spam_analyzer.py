@@ -273,6 +273,9 @@ class SpamAnalyzer:
         """
         Analyze a single URL for suspicious patterns.
         Cached to avoid re-parsing frequent URLs (e.g., in footers).
+
+        The cache size of 4096 is sufficient for typical email batches
+        while keeping memory usage low.
         """
         try:
             parsed = urlparse(url)
