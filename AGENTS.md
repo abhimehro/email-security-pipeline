@@ -1,4 +1,4 @@
-# AGENTS.md
+# Agent Development Environment Setup
 
 ## Cursor Cloud specific instructions
 
@@ -38,5 +38,7 @@ Without valid IMAP credentials the pipeline will fail at the connection step. Fo
 
 - **`_get_terminal_width` bug**: The `AlertSystem._console_clean_report` method calls `self._get_terminal_width()` which does not exist. This causes an `AttributeError` when the pipeline tries to display console alerts. This is a pre-existing bug.
 - **ML dependencies not installed by default**: `torch`, `transformers`, `sentencepiece` are in `requirements.txt` but excluded from `requirements-ci.txt`. The NLP analyzer falls back to regex-based pattern matching when these are absent.
-- **PATH for pip-installed scripts**: User-installed pip scripts land in `~/.local/bin`. Ensure `PATH` includes this directory (the update script handles it).
-- **Dependencies**: Use `requirements-ci.txt` for development; `requirements.txt` pulls in multi-GB ML libraries.
+**Dependencies**: Use 'requirements-ci.txt' for development to avoid installing multi-GB ML libraries ('torch', 'transformers, etc.). The application will fall back to simpler rege x-based analysis if these are absent. The full dependency list is in 'requirements.txt'.
+**PATH for pip-installed scripts**: User-in stalled pip scripts may land in '~/.local/bin'
+• Ensure this directory is in your 'PATH'..
+
