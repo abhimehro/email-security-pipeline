@@ -44,24 +44,24 @@ class ThreatReport:
 
 class AlertSystem:
     """Manages alerts and notifications"""
-    
+
     # Common prefixes for recommendations to strip during display to prevent duplication
     RECOMMENDATION_PREFIXES = ["⚠️ ", "🎣 ", "🔗 ", "⏰ ", "📎 ", "👤 "]
 
     def __init__(self, config):
         """
         Initialize alert system
-        
+
         Args:
             config: AlertConfig object
         """
         self.config = config
         self.logger = logging.getLogger("AlertSystem")
-    
+
     def send_alert(self, threat_report: ThreatReport):
         """
         Send alert through configured channels
-        
+
         Args:
             threat_report: Threat report to alert on
         """
@@ -72,19 +72,19 @@ class AlertSystem:
             if self.config.console:
                 self._console_clean_report(threat_report)
             return
-        
+
         # Console alert
         if self.config.console:
             self._console_alert(threat_report)
-        
+
         # Webhook alert
         if self.config.webhook_enabled and self.config.webhook_url:
             self._webhook_alert(threat_report)
-        
+
         # Slack alert
         if self.config.slack_enabled and self.config.slack_webhook:
             self._slack_alert(threat_report)
-    
+
     def _print_alert_row(self, text: str, risk_color: str, indent: int = 0):
         """Helper to print a row with the left border"""
         # Note: We don't print the right border '│' because calculating visual width
@@ -227,7 +227,7 @@ class AlertSystem:
         print(Colors.colorize(f"├{'─'*border_len}┤", risk_color))
         self._print_alert_row(Colors.colorize("RECOMMENDATIONS", Colors.BOLD), risk_color)
         self._print_alert_row("", risk_color)
-        
+
         for rec in recommendations:
             color = Colors.GREEN
             rec_upper = rec.upper()
@@ -269,7 +269,7 @@ class AlertSystem:
         self._print_threat_score(report.overall_threat_score, report.risk_level, WIDTH, risk_color)
         self._print_analysis_details(report, WIDTH, risk_color)
         self._print_recommendations(report.recommendations, WIDTH, risk_color)
-    
+
     def _console_clean_report(self, report: ThreatReport):
         """Print clean report to console"""
         # Compact format for clean emails
@@ -379,12 +379,12 @@ class AlertSystem:
                 headers={'Content-Type': 'application/json'},
                 timeout=10
             )
-            
+
             if response.status_code == 200:
                 self.logger.info("Webhook alert sent successfully")
             else:
                 self.logger.warning(f"Webhook alert failed: {response.status_code}")
-                
+
         except Exception as e:
             self.logger.error(f"Failed to send webhook alert: {self._sanitize_error_message(e)}")
 
@@ -413,7 +413,7 @@ class AlertSystem:
             return msg
         except Exception:
             return "An error occurred (details redacted for security)"
-    
+
     def _redact_url_secrets(self, url: str) -> str:
         """
         Redact sensitive information from URL (query params and specific paths).
@@ -598,24 +598,24 @@ class AlertSystem:
                 "footer": "Email Security Pipeline",
                 "ts": int(datetime.now().timestamp())
             }]
-            
+
             payload = {
                 "text": "New email security threat detected",
                 "attachments": attachments
             }
-            
+
             response = requests.post(
                 self.config.slack_webhook,
                 json=payload,
                 headers={'Content-Type': 'application/json'},
                 timeout=10
             )
-            
+
             if response.status_code == 200:
                 self.logger.info("Slack alert sent successfully")
             else:
                 self.logger.warning(f"Slack alert failed: {response.status_code}")
-                
+
         except Exception as e:
             self.logger.error(f"Failed to send Slack alert: {self._sanitize_error_message(e)}")
 
@@ -628,13 +628,13 @@ def generate_threat_report(
 ) -> ThreatReport:
     """
     Generate comprehensive threat report
-    
+
     Args:
         email_data: Email data
         spam_result: Spam analysis result
         nlp_result: NLP analysis result
         media_result: Media analysis result
-        
+
     Returns:
         ThreatReport
     """
@@ -644,7 +644,7 @@ def generate_threat_report(
         nlp_result.threat_score +
         media_result.threat_score
     )
-    
+
     # Determine overall risk level
     if spam_result.risk_level == "high" or nlp_result.risk_level == "high" or media_result.risk_level == "high":
         risk_level = "high"
@@ -652,10 +652,10 @@ def generate_threat_report(
         risk_level = "medium"
     else:
         risk_level = "low"
-    
+
     # Generate recommendations
     recommendations = _generate_recommendations(spam_result, nlp_result, media_result)
-    
+
     return ThreatReport(
         email_id=email_data.message_id,
         subject=email_data.subject,
@@ -699,29 +699,29 @@ def _generate_recommendations(
 ) -> List[str]:
     """Generate actionable recommendations"""
     recommendations = []
-    
+
     # High-risk recommendations
     if spam_result.risk_level == "high":
         recommendations.append("⚠️ HIGH RISK: Move to spam folder immediately")
-    
+
     if nlp_result.social_engineering_indicators:
         recommendations.append("🎣 Potential phishing: Do not click links or provide credentials")
-    
+
     if media_result.file_type_warnings:
         recommendations.append("📎 Dangerous attachment detected: Do not open attachments")
-    
+
     # Medium-risk recommendations
     if spam_result.suspicious_urls:
         recommendations.append("🔗 Suspicious URLs detected: Verify links before clicking")
-    
+
     if nlp_result.authority_impersonation:
         recommendations.append("👤 Authority impersonation suspected: Verify sender identity")
-    
+
     if nlp_result.urgency_markers:
         recommendations.append("⏰ Urgency tactics detected: Take time to verify before acting")
-    
+
     # General recommendations
     if not recommendations:
         recommendations.append("Review email carefully before taking action")
-    
+
     return recommendations

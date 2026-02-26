@@ -11,15 +11,15 @@ from typing import Any
 class JSONFormatter(logging.Formatter):
     """
     Custom formatter that outputs log records as JSON.
-    
+
     This is similar to using ELK (Elasticsearch, Logstash, Kibana) formatters
     but implements a simple version without external dependencies.
-    
+
     SECURITY STORY: Structured logs help detect attack patterns by making
     it easy to query for specific events. For example, you can quickly find
     all "failed login" attempts or "high threat" emails across thousands of
     log entries using tools like jq, Splunk, or CloudWatch Logs Insights.
-    
+
     PATTERN RECOGNITION: This is similar to how web servers use JSON access logs
     (nginx with json_log format) because structured data is easier to analyze
     than parsing free-form text with regex.
@@ -34,10 +34,10 @@ class JSONFormatter(logging.Formatter):
     def format(self, record: logging.LogRecord) -> str:
         """
         Format a log record as JSON.
-        
+
         Args:
             record: Python logging.LogRecord to format
-            
+
         Returns:
             JSON string with structured log data
         """
@@ -74,16 +74,16 @@ class JSONFormatter(logging.Formatter):
     def _sanitize_value(self, key: str, value: Any) -> Any:
         """
         Sanitize potentially sensitive values before logging.
-        
+
         SECURITY STORY: This protects against the attack where credentials
         accidentally get logged (e.g., someone adds extra_fields={'password': pwd}).
         Instead of logging the actual password, we log "[REDACTED]" which still
         tells you a password field was present without exposing the value.
-        
+
         Args:
             key: Field name
             value: Field value
-            
+
         Returns:
             Original value or "[REDACTED]" for sensitive fields
         """

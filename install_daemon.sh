@@ -102,11 +102,11 @@ sleep 2
 # Check if it's running
 if launchctl list | grep -q "com.abhimehrotra.email-security-pipeline"; then
     print_success "Pipeline is running!"
-    
+
     # Show status
     print_header "Status"
     launchctl list | grep email-security-pipeline
-    
+
     print_header "Quick Reference"
     echo "View logs:"
     echo "  tail -f ${LOG_DIR}/pipeline.out"
@@ -121,7 +121,7 @@ if launchctl list | grep -q "com.abhimehrotra.email-security-pipeline"; then
     echo ""
     echo "Check status:"
     echo "  launchctl list | grep email-security-pipeline"
-    
+
 else
     print_error "Failed to start pipeline!"
     print_info "Check logs for errors:"
