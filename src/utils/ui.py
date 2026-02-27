@@ -93,7 +93,8 @@ class Spinner:
     def _spin(self):
         while self.busy:
             # \r moves cursor to start of line, \033[K clears the line
-            sys.stdout.write(f"\r{next(self.spinner)} {self.message}   \033[K")
+            spin_char = Colors.colorize(next(self.spinner), Colors.CYAN)
+            sys.stdout.write(f"\r{spin_char} {self.message}   \033[K")
             sys.stdout.flush()
             time.sleep(self.delay)
             # Check again to avoid writing after stop

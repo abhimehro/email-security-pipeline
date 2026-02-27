@@ -54,3 +54,7 @@
 ## 2026-06-25 - Validation in Setup Wizards
 **Learning:** Setup wizards that blindly accept input lead to frustrating failures later. Immediate validation (e.g., regex checks) builds confidence and prevents configuration errors.
 **Action:** Always validate critical inputs like email addresses during setup, providing helpful feedback and allowing retry.
+
+## 2026-10-25 - Colorizing Loading States
+**Learning:** Loading states (like CLI spinners) are often ignored by users if they lack visual distinction. Colorizing the spinning indicator creates a subtle but effective cue that a process is actively running, distinguishing it from static text.
+**Action:** Always colorize loading indicators (e.g., `Spinner` in CLI) with a distinct, neutral color (like CYAN) to separate them from the accompanying message text.
