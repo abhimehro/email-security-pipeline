@@ -133,9 +133,10 @@ class EmailSecurityPipeline:
             self.logger.info("Starting Email Security Pipeline")
 
             # Initialize email clients
-            with Spinner("Initializing email clients..."):
+            with Spinner("Initializing email clients...") as spinner:
                 if not self.ingestion_manager.initialize_clients():
                     raise RuntimeError("Failed to initialize email clients")
+                spinner.success("Email clients initialized")
 
             self.running = True
 
@@ -201,10 +202,12 @@ class EmailSecurityPipeline:
 
             try:
                 # Fetch emails
-                with Spinner("Checking for new emails...", persist=False):
+                with Spinner("Checking for new emails...", persist=False) as spinner:
                     emails = self.ingestion_manager.fetch_all_emails(
                         self.config.system.max_emails_per_batch
                     )
+                    if emails:
+                        spinner.success(f"Found {len(emails)} new emails")
 
                 if not emails:
                     self.logger.info("No new emails to analyze")

@@ -89,6 +89,16 @@ class Spinner:
         self.persist = persist
         self.busy = False
         self.thread = None
+        self.success_msg = None
+        self.fail_msg = None
+
+    def success(self, message: str):
+        """Set a custom success message to display on completion"""
+        self.success_msg = message
+
+    def fail(self, message: str):
+        """Set a custom failure message to display on error"""
+        self.fail_msg = message
 
     def _spin(self):
         while self.busy:
@@ -116,21 +126,27 @@ class Spinner:
             if self.thread:
                 self.thread.join()
             final_message = ""
-            if exc_type is not None:
-                # Failure always persists
-                final_message = f"{Colors.RED}✘{Colors.RESET} {self.message}\n"
-            elif self.persist:
-                # Success only persists if requested
-                final_message = f"{Colors.GREEN}✔{Colors.RESET} {self.message}\n"
-            sys.stdout.write(f"\r\033[K{final_message}")
 
+            if exc_type is not None:
+                # Failure logic
+                msg = self.fail_msg if self.fail_msg else self.message
+                final_message = f"{Colors.RED}✘{Colors.RESET} {msg}\n"
+            elif self.success_msg:
+                # Explicit success message always persists
+                final_message = f"{Colors.GREEN}✔{Colors.RESET} {self.success_msg}\n"
+            elif self.persist:
+                # Default persistence
+                final_message = f"{Colors.GREEN}✔{Colors.RESET} {self.message}\n"
+
+            sys.stdout.write(f"\r\033[K{final_message}")
             sys.stdout.flush()
         else:
             # Non-TTY: provide simple success/failure feedback without ANSI codes
             if exc_type is not None:
-                # Failure always persists
-                sys.stdout.write(f"✘ {self.message}\n")
+                msg = self.fail_msg if self.fail_msg else self.message
+                sys.stdout.write(f"✘ {msg}\n")
+            elif self.success_msg:
+                sys.stdout.write(f"✔ {self.success_msg}\n")
             elif self.persist:
-                # Success only persists if requested
                 sys.stdout.write(f"✔ {self.message}\n")
             sys.stdout.flush()
