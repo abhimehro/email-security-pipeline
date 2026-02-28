@@ -53,6 +53,6 @@
 **Learning:** Facial analysis using `detectMultiScale` is computationally expensive and linear with the number of frames. Analyzing a statistical sample of frames (e.g., 5) instead of all extracted frames (e.g., 10) provides a 50% speedup while still catching persistent inconsistencies.
 **Action:** Use frame subsampling for expensive per-frame operations like face detection, similar to how it's done for compression artifacts.
 
-## 2026-03-22 - Optimizing Repeated URL Checks with LRU Cache
+## 2024-05-22 - [Optimizing Repeated URL Checks with LRU Cache]
 **Learning:** `lru_cache` on instance methods includes `self` in the cache key. For long-lived singleton-like objects (like `SpamAnalyzer`), this is effective for caching results across method calls, reducing repeated work for common inputs.
 **Action:** Use `lru_cache` for expensive computations in long-lived service objects, but verify object lifecycle first.
