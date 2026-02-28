@@ -599,8 +599,8 @@ class TestGeneralParsing(unittest.TestCase):
         self.assertIn("World", result.body_text)
         self.assertEqual(result.folder, "INBOX")
 
-    def test_returns_none_for_empty_bytes(self):
-        """Completely empty input must not raise; None is returned."""
+    def test_handles_empty_bytes_gracefully(self):
+        """Completely empty input must not raise; parser handles it gracefully."""
         result = self.parser.parse_email("002", b"", "INBOX")
         # Empty bytes produce a minimal (but not None) EmailMessage
         # The important thing is no unhandled exception is raised.
