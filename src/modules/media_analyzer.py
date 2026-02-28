@@ -58,7 +58,9 @@ class MediaAuthenticityAnalyzer:
     MAX_NESTED_ZIP_SIZE = 10 * 1024 * 1024  # 10MB limit for nested zips
 
     # Archive extensions used for nested archive detection
-    ARCHIVE_EXTENSIONS = {'.zip', '.rar', '.7z', '.tar', '.gz', '.iso', '.img', '.vhd', '.vhdx'}
+    ARCHIVE_EXTENSIONS = [
+        '.zip', '.rar', '.7z', '.tar', '.gz', '.iso', '.img', '.vhd', '.vhdx'
+    ]
 
     def __init__(self, config):
         """
