@@ -424,7 +424,26 @@ class AlertSystem:
 
             parsed = urlparse(url)
 
-            # 2. Redact Slack Webhooks
+            # 2. Redact credentials in authority section
+            if parsed.password:
+                # Reconstruct URL with redacted password.
+                # Use netloc.rpartition to safely separate authority from host, preserving IPv6 brackets.
+                _, _, host_part = parsed.netloc.rpartition('@')
+
+                if parsed.username:
+                    # Extract the raw username from the netloc to avoid re-encoding ambiguity
+                    # parsed.netloc is "user:pass@host", so partition gives us "user:pass"
+                    user_pass_part = parsed.netloc.rpartition('@')[0]
+                    # Partition gives us "user"
+                    username_part = user_pass_part.partition(':')[0]
+                    new_netloc = f"{username_part}:[REDACTED]@{host_part}"
+                else:
+                    # Case: https://:password@host (no username)
+                    new_netloc = f":[REDACTED]@{host_part}"
+
+                parsed = parsed._replace(netloc=new_netloc)
+
+            # 3. Redact Slack Webhooks
             # Format: /services/T000/B000/TOKEN
             netloc = parsed.netloc.lower()
             if (netloc == "hooks.slack.com" or netloc.endswith(".slack.com")) and parsed.path.startswith("/services/"):
@@ -438,7 +457,7 @@ class AlertSystem:
                     parsed = parsed._replace(path=new_path)
                     return urlunparse(parsed)
 
-            # 3. Redact Discord Webhooks
+            # 4. Redact Discord Webhooks
             # Format: /api/webhooks/ID/TOKEN
             if (netloc == "discord.com" or netloc.endswith(".discord.com")) and parsed.path.startswith("/api/webhooks/"):
                 parts = parsed.path.split('/')
@@ -449,7 +468,7 @@ class AlertSystem:
                     parsed = parsed._replace(path=new_path)
                     return urlunparse(parsed)
 
-            return url
+            return urlunparse(parsed)
         except Exception:
             return url
 
