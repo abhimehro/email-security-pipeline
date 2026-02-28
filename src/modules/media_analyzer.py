@@ -16,6 +16,8 @@ from typing import List, Tuple, Optional
 from dataclasses import dataclass
 
 from .email_ingestion import EmailData
+from ..utils.security_validators import sanitize_filename
+from ..utils.sanitization import sanitize_for_logging
 
 
 @dataclass
@@ -476,20 +478,23 @@ class MediaAuthenticityAnalyzer:
         """
         score = 0.0
         warnings = []
-        member_lower = member_name.lower()
+
+        # SECURITY: Sanitize member name to prevent path traversal and log injection
+        safe_member_name = sanitize_for_logging(sanitize_filename(member_name))
+        member_lower = safe_member_name.lower()
 
         # Check for dangerous extensions
         for ext in self.DANGEROUS_EXTENSIONS:
             if member_lower.endswith(ext):
                 score += 5.0
-                warnings.append(f"Archive {parent_filename} contains dangerous file: {member_name}")
+                warnings.append(f"Archive {parent_filename} contains dangerous file: {safe_member_name}")
                 return score, warnings
 
         # Check for nested archives
         is_nested = member_lower.endswith(('.zip', '.rar', '.7z', '.tar', '.gz', '.iso', '.img', '.vhd', '.vhdx'))
         if is_nested:
             score += 2.0
-            warnings.append(f"Archive {parent_filename} contains nested archive: {member_name}")
+            warnings.append(f"Archive {parent_filename} contains nested archive: {safe_member_name}")
 
             # Recurse
             nested_score, nested_warnings = nested_handler_fn()
@@ -503,7 +508,7 @@ class MediaAuthenticityAnalyzer:
         for ext in self.SUSPICIOUS_EXTENSIONS:
             if member_lower.endswith(ext):
                 score += 3.0
-                warnings.append(f"Archive {parent_filename} contains suspicious file: {member_name}")
+                warnings.append(f"Archive {parent_filename} contains suspicious file: {safe_member_name}")
 
         return score, warnings
 
@@ -511,7 +516,10 @@ class MediaAuthenticityAnalyzer:
         """Handle nested archive found inside a zip file"""
         score = 0.0
         warnings = []
-        member_lower = member_name.lower()
+
+        # SECURITY: Sanitize member name for logging and recursive path building
+        safe_member_name = sanitize_for_logging(sanitize_filename(member_name))
+        member_lower = safe_member_name.lower()
 
         # Only recurse into supported formats
         if not (member_lower.endswith('.zip') or member_lower.endswith(('.tar', '.tar.gz', '.tgz', '.gz'))) or depth >= 2:
@@ -521,7 +529,7 @@ class MediaAuthenticityAnalyzer:
             # Check declared size
             info = zf.getinfo(member_name)
             if info.file_size >= self.MAX_NESTED_ZIP_SIZE:
-                self.logger.warning(f"Skipping nested archive {member_name} (declared size {info.file_size} > limit)")
+                self.logger.warning(f"Skipping nested archive {safe_member_name} (declared size {info.file_size} > limit)")
                 return score, warnings
 
             # Extract securely
@@ -529,17 +537,17 @@ class MediaAuthenticityAnalyzer:
 
             # Recurse based on type
             if member_lower.endswith('.zip'):
-                return self._inspect_zip_contents(f"{parent_filename}/{member_name}", nested_data, depth + 1)
+                return self._inspect_zip_contents(f"{parent_filename}/{safe_member_name}", nested_data, depth + 1)
             else:
-                return self._inspect_tar_contents(f"{parent_filename}/{member_name}", nested_data, depth + 1)
+                return self._inspect_tar_contents(f"{parent_filename}/{safe_member_name}", nested_data, depth + 1)
 
         except ValueError as e:
             score += 5.0
-            warnings.append(f"Zip bomb detected: {parent_filename}/{member_name} ({str(e)})")
+            warnings.append(f"Zip bomb detected: {parent_filename}/{safe_member_name} ({str(e)})")
         except Exception as e:
-            self.logger.warning(f"Error inspecting nested archive {member_name}: {e}")
+            self.logger.warning(f"Error inspecting nested archive {safe_member_name}: {e}")
             score += 3.0
-            warnings.append(f"Failed to inspect nested archive {member_name}: {str(e)}")
+            warnings.append(f"Failed to inspect nested archive {safe_member_name}: {str(e)}")
 
         return score, warnings
 
@@ -585,14 +593,17 @@ class MediaAuthenticityAnalyzer:
         score = 0.0
         warnings = []
         member_name = member.name
-        member_lower = member_name.lower()
+
+        # SECURITY: Sanitize member name for logging and recursive path building
+        safe_member_name = sanitize_for_logging(sanitize_filename(member_name))
+        member_lower = safe_member_name.lower()
 
         if not (member_lower.endswith('.zip') or member_lower.endswith(('.tar', '.tar.gz', '.tgz', '.gz'))) or depth >= 2:
             return score, warnings
 
         # Skip if declared size is too large
         if member.size >= self.MAX_NESTED_ZIP_SIZE:
-            self.logger.warning(f"Skipping nested archive {member_name} (declared size {member.size} > limit)")
+            self.logger.warning(f"Skipping nested archive {safe_member_name} (declared size {member.size} > limit)")
             return score, warnings
 
         try:
@@ -601,14 +612,14 @@ class MediaAuthenticityAnalyzer:
                 nested_data = self._read_file_securely(f, member_name, self.MAX_NESTED_ZIP_SIZE)
 
                 if member_lower.endswith('.zip'):
-                    return self._inspect_zip_contents(f"{parent_filename}/{member_name}", nested_data, depth + 1)
+                    return self._inspect_zip_contents(f"{parent_filename}/{safe_member_name}", nested_data, depth + 1)
                 else:
-                    return self._inspect_tar_contents(f"{parent_filename}/{member_name}", nested_data, depth + 1)
+                    return self._inspect_tar_contents(f"{parent_filename}/{safe_member_name}", nested_data, depth + 1)
 
         except Exception as e:
-            self.logger.warning(f"Error inspecting nested archive {member_name} inside tar: {e}")
+            self.logger.warning(f"Error inspecting nested archive {safe_member_name} inside tar: {e}")
             score += 3.0
-            warnings.append(f"Failed to inspect nested archive {member_name}: {str(e)}")
+            warnings.append(f"Failed to inspect nested archive {safe_member_name}: {str(e)}")
 
         return score, warnings
 
