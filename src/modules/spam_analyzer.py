@@ -10,6 +10,7 @@ from typing import Dict, List, Tuple, Union
 from urllib.parse import urlparse
 
 from .email_ingestion import EmailData
+from ..utils.pattern_compiler import compile_named_group_pattern, compile_patterns
 
 
 @dataclass
@@ -39,24 +40,16 @@ class SpamAnalyzer:
     ]
 
     # Pre-compiled regex patterns for performance
+    # MAINTENANCE WISDOM: Compilation is delegated to pattern_compiler so that
+    # ReDoS safety checks and consistent flags are applied automatically.
 
-    # Generate master pattern with named groups for identification
-    _parts = []
-    _map = {}
-    for _i, _p in enumerate(SPAM_KEYWORDS):
-        _g = f"spam_kw_{_i}"
-        # Wrap pattern in a named group.
-        _parts.append(f"(?P<{_g}>{_p})")
-        _map[_g] = _p
-
-    MASTER_SPAM_PATTERN = re.compile("|".join(_parts), re.IGNORECASE)
-    MASTER_SPAM_MAP = _map
-
-    # Clean up temporary variables
-    del _parts, _map, _i, _p, _g
+    # Master pattern with named groups for per-keyword attribution
+    MASTER_SPAM_PATTERN, MASTER_SPAM_MAP = compile_named_group_pattern(
+        SPAM_KEYWORDS, re.I, "spam_kw"
+    )
 
     # Simple combined pattern (no named groups) for fast detection/counting
-    COMBINED_SPAM_PATTERN = re.compile("|".join(SPAM_KEYWORDS), re.IGNORECASE)
+    COMBINED_SPAM_PATTERN = compile_patterns(SPAM_KEYWORDS, re.I)
 
     LINK_PATTERN = re.compile(r"https?://", re.IGNORECASE)
     URL_EXTRACTION_PATTERN = re.compile(r'https?://[^\s<>"]+', re.IGNORECASE)
@@ -82,7 +75,7 @@ class SpamAnalyzer:
     ]
 
     # Pre-compiled combined pattern for performance
-    COMBINED_URL_PATTERN = re.compile("|".join(SUSPICIOUS_URL_PATTERNS), re.IGNORECASE)
+    COMBINED_URL_PATTERN = compile_patterns(SUSPICIOUS_URL_PATTERNS, re.I)
 
     # Additional shorteners specific check regex
     SHORTENER_PATTERN = re.compile(r"(bit\.ly|tinyurl|t\.co|goo\.gl)", re.IGNORECASE)
