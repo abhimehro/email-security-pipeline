@@ -5,7 +5,6 @@ Verifies that bare silent exception handlers have been replaced with
 specific types + logging, so no errors are swallowed silently.
 """
 
-import email
 import logging
 from datetime import datetime
 from email.message import Message
