@@ -7,6 +7,8 @@ import logging
 import re
 import requests
 import unicodedata
+import shutil
+import textwrap
 from typing import Dict, List
 from dataclasses import dataclass, asdict
 from datetime import datetime
@@ -229,18 +231,39 @@ class AlertSystem:
         for rec in recommendations:
             color = Colors.GREEN
             rec_upper = rec.upper()
+            icon = "►"
+
+            # Remove existing prefixes to prevent double icons
+            for prefix in self.RECOMMENDATION_PREFIXES:
+                if rec.startswith(prefix):
+                    rec = rec[len(prefix):]
+
             if any(key in rec_upper for key in ["HIGH RISK", "DANGEROUS", "PHISHING"]):
                 color = Colors.RED
             elif any(key in rec_upper for key in ["SUSPICIOUS", "VERIFY", "URGENCY", "IMPERSONATION"]):
                 color = Colors.YELLOW
 
-            # Truncate long recommendations to fit within the card
-            # Width - 2 (left border/space) - 2 (symbol space) - 5 (padding) = ~Width - 9
-            max_rec_len = width - 10
-            if len(rec) > max_rec_len:
-                rec = rec[:max_rec_len-3] + "..."
+            # Calculate available width for text
+            # Width - 2 (left border/space) - 3 (icon + space) - 2 (right padding) = Width - 7
+            # We use 8 to be safe and consistent with previous layout
+            max_text_width = width - 8
 
-            self._print_alert_row(f"{Colors.colorize('►', color)} {rec}", risk_color)
+            # Wrap text nicely
+            wrapped_lines = textwrap.wrap(rec, width=max_text_width)
+
+            if not wrapped_lines:
+                continue
+
+            # First line gets the bullet point
+            first_line = wrapped_lines[0]
+            self._print_alert_row(f"{Colors.colorize(icon, color)} {first_line}", risk_color)
+
+            # Subsequent lines get indentation based on icon width
+            # ► is 1 char, ⚠️ is 2 chars (usually). We align to 3 spaces for visual consistency.
+            indent = "   " if icon == "⚠️ " else "  "
+
+            for line in wrapped_lines[1:]:
+                self._print_alert_row(f"{indent}{line}", risk_color)
 
         # Bottom Border (└───┘)
         print(Colors.colorize(f"└{'─'*border_len}┘", risk_color))
