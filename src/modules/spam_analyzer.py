@@ -77,9 +77,6 @@ class SpamAnalyzer:
     # Pre-compiled combined pattern for performance
     COMBINED_URL_PATTERN = compile_patterns(SUSPICIOUS_URL_PATTERNS, re.I)
 
-    # Additional shorteners specific check regex
-    SHORTENER_PATTERN = re.compile(r"(bit\.ly|tinyurl|t\.co|goo\.gl)", re.IGNORECASE)
-
     def __init__(self, config):
         """
         Initialize spam analyzer
@@ -276,12 +273,6 @@ class SpamAnalyzer:
                 if self.COMBINED_URL_PATTERN.search(domain):
                     # If matched, we just mark it. The original code broke after first match
                     # in the loop, effectively counting only one match per URL from this list.
-                    current_url_score += 0.5
-                    append_count += 1
-
-                # Check for URL shorteners
-                # Original code logic was separate and could add another 0.5 score
-                if self.SHORTENER_PATTERN.search(domain):
                     current_url_score += 0.5
                     append_count += 1
 
