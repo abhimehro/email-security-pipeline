@@ -181,7 +181,8 @@ class EmailParser:
         date_str = msg.get("Date", "")
         try:
             return parsedate_to_datetime(date_str)
-        except Exception:
+        except Exception as e:
+            self.logger.debug(f"Could not parse date header '{date_str}': {e}")
             return datetime.now()
 
     def _extract_content(
@@ -313,8 +314,15 @@ class EmailParser:
                             f"for email {safe_email_id}"
                         )
                     body_text = decoded
-        except Exception:
-            pass
+        except UnicodeDecodeError as e:
+            self.logger.warning(
+                f"Failed to decode email payload for {safe_email_id}: {e}"
+            )
+        except Exception as e:
+            self.logger.error(
+                f"Unexpected error extracting content from {safe_email_id}: "
+                f"{type(e).__name__}: {e}"
+            )
 
         return body_text, body_html, []
 
@@ -439,7 +447,14 @@ class EmailParser:
             return ""
         try:
             return str(make_header(decode_header(value)))
-        except Exception:
+        except UnicodeDecodeError as e:
+            logger.debug(f"Failed to decode header with charset, using fallback: {e}")
+            return value
+        except LookupError as e:
+            logger.debug(f"Unknown charset encountered, falling back to raw value: {e}")
+            return value
+        except Exception as e:
+            logger.debug(f"Unexpected error decoding header value: {type(e).__name__}: {e}")
             return value
 
     @classmethod
