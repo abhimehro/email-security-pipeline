@@ -58,3 +58,7 @@
 ## 2026-10-25 - Colorizing Loading States
 **Learning:** Loading states (like CLI spinners) are often ignored by users if they lack visual distinction. Colorizing the spinning indicator creates a subtle but effective cue that a process is actively running, distinguishing it from static text.
 **Action:** Always colorize loading indicators (e.g., `Spinner` in CLI) with a distinct, neutral color (like CYAN) to separate them from the accompanying message text.
+
+## 2026-06-25 - Real-time Credential Verification
+**Learning:** Setup wizards that only validate format but not function (e.g., verifying credentials work) lead to a frustrating "configure -> run -> fail -> reconfigure" loop.
+**Action:** Implement real-time functional tests (like a test connection) during setup steps to catch configuration errors immediately.

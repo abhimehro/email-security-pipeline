@@ -29,16 +29,21 @@ OUTLOOK_APP_PASSWORD=password
         self.assertFalse(_is_valid_email("user@domain"))  # Missing TLD
         self.assertFalse(_is_valid_email("user..name@domain.com"))  # Consecutive dots
 
+    @patch('src.utils.setup_wizard.IMAPConnection')
     @patch('builtins.input')
     @patch('getpass.getpass')
     @patch('os.fdopen')
     @patch('os.open')
     @patch('builtins.open', new_callable=mock_open)
     @patch('pathlib.Path.exists')
-    def test_gmail_setup(self, mock_exists, mock_read_file, mock_os_open, mock_os_fdopen, mock_getpass, mock_input):
+    def test_gmail_setup(self, mock_exists, mock_read_file, mock_os_open, mock_os_fdopen, mock_getpass, mock_input, mock_imap_conn):
         # Setup mocks
         mock_exists.return_value = True
         mock_read_file.return_value.read.return_value = self.example_content
+
+        # Configure connection mock to succeed
+        mock_conn_instance = mock_imap_conn.return_value
+        mock_conn_instance.connect.return_value = True
 
         # Configure os.open to return a fake file descriptor
         mock_os_open.return_value = 123
@@ -73,15 +78,20 @@ OUTLOOK_APP_PASSWORD=password
         self.assertIn("PROTON_ENABLED=false", written_content)
         self.assertIn("OUTLOOK_ENABLED=false", written_content)
 
+    @patch('src.utils.setup_wizard.IMAPConnection')
     @patch('builtins.input')
     @patch('getpass.getpass')
     @patch('os.fdopen')
     @patch('os.open')
     @patch('builtins.open', new_callable=mock_open)
     @patch('pathlib.Path.exists')
-    def test_proton_setup(self, mock_exists, mock_read_file, mock_os_open, mock_os_fdopen, mock_getpass, mock_input):
+    def test_proton_setup(self, mock_exists, mock_read_file, mock_os_open, mock_os_fdopen, mock_getpass, mock_input, mock_imap_conn):
         mock_exists.return_value = True
         mock_read_file.return_value.read.return_value = self.example_content
+
+        # Configure connection mock to succeed
+        mock_conn_instance = mock_imap_conn.return_value
+        mock_conn_instance.connect.return_value = True
 
         mock_os_open.return_value = 123
         mock_write_handle = MagicMock()
@@ -102,19 +112,24 @@ OUTLOOK_APP_PASSWORD=password
         self.assertIn("PROTON_APP_PASSWORD=protonpass", written_content)
         self.assertIn("GMAIL_ENABLED=false", written_content) # Should be disabled
 
+    @patch('src.utils.setup_wizard.IMAPConnection')
     @patch('builtins.input')
     @patch('getpass.getpass')
     @patch('os.fdopen')
     @patch('os.open')
     @patch('builtins.open', new_callable=mock_open)
     @patch('pathlib.Path.exists')
-    def test_invalid_email_retry(self, mock_exists, mock_read_file, mock_os_open, mock_os_fdopen, mock_getpass, mock_input):
+    def test_invalid_email_retry(self, mock_exists, mock_read_file, mock_os_open, mock_os_fdopen, mock_getpass, mock_input, mock_imap_conn):
         """Test that the wizard rejects invalid emails and prompts again"""
         mock_exists.return_value = True
         mock_read_file.return_value.read.return_value = self.example_content
         mock_os_open.return_value = 123
         mock_write_handle = MagicMock()
         mock_os_fdopen.return_value.__enter__.return_value = mock_write_handle
+
+        # Configure connection mock to succeed
+        mock_conn_instance = mock_imap_conn.return_value
+        mock_conn_instance.connect.return_value = True
 
         # User inputs:
         # 1. Choice: '1' (Gmail)
@@ -146,6 +161,48 @@ OUTLOOK_APP_PASSWORD=password
         mock_input.return_value = '4' # Skip
         result = run_setup_wizard(config_file=".env", template_file=".env.example")
         self.assertFalse(result)
+
+    @patch('src.utils.setup_wizard.IMAPConnection')
+    @patch('builtins.input')
+    @patch('getpass.getpass')
+    @patch('os.fdopen')
+    @patch('os.open')
+    @patch('builtins.open', new_callable=mock_open)
+    @patch('pathlib.Path.exists')
+    def test_connection_failure_retry(self, mock_exists, mock_read_file, mock_os_open, mock_os_fdopen, mock_getpass, mock_input, mock_imap_conn):
+        """Test that the wizard handles connection failures and allows retry"""
+        mock_exists.return_value = True
+        mock_read_file.return_value.read.return_value = self.example_content
+        mock_os_open.return_value = 123
+        mock_write_handle = MagicMock()
+        mock_os_fdopen.return_value.__enter__.return_value = mock_write_handle
+
+        # Mock connection sequence:
+        # 1. Connect fails (False)
+        # 2. Connect succeeds (True)
+        mock_conn_instance = mock_imap_conn.return_value
+        mock_conn_instance.connect.side_effect = [False, True]
+
+        # User inputs:
+        # 1. Choice: '1' (Gmail)
+        # 2. Email: 'bad@gmail.com'
+        # 3. Password: 'badpassword'
+        #    -> Connection check fails
+        #    -> "Retry?" prompt: 'y'
+        # 4. Email: 'good@gmail.com'
+        # 5. Password: 'goodpassword'
+        #    -> Connection check succeeds
+
+        mock_input.side_effect = ['1', 'bad@gmail.com', 'y', 'good@gmail.com']
+        mock_getpass.side_effect = ['badpassword', 'goodpassword']
+
+        result = run_setup_wizard(config_file=".env", template_file=".env.example")
+        self.assertTrue(result)
+
+        # Verify correct credentials were used
+        written_content = "".join(call.args[0] for call in mock_write_handle.write.call_args_list)
+        self.assertIn("GMAIL_EMAIL=good@gmail.com", written_content)
+        self.assertIn("GMAIL_APP_PASSWORD=goodpassword", written_content)
 
 if __name__ == '__main__':
     unittest.main()
