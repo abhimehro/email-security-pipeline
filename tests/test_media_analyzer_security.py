@@ -175,5 +175,108 @@ class TestMediaAnalyzerSecurity(unittest.TestCase):
             self.assertTrue(found_dangerous, f"Failed to detect dangerous extension: {ext}")
             self.assertEqual(result.risk_level, "high", f"Risk level should be high for {ext}")
 
+    def test_suspicious_extension_no_false_positive(self):
+        """Test that a filename containing a suspicious extension as a substring is NOT flagged.
+
+        SECURITY STORY: 'my.docm_backup.txt' contains 'docm' as a substring but
+        ends with '.txt', so it must not trigger the suspicious-extension warning.
+        Using endswith() instead of 'in' prevents alert fatigue from false positives.
+        """
+        email_data = EmailData(
+            message_id="test-fp",
+            subject="Test",
+            sender="sender@example.com",
+            recipient="recipient@example.com",
+            date=datetime.now(),
+            body_text="",
+            body_html="",
+            headers={},
+            attachments=[{
+                "filename": "my.docm_backup.txt",
+                "content_type": "text/plain",
+                "size": 100,
+                "data": b"plain text",
+                "truncated": False
+            }],
+            raw_email=None,
+            account_email="me@example.com",
+            folder="INBOX"
+        )
+
+        result = self.analyzer.analyze(email_data)
+
+        for warning in result.file_type_warnings:
+            self.assertNotIn(
+                "Suspicious file extension", warning,
+                "False positive: 'my.docm_backup.txt' should not be flagged as suspicious"
+            )
+
+    def test_compound_extension_exe_flagged_as_dangerous(self):
+        """Test that 'archive.pdf.exe' is flagged as dangerous.
+
+        PATTERN RECOGNITION: Attackers rename malware as 'something.pdf.exe' hoping
+        users see 'pdf' and trust it.  The .exe suffix matches DANGEROUS_EXTENSIONS
+        via endswith(), so this must be caught regardless of the preceding segments.
+        """
+        email_data = EmailData(
+            message_id="test-pdfe",
+            subject="Test",
+            sender="sender@example.com",
+            recipient="recipient@example.com",
+            date=datetime.now(),
+            body_text="",
+            body_html="",
+            headers={},
+            attachments=[{
+                "filename": "archive.pdf.exe",
+                "content_type": "application/x-msdownload",
+                "size": 1000,
+                "data": b"MZ",
+                "truncated": False
+            }],
+            raw_email=None,
+            account_email="me@example.com",
+            folder="INBOX"
+        )
+
+        result = self.analyzer.analyze(email_data)
+
+        found_dangerous = any("Dangerous file type" in w for w in result.file_type_warnings)
+        self.assertTrue(found_dangerous, "'archive.pdf.exe' must be flagged as dangerous")
+
+    def test_legitimate_docm_flagged_as_suspicious(self):
+        """Test that 'legitimate.docm' is flagged as suspicious.
+
+        SECURITY STORY: Macro-enabled Office files (.docm) are a common malware
+        delivery vehicle.  A file that genuinely ends with '.docm' must always
+        trigger the suspicious-extension warning.
+        """
+        email_data = EmailData(
+            message_id="test-docm",
+            subject="Test",
+            sender="sender@example.com",
+            recipient="recipient@example.com",
+            date=datetime.now(),
+            body_text="",
+            body_html="",
+            headers={},
+            attachments=[{
+                "filename": "legitimate.docm",
+                "content_type": "application/vnd.ms-word.document.macroEnabled.12",
+                "size": 500,
+                "data": b"PK",
+                "truncated": False
+            }],
+            raw_email=None,
+            account_email="me@example.com",
+            folder="INBOX"
+        )
+
+        result = self.analyzer.analyze(email_data)
+
+        found_suspicious = any("Suspicious file extension" in w for w in result.file_type_warnings)
+        self.assertTrue(found_suspicious, "'legitimate.docm' must be flagged as suspicious")
+
+
 if __name__ == '__main__':
     unittest.main()
