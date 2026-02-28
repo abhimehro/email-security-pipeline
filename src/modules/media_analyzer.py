@@ -665,7 +665,7 @@ class MediaAuthenticityAnalyzer:
         finally:
             try:
                 f.close()
-            except zipfile.BadZipFile:
+            except zipfile.BadZipFile as e:
                 # Ignore errors on close (like CRC mismatch due to partial read)
                 self.logger.debug(f"Ignored error closing zip stream for {filename}: {e}")
 
@@ -709,7 +709,7 @@ class MediaAuthenticityAnalyzer:
             frames = self._extract_frames_from_video(temp_file_path, max_frames=10, max_dim=1280)
 
             if not frames:
-                 self.logger.warning(f"Could not extract frames from {filename}")
+                self.logger.warning(f"Could not extract frames from {filename}")
             else:
                 # Optimization: Convert frames to grayscale once to avoid repeated conversions
                 # This saves CPU time in subsequent analysis steps
