@@ -329,10 +329,10 @@ class IMAPConnection:
         # item is (header, body)
         # header: b'123 (RFC822 {456}'
         # body: raw email bytes
-        header = item[0]
-        raw_bytes = item[1]
-
         try:
+            header = item[0]
+            raw_bytes = item[1]
+
             # Extract sequence number from header
             msg_seq = header.split()[0]
             if isinstance(raw_bytes, bytes):
@@ -344,7 +344,7 @@ class IMAPConnection:
                 )
         except Exception as parse_err:
             self.logger.error(
-                f"Error parsing email header {header}: {parse_err}"
+                f"Error parsing email payload {item}: {parse_err}"
             )
 
         return None
