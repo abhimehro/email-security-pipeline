@@ -379,6 +379,41 @@ class AlertSystem:
             f"{sep} {subject}"
         )
 
+    def _get_terminal_width(self) -> int:
+        """Get the current terminal width or default to 80.
+
+        This is wrapped in a try/except so we don't crash in environments where
+        shutil.get_terminal_size is unavailable or cannot determine the size.
+        In those cases we conservatively fall back to 80 columns.
+        """
+        try:
+            return shutil.get_terminal_size((80, 20)).columns
+        except (AttributeError, OSError, ValueError):
+            # AttributeError: get_terminal_size might not exist (older/embedded runtimes)
+            # OSError/ValueError: terminal size can't be determined in this environment
+            return 80
+    def _get_visual_length(self, text: str) -> int:
+        """Get the character count of text after stripping ANSI color codes."""
+        if not text:
+            return 0
+        return len(ANSI_PATTERN.sub('', text))
+
+    def _truncate_text(self, text: str, width: int) -> str:
+        """
+        Truncate text to a specified width based on character count.
+        Adds '...' if truncated. Assumes input text has no ANSI codes.
+        """
+        if not text:
+            return ""
+
+        # Simple truncation since input (sanitized sender/subject) doesn't have ANSI codes
+        if len(text) > width:
+            # We need at least 3 chars for '...'
+            if width <= 3:
+                return "." * width
+            return text[:width-3] + "..."
+        return text
+
     def _webhook_alert(self, report: ThreatReport):
         """Send alert via webhook"""
         try:
