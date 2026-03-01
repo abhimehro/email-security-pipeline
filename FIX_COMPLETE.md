@@ -134,7 +134,7 @@ The fix is minimal, focused, and well-documented.
 
 ---
 
-**Fixed by**: GitHub Copilot Agent  
-**Date**: February 16, 2026  
-**Issue**: #232  
+**Fixed by**: GitHub Copilot Agent
+**Date**: February 16, 2026
+**Issue**: #232
 **Branch**: `copilot/debug-daily-backlog-burner`

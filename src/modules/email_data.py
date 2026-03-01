@@ -13,7 +13,7 @@ from email.message import Message
 class EmailData:
     """
     Container for parsed email data
-    
+
     This dataclass holds all relevant information extracted from an email,
     including metadata, content, and attachments.
     """

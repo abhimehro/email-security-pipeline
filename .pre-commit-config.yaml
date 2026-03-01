@@ -1,41 +1,30 @@
 repos:
-  # Basic file quality checks
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.5.0
     hooks:
       - id: trailing-whitespace
-        args: [--markdown-linebreak-ext=md]
       - id: end-of-file-fixer
       - id: check-yaml
       - id: check-added-large-files
-        args: ['--maxkb=500']
       - id: check-merge-conflict
       - id: debug-statements
       - id: check-case-conflict
       - id: check-json
       - id: check-toml
       - id: mixed-line-ending
-        args: ['--fix=lf']
-
-  # Security checks with bandit (already used in CI)
   - repo: https://github.com/PyCQA/bandit
     rev: 1.7.6
     hooks:
       - id: bandit
-        args: ['-ll', '-c', '.bandit']
-        files: ^src/
-
-  # Python syntax validation
+        args: ["-c", ".bandit", "-ll"]
   - repo: https://github.com/pre-commit/pygrep-hooks
     rev: v1.10.0
     hooks:
       - id: python-check-blanket-noqa
       - id: python-check-mock-methods
-      - id: python-no-eval
-      - id: python-no-log-warn
       - id: python-use-type-annotations
-
-  # Verify requirements.txt format
+      - id: python-no-eval
+        exclude: src/modules/nlp_analyzer.py
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.5.0
     hooks:

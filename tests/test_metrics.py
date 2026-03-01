@@ -33,14 +33,14 @@ class TestMetrics(unittest.TestCase):
         """Test recording processed emails"""
         self.metrics.record_email_processed()
         self.assertEqual(self.metrics.emails_processed, 1)
-        
+
         self.metrics.record_email_processed()
         self.assertEqual(self.metrics.emails_processed, 2)
 
     def test_record_threat(self):
         """Test recording threats"""
         self.metrics.record_threat("phishing", "high")
-        
+
         # Should record both the type and the type_severity combination
         self.assertEqual(self.metrics.threats_detected["phishing"], 1)
         self.assertEqual(self.metrics.threats_detected["phishing_high"], 1)
@@ -50,12 +50,12 @@ class TestMetrics(unittest.TestCase):
         self.metrics.record_threat("phishing", "high")
         self.metrics.record_threat("phishing", "medium")
         self.metrics.record_threat("spam", "low")
-        
+
         # Phishing should have 2 total
         self.assertEqual(self.metrics.threats_detected["phishing"], 2)
         self.assertEqual(self.metrics.threats_detected["phishing_high"], 1)
         self.assertEqual(self.metrics.threats_detected["phishing_medium"], 1)
-        
+
         # Spam should have 1
         self.assertEqual(self.metrics.threats_detected["spam"], 1)
         self.assertEqual(self.metrics.threats_detected["spam_low"], 1)
@@ -64,7 +64,7 @@ class TestMetrics(unittest.TestCase):
         """Test recording processing times"""
         self.metrics.record_processing_time(100.5)
         self.metrics.record_processing_time(200.3)
-        
+
         self.assertEqual(len(self.metrics.processing_time_ms), 2)
         self.assertEqual(self.metrics.processing_time_ms[0], 100.5)
         self.assertEqual(self.metrics.processing_time_ms[1], 200.3)
@@ -74,14 +74,14 @@ class TestMetrics(unittest.TestCase):
         self.metrics.record_error("imap_connection")
         self.metrics.record_error("imap_connection")
         self.metrics.record_error("analysis_timeout")
-        
+
         self.assertEqual(self.metrics.errors_count["imap_connection"], 2)
         self.assertEqual(self.metrics.errors_count["analysis_timeout"], 1)
 
     def test_get_summary_empty(self):
         """Test getting summary with no data"""
         summary = self.metrics.get_summary()
-        
+
         self.assertEqual(summary["emails_processed"], 0)
         self.assertEqual(summary["threats_detected"], {})
         self.assertEqual(summary["processing_time_stats"], {})
@@ -99,14 +99,14 @@ class TestMetrics(unittest.TestCase):
         self.metrics.record_processing_time(200.0)
         self.metrics.record_processing_time(150.0)
         self.metrics.record_error("test_error")
-        
+
         summary = self.metrics.get_summary()
-        
+
         self.assertEqual(summary["emails_processed"], 2)
         self.assertEqual(summary["threats_detected"]["phishing"], 1)
         self.assertEqual(summary["errors"]["test_error"], 1)
         self.assertEqual(summary["sample_count"], 3)
-        
+
         # Check processing time stats
         stats = summary["processing_time_stats"]
         self.assertEqual(stats["avg_ms"], 150.0)
@@ -119,10 +119,10 @@ class TestMetrics(unittest.TestCase):
         # Add 100 data points
         for i in range(100):
             self.metrics.record_processing_time(float(i))
-        
+
         summary = self.metrics.get_summary()
         stats = summary["processing_time_stats"]
-        
+
         # Check percentiles
         self.assertEqual(stats["min_ms"], 0.0)
         self.assertEqual(stats["max_ms"], 99.0)
@@ -137,22 +137,22 @@ class TestMetrics(unittest.TestCase):
         self.metrics.record_threat("phishing", "high")
         self.metrics.record_processing_time(100.0)
         self.metrics.record_error("test_error")
-        
+
         # Record the start time before reset
         old_start_time = self.metrics.start_time
-        
+
         # Small delay to ensure time difference
         time.sleep(0.01)
-        
+
         # Reset
         self.metrics.reset()
-        
+
         # Everything should be cleared
         self.assertEqual(self.metrics.emails_processed, 0)
         self.assertEqual(len(self.metrics.threats_detected), 0)
         self.assertEqual(len(self.metrics.processing_time_ms), 0)
         self.assertEqual(len(self.metrics.errors_count), 0)
-        
+
         # Start time should be updated
         self.assertGreater(self.metrics.start_time, old_start_time)
 
@@ -160,9 +160,9 @@ class TestMetrics(unittest.TestCase):
         """Test that uptime is calculated correctly"""
         # Set a known start time
         self.metrics.start_time = datetime.now() - timedelta(seconds=60)
-        
+
         summary = self.metrics.get_summary()
-        
+
         # Uptime should be approximately 60 seconds (with small tolerance)
         self.assertGreater(summary["uptime_seconds"], 59)
         self.assertLess(summary["uptime_seconds"], 61)
@@ -170,10 +170,10 @@ class TestMetrics(unittest.TestCase):
     def test_single_processing_time(self):
         """Test stats calculation with a single data point"""
         self.metrics.record_processing_time(123.5)
-        
+
         summary = self.metrics.get_summary()
         stats = summary["processing_time_stats"]
-        
+
         # All stats should be the same value
         self.assertEqual(stats["avg_ms"], 123.5)
         self.assertEqual(stats["min_ms"], 123.5)
