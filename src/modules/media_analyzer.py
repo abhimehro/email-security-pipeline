@@ -372,7 +372,7 @@ class MediaAuthenticityAnalyzer:
         """Check if missing signature violates strict extension rules"""
         # Type not detected. Validate that if extension claims a known type, it matches.
         # This prevents processing invalid/corrupt media files.
-        filename_lower = filename.lower()
+        filename_lower = filename.lower().strip().replace('\0', '').rstrip('.')
 
         # Map extensions to their expected descriptions for error messages
         strict_validation_exts = {
