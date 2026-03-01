@@ -86,7 +86,7 @@ def sanitize_filename(filename: str) -> str:
     # Check for Windows reserved filenames (CON, PRN, AUX, etc.)
     # These are reserved regardless of extension (e.g., CON.txt is invalid)
     # We check the base name (part before the first dot)
-    base_name = sanitized.split('.')[0].strip().upper()
+    base_name = sanitized.split('.')[0].upper()
     if base_name in WINDOWS_RESERVED_NAMES:
         sanitized = "_" + sanitized
 
