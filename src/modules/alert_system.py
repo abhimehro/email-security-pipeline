@@ -49,7 +49,7 @@ class AlertSystem:
     RECOMMENDATION_PREFIXES = ["⚠️ ", "🎣 ", "🔗 ", "⏰ ", "📎 ", "👤 "]
 
     # Maximum number of items shown per section in the console threat report.
-    # Keeps the output readable without truncating important context.
+    # Helps keep the output readable; lists may be truncated in the console view.
     MAX_SPAM_INDICATORS_DISPLAY = 5
     MAX_NLP_INDICATORS_DISPLAY = 3
     MAX_MEDIA_WARNINGS_DISPLAY = 3
