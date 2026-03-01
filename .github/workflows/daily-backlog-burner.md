@@ -63,7 +63,7 @@ To decide which phase to perform:
    - Estimate the effort required to address each issue, considering factors such as complexity, dependencies, and potential impact
    - Identify any patterns or common themes among the issues, such as recurring bugs, feature requests, or areas of improvement
    - Look for any issues that may be duplicates or closely related to each other, and consider whether they can be consolidated or linked together
-    
+
 2. Use this research to create an issue with title "${{ github.workflow }} - Research, Roadmap and Plan". This tracking issue should be a comprehensive plan for dealing with the backlog in this repo, and summarize your findings from the backlog research, including any patterns or themes you identified, and your recommendations for addressing the backlog.
 
    **Include a "How to Control this Workflow" section at the end of the issue that explains:**
@@ -89,15 +89,15 @@ To decide which phase to perform:
    a. Read the plan in the tracking issue mentioned earlier, along with comments.
 
    b. Check for existing open pull requests (especially yours with "${{ github.workflow }}" prefix). Avoid duplicate work.
-   
+
    c. If plan needs updating then comment on planning issue with revised plan and rationale. Consider maintainer feedback.
-  
+
    d. Select a goal to pursue from the plan. Ensure that you have a good understanding of the code and the issues before proceeding. Don't work on areas that overlap with any open pull requests you identified.
 
 2. **Work towards your selected goal**. For the backlog item you selected, do the following:
 
    a. Create a new branch.
-   
+
    b. Make the changes to work towards the goal you selected.
 
    c. Ensure the code still works as expected and that any existing relevant tests pass. Add new tests if appropriate and make sure they pass too.
@@ -105,7 +105,7 @@ To decide which phase to perform:
 3. **Finalizing changes**
 
    a. Apply any automatic code formatting used in the repo. If necessary check CI files to understand what code formatting is used.
-   
+
    b. Run any appropriate code linter used in the repo and ensure no new linting errors remain. If necessary check CI files to understand what code linting is used.
 
 4. **Results and learnings**

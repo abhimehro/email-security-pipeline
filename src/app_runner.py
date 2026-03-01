@@ -78,11 +78,9 @@ class AppRunner:
                 response = input(f"Create '{self.config_file}' from template without wizard? [Y/n] ").strip().lower()
                 if response in ('', 'y', 'yes'):
                     try:
-                    try:
                         shutil.copy(".env.example", self.config_file)
                         import os
                         os.chmod(self.config_file, 0o600)
-                        print(f"Created '{self.config_file}' from '.env.example'.")
                         print(f"Created '{self.config_file}' from '.env.example'.")
                         print("IMPORTANT: Please edit .env with your actual credentials before proceeding.")
                         sys.exit(0)

@@ -17,8 +17,8 @@ index fcd44c1..d1c2358 100644
 +++ b/src/modules/email_ingestion.py
 @@ -19,6 +19,10 @@ from email.utils import getaddresses
  from ..utils.config import EmailAccountConfig
- 
- 
+
+
 +# Security limits
 +MAX_SUBJECT_LENGTH = 1024
 +
@@ -28,7 +28,7 @@ index fcd44c1..d1c2358 100644
      """Container for email data"""
 @@ -314,6 +318,10 @@ class IMAPClient:
              headers = {key: self._decode_header_value(value) for key, value in msg.items()}
- 
+
              subject = self._decode_header_value(msg.get("Subject", ""))
 +            if len(subject) > MAX_SUBJECT_LENGTH:
 +                subject = subject[:MAX_SUBJECT_LENGTH]
@@ -36,7 +36,7 @@ index fcd44c1..d1c2358 100644
 +
              sender = self._format_addresses(msg.get("From", ""))
              recipient = self._format_addresses(msg.get("To", ""))
- 
+
 diff --git a/tests/test_dos_prevention.py b/tests/test_dos_prevention.py
 index 452e021..9eb2ffb 100644
 --- a/tests/test_dos_prevention.py
@@ -54,7 +54,7 @@ index 452e021..9eb2ffb 100644
 @@ -56,5 +57,23 @@ class TestDoSPrevention(unittest.TestCase):
          self.assertIsNotNone(email_data)
          self.assertEqual(len(email_data.body_html), 1024)
- 
+
 +    def test_subject_truncation(self):
 +        # Create a large subject
 +        # Note: We rely on the hardcoded MAX_SUBJECT_LENGTH = 1024 in email_ingestion.py
