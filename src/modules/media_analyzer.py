@@ -334,7 +334,7 @@ class MediaAuthenticityAnalyzer:
 
     def _validate_signature_match(self, filename: str, actual_type: str) -> Tuple[float, str]:
         """Check if file extension matches the detected signature"""
-        filename_lower = filename.lower()
+        filename_lower = filename.lower().strip().replace('\0', '').rstrip('.')
 
         # Special case for executables disguised as documents
         if actual_type == 'exe' and not filename_lower.endswith('.exe'):
