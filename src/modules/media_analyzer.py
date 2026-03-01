@@ -348,7 +348,7 @@ class MediaAuthenticityAnalyzer:
             'png': ['.png'],
             'gif': ['.gif'],
             'doc': ['.doc', '.xls', '.ppt', '.msi'],
-            'exe': ['.exe', '.dll', '.com', '.scr'],
+            'exe': ['.exe'],
             'mp4': ['.mp4', '.mov', '.m4a', '.3gp'],
             'avi': ['.avi'],
             'wav': ['.wav'],
