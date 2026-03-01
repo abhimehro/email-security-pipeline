@@ -422,72 +422,79 @@ class EmailSecurityPipeline:
         print(f"\n📚 {Colors.GREY}For help, see README.md or OUTLOOK_TROUBLESHOOTING.md{Colors.RESET}\n")
 
 
-def signal_handler(signum, frame):
-    """Handle shutdown signals"""
-    print("\nReceived shutdown signal, stopping gracefully...")
-    raise KeyboardInterrupt
+
+class ConfigNotFoundError(Exception):
+    """Raised when the configuration file is missing and cannot be created."""
+    pass
 
 
-def main():
-    """Main entry point"""
-    # Register signal handlers
-    signal.signal(signal.SIGINT, signal_handler)
-    signal.signal(signal.SIGTERM, signal_handler)
+class ConfigValidationError(Exception):
+    """Raised when the configuration file contains default/invalid credentials."""
+    pass
 
-    # Print banner
-    print(Colors.colorize("=" * 80, Colors.CYAN))
-    print(Colors.colorize("Email Security Analysis Pipeline", Colors.BOLD + Colors.CYAN))
-    print(Colors.colorize("Multi-layer threat detection for email security", Colors.GREY))
-    print(Colors.colorize("=" * 80, Colors.CYAN))
-    print()
 
-    # Check for config file
-    config_file = sys.argv[1] if len(sys.argv) > 1 else ".env"
 
-    if not Path(config_file).exists():
-        if Path(".env.example").exists() and sys.stdin.isatty():
-            print(f"Configuration file '{config_file}' not found.")
-            try:
-                # Offer Setup Wizard
-                print(f"\n{Colors.CYAN}Would you like to run the interactive setup wizard?{Colors.RESET}")
-                print(f"{Colors.GREY}(This will help you configure your email provider){Colors.RESET}")
 
-                response = input("Run setup wizard? [Y/n] ").strip().lower()
+def _ensure_config_exists(config_file: str) -> bool:
+    """
+    Ensure the configuration file exists.
+    Returns True if the program should exit cleanly (e.g., after copying template or wizard setup).
+    Raises ConfigNotFoundError if the file cannot be found or created.
+    """
+    if Path(config_file).exists():
+        return False
+
+    if Path(".env.example").exists() and sys.stdin.isatty():
+        print(f"Configuration file '{config_file}' not found.")
+        try:
+            # Offer Setup Wizard
+            print(f"\n{Colors.CYAN}Would you like to run the interactive setup wizard?{Colors.RESET}")
+            print(f"{Colors.GREY}(This will help you configure your email provider){Colors.RESET}")
+
+            response = input("Run setup wizard? [Y/n] ").strip().lower()
+            if response in ('', 'y', 'yes'):
+                if run_setup_wizard(config_file):
+                    # Setup successful
+                    return True
+                else:
+                    # Wizard failed or skipped
+                    print(f"{Colors.YELLOW}Setup skipped.{Colors.RESET}")
+
+            # Fallback to copy only if wizard wasn't run or failed
+            if not Path(config_file).exists():
+                response = input(f"Create '{config_file}' from template without wizard? [Y/n] ").strip().lower()
                 if response in ('', 'y', 'yes'):
-                    if run_setup_wizard(config_file):
-                        # Setup successful
-                        sys.exit(0)
-                    else:
-                        # Wizard failed or skipped
-                        print(f"{Colors.YELLOW}Setup skipped.{Colors.RESET}")
+                    try:
+                        shutil.copy(".env.example", config_file)
+                        print(f"Created '{config_file}' from '.env.example'.")
+                        print("IMPORTANT: Please edit .env with your actual credentials before proceeding.")
+                        return True
+                    except Exception as e:
+                        print(f"Error creating file: {e}")
+                        raise ConfigNotFoundError(f"Error creating file: {e}")
+                else:
+                    print("Please create a .env file based on .env.example")
+                    raise ConfigNotFoundError("Configuration file not created.")
+        except EOFError:
+            # Handle case where input stream is closed
+            pass
 
-                # Fallback to copy only if wizard wasn't run or failed
-                if not Path(config_file).exists():
-                    response = input(f"Create '{config_file}' from template without wizard? [Y/n] ").strip().lower()
-                    if response in ('', 'y', 'yes'):
-                        try:
-                            shutil.copy(".env.example", config_file)
-                            print(f"Created '{config_file}' from '.env.example'.")
-                            print("IMPORTANT: Please edit .env with your actual credentials before proceeding.")
-                            sys.exit(0)
-                        except Exception as e:
-                            print(f"Error creating file: {e}")
-                            sys.exit(1)
-                    else:
-                        print("Please create a .env file based on .env.example")
-                        sys.exit(1)
-            except EOFError:
-                # Handle case where input stream is closed
-                pass
+    # Fallback for non-interactive mode or missing template
+    if not Path(config_file).exists():
+        print(f"Error: Configuration file '{config_file}' not found")
+        print("Please create a .env file based on .env.example")
+        print("You can run: cp .env.example .env")
+        raise ConfigNotFoundError(f"Configuration file '{config_file}' not found.")
 
-        # Fallback for non-interactive mode or missing template
-        if not Path(config_file).exists():
-            print(f"Error: Configuration file '{config_file}' not found")
-            print("Please create a .env file based on .env.example")
-            print("You can run: cp .env.example .env")
-            sys.exit(1)
+    return False
 
-    # Validate that configuration does not use default values
+
+
+def _validate_config(config_file: str) -> None:
+    """
+    Validate that the configuration does not use default values.
+    Raises ConfigValidationError if default credentials are detected.
+    """
     try:
         # Load config temporarily for validation
         config_validator = Config(config_file)
@@ -502,10 +509,55 @@ def main():
                 print(f"  • {Colors.YELLOW}{error}{Colors.RESET}")
 
             print(f"\nPlease edit {Colors.BOLD}{config_file}{Colors.RESET} with your actual credentials.")
-            sys.exit(1)
+            raise ConfigValidationError("Default credentials detected.")
 
+    except ConfigValidationError:
+        raise
     except Exception as e:
         print(f"{Colors.YELLOW}Warning: Could not validate configuration: {e}{Colors.RESET}")
+
+
+def _print_banner():
+
+
+    """Print the application banner"""
+    print(Colors.colorize("=" * 80, Colors.CYAN))
+    print(Colors.colorize("Email Security Analysis Pipeline", Colors.BOLD + Colors.CYAN))
+    print(Colors.colorize("Multi-layer threat detection for email security", Colors.GREY))
+    print(Colors.colorize("=" * 80, Colors.CYAN))
+    print()
+
+
+def signal_handler(signum, frame):
+
+
+    """Handle shutdown signals"""
+    print("\nReceived shutdown signal, stopping gracefully...")
+    raise KeyboardInterrupt
+
+
+
+def main():
+    """Main entry point"""
+    # Register signal handlers
+    signal.signal(signal.SIGINT, signal_handler)
+    signal.signal(signal.SIGTERM, signal_handler)
+
+    _print_banner()
+
+    # Check for config file
+    config_file = sys.argv[1] if len(sys.argv) > 1 else ".env"
+
+    try:
+        if _ensure_config_exists(config_file):
+            sys.exit(0)
+    except ConfigNotFoundError:
+        sys.exit(1)
+
+    try:
+        _validate_config(config_file)
+    except ConfigValidationError:
+        sys.exit(1)
 
     # Create and start pipeline
     print(f"{Colors.GREEN}🚀 Starting pipeline...{Colors.RESET}")
