@@ -309,6 +309,42 @@ class IMAPConnection:
             self.logger.error(f"Error in fetch_unseen_emails: {e}")
             return []
     
+    def _parse_email_payload(self, item: Any) -> Optional[Tuple[str, bytes]]:
+        """
+        Parse a single email payload from the IMAP fetch response.
+
+        Args:
+            item: An item from the IMAP fetch response data list.
+
+        Returns:
+            A tuple of (sequence_number, raw_bytes) if successful, None otherwise.
+        """
+        if not isinstance(item, tuple):
+            return None
+
+        # item is (header, body)
+        # header: b'123 (RFC822 {456}'
+        # body: raw email bytes
+        header = item[0]
+        raw_bytes = item[1]
+
+        try:
+            # Extract sequence number from header
+            msg_seq = header.split()[0]
+            if isinstance(raw_bytes, bytes):
+                return (msg_seq.decode(), raw_bytes)
+            else:
+                self.logger.warning(
+                    f"Unexpected payload type for email {msg_seq}: "
+                    f"{type(raw_bytes)}"
+                )
+        except Exception as parse_err:
+            self.logger.error(
+                f"Error parsing email header {header}: {parse_err}"
+            )
+
+        return None
+
     def _fetch_batch(self, email_ids: List[bytes]) -> List[Tuple[str, bytes]]:
         """
         Fetch a batch of emails with size pre-checking
@@ -339,27 +375,9 @@ class IMAPConnection:
             
             if status == "OK" and isinstance(data, list):
                 for item in data:
-                    if isinstance(item, tuple):
-                        # item is (header, body)
-                        # header: b'123 (RFC822 {456}'
-                        # body: raw email bytes
-                        header = item[0]
-                        raw_bytes = item[1]
-                        
-                        try:
-                            # Extract sequence number from header
-                            msg_seq = header.split()[0]
-                            if isinstance(raw_bytes, bytes):
-                                emails.append((msg_seq.decode(), raw_bytes))
-                            else:
-                                self.logger.warning(
-                                    f"Unexpected payload type for email {msg_seq}: "
-                                    f"{type(raw_bytes)}"
-                                )
-                        except Exception as parse_err:
-                            self.logger.error(
-                                f"Error parsing email header {header}: {parse_err}"
-                            )
+                    parsed_email = self._parse_email_payload(item)
+                    if parsed_email:
+                        emails.append(parsed_email)
             else:
                 self.logger.warning(
                     f"Failed to fetch batch {safe_ids_str}: {status}"
@@ -369,7 +387,7 @@ class IMAPConnection:
             self.logger.error(f"Error fetching email batch {ids_str}: {e}")
         
         return emails
-    
+
     def _check_email_sizes(self, email_ids: List[bytes]) -> List[bytes]:
         """
         Check email sizes and filter out oversized ones
