@@ -66,7 +66,7 @@ class TestConfigurationValidation(unittest.TestCase):
             verify_ssl=True
         )
         self.assertIsNotNone(valid_config)
-        
+
         # The actual validation might happen at Config level
         # This documents expected behavior
 
@@ -89,7 +89,7 @@ class TestConfigurationValidation(unittest.TestCase):
             use_ssl=True,
             verify_ssl=True
         )
-        
+
         # Config is created but would fail on actual connection
         # Validation could be added in future to catch this earlier
         self.assertIsNotNone(config)
@@ -112,7 +112,7 @@ class TestConfigurationValidation(unittest.TestCase):
             use_ssl=True,
             verify_ssl=True
         )
-        
+
         # Config is created but would be ineffective
         # Validation at Config.validate() level should catch this
         self.assertIsNotNone(config)
@@ -129,7 +129,7 @@ class TestConfigurationValidation(unittest.TestCase):
         config.threat_low = -10  # Invalid
         config.threat_medium = 50
         config.threat_high = 80
-        
+
         # Implementation should validate these
         # This test documents expected behavior
 
@@ -138,7 +138,7 @@ class TestConfigurationValidation(unittest.TestCase):
         SECURITY STORY: This tests that threat thresholds are properly ordered.
         If high < medium < low, the system behavior becomes unpredictable.
         Validation ensures logical ordering: low < medium < high.
-        
+
         MAINTENANCE WISDOM: Future you will thank present you for this test when
         debugging why alerts seem backwards or inconsistent.
         """
@@ -147,7 +147,7 @@ class TestConfigurationValidation(unittest.TestCase):
         invalid_config.threat_low = 80
         invalid_config.threat_medium = 50
         invalid_config.threat_high = 20  # Wrong order!
-        
+
         # Should detect invalid ordering
         # Implementation detail: validation might happen at Config.validate()
 
@@ -165,7 +165,7 @@ class TestEnvironmentVariablePrecedence(unittest.TestCase):
         with tempfile.NamedTemporaryFile(mode='w', suffix='.env', delete=False) as f:
             f.write("TEST_VAR=test_value\n")
             env_file = f.name
-        
+
         try:
             # Config loading uses python-dotenv which handles .env files
             # This test documents the behavior
@@ -179,7 +179,7 @@ class TestEnvironmentVariablePrecedence(unittest.TestCase):
         In containerized deployments, environment variables are preferred for
         configuration injection. This precedence must be respected for proper
         secret management in production.
-        
+
         INDUSTRY CONTEXT: Professional teams use this pattern (12-factor app)
         where env vars override files, enabling different configs per environment
         without changing code.
@@ -188,14 +188,14 @@ class TestEnvironmentVariablePrecedence(unittest.TestCase):
         test_var = "IMAP_SERVER"
         test_value = "override.example.com"
         original_value = os.environ.get(test_var)
-        
+
         try:
             os.environ[test_var] = test_value
-            
+
             # When Config loads, env var should take precedence
             # This is standard python-dotenv behavior
             self.assertEqual(os.environ.get(test_var), test_value)
-            
+
         finally:
             # Cleanup
             if original_value is not None:
@@ -212,7 +212,7 @@ class TestEnvironmentVariablePrecedence(unittest.TestCase):
         # Try to load config from non-existent file
         nonexistent_file = "/tmp/nonexistent_config_file_12345.env"
         self.assertFalse(os.path.exists(nonexistent_file))
-        
+
         # Config should handle this gracefully
         # Either use defaults, or fail with clear error message
 
@@ -229,7 +229,7 @@ class TestConflictingSettings(unittest.TestCase):
         config = MagicMock(spec=AlertConfig)
         config.webhook_enabled = True
         config.webhook_url = None  # Conflict: enabled but no URL
-        
+
         # Should be flagged as invalid configuration
         # Implementation should validate in Config.validate()
 
@@ -250,7 +250,7 @@ class TestConflictingSettings(unittest.TestCase):
             use_ssl=False,  # But SSL disabled - conflict!
             verify_ssl=True
         )
-        
+
         # This configuration is suspicious but might be valid in rare cases
         # Implementation should at least log a warning
 
@@ -271,7 +271,7 @@ class TestConflictingSettings(unittest.TestCase):
             use_ssl=False,
             verify_ssl=True  # Conflict: verify SSL but not using SSL
         )
-        
+
         # Should at least log a warning about nonsensical config
 
     def test_deepfake_detection_without_api_credentials(self):
@@ -285,7 +285,7 @@ class TestConflictingSettings(unittest.TestCase):
         config.deepfake_provider = "api"
         config.deepfake_api_url = None  # Missing
         config.deepfake_api_key = None  # Missing
-        
+
         # Should be flagged as invalid configuration
 
 
@@ -297,7 +297,7 @@ class TestConfigurationDefaults(unittest.TestCase):
         SECURITY STORY: This tests that system defaults are secure.
         Default values should be conservative - smaller limits, more restrictions.
         This implements "secure by default" principle.
-        
+
         PATTERN RECOGNITION: This is similar to principle of least privilege -
         start with minimal permissions/resources and allow opt-in to more.
         """
@@ -319,7 +319,7 @@ class TestConfigurationDefaults(unittest.TestCase):
             max_attachment_count=int(os.getenv("MAX_ATTACHMENT_COUNT", "10")),
             max_body_size_kb=int(os.getenv("MAX_BODY_SIZE_KB", "1024"))
         )
-        
+
         # Verify conservative defaults
         self.assertEqual(config.max_attachment_size_mb, 25)  # Limited, not unlimited
         self.assertEqual(config.max_body_size_kb, 1024)  # 1MB limit
@@ -349,7 +349,7 @@ class TestConfigurationDefaults(unittest.TestCase):
             max_attachment_count=10,
             max_body_size_kb=1024
         )
-        
+
         # Rate limit should be enabled by default (1 second)
         self.assertGreaterEqual(config.rate_limit_delay, 1)
 
@@ -375,7 +375,7 @@ class TestConfigurationSerialization(unittest.TestCase):
         SECURITY STORY: This tests that passwords don't appear in repr/str.
         Configuration objects might be logged or printed during debugging.
         Passwords must be redacted to prevent credential leakage in logs.
-        
+
         INDUSTRY CONTEXT: Professional teams mark sensitive fields with
         repr=False in dataclasses to prevent accidental exposure.
         """
@@ -390,7 +390,7 @@ class TestConfigurationSerialization(unittest.TestCase):
             use_ssl=True,
             verify_ssl=True
         )
-        
+
         # Password should not appear in string representation
         repr_str = repr(config)
         self.assertNotIn("super_secret_password", repr_str)
@@ -403,7 +403,7 @@ class TestConfigurationSerialization(unittest.TestCase):
         """
         config = MagicMock(spec=AlertConfig)
         config.webhook_url = "https://example.com/webhook?token=secret123"
-        
+
         # Webhook URL should be redacted in logs
         # Tested in detail in test_config_security.py
 
@@ -415,7 +415,7 @@ class TestConfigurationSerialization(unittest.TestCase):
         """
         config = MagicMock(spec=AnalysisConfig)
         config.deepfake_api_key = "sk-very-secret-key-12345"
-        
+
         # API keys should be redacted
         # Field should use repr=False in dataclass
 
@@ -429,7 +429,7 @@ class TestValidationErrorMessages(unittest.TestCase):
         Good error messages help users fix configuration issues quickly.
         Poor messages lead to frustration and potential security bypasses
         where users disable validation to "make it work."
-        
+
         MAINTENANCE WISDOM: Future you will thank present you for clear error
         messages when helping users debug configuration issues at 2 AM.
         """

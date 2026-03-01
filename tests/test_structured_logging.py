@@ -35,10 +35,10 @@ class TestJSONFormatter(unittest.TestCase):
         )
 
         result = self.formatter.format(record)
-        
+
         # Should be valid JSON
         data = json.loads(result)
-        
+
         # Check required fields
         self.assertIn("timestamp", data)
         self.assertEqual(data["level"], "INFO")
@@ -84,7 +84,7 @@ class TestJSONFormatter(unittest.TestCase):
             args=(),
             exc_info=None
         )
-        
+
         # Add extra fields
         record.extra_fields = {
             "email_id": "12345",
@@ -111,7 +111,7 @@ class TestJSONFormatter(unittest.TestCase):
             args=(),
             exc_info=None
         )
-        
+
         # Add fields with sensitive names
         record.extra_fields = {
             "password": "secret123",
@@ -131,7 +131,7 @@ class TestJSONFormatter(unittest.TestCase):
         self.assertEqual(data["app_password"], "[REDACTED]")
         self.assertEqual(data["webhook_url"], "[REDACTED]")
         self.assertEqual(data["slack_webhook"], "[REDACTED]")
-        
+
         # Normal fields should not be redacted
         self.assertEqual(data["normal_field"], "safe_value")
 
@@ -146,7 +146,7 @@ class TestJSONFormatter(unittest.TestCase):
             args=(),
             exc_info=None
         )
-        
+
         record.extra_fields = {
             "PASSWORD": "secret",
             "Api_Key": "key123",
@@ -201,7 +201,7 @@ class TestJSONFormatter(unittest.TestCase):
 
         # Don't add extra_fields attribute
         result = self.formatter.format(record)
-        
+
         # Should still produce valid JSON
         data = json.loads(result)
         self.assertEqual(data["message"], "Test message")

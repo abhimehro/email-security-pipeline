@@ -41,4 +41,3 @@ Without valid IMAP credentials the pipeline will fail at the connection step. Fo
 - **Dependencies**: Use 'requirements-ci.txt' for development to avoid installing multi-GB ML libraries ('torch', 'transformers, etc.). The application will fall back to simpler rege x-based analysis if these are absent. The full dependency list is in 'requirements.txt'.
 - **PATH for pip-installed scripts**: User-in stalled pip scripts may land in '~/.local/bin'
 • Ensure this directory is in your 'PATH'..
-

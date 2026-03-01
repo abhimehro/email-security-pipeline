@@ -108,7 +108,7 @@ class TestIntegrationWorkflow(unittest.TestCase):
             nlp_result,
             media_result
         )
-        
+
         self.assertIsInstance(report, ThreatReport)
         self.assertEqual(report.subject, email_data.subject)
         self.assertEqual(report.sender, email_data.sender)
@@ -150,7 +150,7 @@ class TestIntegrationWorkflow(unittest.TestCase):
             nlp_result,
             media_result
         )
-        
+
         # Verify threat was detected
         self.assertIsNotNone(report)
         self.assertIn(report.risk_level, ["low", "medium", "high"])
@@ -170,7 +170,7 @@ class TestIntegrationWorkflow(unittest.TestCase):
             'size': 1024 * 100,  # 100KB
             'data': b'\xff\xd8\xff\xe0\x00\x10JFIF' + b'\x00' * 100  # JPEG header
         }]
-        
+
         email_data = self._create_email_data(
             subject="Check out my vacation photos!",
             body="Here are some photos from my trip.",
@@ -193,7 +193,7 @@ class TestIntegrationWorkflow(unittest.TestCase):
             nlp_result,
             media_result
         )
-        
+
         self.assertIsNotNone(report)
         self.assertIn("media_analysis", report.__dict__)
 
@@ -202,7 +202,7 @@ class TestIntegrationWorkflow(unittest.TestCase):
         SECURITY STORY: This tests graceful degradation when one analysis layer fails.
         The pipeline should continue analyzing with remaining layers rather than completely
         failing. This ensures maximum protection even when components have issues.
-        
+
         PATTERN RECOGNITION: This is similar to circuit breaker patterns in distributed systems.
         We isolate failures to prevent cascade effects while maintaining partial functionality.
         """
@@ -213,14 +213,14 @@ class TestIntegrationWorkflow(unittest.TestCase):
 
         # Test that other analyzers still work even if one fails
         # In practice, the pipeline would catch exceptions from individual analyzers
-        
+
         # Other analyzers should still work
         spam_result = self.spam_analyzer.analyze(email_data)
         self.assertIsNotNone(spam_result)
 
         media_result = self.media_analyzer.analyze(email_data)
         self.assertIsNotNone(media_result)
-        
+
         # NLP analyzer can also work
         nlp_result = self.nlp_analyzer.analyze(email_data)
         self.assertIsNotNone(nlp_result)
@@ -232,7 +232,7 @@ class TestIntegrationWorkflow(unittest.TestCase):
             nlp_result,
             media_result
         )
-        
+
         self.assertIsNotNone(report)
 
     @patch('src.modules.alert_system.requests.post')
@@ -273,11 +273,11 @@ class TestIntegrationWorkflow(unittest.TestCase):
 
         # Verify webhook was called
         self.assertTrue(mock_post.called)
-        
+
         # Verify the data sent contains threat information
         call_args = mock_post.call_args
         self.assertIsNotNone(call_args)
-        
+
         # Check that URL and data were provided
         args, kwargs = call_args
         if args:
@@ -290,7 +290,7 @@ class TestIntegrationWorkflow(unittest.TestCase):
         SECURITY STORY: This tests processing multiple emails in sequence.
         Real-world usage involves analyzing batches of emails, so we must ensure
         the pipeline maintains accuracy and doesn't have state pollution between emails.
-        
+
         MAINTENANCE WISDOM: Future you will thank present you for this test when
         debugging issues where analysis results from one email affect another.
         """
@@ -302,12 +302,12 @@ class TestIntegrationWorkflow(unittest.TestCase):
         ]
 
         results = []
-        
+
         for email_data in emails:
             spam_result = self.spam_analyzer.analyze(email_data)
             nlp_result = self.nlp_analyzer.analyze(email_data)
             media_result = self.media_analyzer.analyze(email_data)
-            
+
             report = generate_threat_report(
                 email_data,
                 spam_result,
@@ -318,16 +318,16 @@ class TestIntegrationWorkflow(unittest.TestCase):
 
         # Verify we got results for all emails
         self.assertEqual(len(results), 3)
-        
+
         # Verify different threat levels
         # Email 1 (meeting): low threat
         self.assertLess(results[0].overall_threat_score, 50.0)
-        
+
         # Email 2 (scam): higher threat (should have urgency/spam markers)
         # Note: Actual score depends on enabled features and NLP availability
         # The important thing is it's analyzed, not the specific score
         self.assertIsNotNone(results[1])
-        
+
         # Email 3 (newsletter): should be analyzed
         self.assertIsNotNone(results[2])
 

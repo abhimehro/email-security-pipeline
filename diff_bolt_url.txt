@@ -3,7 +3,7 @@ index b8c4afa..449b0f0 100644
 --- a/.jules/bolt.md
 +++ b/.jules/bolt.md
 @@ -10,4 +10,8 @@
- 
+
  ## 2025-11-09 - Regex Compilation and ML Inference
  **Learning:** Sequential `re.findall` on large texts with many patterns is significantly slower than a single pass with a combined regex. Also, legacy code might contain duplicate heavy operations (like ML inference) due to merge conflicts or poor refactoring.
 -**Action:** Combine regex patterns into single compiled objects with named groups. Audit expensive function calls for redundancy.
@@ -27,18 +27,17 @@ index cca4a49..c6d8246 100644
      ]
 @@ -248,14 +249,8 @@ class SpamAnalyzer:
                  domain = parsed.netloc
-                 
+
                  # Check against suspicious patterns
 -                for pattern in self.SUSPICIOUS_URL_PATTERNS:
 -                    if pattern.search(domain):
 -                        score += 0.5
 -                        suspicious.append(url)
 -                        break
--                
+-
 -                # Check for URL shorteners
 -                if any(shortener in domain for shortener in ['bit.ly', 'tinyurl', 't.co', 'goo.gl']):
 +                # Optimization: Use combined regex pattern instead of looping through list
 +                if self.COMBINED_URL_PATTERN.search(domain):
                      score += 0.5
                      suspicious.append(url)
-                 
