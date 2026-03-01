@@ -478,7 +478,7 @@ class MediaAuthenticityAnalyzer:
                 file_list = zf.namelist()
                 score, warnings = self._check_file_count(filename, file_list, score, warnings)
 
-                # We only check the first MAX_ZIP_FILE_COUNT files if the limit was exceeded
+                # Always cap the number of files we inspect to MAX_ZIP_FILE_COUNT to limit processing
                 files_to_check = file_list[:self.MAX_ZIP_FILE_COUNT]
 
                 for contained_file in files_to_check:
