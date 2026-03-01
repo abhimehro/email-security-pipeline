@@ -138,7 +138,7 @@ class TestSpinner(unittest.TestCase):
             s.success("Custom Done!")
 
         output = mock_stdout.getvalue()
-        # Verify custom success message is printed in non-TTY mode
+        # Verify custom success message overrides persist=False in non-TTY mode
         self.assertIn("✔ Custom Done!", output)
 
     @patch('sys.stdout', new_callable=StringIO)
