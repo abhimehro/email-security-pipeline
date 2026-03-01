@@ -384,7 +384,7 @@ class AlertSystem:
         return shutil.get_terminal_size((80, 20)).columns
 
     def _get_visual_length(self, text: str) -> int:
-        """Get the visual length of text, ignoring ANSI color codes."""
+        """Get the character count of text after stripping ANSI color codes."""
         if not text:
             return 0
         return len(ANSI_PATTERN.sub('', text))
