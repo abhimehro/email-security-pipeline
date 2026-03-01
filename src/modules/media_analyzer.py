@@ -62,6 +62,18 @@ class MediaAuthenticityAnalyzer:
     MAX_NESTED_ZIP_SIZE = 10 * 1024 * 1024  # 10MB limit for nested zips
     HIGH_FREQ_NOISE_THRESHOLD = 150  # Arbitrary threshold for high frequency noise
 
+    # Maximum attachment size (in MB) before flagging as a size anomaly.
+    # This heuristic catches potential data-exfiltration payloads that exceed
+    # the typical email attachment ceiling.
+    MAX_ATTACHMENT_SIZE_MB = 25
+
+    # Maximum number of files allowed inside a ZIP archive before flagging it.
+    # Limits analysis work and catches zip-bomb style payloads.
+    MAX_ZIP_FILE_COUNT = 1000
+
+    # Minimum size (bytes) for media files; files smaller than this are suspicious.
+    MIN_MEDIA_FILE_SIZE_BYTES = 1024  # 1KB
+
     # Archive extensions used for nested archive detection
     ARCHIVE_EXTENSIONS = {'.zip', '.rar', '.7z', '.tar', '.gz', '.iso', '.img', '.vhd', '.vhdx'}
 
@@ -435,14 +447,14 @@ class MediaAuthenticityAnalyzer:
         warning = ""
 
         # Very large attachments (potential data exfiltration)
-        if size > 25 * 1024 * 1024:  # 25MB
+        if size > self.MAX_ATTACHMENT_SIZE_MB * 1024 * 1024:
             score += 1.5
             warning = f"Unusually large attachment: {filename} ({size / (1024*1024):.1f}MB)"
 
         # Suspiciously small media files
         filename_lower = filename.lower()
         if any(filename_lower.endswith(ext) for ext in self.MEDIA_EXTENSIONS):
-            if size < 1024:  # Less than 1KB
+            if size < self.MIN_MEDIA_FILE_SIZE_BYTES:
                 score += 1.0
                 warning = f"Suspiciously small media file: {filename} ({size} bytes)"
 
@@ -466,8 +478,8 @@ class MediaAuthenticityAnalyzer:
                 file_list = zf.namelist()
                 score, warnings = self._check_file_count(filename, file_list, score, warnings)
 
-                # We only check the first 1000 files if the limit was exceeded
-                files_to_check = file_list[:1000]
+                # Always cap the number of files we inspect to MAX_ZIP_FILE_COUNT to limit processing
+                files_to_check = file_list[:self.MAX_ZIP_FILE_COUNT]
 
                 for contained_file in files_to_check:
                     member_score, member_warnings = self._inspect_archive_member(
@@ -489,7 +501,7 @@ class MediaAuthenticityAnalyzer:
 
     def _check_file_count(self, filename: str, file_list: List[str], score: float, warnings: List[str]) -> Tuple[float, List[str]]:
         """Check if archive contains too many files"""
-        if len(file_list) > 1000:
+        if len(file_list) > self.MAX_ZIP_FILE_COUNT:
             score += 1.0
             warnings.append(f"Archive {filename} contains too many files ({len(file_list)})")
         return score, warnings
@@ -592,7 +604,7 @@ class MediaAuthenticityAnalyzer:
         try:
             with tarfile.open(fileobj=io.BytesIO(data), mode='r:*') as tf:
                 file_count = 0
-                max_files = 1000
+                max_files = self.MAX_ZIP_FILE_COUNT
 
                 for member in tf:
                     file_count += 1
