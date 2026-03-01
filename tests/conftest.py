@@ -21,20 +21,3 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 # third-party packages.
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
-
-# Mock heavy dependencies that might not be installed in the CI test environment
-import sys
-from unittest.mock import MagicMock
-
-# Create mock objects for these packages
-mock_numpy = MagicMock()
-mock_dotenv = MagicMock()
-mock_cv2 = MagicMock()
-
-# Mock out heavy and system-dependent packages
-sys.modules['numpy'] = mock_numpy
-sys.modules['dotenv'] = mock_dotenv
-sys.modules['cv2'] = mock_cv2
-
-mock_requests = MagicMock()
-sys.modules['requests'] = mock_requests

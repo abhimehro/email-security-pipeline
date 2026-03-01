@@ -433,8 +433,6 @@ class ConfigValidationError(Exception):
     pass
 
 
-
-
 def _ensure_config_exists(config_file: str) -> bool:
     """
     Ensure the configuration file exists.
@@ -489,7 +487,6 @@ def _ensure_config_exists(config_file: str) -> bool:
     return False
 
 
-
 def _validate_config(config_file: str) -> None:
     """
     Validate that the configuration does not use default values.
@@ -518,8 +515,6 @@ def _validate_config(config_file: str) -> None:
 
 
 def _print_banner():
-
-
     """Print the application banner"""
     print(Colors.colorize("=" * 80, Colors.CYAN))
     print(Colors.colorize("Email Security Analysis Pipeline", Colors.BOLD + Colors.CYAN))
@@ -529,7 +524,6 @@ def _print_banner():
 
 
 def signal_handler(signum, frame):
-
 
     """Handle shutdown signals"""
     print("\nReceived shutdown signal, stopping gracefully...")
