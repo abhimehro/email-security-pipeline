@@ -1,0 +1,251 @@
+{
+  "snapshot": "snapshot-20251109-c9b8b439-ec37-4583-ae9b-73beafbbe302",
+  "terminals": [],
+  "agents": {
+    "default": {
+      "enabled": true,
+      "workingDirectory": "${workspaceFolder}",
+      "environment": {
+        "NODE_ENV": "development",
+        "PYTHONUNBUFFERED": "1",
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "GIT_EDITOR": "code --wait",
+        "EDITOR": "code",
+        "LANG": "en_US.UTF-8",
+        "LC_ALL": "en_US.UTF-8",
+        "TZ": "UTC"
+      },
+      "timeout": {
+        "default": 300000,
+        "longRunning": 1800000,
+        "short": 60000
+      },
+      "resourceLimits": {
+        "maxMemoryMB": 4096,
+        "maxCpuPercent": 80,
+        "maxConcurrentTasks": 5
+      },
+      "retryPolicy": {
+        "maxRetries": 3,
+        "retryDelayMs": 1000,
+        "exponentialBackoff": true
+      },
+      "security": {
+        "allowFileSystemAccess": true,
+        "allowNetworkAccess": true,
+        "allowProcessExecution": true,
+        "restrictedPaths": [
+          "/etc",
+          "/usr/bin",
+          "/bin",
+          "/sbin",
+          "/System",
+          "/Library",
+          "/Applications"
+        ],
+        "allowedFileExtensions": [
+          ".js",
+          ".ts",
+          ".py",
+          ".go",
+          ".rs",
+          ".java",
+          ".cpp",
+          ".c",
+          ".json",
+          ".yaml",
+          ".yml",
+          ".md",
+          ".txt",
+          ".sh",
+          ".bash",
+          ".zsh",
+          ".fish"
+        ]
+      },
+      "logging": {
+        "level": "info",
+        "format": "json",
+        "output": "console",
+        "maxFileSizeMB": 10,
+        "maxFiles": 5
+      },
+      "cache": {
+        "enabled": true,
+        "ttlSeconds": 3600,
+        "maxSizeMB": 512
+      }
+    },
+    "codeAnalysis": {
+      "enabled": true,
+      "workingDirectory": "${workspaceFolder}",
+      "schedule": "onSave",
+      "filePatterns": [
+        "**/*.py",
+        "**/*.js",
+        "**/*.ts",
+        "**/*.go",
+        "**/*.rs",
+        "**/*.java"
+      ],
+      "timeout": {
+        "default": 120000
+      },
+      "resourceLimits": {
+        "maxMemoryMB": 2048,
+        "maxCpuPercent": 50
+      }
+    },
+    "testRunner": {
+      "enabled": true,
+      "workingDirectory": "${workspaceFolder}",
+      "schedule": "onSave",
+      "filePatterns": [
+        "**/*.test.*",
+        "**/*.spec.*",
+        "**/test_*.py",
+        "**/tests/**"
+      ],
+      "timeout": {
+        "default": 600000
+      },
+      "resourceLimits": {
+        "maxMemoryMB": 3072,
+        "maxCpuPercent": 70
+      }
+    },
+    "dependencyChecker": {
+      "enabled": true,
+      "workingDirectory": "${workspaceFolder}",
+      "schedule": "daily",
+      "timeout": {
+        "default": 180000
+      },
+      "resourceLimits": {
+        "maxMemoryMB": 1024,
+        "maxCpuPercent": 40
+      }
+    },
+    "securityScanner": {
+      "enabled": true,
+      "workingDirectory": "${workspaceFolder}",
+      "schedule": "onSave",
+      "filePatterns": [
+        "**/*.py",
+        "**/*.js",
+        "**/*.ts",
+        "**/*.json",
+        "**/*.yaml",
+        "**/*.yml",
+        "**/.env*",
+        "**/package.json",
+        "**/requirements.txt",
+        "**/Cargo.toml",
+        "**/go.mod"
+      ],
+      "timeout": {
+        "default": 300000
+      },
+      "resourceLimits": {
+        "maxMemoryMB": 2048,
+        "maxCpuPercent": 60
+      },
+      "security": {
+        "scanForSecrets": true,
+        "scanForVulnerabilities": true,
+        "scanForMalware": false
+      }
+    },
+    "documentationGenerator": {
+      "enabled": true,
+      "workingDirectory": "${workspaceFolder}",
+      "schedule": "onSave",
+      "filePatterns": ["**/*.py", "**/*.js", "**/*.ts", "**/*.go", "**/*.rs"],
+      "timeout": {
+        "default": 90000
+      },
+      "resourceLimits": {
+        "maxMemoryMB": 1536,
+        "maxCpuPercent": 50
+      }
+    },
+    "formatter": {
+      "enabled": true,
+      "workingDirectory": "${workspaceFolder}",
+      "schedule": "onSave",
+      "filePatterns": [
+        "**/*.py",
+        "**/*.js",
+        "**/*.ts",
+        "**/*.json",
+        "**/*.md",
+        "**/*.yaml",
+        "**/*.yml"
+      ],
+      "timeout": {
+        "default": 30000
+      },
+      "resourceLimits": {
+        "maxMemoryMB": 512,
+        "maxCpuPercent": 30
+      }
+    }
+  },
+  "workspace": {
+    "autoReload": true,
+    "watchPatterns": [
+      "**/*.py",
+      "**/*.js",
+      "**/*.ts",
+      "**/*.json",
+      "**/*.yaml",
+      "**/*.yml",
+      "**/*.md"
+    ],
+    "ignorePatterns": [
+      "**/node_modules/**",
+      "**/venv/**",
+      "**/.venv/**",
+      "**/__pycache__/**",
+      "**/.git/**",
+      "**/.DS_Store",
+      "**/dist/**",
+      "**/build/**",
+      "**/.next/**",
+      "**/.cache/**",
+      "**/logs/**",
+      "**/*.log"
+    ]
+  },
+  "integrations": {
+    "git": {
+      "enabled": true,
+      "autoFetch": true,
+      "autoStash": false,
+      "conflictResolution": "manual"
+    },
+    "docker": {
+      "enabled": true,
+      "autoDetect": true,
+      "composeFiles": ["docker-compose.yml", "docker-compose.yaml"]
+    },
+    "packageManagers": {
+      "npm": {
+        "enabled": true,
+        "autoInstall": false
+      },
+      "pip": {
+        "enabled": true,
+        "autoInstall": false
+      },
+      "cargo": {
+        "enabled": true,
+        "autoInstall": false
+      },
+      "go": {
+        "enabled": true,
+        "autoInstall": false
+      }
+    }
+  }
+}
