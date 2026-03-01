@@ -374,40 +374,49 @@ class MediaAuthenticityAnalyzer:
         # This prevents processing invalid/corrupt media files.
         filename_lower = filename.lower().strip().replace('\0', '').rstrip('.')
 
-        # Map extensions to their expected descriptions for error messages
-        strict_validation_exts = {
-            # Note: '.exe' and '.dll' are also handled earlier when a valid PE signature
-            # is detected (actual_type == 'exe'). They are included here as a fallback
-            # for cases where signature detection fails but the extension claims an executable.
-            '.exe': 'executable',
-            '.dll': 'executable',
-            '.zip': 'archive',
-            '.pdf': 'PDF',
-            '.png': 'PNG image',
-            '.jpg': 'JPEG image',
-            '.jpeg': 'JPEG image',
-            '.gif': 'GIF image',
-            '.mp4': 'MP4 video',
-            '.avi': 'AVI video',
-            '.mkv': 'MKV video',
-            '.wav': 'WAV audio',
-            # Additional strict validation for media types processed by OpenCV
-            '.mov': 'QuickTime video',
-            '.wmv': 'WMV video',
-            '.flv': 'FLV video',
-            '.ogg': 'Ogg audio/video',
-            '.flac': 'FLAC audio',
-            '.m4a': 'M4A audio',
-        }
+        # Lazily initialize strict validation configuration on the class so we don't
+        # rebuild it on every call. This keeps the mapping centralized and efficient.
+        cls = self.__class__
 
-        # Treat all known media extensions (and WAV) as critical when their signatures are invalid,
-        # to prevent them from reaching deepfake/OpenCV processing.
-        media_exts = getattr(self, 'MEDIA_EXTENSIONS', [])
-        critical_media_exts = {
-            ext for ext in strict_validation_exts.keys()
-            if ext in media_exts or ext == '.wav'
-        }
+        if not hasattr(cls, "_STRICT_VALIDATION_EXTS"):
+            # Map extensions to their expected descriptions for error messages
+            cls._STRICT_VALIDATION_EXTS = {
+                # Note: '.exe' and '.dll' are also handled earlier when a valid PE signature
+                # is detected (actual_type == 'exe'). They are included here as a fallback
+                # for cases where signature detection fails but the extension claims an executable.
+                '.exe': 'executable',
+                '.dll': 'executable',
+                '.zip': 'archive',
+                '.pdf': 'PDF',
+                '.png': 'PNG image',
+                '.jpg': 'JPEG image',
+                '.jpeg': 'JPEG image',
+                '.gif': 'GIF image',
+                '.mp4': 'MP4 video',
+                '.avi': 'AVI video',
+                '.mkv': 'MKV video',
+                '.wav': 'WAV audio',
+                # Additional strict validation for media types processed by OpenCV
+                '.mov': 'QuickTime video',
+                '.wmv': 'WMV video',
+                '.flv': 'FLV video',
+                '.ogg': 'Ogg audio/video',
+                '.flac': 'FLAC audio',
+                '.m4a': 'M4A audio',
+            }
 
+        if not hasattr(cls, "_CRITICAL_MEDIA_EXTS"):
+            # Treat all known media extensions (and WAV) as critical when their signatures are invalid,
+            # to prevent them from reaching deepfake/OpenCV processing. Use getattr so we degrade
+            # safely if MEDIA_EXTENSIONS is not defined on this instance.
+            media_exts = getattr(self, 'MEDIA_EXTENSIONS', [])
+            cls._CRITICAL_MEDIA_EXTS = {
+                ext for ext in cls._STRICT_VALIDATION_EXTS.keys()
+                if ext in media_exts or ext == '.wav'
+            }
+
+        strict_validation_exts = cls._STRICT_VALIDATION_EXTS
+        critical_media_exts = cls._CRITICAL_MEDIA_EXTS
         for ext, type_desc in strict_validation_exts.items():
             if filename_lower.endswith(ext):
                 # Return 5.0 (Critical) for media files to ensure they don't reach deepfake analysis
