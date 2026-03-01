@@ -13,7 +13,7 @@ from dataclasses import dataclass
 
 from ..utils.caching import TTLCache
 
-from .email_ingestion import EmailData
+from .email_data import EmailData
 from ..utils.pattern_compiler import compile_patterns, check_redos_safety
 from ..utils.threat_scoring import calculate_risk_level
 
