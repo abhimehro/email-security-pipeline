@@ -380,9 +380,18 @@ class AlertSystem:
         )
 
     def _get_terminal_width(self) -> int:
-        """Get the current terminal width or default to 80."""
-        return shutil.get_terminal_size((80, 20)).columns
+        """Get the current terminal width or default to 80.
 
+        This is wrapped in a try/except so we don't crash in environments where
+        shutil.get_terminal_size is unavailable or cannot determine the size.
+        In those cases we conservatively fall back to 80 columns.
+        """
+        try:
+            return shutil.get_terminal_size((80, 20)).columns
+        except (AttributeError, OSError, ValueError):
+            # AttributeError: get_terminal_size might not exist (older/embedded runtimes)
+            # OSError/ValueError: terminal size can't be determined in this environment
+            return 80
     def _get_visual_length(self, text: str) -> int:
         """Get the character count of text after stripping ANSI color codes."""
         if not text:
