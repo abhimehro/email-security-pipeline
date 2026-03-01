@@ -129,3 +129,29 @@ class TestSpinner(unittest.TestCase):
         output = mock_stdout.getvalue()
         # Verify custom failure message is used
         self.assertIn("✘ Failed!", output)
+
+    @patch('sys.stdout', new_callable=StringIO)
+    def test_spinner_custom_success_non_tty(self, mock_stdout):
+        mock_stdout.isatty = MagicMock(return_value=False)
+
+        with Spinner("Checking...", persist=False) as s:
+            s.success("Custom Done!")
+
+        output = mock_stdout.getvalue()
+        # Verify custom success message is printed in non-TTY mode
+        self.assertIn("✔ Custom Done!", output)
+
+    @patch('sys.stdout', new_callable=StringIO)
+    def test_spinner_custom_failure_non_tty(self, mock_stdout):
+        mock_stdout.isatty = MagicMock(return_value=False)
+
+        try:
+            with Spinner("Checking...") as s:
+                s.fail("Custom Failed!")
+                raise ValueError("Oops")
+        except ValueError:
+            pass
+
+        output = mock_stdout.getvalue()
+        # Verify custom failure message is printed in non-TTY mode
+        self.assertIn("✘ Custom Failed!", output)
