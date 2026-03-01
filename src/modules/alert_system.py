@@ -48,6 +48,12 @@ class AlertSystem:
     # Common prefixes for recommendations to strip during display to prevent duplication
     RECOMMENDATION_PREFIXES = ["⚠️ ", "🎣 ", "🔗 ", "⏰ ", "📎 ", "👤 "]
 
+    # Maximum number of items shown per section in the console threat report.
+    # Keeps the output readable without truncating important context.
+    MAX_SPAM_INDICATORS_DISPLAY = 5
+    MAX_NLP_INDICATORS_DISPLAY = 3
+    MAX_MEDIA_WARNINGS_DISPLAY = 3
+
     def __init__(self, config):
         """
         Initialize alert system
@@ -185,7 +191,7 @@ class AlertSystem:
         # Spam
         print_section_header("📧 SPAM", report.spam_analysis)
         if report.spam_analysis.get('indicators'):
-            for indicator in report.spam_analysis['indicators'][:5]:
+            for indicator in report.spam_analysis['indicators'][:self.MAX_SPAM_INDICATORS_DISPLAY]:
                 self._print_alert_row(f"{Colors.colorize('•', Colors.GREY)} {indicator}", risk_color, indent=3)
         else:
             self._print_alert_row(f"{Colors.colorize('✓', Colors.GREEN)} No suspicious patterns", risk_color, indent=3)
@@ -197,13 +203,13 @@ class AlertSystem:
         has_nlp = False
         if nlp.get('social_engineering_indicators'):
             self._print_alert_row(f"{Colors.BOLD}Social Engineering:{Colors.RESET}", risk_color, indent=3)
-            for ind in nlp['social_engineering_indicators'][:3]:
+            for ind in nlp['social_engineering_indicators'][:self.MAX_NLP_INDICATORS_DISPLAY]:
                 self._print_alert_row(f"{Colors.colorize('•', Colors.RED)} {ind}", risk_color, indent=5)
             has_nlp = True
 
         if nlp.get('authority_impersonation'):
             self._print_alert_row(f"{Colors.BOLD}Authority Impersonation:{Colors.RESET}", risk_color, indent=3)
-            for ind in nlp['authority_impersonation'][:3]:
+            for ind in nlp['authority_impersonation'][:self.MAX_NLP_INDICATORS_DISPLAY]:
                 self._print_alert_row(f"{Colors.colorize('•', Colors.RED)} {ind}", risk_color, indent=5)
             has_nlp = True
 
@@ -216,7 +222,7 @@ class AlertSystem:
         media = report.media_analysis
         if media.get('file_type_warnings'):
             self._print_alert_row(f"{Colors.BOLD}File Warnings:{Colors.RESET}", risk_color, indent=3)
-            for warning in media['file_type_warnings'][:3]:
+            for warning in media['file_type_warnings'][:self.MAX_MEDIA_WARNINGS_DISPLAY]:
                 self._print_alert_row(f"{Colors.colorize('•', Colors.YELLOW)} {warning}", risk_color, indent=5)
         else:
             self._print_alert_row(f"{Colors.colorize('✓', Colors.GREEN)} Attachments appear safe", risk_color, indent=3)

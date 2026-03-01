@@ -65,6 +65,12 @@ class SpamAnalyzer:
     SENDER_DOMAIN_PATTERN = re.compile(r"[\w\.-]+@([\w\.-]+)", re.IGNORECASE)
     DISPLAY_NAME_PATTERN = re.compile(r"^([^<]+)<", re.IGNORECASE)
 
+    # Number of links in an email body that triggers an "excessive links" spam signal.
+    EXCESSIVE_LINK_THRESHOLD = 10
+
+    # Number of received-headers before flagging a suspiciously long relay chain.
+    EXCESSIVE_HOP_THRESHOLD = 10
+
     # Suspicious URL patterns
     SUSPICIOUS_URL_PATTERNS = [
         r"bit\.ly",
@@ -224,7 +230,7 @@ class SpamAnalyzer:
             indicators.append(f"Found {keyword_matches} spam keyword matches")
 
         # Check for excessive links (using count passed from analyze)
-        if link_count > 10:
+        if link_count > self.EXCESSIVE_LINK_THRESHOLD:
             score += 1.0
             indicators.append(f"Excessive links ({link_count})")
 
@@ -366,7 +372,7 @@ class SpamAnalyzer:
 
         # Check for suspicious received headers
         received_headers = get_header_list("received")
-        if len(received_headers) > 10:
+        if len(received_headers) > self.EXCESSIVE_HOP_THRESHOLD:
             score += 1.0
             issues.append("Excessive hops in delivery path")
 
