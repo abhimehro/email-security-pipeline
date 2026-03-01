@@ -328,46 +328,59 @@ class MediaAuthenticityAnalyzer:
         actual_type = self._detect_file_type(data)
 
         if actual_type:
-            # Check if extension matches detected type
-            filename_lower = filename.lower()
-
-            # Special case for executables disguised as documents
-            if actual_type == 'exe' and not filename_lower.endswith('.exe'):
-                return 5.0, "Executable disguised as another file type"
-
-            # Check for general mismatches
-            expected_extensions = {
-                'pdf': ['.pdf'],
-                'zip': ['.zip', '.docx', '.xlsx', '.pptx', '.jar'],
-                'jpeg': ['.jpg', '.jpeg'],
-                'png': ['.png'],
-                'gif': ['.gif'],
-                'doc': ['.doc', '.xls', '.ppt', '.msi'],
-                'exe': ['.exe', '.dll', '.com', '.scr'],
-                'mp4': ['.mp4', '.mov', '.m4a', '.3gp'],
-                'avi': ['.avi'],
-                'wav': ['.wav'],
-                'mp3': ['.mp3'],
-                'mkv': ['.mkv', '.webm'],
-                'webp': ['.webp'],
-                'wmv': ['.wmv'],
-                'flv': ['.flv'],
-                'ogg': ['.ogg', '.oga', '.ogv', '.ogx'],
-                'flac': ['.flac'],
-            }
-
-            if actual_type in expected_extensions:
-                expected_exts = expected_extensions[actual_type]
-                if not any(filename_lower.endswith(ext) for ext in expected_exts):
-                    return 2.0, f"File type mismatch: {filename} (detected {actual_type})"
-
+            return self._validate_signature_match(filename, actual_type)
         else:
-            # Type not detected. Validate that if extension claims a known type, it matches.
-            # This prevents processing invalid/corrupt media files.
-            filename_lower = filename.lower()
+            return self._validate_missing_signature(filename)
 
+    def _validate_signature_match(self, filename: str, actual_type: str) -> Tuple[float, str]:
+        """Check if file extension matches the detected signature"""
+        filename_lower = filename.lower().strip().replace('\0', '').rstrip('.')
+
+        # Special case for executables disguised as documents
+        if actual_type == 'exe' and not filename_lower.endswith('.exe'):
+            return 5.0, "Executable disguised as another file type"
+
+        # Check for general mismatches
+        expected_extensions = {
+            'pdf': ['.pdf'],
+            'zip': ['.zip', '.docx', '.xlsx', '.pptx', '.jar'],
+            'jpeg': ['.jpg', '.jpeg'],
+            'png': ['.png'],
+            'gif': ['.gif'],
+            'doc': ['.doc', '.xls', '.ppt', '.msi'],
+            'exe': ['.exe'],
+            'mp4': ['.mp4', '.mov', '.m4a', '.3gp'],
+            'avi': ['.avi'],
+            'wav': ['.wav'],
+            'mp3': ['.mp3'],
+            'mkv': ['.mkv', '.webm'],
+            'webp': ['.webp'],
+            'wmv': ['.wmv'],
+            'flv': ['.flv'],
+            'ogg': ['.ogg', '.oga', '.ogv', '.ogx'],
+            'flac': ['.flac'],
+        }
+
+        if actual_type in expected_extensions:
+            expected_exts = expected_extensions[actual_type]
+            if not any(filename_lower.endswith(ext) for ext in expected_exts):
+                return 2.0, f"File type mismatch: {filename} (detected {actual_type})"
+
+        return 0.0, ""
+
+    def _validate_missing_signature(self, filename: str) -> Tuple[float, str]:
+        """Check if missing signature violates strict extension rules"""
+        # Type not detected. Validate that if extension claims a known type, it matches.
+        # This prevents processing invalid/corrupt media files.
+        filename_lower = filename.lower().strip().replace('\0', '').rstrip('.')
+
+        # Lazily initialize strict validation configuration on the class so we don't
+        # rebuild it on every call. This keeps the mapping centralized and efficient.
+        cls = self.__class__
+
+        if not hasattr(cls, "_STRICT_VALIDATION_EXTS"):
             # Map extensions to their expected descriptions for error messages
-            strict_validation_exts = {
+            cls._STRICT_VALIDATION_EXTS = {
                 # Note: '.exe' and '.dll' are also handled earlier when a valid PE signature
                 # is detected (actual_type == 'exe'). They are included here as a fallback
                 # for cases where signature detection fails but the extension claims an executable.
@@ -392,23 +405,27 @@ class MediaAuthenticityAnalyzer:
                 '.m4a': 'M4A audio',
             }
 
+        if not hasattr(cls, "_CRITICAL_MEDIA_EXTS"):
             # Treat all known media extensions (and WAV) as critical when their signatures are invalid,
-            # to prevent them from reaching deepfake/OpenCV processing.
+            # to prevent them from reaching deepfake/OpenCV processing. Use getattr so we degrade
+            # safely if MEDIA_EXTENSIONS is not defined on this instance.
             media_exts = getattr(self, 'MEDIA_EXTENSIONS', [])
-            critical_media_exts = {
-                ext for ext in strict_validation_exts.keys()
+            cls._CRITICAL_MEDIA_EXTS = {
+                ext for ext in cls._STRICT_VALIDATION_EXTS.keys()
                 if ext in media_exts or ext == '.wav'
             }
 
-            for ext, type_desc in strict_validation_exts.items():
-                if filename_lower.endswith(ext):
-                    # Return 5.0 (Critical) for media files to ensure they don't reach deepfake analysis
-                    # which could trigger vulnerabilities in processing libraries (e.g., OpenCV)
-                    # Note: 5.0 is intentionally chosen to fail the `threat_score < 5.0` gate (see earlier check),
-                    # so that invalid media never reaches the deepfake/OpenCV processing pipeline.
-                    if ext in critical_media_exts:
-                        return 5.0, f"Invalid file signature for {ext}: expected {type_desc} signature but none found"
-                    return 2.0, f"Invalid file signature for {ext}: expected {type_desc} signature but none found"
+        strict_validation_exts = cls._STRICT_VALIDATION_EXTS
+        critical_media_exts = cls._CRITICAL_MEDIA_EXTS
+        for ext, type_desc in strict_validation_exts.items():
+            if filename_lower.endswith(ext):
+                # Return 5.0 (Critical) for media files to ensure they don't reach deepfake analysis
+                # which could trigger vulnerabilities in processing libraries (e.g., OpenCV)
+                # Note: 5.0 is intentionally chosen to fail the `threat_score < 5.0` gate (see earlier check),
+                # so that invalid media never reaches the deepfake/OpenCV processing pipeline.
+                if ext in critical_media_exts:
+                    return 5.0, f"Invalid file signature for {ext}: expected {type_desc} signature but none found"
+                return 2.0, f"Invalid file signature for {ext}: expected {type_desc} signature but none found"
 
         return 0.0, ""
 
