@@ -97,11 +97,13 @@ class AppRunner:
 
     def _handle_missing_config_non_interactive(self) -> NoReturn:
         """Handle missing configuration when non-interactive or template is missing."""
-        if not Path(self.config_file).exists():
-            print(f"Error: Configuration file '{self.config_file}' not found")
-            print("Please create a .env file based on .env.example")
-            print("You can run: cp .env.example .env")
-            sys.exit(1)
+        # In non-interactive mode (or when the setup wizard can't be used),
+        # we cannot proceed without a configuration file. Always exit here
+        # to honor the NoReturn type annotation and make the failure mode explicit.
+        print(f"Error: Configuration file '{self.config_file}' not found")
+        print("Please create a .env file based on .env.example")
+        print("You can run: cp .env.example .env")
+        sys.exit(1)
 
     def validate_config(self) -> None:
         """Validate the configuration to ensure default credentials aren't used."""
