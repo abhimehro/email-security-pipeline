@@ -22,7 +22,7 @@ pip install pytest-benchmark
 def test_email_parsing_performance(benchmark):
     msg = create_test_email(parts=50)
     result = benchmark(parse_email, msg)
-    
+
     # Security: Ensure reasonable time (DoS protection)
     assert benchmark.stats.mean < 0.1  # 100ms per email
 ```

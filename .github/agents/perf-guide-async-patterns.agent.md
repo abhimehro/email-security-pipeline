@@ -27,12 +27,12 @@ import asyncio
 class AlertSystem:
     def __init__(self):
         self.alert_queue = asyncio.Queue()
-    
+
     async def dispatch_alerts(self):
         while True:
             alert = await self.alert_queue.get()
             asyncio.create_task(self._send_alert(alert))
-    
+
     async def _send_alert(self, alert):
         try:
             async with asyncio.timeout(5.0):  # DoS protection
@@ -53,7 +53,7 @@ class IMAPPool:
     def __init__(self, config, pool_size=3):
         self.pool = [self._create_connection(config)
                      for _ in range(pool_size)]
-    
+
     def get_connection(self):
         return self.pool[0]  # Simple round-robin
 ```

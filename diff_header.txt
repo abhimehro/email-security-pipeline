@@ -36,7 +36,7 @@ index fcd44c1..8010b2b 100644
 @@ -310,8 +310,20 @@ class IMAPClient:
          try:
              msg = email.message_from_bytes(raw_email)
- 
+
 -            # Extract headers
 -            headers = {key: self._decode_header_value(value) for key, value in msg.items()}
 +            # Extract headers with support for duplicates (e.g., Received)
@@ -53,7 +53,7 @@ index fcd44c1..8010b2b 100644
 +                        headers[key_lower] = [existing, decoded_val]
 +                else:
 +                    headers[key_lower] = decoded_val
- 
+
              subject = self._decode_header_value(msg.get("Subject", ""))
              sender = self._format_addresses(msg.get("From", ""))
 diff --git a/src/modules/spam_analyzer.py b/src/modules/spam_analyzer.py
@@ -61,24 +61,24 @@ index cca4a49..ee68f6d 100644
 --- a/src/modules/spam_analyzer.py
 +++ b/src/modules/spam_analyzer.py
 @@ -5,7 +5,7 @@ Traditional spam scoring based on headers, content patterns, and URLs
- 
+
  import re
  import logging
 -from typing import Dict, List, Tuple
 +from typing import Dict, List, Tuple, Union
  from urllib.parse import urlparse
  from dataclasses import dataclass
- 
+
 @@ -267,43 +267,70 @@ class SpamAnalyzer:
-         
+
          return score, suspicious
-     
+
 -    def _analyze_headers(self, headers: Dict[str, str]) -> Tuple[float, List[str]]:
 +    def _analyze_headers(self, headers: Dict[str, Union[str, List[str]]]) -> Tuple[float, List[str]]:
          """Analyze email headers for anomalies"""
          score = 0.0
          issues = []
-         
+
 +        # Helper to always get a list
 +        def get_header_list(key: str) -> List[str]:
 +            val = headers.get(key, [])
@@ -106,14 +106,14 @@ index cca4a49..ee68f6d 100644
 +        elif spf_softfail:
              score += 1.0
              issues.append("SPF soft fail")
-         
+
          # Check DKIM
 -        dkim = headers.get('DKIM-Signature', '')
 +        dkim = get_header_list('dkim-signature')
          if not dkim:
              score += 0.5
              issues.append("Missing DKIM signature")
-         
+
          # Check for missing standard headers
 -        required_headers = ['From', 'To', 'Date', 'Message-ID']
 +        # We check for lowercased keys
@@ -125,14 +125,14 @@ index cca4a49..ee68f6d 100644
                  score += 0.5
 -                issues.append(f"Missing {header} header")
 +                issues.append(f"Missing {display_header} header")
-         
+
          # Check for suspicious received headers
 -        received_headers = [v for k, v in headers.items() if k == 'Received']
 +        received_headers = get_header_list('received')
          if len(received_headers) > 10:
              score += 1.0
              issues.append("Excessive hops in delivery path")
-         
+
          # Check for forged sender
 -        from_header = headers.get('From', '').lower()
 -        return_path = headers.get('Return-Path', '').lower()
@@ -152,9 +152,9 @@ index cca4a49..ee68f6d 100644
              from_email = self.EMAIL_ADDRESS_PATTERN.search(from_header)
              return_email = self.EMAIL_ADDRESS_PATTERN.search(return_path)
 @@ -315,7 +342,7 @@ class SpamAnalyzer:
-         
+
          return score, issues
-     
+
 -    def _check_sender(self, sender: str, headers: Dict[str, str]) -> Tuple[float, List[str]]:
 +    def _check_sender(self, sender: str, headers: Dict[str, Union[str, List[str]]]) -> Tuple[float, List[str]]:
          """Check sender reputation and authenticity"""

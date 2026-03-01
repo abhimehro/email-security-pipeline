@@ -11,8 +11,8 @@ Several agentic workflows are failing because **GitHub Discussions are not enabl
 
 ### Error Message:
 ```
-Failed to create discussion in 'abhimehro/email-security-pipeline': 
-Resource not accessible by integration. Common causes: 
+Failed to create discussion in 'abhimehro/email-security-pipeline':
+Resource not accessible by integration. Common causes:
 (1) Discussions not enabled in repository settings
 ```
 

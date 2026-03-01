@@ -4,9 +4,9 @@
 
 The Daily Backlog Burner workflow failed with the error:
 ```
-Failed to create discussion in 'abhimehro/email-security-pipeline': 
+Failed to create discussion in 'abhimehro/email-security-pipeline':
 Request failed due to following response errors:
-- Resource not accessible by integration. Common causes: 
+- Resource not accessible by integration. Common causes:
   (1) Discussions not enabled in repository settings
 ```
 
@@ -28,7 +28,7 @@ Modified the workflow to use **GitHub Issues** instead of Discussions, since Iss
        title-prefix: "${{ github.workflow }}"
        category: "ideas"
        max: 3
-   
+
    # After:
    safe-outputs:
      create-issue:
@@ -41,7 +41,7 @@ Modified the workflow to use **GitHub Issues** instead of Discussions, since Iss
    ```markdown
    # Before:
    First check for existing open discussion titled "${{ github.workflow }}" using `list_discussions`
-   
+
    # After:
    First check for existing open issue with title starting with "${{ github.workflow }} - Research, Roadmap and Plan" using `list_issues`
    ```
@@ -50,7 +50,7 @@ Modified the workflow to use **GitHub Issues** instead of Discussions, since Iss
    ```markdown
    # Before:
    Use this research to create a discussion with title "..."
-   
+
    # After:
    Use this research to create an issue with title "..."
    ```
