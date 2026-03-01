@@ -30,7 +30,7 @@ We take security vulnerabilities seriously. If you discover a security issue in 
 
 - **Initial Response**: We aim to acknowledge security reports within 48 hours
 - **Status Updates**: You can expect regular updates as we investigate and work on a fix
-- **Resolution Timeline**: 
+- **Resolution Timeline**:
   - Critical vulnerabilities: Patched within 7 days
   - High severity: Patched within 14 days
   - Medium/Low severity: Addressed in the next release cycle

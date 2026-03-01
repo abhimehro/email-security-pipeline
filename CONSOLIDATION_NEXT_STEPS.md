@@ -25,7 +25,7 @@ Close these 20 PRs with a comment linking to the consolidated PR #160:
 **Security (Sentinel) PRs:**
 - #134 - sentinel-fix-alert-config-leak
 - #143 - sentinel-log-sanitization-fix
-- #123 - sentinel/dos-protection  
+- #123 - sentinel/dos-protection
 - #128 - sentinel-dangerous-extensions
 - #137 - sentinel-media-dos-fix
 - #146 - sentinel/zip-inspection

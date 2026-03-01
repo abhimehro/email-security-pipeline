@@ -119,11 +119,11 @@ If you are on macOS, you can run the pipeline as a background service (launchd d
    ```bash
    # View logs
    tail -f ~/Library/Logs/email-security-pipeline/pipeline.out
-   
+
    # Restart service
    launchctl stop com.abhimehrotra.email-security-pipeline
    launchctl start com.abhimehrotra.email-security-pipeline
-   
+
    # Uninstall daemon
    chmod +x uninstall_daemon.sh
    ./uninstall_daemon.sh
@@ -446,7 +446,7 @@ tail -f logs/email_security.log
    ````bash
    # Run on all files
    pre-commit run --all-files
-   
+
    # Run on specific files
    pre-commit run --files src/main.py
    ````

@@ -20,11 +20,11 @@ index 0ea0437..888fda8 100644
  import signal
 +import shutil
  from pathlib import Path
- 
+
  # Add project root to path
 @@ -218,10 +219,32 @@ def main():
      config_file = sys.argv[1] if len(sys.argv) > 1 else ".env"
- 
+
      if not Path(config_file).exists():
 -        print(f"Error: Configuration file '{config_file}' not found")
 -        print("Please create a .env file based on .env.example")
@@ -56,6 +56,6 @@ index 0ea0437..888fda8 100644
 +            print("Please create a .env file based on .env.example")
 +            print("You can run: cp .env.example .env")
 +            sys.exit(1)
- 
+
      # Validate that .env is not the example file
      try:
