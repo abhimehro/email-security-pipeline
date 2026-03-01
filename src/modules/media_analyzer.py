@@ -59,7 +59,7 @@ class MediaAuthenticityAnalyzer:
     ]
 
     MAX_NESTED_ZIP_SIZE = 10 * 1024 * 1024  # 10MB limit for nested zips
-    HIGH_FREQ_NOISE_THRESHOLD = 150 # Arbitrary threshold for high freq noise
+    HIGH_FREQ_NOISE_THRESHOLD = 150  # Arbitrary threshold for high frequency noise
 
     def __init__(self, config):
         """
