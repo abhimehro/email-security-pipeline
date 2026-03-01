@@ -317,7 +317,11 @@ class IMAPConnection:
             item: An item from the IMAP fetch response data list.
 
         Returns:
-            A tuple of (sequence_number, raw_bytes) if successful, None otherwise.
+            A tuple of (email_id, raw_bytes) if successful, None otherwise.
+
+        Notes:
+            The returned email_id is the IMAP message sequence number extracted
+            from the FETCH response header (e.g., from b'123 (RFC822 {456}').
         """
         if not isinstance(item, tuple):
             return None
