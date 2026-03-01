@@ -15,7 +15,7 @@ from datetime import datetime
 from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
 
 from ..utils.sanitization import sanitize_for_csv
-from .email_ingestion import EmailData
+from .email_data import EmailData
 from .spam_analyzer import SpamAnalysisResult
 from .nlp_analyzer import NLPAnalysisResult
 from .media_analyzer import MediaAnalysisResult

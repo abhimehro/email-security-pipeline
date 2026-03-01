@@ -15,7 +15,7 @@ import concurrent.futures
 from typing import List, Tuple, Optional
 from dataclasses import dataclass
 
-from .email_ingestion import EmailData
+from .email_data import EmailData
 from ..utils.security_validators import sanitize_filename
 from ..utils.sanitization import sanitize_for_logging
 from ..utils.threat_scoring import calculate_risk_level

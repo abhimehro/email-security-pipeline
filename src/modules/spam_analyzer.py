@@ -9,7 +9,7 @@ from dataclasses import dataclass
 from typing import Dict, List, Tuple, Union
 from urllib.parse import urlparse
 
-from .email_ingestion import EmailData
+from .email_data import EmailData
 from ..utils.pattern_compiler import compile_named_group_pattern, compile_patterns
 from ..utils.threat_scoring import calculate_risk_level
 
