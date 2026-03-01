@@ -25,6 +25,6 @@
 
 ## Phase 4: MediaAnalyzer Refactor (Current Task)
 - [x] Analyze `_check_content_type_mismatch` in `src/modules/media_analyzer.py`
-- [x] Splitted logic into `_validate_signature_match` and `_validate_missing_signature` helper methods
+- [x] Split logic into `_validate_signature_match` and `_validate_missing_signature` helper methods
 - [x] Validate refactored logic with existing tests suite `PYTHONPATH=. pytest tests/`
 - [x] Commit with ELIR summary message
