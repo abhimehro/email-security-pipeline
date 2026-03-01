@@ -391,7 +391,7 @@ class AlertSystem:
 
     def _truncate_text(self, text: str, width: int) -> str:
         """
-        Truncate text to the specified visual width.
+        Truncate text to a specified width based on character count.
         Adds '...' if truncated. Assumes input text has no ANSI codes.
         """
         if not text:
