@@ -1,5 +1,7 @@
 # Email Security Analysis Pipeline
 
+[![Changelog Status](https://github.com/abhimehro/email-security-pipeline/actions/workflows/changelog.yml/badge.svg)](https://github.com/abhimehro/email-security-pipeline/actions/workflows/changelog.yml)
+
 A self-hosted, containerized email security analysis system that monitors IMAP folders for suspicious messages using multi-layered threat detection.
 
 ## Features
