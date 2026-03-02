@@ -237,9 +237,13 @@ def is_safe_webhook_url(url: str) -> Tuple[bool, str]:
             socket.AF_UNSPEC, socket.SOCK_STREAM
         )
     except socket.gaierror as e:
-        # If it doesn't resolve, it can't be requested anyway
-        return False, f"Could not resolve hostname '{hostname}': {e}"
-    except Exception as e:
+        try:
+            ip = ipaddress.ip_address(ip_str)
+            # Handle IPv4-mapped IPv6 addresses to prevent bypasses
+            if isinstance(ip, ipaddress.IPv6Address) and ip.ipv4_mapped:
+                ip = ip.ipv4_mapped
+        except ValueError:
+            return False, f"Resolved to an invalid IP address: {ip_str}"
         return False, f"Error resolving hostname '{hostname}': {e}"
 
     for res in addr_info:
