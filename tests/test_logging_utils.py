@@ -7,11 +7,9 @@ These tests pin the formatter's colorization logic so that any accidental
 regression is caught before it reaches production.
 """
 
-import copy
 import importlib
 import logging
 import os
-import sys
 import unittest
 from unittest.mock import MagicMock, patch
 
