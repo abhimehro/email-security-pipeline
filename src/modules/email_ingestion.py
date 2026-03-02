@@ -30,7 +30,6 @@ from ..utils.security_validators import (
     MAX_SUBJECT_LENGTH,
     MAX_MIME_PARTS,
     DEFAULT_MAX_EMAIL_SIZE,
-    sanitize_filename,
     create_secure_ssl_context,
     calculate_max_email_size
 )
