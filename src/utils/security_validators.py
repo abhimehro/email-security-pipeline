@@ -221,8 +221,19 @@ def is_safe_webhook_url(url: str) -> Tuple[bool, str]:
     try:
         # Resolve the hostname to all available IP addresses
         # AF_UNSPEC allows both IPv4 and IPv6
+        # Use scheme-appropriate default ports when none is explicitly provided:
+        # - 80 for HTTP
+        # - 443 for HTTPS
+        if parsed.port is not None:
+            port = parsed.port
+        elif parsed.scheme == 'https':
+            port = 443
+        else:
+            # Default to HTTP port when scheme is 'http' (validated above)
+            port = 80
+
         addr_info = socket.getaddrinfo(
-            hostname, parsed.port or 80,
+            hostname, port,
             socket.AF_UNSPEC, socket.SOCK_STREAM
         )
     except socket.gaierror as e:
