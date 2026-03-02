@@ -44,7 +44,7 @@ class TestColoredFormatter(unittest.TestCase):
         return Formatter, C
 
     def tearDown(self):
-        """Restore both modules to their natural (non-TTY) state after each test."""
+        """Reload color-related modules so each test starts from a fresh configuration."""
         importlib.reload(colors)
         importlib.reload(logging_utils)
 
