@@ -79,7 +79,7 @@ class TestSSRFPrevention(unittest.TestCase):
     def test_zero_net_ip(self, mock_getaddrinfo):
         # Mock getaddrinfo to return 0.0.0.0
         mock_getaddrinfo.return_value = [
-            (socket.AF_INET, socket.SOCK_STREAM, 6, '', ('0.0.0.0', 443))
+            (socket.AF_INET, socket.SOCK_STREAM, 6, '', ('0.0.0.0', 443))  # nosec B104
         ]
         is_safe, msg = is_safe_webhook_url("http://0.0.0.0/webhook")
         self.assertFalse(is_safe)
@@ -100,7 +100,7 @@ class TestConfigSSRFPrevention(unittest.TestCase):
             env_vars = {
                 "GMAIL_ENABLED": "true",
                 "GMAIL_EMAIL": "test@gmail.com",
-                "GMAIL_APP_PASSWORD": "password123",
+                "GMAIL_APP_PASSWORD": "mock_password_value",  # nosec B105
                 "GMAIL_IMAP_SERVER": "imap.gmail.com",
                 "GMAIL_IMAP_PORT": "993",
                 "GMAIL_FOLDERS": "INBOX",
