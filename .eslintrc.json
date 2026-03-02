@@ -1,0 +1,16 @@
+{
+  "root": true,
+  "env": {
+    "node": true
+  },
+  "parserOptions": {
+    "ecmaVersion": 2021
+  },
+  "rules": {},
+  "ignorePatterns": [
+    ".cursor/**",
+    "tests/**",
+    ".venv/**",
+    "venv/**"
+  ]
+}

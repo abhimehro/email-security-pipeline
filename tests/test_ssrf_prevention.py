@@ -94,8 +94,9 @@ class TestConfigSSRFPrevention(unittest.TestCase):
 
     @patch('src.utils.config.load_dotenv')
     @patch('src.utils.config.os.getenv')
-    def test_config_webhook_ssrf_prevention(self, mock_getenv, mock_load_dotenv):
-        # Setup mock environment variables for a basic valid config
+    def test_config_webhook_ssrf_prevention(
+        self, mock_getenv, mock_load_dotenv
+    ):
         def getenv_side_effect(key, default=None):
             env_vars = {
                 "GMAIL_ENABLED": "true",
@@ -105,7 +106,7 @@ class TestConfigSSRFPrevention(unittest.TestCase):
                 "GMAIL_IMAP_PORT": "993",
                 "GMAIL_FOLDERS": "INBOX",
                 "ALERT_WEBHOOK_ENABLED": "true",
-                "ALERT_WEBHOOK_URL": "https://localhost/webhook",  # Malicious/Local URL
+                "ALERT_WEBHOOK_URL": "https://localhost/webhook",
                 "THREAT_LOW": "30.0",
                 "THREAT_MEDIUM": "60.0",
                 "THREAT_HIGH": "80.0",
@@ -119,7 +120,6 @@ class TestConfigSSRFPrevention(unittest.TestCase):
 
         mock_getenv.side_effect = getenv_side_effect
 
-        # We need to mock getaddrinfo inside the validation call
         with patch('socket.getaddrinfo') as mock_getaddrinfo:
             mock_getaddrinfo.return_value = [
                 (socket.AF_INET, socket.SOCK_STREAM, 6, '', ('127.0.0.1', 443))
@@ -131,6 +131,59 @@ class TestConfigSSRFPrevention(unittest.TestCase):
                 config.validate()
 
             errors = cm.exception.args[0]
-            # Ensure the specific SSRF error is in the errors list
-            self.assertTrue(any("SSRF check failed" in err for err in errors), "SSRF error not found in ConfigurationError")
-            self.assertTrue(any("loopback" in err for err in errors), "Loopback detail not found in ConfigurationError")
+            self.assertTrue(
+                any("SSRF check failed" in err for err in errors),
+                "SSRF error not found in ConfigurationError"
+            )
+            self.assertTrue(
+                any("loopback" in err for err in errors),
+                "Loopback detail not found in ConfigurationError"
+            )
+
+    @patch('src.utils.config.load_dotenv')
+    @patch('src.utils.config.os.getenv')
+    def test_config_slack_webhook_ssrf_prevention(
+        self, mock_getenv, mock_load_dotenv
+    ):
+        def getenv_side_effect(key, default=None):
+            env_vars = {
+                "GMAIL_ENABLED": "true",
+                "GMAIL_EMAIL": "test@gmail.com",
+                "GMAIL_APP_PASSWORD": "mock_password_value",  # nosec B105
+                "GMAIL_IMAP_SERVER": "imap.gmail.com",
+                "GMAIL_IMAP_PORT": "993",
+                "GMAIL_FOLDERS": "INBOX",
+                "ALERT_SLACK_ENABLED": "true",
+                "ALERT_SLACK_WEBHOOK": "https://hooks.slack.com/services/m",
+                "THREAT_LOW": "30.0",
+                "THREAT_MEDIUM": "60.0",
+                "THREAT_HIGH": "80.0",
+                "MAX_ATTACHMENT_SIZE_MB": "25",
+                "LOG_ROTATION_SIZE_MB": "10",
+                "LOG_ROTATION_KEEP_FILES": "5",
+                "LOG_FORMAT": "text",
+                "LOG_LEVEL": "INFO",
+            }
+            return env_vars.get(key, default)
+
+        mock_getenv.side_effect = getenv_side_effect
+
+        with patch('socket.getaddrinfo') as mock_getaddrinfo:
+            mock_getaddrinfo.return_value = [
+                (socket.AF_INET, socket.SOCK_STREAM, 6, '', ('127.0.0.1', 443))
+            ]
+
+            config = Config()
+
+            with self.assertRaises(ConfigurationError) as cm:
+                config.validate()
+
+            errors = cm.exception.args[0]
+            self.assertTrue(
+                any("Slack webhook URL SSRF check failed" in e for e in errors),
+                "Slack SSRF error not found in ConfigurationError"
+            )
+            self.assertTrue(
+                any("loopback" in err for err in errors),
+                "Loopback detail not found in ConfigurationError"
+            )

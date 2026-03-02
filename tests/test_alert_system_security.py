@@ -100,6 +100,54 @@ class TestAlertSystemSecurity(unittest.TestCase):
             sanitized = self.alert_system._sanitize_for_slack(input_str)
             self.assertEqual(sanitized, expected, f"Failed for input: {input_str}")
 
+    @patch('src.modules.alert_system.is_safe_webhook_url')
+    @patch('src.modules.alert_system.requests.post')
+    def test_webhook_ssrf_prevention(self, mock_post, mock_is_safe):
+        """Test that webhook calls are aborted if unsafe at request time"""
+        self.config.webhook_enabled = True
+        self.config.webhook_url = "http://169.254.169.254/latest/meta-data/"
+
+        # Mock the safety check to fail, simulating DNS rebinding
+        mock_is_safe.return_value = (False, "resolves to link-local")
+
+        report = ThreatReport(
+            email_id="123", subject="Test", sender="sender",
+            recipient="recipient", date="2023-01-01",
+            overall_threat_score=90.0, risk_level="high",
+            spam_analysis={}, nlp_analysis={}, media_analysis={},
+            recommendations=[], timestamp="2023-01-01"
+        )
+
+        system = AlertSystem(self.config)
+        system._webhook_alert(report)
+
+        # Verify the post was NOT called due to the SSRF block
+        mock_post.assert_not_called()
+
+    @patch('src.modules.alert_system.is_safe_webhook_url')
+    @patch('src.modules.alert_system.requests.post')
+    def test_slack_ssrf_prevention(self, mock_post, mock_is_safe):
+        """Test Slack webhook calls abort if URL is deemed unsafe"""
+        self.config.slack_enabled = True
+        self.config.slack_webhook = "https://hooks.slack.com/services/test"
+
+        # Mock the safety check to fail
+        mock_is_safe.return_value = (False, "resolves to loopback")
+
+        report = ThreatReport(
+            email_id="123", subject="Test", sender="sender",
+            recipient="recipient", date="2023-01-01",
+            overall_threat_score=90.0, risk_level="high",
+            spam_analysis={}, nlp_analysis={}, media_analysis={},
+            recommendations=[], timestamp="2023-01-01"
+        )
+
+        system = AlertSystem(self.config)
+        system._slack_alert(report)
+
+        # Verify the post was NOT called
+        mock_post.assert_not_called()
+
     def test_unicode_bidi_spoofing(self):
         """
         Test that BiDi override characters and other invisible control characters
