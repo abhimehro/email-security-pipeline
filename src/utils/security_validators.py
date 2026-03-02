@@ -222,7 +222,7 @@ def is_safe_webhook_url(url: str) -> Tuple[bool, str]:
         # Resolve the hostname to all available IP addresses
         # AF_UNSPEC allows both IPv4 and IPv6
         # Use scheme-appropriate default ports when none is explicitly provided:
-        # - 80 for HTTP
+            hostname, parsed.port or (443 if parsed.scheme == 'https' else 80),
         # - 443 for HTTPS
         if parsed.port is not None:
             port = parsed.port
