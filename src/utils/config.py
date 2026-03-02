@@ -285,20 +285,13 @@ class Config:
                 errors.append("Slack alerts enabled but no webhook URL provided")
             elif not self._is_https_url(self.alerts.slack_webhook):
                 errors.append("Slack webhook URL must use HTTPS")
+            elif "hooks.slack.com" not in self.alerts.slack_webhook:
+                errors.append("Slack webhook URL must be a valid Slack hooks endpoint")
             else:
-                # Parse the Slack webhook URL and validate the actual hostname and path.
-                # We do this instead of a simple substring check to avoid cases like
-                # "https://hooks.slack.com.evil.com/..." where the domain is attacker-controlled.
-                parsed = urlparse(self.alerts.slack_webhook)
-                slack_host_valid = parsed.hostname == "hooks.slack.com"
-                slack_path_valid = bool(parsed.path) and parsed.path.startswith("/services/")
+                is_safe, err_msg = is_safe_webhook_url(self.alerts.slack_webhook)
+                if not is_safe:
+                    errors.append(f"Slack webhook URL SSRF check failed: {err_msg}")
 
-                if not (slack_host_valid and slack_path_valid):
-                    errors.append("Slack webhook URL must be a valid Slack hooks endpoint")
-                else:
-                    is_safe, err_msg = is_safe_webhook_url(self.alerts.slack_webhook)
-                    if not is_safe:
-                        errors.append(f"Slack webhook URL SSRF check failed: {err_msg}")
         if self.system.max_attachment_size_mb <= 0:
             errors.append("MAX_ATTACHMENT_SIZE_MB must be greater than zero")
 

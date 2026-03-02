@@ -1,5 +1,5 @@
 import unittest
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 import socket
 
 from src.utils.security_validators import is_safe_webhook_url
@@ -94,7 +94,7 @@ class TestConfigSSRFPrevention(unittest.TestCase):
 
     @patch('src.utils.config.load_dotenv')
     @patch('src.utils.config.os.getenv')
-    def test_config_webhook_ssrf_prevention(self, mock_getenv, _mock_load_dotenv):
+    def test_config_webhook_ssrf_prevention(self, mock_getenv, mock_load_dotenv):
         # Setup mock environment variables for a basic valid config
         def getenv_side_effect(key, default=None):
             env_vars = {
