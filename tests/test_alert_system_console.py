@@ -155,21 +155,27 @@ class TestConsoleCleanReport(unittest.TestCase):
 
         SECURITY STORY: If truncation or sanitisation silently swallows the
         sender entirely, defenders lose key attribution information. We verify
-        that at least part of the sender is visible in the rendered line.
+        that the full sender (local-part *and* domain) is visible in the
+        rendered line. Terminal width is pinned to a generous value so that
+        truncation cannot hide the domain.
         """
         report = _make_clean_report(sender="alice@example.com")
         captured = StringIO()
-        with patch("sys.stdout", captured):
-            self.alert._console_clean_report(report)
+        with patch.object(self.alert, "_get_terminal_width", return_value=200):
+            with patch("sys.stdout", captured):
+                self.alert._console_clean_report(report)
         output = captured.getvalue()
-        # The sender domain should appear somewhere in the output
         self.assertIn("alice", output)
+        self.assertIn("example.com", output)
 
     def test_invalid_timestamp_does_not_raise(self):
-        """A non-ISO timestamp should be handled gracefully (fallback to raw value)."""
+        """A non-ISO timestamp falls back to the raw value in the rendered output."""
         report = _make_clean_report(timestamp="not-a-date")
-        with patch("sys.stdout", new_callable=StringIO):
+        captured = StringIO()
+        with patch("sys.stdout", captured):
             self.alert._console_clean_report(report)  # should not raise
+        output = captured.getvalue()
+        self.assertIn("not-a-date", output)
 
     def test_empty_subject_shows_placeholder(self):
         """An empty subject should display a placeholder, not crash."""
