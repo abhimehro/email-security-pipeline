@@ -7,15 +7,15 @@ from pathlib import Path
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.modules.email_ingestion import IMAPClient
 from src.modules.media_analyzer import MediaAuthenticityAnalyzer
 from src.utils.config import AnalysisConfig
+from src.utils.security_validators import sanitize_filename
 
 class TestFilenameBypass(unittest.TestCase):
     def test_sanitize_filename_trailing_dot(self):
-        """Test that _sanitize_filename handles trailing dots correctly"""
+        """Test that sanitize_filename handles trailing dots correctly"""
         dangerous_filename = "malware.exe."
-        sanitized = IMAPClient._sanitize_filename(dangerous_filename)
+        sanitized = sanitize_filename(dangerous_filename)
 
         # Verify trailing dot is removed
         self.assertFalse(sanitized.endswith('.'), "Sanitization failed to remove trailing dot")

@@ -30,7 +30,6 @@ from ..utils.security_validators import (
     MAX_SUBJECT_LENGTH,
     MAX_MIME_PARTS,
     DEFAULT_MAX_EMAIL_SIZE,
-    sanitize_filename,
     create_secure_ssl_context,
     calculate_max_email_size
 )
@@ -278,27 +277,6 @@ class IMAPClient:
             context.check_hostname = False
             context.verify_mode = ssl.CERT_NONE
         return context
-
-    @staticmethod
-    def _sanitize_filename(filename: str) -> str:
-        """
-        Sanitize filename (backward compatibility wrapper)
-        """
-        return sanitize_filename(filename)
-
-    @staticmethod
-    def _decode_header_value(value: str) -> str:
-        """
-        Decode header value (backward compatibility wrapper)
-        """
-        return EmailParser._decode_header_value(value)
-
-    @classmethod
-    def _format_addresses(cls, header_value: str) -> str:
-        """
-        Format addresses (backward compatibility wrapper)
-        """
-        return EmailParser._format_addresses(header_value)
 
     @staticmethod
     def _decode_part_payload(part):
