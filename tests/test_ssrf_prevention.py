@@ -1,5 +1,5 @@
 import unittest
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 import socket
 
 from src.utils.security_validators import is_safe_webhook_url
