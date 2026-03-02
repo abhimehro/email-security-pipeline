@@ -751,6 +751,41 @@ class AlertSystem:
         except Exception as e:
             self.logger.error(f"Failed to send Slack alert: {self._sanitize_error_message(e)}")
 
+    @staticmethod
+    def _generate_recommendations(
+        spam_result: SpamAnalysisResult,
+        nlp_result: NLPAnalysisResult,
+        media_result: MediaAnalysisResult
+    ) -> List[str]:
+        """Generate actionable recommendations based on threat analysis results."""
+        recommendations = []
+
+        # High-risk recommendations
+        if spam_result.risk_level == "high":
+            recommendations.append("⚠️ HIGH RISK: Move to spam folder immediately")
+
+        if nlp_result.social_engineering_indicators:
+            recommendations.append("🎣 Potential phishing: Do not click links or provide credentials")
+
+        if media_result.file_type_warnings:
+            recommendations.append("📎 Dangerous attachment detected: Do not open attachments")
+
+        # Medium-risk recommendations
+        if spam_result.suspicious_urls:
+            recommendations.append("🔗 Suspicious URLs detected: Verify links before clicking")
+
+        if nlp_result.authority_impersonation:
+            recommendations.append("👤 Authority impersonation suspected: Verify sender identity")
+
+        if nlp_result.urgency_markers:
+            recommendations.append("⏰ Urgency tactics detected: Take time to verify before acting")
+
+        # General recommendations
+        if not recommendations:
+            recommendations.append("Review email carefully before taking action")
+
+        return recommendations
+
 
 def generate_threat_report(
     email_data: EmailData,
@@ -786,7 +821,7 @@ def generate_threat_report(
         risk_level = "low"
 
     # Generate recommendations
-    recommendations = _generate_recommendations(spam_result, nlp_result, media_result)
+    recommendations = AlertSystem._generate_recommendations(spam_result, nlp_result, media_result)
 
     return ThreatReport(
         email_id=email_data.message_id,
@@ -822,38 +857,3 @@ def generate_threat_report(
         recommendations=recommendations,
         timestamp=datetime.now().isoformat()
     )
-
-
-def _generate_recommendations(
-    spam_result: SpamAnalysisResult,
-    nlp_result: NLPAnalysisResult,
-    media_result: MediaAnalysisResult
-) -> List[str]:
-    """Generate actionable recommendations"""
-    recommendations = []
-
-    # High-risk recommendations
-    if spam_result.risk_level == "high":
-        recommendations.append("⚠️ HIGH RISK: Move to spam folder immediately")
-
-    if nlp_result.social_engineering_indicators:
-        recommendations.append("🎣 Potential phishing: Do not click links or provide credentials")
-
-    if media_result.file_type_warnings:
-        recommendations.append("📎 Dangerous attachment detected: Do not open attachments")
-
-    # Medium-risk recommendations
-    if spam_result.suspicious_urls:
-        recommendations.append("🔗 Suspicious URLs detected: Verify links before clicking")
-
-    if nlp_result.authority_impersonation:
-        recommendations.append("👤 Authority impersonation suspected: Verify sender identity")
-
-    if nlp_result.urgency_markers:
-        recommendations.append("⏰ Urgency tactics detected: Take time to verify before acting")
-
-    # General recommendations
-    if not recommendations:
-        recommendations.append("Review email carefully before taking action")
-
-    return recommendations
