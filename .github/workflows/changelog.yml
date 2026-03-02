@@ -41,7 +41,7 @@ jobs:
           git add CHANGELOG.md
           if ! git diff --cached --quiet; then
             git commit -m "docs: update CHANGELOG [automated]"
-            git push https://x-access-token:${GH_PAT}@github.com/abhimehro/Seatek_Analysis.git
+            git push https://x-access-token:${GH_PAT}@github.com/abhimehro/email-security-pipeline.git
           else
             echo "No changes to commit."
           fi
