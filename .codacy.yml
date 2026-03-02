@@ -1,0 +1,6 @@
+exclude_paths:
+  - "tests/**"
+  - ".cursor/**"
+  - "venv/**"
+  - ".venv/**"
+  - ".github/**"

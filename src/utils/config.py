@@ -10,6 +10,8 @@ from dataclasses import dataclass, field
 from dotenv import load_dotenv
 from urllib.parse import urlparse
 
+from .security_validators import is_safe_webhook_url
+
 
 class ConfigurationError(Exception):
     """Exception raised for configuration errors. Contains a list of errors."""
@@ -273,14 +275,22 @@ class Config:
                 errors.append("Webhook enabled but no URL provided")
             elif not self._is_https_url(self.alerts.webhook_url):
                 errors.append("Webhook URL must use HTTPS")
+            else:
+                is_safe, err_msg = is_safe_webhook_url(self.alerts.webhook_url)
+                if not is_safe:
+                    errors.append(f"Webhook URL SSRF check failed: {err_msg}")
 
         if self.alerts.slack_enabled:
             if not self.alerts.slack_webhook:
                 errors.append("Slack alerts enabled but no webhook URL provided")
             elif not self._is_https_url(self.alerts.slack_webhook):
                 errors.append("Slack webhook URL must use HTTPS")
-            elif "hooks.slack.com" not in self.alerts.slack_webhook:
+            elif urlparse(self.alerts.slack_webhook).netloc != "hooks.slack.com":
                 errors.append("Slack webhook URL must be a valid Slack hooks endpoint")
+            else:
+                is_safe, err_msg = is_safe_webhook_url(self.alerts.slack_webhook)
+                if not is_safe:
+                    errors.append(f"Slack webhook URL SSRF check failed: {err_msg}")
 
         if self.system.max_attachment_size_mb <= 0:
             errors.append("MAX_ATTACHMENT_SIZE_MB must be greater than zero")

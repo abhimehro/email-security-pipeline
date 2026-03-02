@@ -20,6 +20,7 @@ from .spam_analyzer import SpamAnalysisResult
 from .nlp_analyzer import NLPAnalysisResult
 from .media_analyzer import MediaAnalysisResult
 from ..utils.colors import Colors
+from ..utils.security_validators import is_safe_webhook_url
 
 # Regex pattern for stripping ANSI codes (compiled once for performance)
 ANSI_PATTERN = re.compile(r'\x1b\[[0-9;]*m')
@@ -423,6 +424,12 @@ class AlertSystem:
     def _webhook_alert(self, report: ThreatReport):
         """Send alert via webhook"""
         try:
+            # SECURITY: Perform SSRF check at request time to mitigate DNS rebinding attacks
+            is_safe, err_msg = is_safe_webhook_url(self.config.webhook_url)
+            if not is_safe:
+                self.logger.error(f"Aborting webhook alert (SSRF prevention): {err_msg}")
+                return
+
             payload = asdict(report)
 
             # Redact sensitive info from suspicious URLs if present
@@ -634,6 +641,12 @@ class AlertSystem:
     def _slack_alert(self, report: ThreatReport):
         """Send alert to Slack"""
         try:
+            # SECURITY: Perform SSRF check at request time to mitigate DNS rebinding attacks
+            is_safe, err_msg = is_safe_webhook_url(self.config.slack_webhook)
+            if not is_safe:
+                self.logger.error(f"Aborting Slack alert (SSRF prevention): {err_msg}")
+                return
+
             # Format Slack message
             color = {
                 "low": "#36a64f",
