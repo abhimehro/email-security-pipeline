@@ -8,6 +8,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src.modules.email_ingestion import IMAPClient, EmailAccountConfig
 from src.utils.sanitization import sanitize_for_logging
+from src.utils.security_validators import sanitize_filename
 
 class TestEmailIngestionSecurity(unittest.TestCase):
 
@@ -88,7 +89,7 @@ class TestEmailIngestionSecurity(unittest.TestCase):
         # Check warnings
         # Code: self.logger.warning("Attachment %s exceeds max size...", filename, ...)
 
-        expected_filename = sanitize_for_logging(self.client._sanitize_filename(malicious_filename))
+        expected_filename = sanitize_for_logging(sanitize_filename(malicious_filename))
 
         found_sanitized = False
         for call in self.client.logger.warning.call_args_list:

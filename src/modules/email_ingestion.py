@@ -280,27 +280,6 @@ class IMAPClient:
         return context
 
     @staticmethod
-    def _sanitize_filename(filename: str) -> str:
-        """
-        Sanitize filename (backward compatibility wrapper)
-        """
-        return sanitize_filename(filename)
-
-    @staticmethod
-    def _decode_header_value(value: str) -> str:
-        """
-        Decode header value (backward compatibility wrapper)
-        """
-        return EmailParser._decode_header_value(value)
-
-    @classmethod
-    def _format_addresses(cls, header_value: str) -> str:
-        """
-        Format addresses (backward compatibility wrapper)
-        """
-        return EmailParser._format_addresses(header_value)
-
-    @staticmethod
     def _decode_part_payload(part):
         """
         Decode part payload (backward compatibility wrapper)
