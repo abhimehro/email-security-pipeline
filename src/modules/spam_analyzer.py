@@ -235,9 +235,15 @@ class SpamAnalyzer:
         # Check for image-only emails (common in spam)
         if html_body and len(text_body.strip()) < 50:
             # Only check HTML for img tags, case-insensitive
-            # Optimization: len(findall) is faster than sum(finditer)
-            img_count = len(self.IMG_TAG_PATTERN.findall(html_body))
-            if img_count > 2:
+            # Use finditer with early-exit to avoid building a full list of matches
+            img_tag_matches = 0
+            for _ in self.IMG_TAG_PATTERN.finditer(html_body):
+                img_tag_matches += 1
+                # We only care if there are more than 2 images; break early to
+                # avoid unnecessary work on attacker-controlled HTML bodies.
+                if img_tag_matches > 2:
+                    break
+            if img_tag_matches > 2:
                 score += 1.0
                 indicators.append("Image-heavy email with little text")
 
