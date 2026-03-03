@@ -37,6 +37,8 @@
 
 **Closed issues:**
 
+- \[Code Quality\] Add unit tests for SpamAnalyzer.\_analyze\_subject and \_calculate\_risk\_level [\#463](https://github.com/abhimehro/email-security-pipeline/issues/463)
+- \[Code Quality\] Add unit tests for NLPThreatAnalyzer social engineering and authority impersonation detection [\#462](https://github.com/abhimehro/email-security-pipeline/issues/462)
 - \[repo-status\] Daily Repo Status — 2026-03-02 [\#448](https://github.com/abhimehro/email-security-pipeline/issues/448)
 - Daily QA— 2026-03-02 [\#445](https://github.com/abhimehro/email-security-pipeline/issues/445)
 - \[Code Quality\] Add unit tests for AlertSystem console rendering helpers [\#444](https://github.com/abhimehro/email-security-pipeline/issues/444)
@@ -174,6 +176,8 @@
 
 **Merged pull requests:**
 
+- test: add unit tests for NLPThreatAnalyzer social engineering and authority impersonation detection [\#467](https://github.com/abhimehro/email-security-pipeline/pull/467) ([Copilot](https://github.com/apps/copilot-swe-agent))
+- test: Add direct unit tests for SpamAnalyzer.\_analyze\_subject and \_calculate\_risk\_level [\#466](https://github.com/abhimehro/email-security-pipeline/pull/466) ([Copilot](https://github.com/apps/copilot-swe-agent))
 - ⚡ Bolt: Optimize Regex Counting using findall\(\) [\#460](https://github.com/abhimehro/email-security-pipeline/pull/460) ([abhimehro](https://github.com/abhimehro))
 - Daily Backlog Burner: Add unit tests for EmailIngestionManager multi-account orchestration [\#459](https://github.com/abhimehro/email-security-pipeline/pull/459) ([github-actions[bot]](https://github.com/apps/github-actions))
 - docs: add CONTRIBUTING.md and PR template [\#452](https://github.com/abhimehro/email-security-pipeline/pull/452) ([Copilot](https://github.com/apps/copilot-swe-agent))
