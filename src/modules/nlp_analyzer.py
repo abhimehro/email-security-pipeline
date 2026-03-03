@@ -281,9 +281,7 @@ class NLPThreatAnalyzer:
 
             # Accumulate simple counts for urgency detection
             exclamation_count += part.count('!')
-            # Count all-caps words using a streaming iterator to avoid materializing
-            # a potentially huge list on malicious input. This trades a bit of
-            # Python-level iteration for bounded memory usage.
+            # Use finditer for memory efficiency instead of findall
             caps_count += sum(1 for _ in self.CAPS_WORDS_PATTERN.finditer(part))
 
             # Optimization: Fast check with simple pattern

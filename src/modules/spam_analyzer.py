@@ -215,13 +215,15 @@ class SpamAnalyzer:
 
         # Check spam keywords in text body
         if text_body:
-            # Optimization: len(findall) is implemented entirely in C and avoids the Python-level
-            # iteration overhead of sum(1 for _ in finditer), yielding ~15-20% speedup.
-            keyword_matches += len(self.COMBINED_SPAM_PATTERN.findall(text_body))
+            keyword_matches += sum(
+                1 for _ in self.COMBINED_SPAM_PATTERN.finditer(text_body)
+            )
 
         # Check spam keywords in html body
         if html_body:
-            keyword_matches += len(self.COMBINED_SPAM_PATTERN.findall(html_body))
+            keyword_matches += sum(
+                1 for _ in self.COMBINED_SPAM_PATTERN.finditer(html_body)
+            )
 
         if keyword_matches > 0:
             score += keyword_matches * 0.5
@@ -235,15 +237,8 @@ class SpamAnalyzer:
         # Check for image-only emails (common in spam)
         if html_body and len(text_body.strip()) < 50:
             # Only check HTML for img tags, case-insensitive
-            # Use finditer with early-exit to avoid building a full list of matches
-            img_tag_matches = 0
-            for _ in self.IMG_TAG_PATTERN.finditer(html_body):
-                img_tag_matches += 1
-                # We only care if there are more than 2 images; break early to
-                # avoid unnecessary work on attacker-controlled HTML bodies.
-                if img_tag_matches > 2:
-                    break
-            if img_tag_matches > 2:
+            img_count = sum(1 for _ in self.IMG_TAG_PATTERN.finditer(html_body))
+            if img_count > 2:
                 score += 1.0
                 indicators.append("Image-heavy email with little text")
 

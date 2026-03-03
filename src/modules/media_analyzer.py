@@ -56,10 +56,12 @@ class MediaAuthenticityAnalyzer:
     )
 
     # Audio/video file extensions for deepfake detection
-    MEDIA_EXTENSIONS = [
+    # Optimization: Using tuples instead of lists allows for fast C-level execution
+    # with `str.endswith()` instead of slow Python-level `for` loops.
+    MEDIA_EXTENSIONS = (
         '.mp4', '.avi', '.mov', '.wmv', '.flv', '.mkv',
         '.mp3', '.wav', '.aac', '.flac', '.ogg', '.m4a'
-    ]
+    )
 
     MAX_NESTED_ZIP_SIZE = 10 * 1024 * 1024  # 10MB limit for nested zips
     HIGH_FREQ_NOISE_THRESHOLD = 150  # Arbitrary threshold for high frequency noise
@@ -77,7 +79,9 @@ class MediaAuthenticityAnalyzer:
     MIN_MEDIA_FILE_SIZE_BYTES = 1024  # 1KB
 
     # Archive extensions used for nested archive detection
-    ARCHIVE_EXTENSIONS = {'.zip', '.rar', '.7z', '.tar', '.gz', '.iso', '.img', '.vhd', '.vhdx'}
+    # Optimization: Using tuples instead of sets allows for fast C-level execution
+    # with `str.endswith()` instead of slow Python-level `for` loops.
+    ARCHIVE_EXTENSIONS = ('.zip', '.rar', '.7z', '.tar', '.gz', '.iso', '.img', '.vhd', '.vhdx')
 
     # Risk level thresholds for media threat scoring
     MEDIA_RISK_LOW_THRESHOLD = 2.0
@@ -374,8 +378,9 @@ class MediaAuthenticityAnalyzer:
         }
 
         if actual_type in expected_extensions:
-            expected_exts = expected_extensions[actual_type]
-            if not any(filename_lower.endswith(ext) for ext in expected_exts):
+            # Optimization: Tuple conversion allows fast C-level str.endswith execution
+            expected_exts = tuple(expected_extensions[actual_type])
+            if not filename_lower.endswith(expected_exts):
                 return 2.0, f"File type mismatch: {filename} (detected {actual_type})"
 
         return 0.0, ""
@@ -453,7 +458,8 @@ class MediaAuthenticityAnalyzer:
 
         # Suspiciously small media files
         filename_lower = filename.lower()
-        if any(filename_lower.endswith(ext) for ext in self.MEDIA_EXTENSIONS):
+        # Optimization: O(1) loop iteration using tuple-based endswith() check
+        if filename_lower.endswith(self.MEDIA_EXTENSIONS):
             if size < self.MIN_MEDIA_FILE_SIZE_BYTES:
                 score += 1.0
                 warning = f"Suspiciously small media file: {filename} ({size} bytes)"
@@ -462,7 +468,8 @@ class MediaAuthenticityAnalyzer:
 
     def _is_nested_archive(self, filename: str) -> bool:
         """Check if filename is a nested archive type."""
-        return any(filename.lower().endswith(ext) for ext in self.ARCHIVE_EXTENSIONS)
+        # Optimization: O(1) loop iteration using tuple-based endswith() check
+        return filename.lower().endswith(self.ARCHIVE_EXTENSIONS)
 
     def _inspect_zip_contents(self, filename: str, data: bytes, depth: int = 0) -> Tuple[float, List[str]]:
         """Inspect contents of zip file for dangerous files, with recursion"""
@@ -734,7 +741,8 @@ class MediaAuthenticityAnalyzer:
         filename_lower = filename.lower()
 
         # Check if file is audio/video
-        is_media = any(filename_lower.endswith(ext) for ext in self.MEDIA_EXTENSIONS)
+        # Optimization: O(1) loop iteration using tuple-based endswith() check
+        is_media = filename_lower.endswith(self.MEDIA_EXTENSIONS)
 
         if not is_media:
             return score, indicators
