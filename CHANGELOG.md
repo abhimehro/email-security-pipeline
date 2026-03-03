@@ -175,6 +175,7 @@
 **Merged pull requests:**
 
 - ⚡ Bolt: Optimize Regex Counting using findall\(\) [\#460](https://github.com/abhimehro/email-security-pipeline/pull/460) ([abhimehro](https://github.com/abhimehro))
+- Daily Backlog Burner: Add unit tests for EmailIngestionManager multi-account orchestration [\#459](https://github.com/abhimehro/email-security-pipeline/pull/459) ([github-actions[bot]](https://github.com/apps/github-actions))
 - docs: add CONTRIBUTING.md and PR template [\#452](https://github.com/abhimehro/email-security-pipeline/pull/452) ([Copilot](https://github.com/apps/copilot-swe-agent))
 - test: Add unit tests for AlertSystem console rendering helpers [\#447](https://github.com/abhimehro/email-security-pipeline/pull/447) ([Copilot](https://github.com/apps/copilot-swe-agent))
 - Add unit tests for ColoredFormatter in logging\_utils.py [\#446](https://github.com/abhimehro/email-security-pipeline/pull/446) ([Copilot](https://github.com/apps/copilot-swe-agent))
