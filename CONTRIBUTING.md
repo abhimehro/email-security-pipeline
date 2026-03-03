@@ -85,18 +85,36 @@ python3 -m pytest --cov=src --cov-report=term-missing
 
 ## Running the Linter
 
-The project uses [Trunk](https://trunk.io/) with **black** (formatting) and
-**ruff** (linting). The simplest way to run all checks is through pre-commit:
+The project uses **[Trunk](https://trunk.io/)** as its primary formatting and
+linting tool. Trunk manages black (formatting), isort (import sorting), ruff
+(linting), bandit (security scanning), and several other checks. This is what
+runs in CI (`trunk check --ci`).
+
+**Install Trunk** (one-time):
 
 ```bash
-python3 -m pre_commit run --all-files
+# macOS / Linux
+curl https://get.trunk.io -fsSL | bash
+# or via Homebrew:
+brew install trunk-io/formulae/trunk
 ```
 
-To run only the security linter (bandit) against the source tree:
+**Run checks locally:**
 
 ```bash
-python3 -m bandit -c .bandit -ll -r src/
+# Check only files changed since the last commit (fastest)
+trunk check
+
+# Check all files in the repository (matches CI behaviour)
+trunk check --all
+
+# Auto-format files (black + isort)
+trunk fmt
 ```
+
+> **Note:** pre-commit (see the next section) runs a separate, complementary
+> set of hooks focused on file hygiene and security scanning. It does **not**
+> run black, isort, or ruff — those belong to Trunk.
 
 > **Note:** The repository has a small number of pre-existing lint warnings
 > (trailing whitespace, EOF issues, case-conflict in `.Jules`/`.jules`
@@ -108,7 +126,7 @@ python3 -m bandit -c .bandit -ll -r src/
 ## Running Pre-commit
 
 Pre-commit runs automatically before every `git commit` once installed. It
-performs:
+includes the following hooks:
 
 | Hook | What it checks |
 |------|----------------|
@@ -117,19 +135,25 @@ performs:
 | `check-yaml` / `check-json` / `check-toml` | Config file syntax |
 | `check-added-large-files` | Blocks files larger than 500 KB |
 | `check-merge-conflict` | Detects leftover conflict markers |
+| `check-case-conflict` | Prevents files that differ only by case |
+| `debug-statements` | Detects accidental `pdb`/`breakpoint()` calls |
 | `mixed-line-ending` | Enforces LF line endings |
+| `requirements-txt-fixer` | Keeps `requirements*.txt` sorted |
 | `bandit` | Security linting for `src/` |
+| `python-check-blanket-noqa` | Flags bare `# noqa` without specific codes |
+| `python-check-mock-methods` | Detects incorrect mock method names |
 | `python-no-eval` | Prevents use of `eval()` |
+| `python-no-log-warn` | Flags deprecated `logger.warn()` calls |
 | `python-use-type-annotations` | Encourages type hints |
 
 Useful commands:
 
 ```bash
 # Run on all files manually
-python3 -m pre_commit run --all-files
+pre-commit run --all-files
 
 # Run on specific files
-python3 -m pre_commit run --files src/modules/spam_analyzer.py
+pre-commit run --files src/modules/spam_analyzer.py
 
 # Update hook versions
 pre-commit autoupdate
@@ -164,7 +188,7 @@ Examples: `feat/oauth2-outlook`, `fix/media-analyzer-zip-bomb`, `docs/contributi
 ### Before Opening the PR
 
 1. Make sure the full test suite passes: `python3 -m pytest`
-2. Make sure pre-commit passes: `python3 -m pre_commit run --all-files`
+2. Make sure pre-commit passes: `pre-commit run --all-files`
 3. Keep changes focused — one logical change per PR makes review faster.
 4. Reference the related issue number in your PR description (e.g. `Closes #42`).
 

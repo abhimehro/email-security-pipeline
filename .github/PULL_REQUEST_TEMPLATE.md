@@ -45,7 +45,7 @@ Closes #<!-- issue number -->
 -->
 
 - [ ] `python3 -m pytest` passes locally
-- [ ] `python3 -m pre_commit run --all-files` passes locally
+- [ ] `pre-commit run --all-files` passes locally
 
 ---
 
@@ -70,6 +70,6 @@ Closes #<!-- issue number -->
 - [ ] Branch follows naming convention (`feat/`, `fix/`, `docs/`, etc.)
 - [ ] Commit messages are clear and descriptive
 - [ ] New or modified code includes relevant tests
-- [ ] Pre-commit hooks pass (`python3 -m pre_commit run --all-files`)
+- [ ] Pre-commit hooks pass (`pre-commit run --all-files`)
 - [ ] Documentation updated if behaviour changed (README, docstrings, etc.)
 - [ ] No secrets, credentials, or `.env` files are included in this PR
