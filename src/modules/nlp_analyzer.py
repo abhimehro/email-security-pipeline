@@ -281,9 +281,10 @@ class NLPThreatAnalyzer:
 
             # Accumulate simple counts for urgency detection
             exclamation_count += part.count('!')
-            # Optimization: len(findall) is implemented entirely in C and avoids the
-            # Python-level generator evaluation of sum(finditer), yielding significant speedup
-            caps_count += len(self.CAPS_WORDS_PATTERN.findall(part))
+            # Count all-caps words using a streaming iterator to avoid materializing
+            # a potentially huge list on malicious input. This trades a bit of
+            # Python-level iteration for bounded memory usage.
+            caps_count += sum(1 for _ in self.CAPS_WORDS_PATTERN.finditer(part))
 
             # Optimization: Fast check with simple pattern
             if self.simple_master_pattern.search(part):
