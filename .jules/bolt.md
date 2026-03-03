@@ -52,3 +52,7 @@
 ## 2026-03-10 - Media Analysis Frame Sampling
 **Learning:** Facial analysis using `detectMultiScale` is computationally expensive and linear with the number of frames. Analyzing a statistical sample of frames (e.g., 5) instead of all extracted frames (e.g., 10) provides a 50% speedup while still catching persistent inconsistencies.
 **Action:** Use frame subsampling for expensive per-frame operations like face detection, similar to how it's done for compression artifacts.
+
+## 2024-05-24 - Regex Match Counting Performance
+**Learning:** For counting regex matches in Python, `len(re.findall(...))` trades memory efficiency for speed. While it can be 15-20% faster because `findall` executes entirely at the C-level, it materializes the entire list of matches in memory. This is dangerous for large inputs (like email bodies) and was correctly identified as an anti-pattern when `sum(1 for _ in pattern.finditer(...))` was originally implemented for memory safety.
+**Action:** Do not sacrifice memory efficiency for micro-optimizations in text processing of unbounded or large inputs. Use `sum(1 for _ in re.finditer(...))` for counting matches safely.
