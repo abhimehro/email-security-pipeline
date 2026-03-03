@@ -44,7 +44,9 @@
 - \[Code Quality\] Add unit tests for ColoredFormatter in src/utils/logging\_utils.py [\#437](https://github.com/abhimehro/email-security-pipeline/issues/437)
 - \[Code Quality\] Move module-level \_generate\_recommendations into AlertSystem class [\#433](https://github.com/abhimehro/email-security-pipeline/issues/433)
 - \[Code Quality\] Add unit tests for ColoredFormatter in src/utils/logging\_utils.py [\#431](https://github.com/abhimehro/email-security-pipeline/issues/431)
+- \[Code Quality\] Add dedicated unit tests for src/utils/security\_validators.py [\#429](https://github.com/abhimehro/email-security-pipeline/issues/429)
 - \[Code Quality\] Remove backward-compatibility wrapper methods from email\_ingestion.py [\#428](https://github.com/abhimehro/email-security-pipeline/issues/428)
+- \[Code Quality\] Add unit tests for EmailSecurityPipeline.\_analyze\_email\(\) in src/main.py [\#427](https://github.com/abhimehro/email-security-pipeline/issues/427)
 - \[repo-status\] Daily Status Report — 2026-03-01 🚀 [\#426](https://github.com/abhimehro/email-security-pipeline/issues/426)
 - Daily QA— 2026-03-01 [\#425](https://github.com/abhimehro/email-security-pipeline/issues/425)
 - \[Code Quality\] Fix indirect EmailData imports — import from email\_data not email\_ingestion [\#423](https://github.com/abhimehro/email-security-pipeline/issues/423)
@@ -167,6 +169,7 @@
 
 **Merged pull requests:**
 
+- docs: add CONTRIBUTING.md and PR template [\#452](https://github.com/abhimehro/email-security-pipeline/pull/452) ([Copilot](https://github.com/apps/copilot-swe-agent))
 - test: Add unit tests for AlertSystem console rendering helpers [\#447](https://github.com/abhimehro/email-security-pipeline/pull/447) ([Copilot](https://github.com/apps/copilot-swe-agent))
 - Add unit tests for ColoredFormatter in logging\_utils.py [\#446](https://github.com/abhimehro/email-security-pipeline/pull/446) ([Copilot](https://github.com/apps/copilot-swe-agent))
 - Daily Backlog Burner: Add unit tests for ColoredFormatter in logging\_utils [\#440](https://github.com/abhimehro/email-security-pipeline/pull/440) ([github-actions[bot]](https://github.com/apps/github-actions))
