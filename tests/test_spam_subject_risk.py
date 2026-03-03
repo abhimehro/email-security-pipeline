@@ -48,8 +48,8 @@ class TestAnalyzeSubject:
 
     def test_all_caps_11_chars_triggers(self, analyzer):
         """All-caps subject longer than 10 chars should add 1.0 and flag."""
-        score, indicators = analyzer._analyze_subject("HELLO WORLD!")
-        # len("HELLO WORLD!") == 12, isupper() is True (! is not a cased char)
+        score, indicators = analyzer._analyze_subject("HELLO WORLD")
+        # len("HELLO WORLD") == 11, which is the minimal length where len > 10
         assert score >= 1.0
         assert "Subject in all caps" in indicators
 
