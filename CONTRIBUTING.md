@@ -44,7 +44,7 @@ cd email-security-pipeline
 python3 -m pip install -r requirements-ci.txt
 
 # 3. Install pre-commit hooks so checks run automatically before each commit
-python3 -m pre-commit install
+pre-commit install
 ```
 
 The application reads credentials from a `.env` file at runtime. A template is
