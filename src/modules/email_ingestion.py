@@ -409,7 +409,11 @@ class EmailIngestionManager:
     def close_all_connections(self):
         """Close all IMAP connections"""
         for client in self.clients.values():
-            client.disconnect()
+            try:
+                client.disconnect()
+            except Exception as e:
+                # SECURITY: Log and continue so all clients are attempted
+                self.logger.warning(f"Error closing connection: {e}")
         self.clients.clear()
         self.logger.info("All connections closed")
 
