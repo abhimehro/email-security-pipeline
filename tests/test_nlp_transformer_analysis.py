@@ -151,8 +151,8 @@ class TestRunTransformerAnalysisTextPrep(unittest.TestCase):
         email = _make_email(subject=subject, body_text=body)
         self.analyzer._run_transformer_analysis(email)
         text = self._captured_text()
-        # 4095 + 1 (space) = 4096 >= 4096? No: 4096 > 4095. Falls into else branch.
-        # subject_len + 1 = 4096 >= 4096 → True → ml_text = subject[:4096]
+        # subject_len + 1 == 4096 == max_len → condition (>= max_len) is True,
+        # so ml_text is subject[:4096] and the body is not included.
         self.assertEqual(text, subject[:4096])
 
     def test_subject_longer_than_max_truncated_only(self):
