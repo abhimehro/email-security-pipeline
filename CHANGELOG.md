@@ -37,8 +37,12 @@
 
 **Closed issues:**
 
+- \[repo-status\] Daily Repo Status — 2026-03-03 [\#465](https://github.com/abhimehro/email-security-pipeline/issues/465)
 - \[Code Quality\] Add unit tests for SpamAnalyzer.\_analyze\_subject and \_calculate\_risk\_level [\#463](https://github.com/abhimehro/email-security-pipeline/issues/463)
 - \[Code Quality\] Add unit tests for NLPThreatAnalyzer social engineering and authority impersonation detection [\#462](https://github.com/abhimehro/email-security-pipeline/issues/462)
+- \[Code Quality\] Add unit tests for AppRunner.print\_banner\(\) and AppRunner.run\(\) in src/app\_runner.py [\#451](https://github.com/abhimehro/email-security-pipeline/issues/451)
+- \[Code Quality\] Add direct unit tests for Config static utility methods in src/utils/config.py [\#450](https://github.com/abhimehro/email-security-pipeline/issues/450)
+- \[Code Quality\] Add direct unit tests for TTLCache in src/utils/caching.py [\#449](https://github.com/abhimehro/email-security-pipeline/issues/449)
 - \[repo-status\] Daily Repo Status — 2026-03-02 [\#448](https://github.com/abhimehro/email-security-pipeline/issues/448)
 - Daily QA— 2026-03-02 [\#445](https://github.com/abhimehro/email-security-pipeline/issues/445)
 - \[Code Quality\] Add unit tests for AlertSystem console rendering helpers [\#444](https://github.com/abhimehro/email-security-pipeline/issues/444)
@@ -176,6 +180,7 @@
 
 **Merged pull requests:**
 
+- 🛡️ Sentinel: \[HIGH\] Fix SSRF bypass in webhooks [\#468](https://github.com/abhimehro/email-security-pipeline/pull/468) ([abhimehro](https://github.com/abhimehro))
 - test: add unit tests for NLPThreatAnalyzer social engineering and authority impersonation detection [\#467](https://github.com/abhimehro/email-security-pipeline/pull/467) ([Copilot](https://github.com/apps/copilot-swe-agent))
 - test: Add direct unit tests for SpamAnalyzer.\_analyze\_subject and \_calculate\_risk\_level [\#466](https://github.com/abhimehro/email-security-pipeline/pull/466) ([Copilot](https://github.com/apps/copilot-swe-agent))
 - ⚡ Bolt: Optimize Regex Counting using findall\(\) [\#460](https://github.com/abhimehro/email-security-pipeline/pull/460) ([abhimehro](https://github.com/abhimehro))
