@@ -436,7 +436,10 @@ class EmailIngestionManager:
 
         all_emails: List[EmailData] = []
 
-        with ThreadPoolExecutor(max_workers=self.max_parallel_accounts) as executor:
+        with ThreadPoolExecutor(
+            max_workers=self.max_parallel_accounts,
+            thread_name_prefix="EmailIngestion",
+        ) as executor:
             future_to_account = {
                 executor.submit(self._process_account, account, max_per_folder): account
                 for account in active_accounts
