@@ -40,6 +40,12 @@
 - \[repo-status\] Daily Repo Status — 2026-03-03 [\#465](https://github.com/abhimehro/email-security-pipeline/issues/465)
 - \[Code Quality\] Add unit tests for SpamAnalyzer.\_analyze\_subject and \_calculate\_risk\_level [\#463](https://github.com/abhimehro/email-security-pipeline/issues/463)
 - \[Code Quality\] Add unit tests for NLPThreatAnalyzer social engineering and authority impersonation detection [\#462](https://github.com/abhimehro/email-security-pipeline/issues/462)
+- \[Code Quality\] Add unit tests for IMAPClient.\_parse\_email\_payload, \_fetch\_batch, and \_get\_auth\_tip [\#461](https://github.com/abhimehro/email-security-pipeline/issues/461)
+- \[Code Quality\] Add direct unit tests for EmailIngestionManager multi-account orchestration [\#458](https://github.com/abhimehro/email-security-pipeline/issues/458)
+- \[Code Quality\] Add direct unit tests for SpamAnalyzer.\_check\_sender\(\) corporate spoofing detection [\#457](https://github.com/abhimehro/email-security-pipeline/issues/457)
+- \[Code Quality\] Add direct unit tests for NLPThreatAnalyzer urgency and psychological trigger detection [\#455](https://github.com/abhimehro/email-security-pipeline/issues/455)
+- \[Code Quality\] Add unit tests for CountdownTimer in src/utils/ui.py [\#454](https://github.com/abhimehro/email-security-pipeline/issues/454)
+- \[Code Quality\] Add direct unit tests for TTLCache in src/utils/caching.py [\#453](https://github.com/abhimehro/email-security-pipeline/issues/453)
 - \[Code Quality\] Add unit tests for AppRunner.print\_banner\(\) and AppRunner.run\(\) in src/app\_runner.py [\#451](https://github.com/abhimehro/email-security-pipeline/issues/451)
 - \[Code Quality\] Add direct unit tests for Config static utility methods in src/utils/config.py [\#450](https://github.com/abhimehro/email-security-pipeline/issues/450)
 - \[Code Quality\] Add direct unit tests for TTLCache in src/utils/caching.py [\#449](https://github.com/abhimehro/email-security-pipeline/issues/449)
@@ -180,6 +186,7 @@
 
 **Merged pull requests:**
 
+- ⚡ Bolt: Optimize simple regex occurrence counting [\#474](https://github.com/abhimehro/email-security-pipeline/pull/474) ([abhimehro](https://github.com/abhimehro))
 - 🛡️ Sentinel: \[HIGH\] Fix SSRF bypass in webhooks [\#468](https://github.com/abhimehro/email-security-pipeline/pull/468) ([abhimehro](https://github.com/abhimehro))
 - test: add unit tests for NLPThreatAnalyzer social engineering and authority impersonation detection [\#467](https://github.com/abhimehro/email-security-pipeline/pull/467) ([Copilot](https://github.com/apps/copilot-swe-agent))
 - test: Add direct unit tests for SpamAnalyzer.\_analyze\_subject and \_calculate\_risk\_level [\#466](https://github.com/abhimehro/email-security-pipeline/pull/466) ([Copilot](https://github.com/apps/copilot-swe-agent))
