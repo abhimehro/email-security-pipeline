@@ -74,6 +74,9 @@ class CountdownTimer:
     @staticmethod
     def wait(seconds: int, message: str = "Waiting"):
         """Static convenience method to block with a countdown"""
+        hint = " (Press Ctrl+C to stop)"
+        if hint not in message:
+            message += hint
         timer = CountdownTimer(seconds, message)
         timer.start()
 
