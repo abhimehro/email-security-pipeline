@@ -74,6 +74,12 @@ class CountdownTimer:
     @staticmethod
     def wait(seconds: int, message: str = "Waiting"):
         """Static convenience method to block with a countdown"""
+        # Only add the interactive hint when we're actually in a TTY.
+        # In non-TTY mode, `start()` will just sleep and never render the message.
+        if sys.stdout.isatty():
+            hint = " (Press Ctrl+C to stop)"
+            if hint not in message:
+                message += hint
         timer = CountdownTimer(seconds, message)
         timer.start()
 

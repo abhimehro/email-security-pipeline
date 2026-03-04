@@ -89,3 +89,8 @@
 
 **Learning:** Loading states (like CLI spinners) are often ignored by users if they lack visual distinction. Colorizing the spinning indicator creates a subtle but effective cue that a process is actively running, distinguishing it from static text.
 **Action:** Always colorize loading indicators (e.g., `Spinner` in CLI) with a distinct, neutral color (like CYAN) to separate them from the accompanying message text.
+
+## 2026-11-01 - Keyboard Shortcut Hints for Long-Running Operations
+
+**Learning:** For CLI long-running operations (like polling loops or wait states), users often experience anxiety about whether they can gracefully exit the application without causing corruption or hanging processes. A simple keyboard shortcut hint dramatically reduces this anxiety.
+**Action:** Append keyboard shortcut hints like `(Press Ctrl+C to stop)` to the displayed messages during blocking/waiting operations (e.g., in `CountdownTimer.wait`) to improve the user experience.
