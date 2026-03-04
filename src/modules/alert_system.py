@@ -143,8 +143,20 @@ class AlertSystem:
         try:
             loop.run_until_complete(self._alert_worker())
         finally:
+            # Always close the loop first to release event loop resources.
             loop.close()
+            # After the loop is closed, clear references so callers don't see
+            # a "zombie" worker (queue bound to a closed loop, dead thread, etc.).
             self._loop = None
+            self._alert_queue = None
+            # Reset the readiness event so future restarts can't misinterpret
+            # a set event as meaning "worker is currently running".
+            self._queue_ready.clear()
+            # If this instance is still tracking this thread as the worker,
+            # clear it. The identity check avoids clobbering a newer worker
+            # thread in case of rapid restart while shutdown is in progress.
+            if getattr(self, "_worker_thread", None) is threading.current_thread():
+                self._worker_thread = None
 
     async def _alert_worker(self) -> None:
         """Background coroutine: dequeues alerts and dispatches them with timeout + retry.
