@@ -60,6 +60,12 @@ class AlertSystem:
     # Maximum dispatch attempts per alert before giving up (worker mode).
     MAX_DISPATCH_RETRIES = 3
 
+    # Maximum number of pending alerts the queue will hold.  When full, new
+    # alerts are dropped (with an error log) rather than blocking the pipeline.
+    # Tune this value if endpoints are consistently slow or unavailable for
+    # longer than ALERT_QUEUE_MAX_SIZE * mean-dispatch-time seconds.
+    ALERT_QUEUE_MAX_SIZE = 1000
+
     def __init__(self, config):
         """
         Initialize alert system
@@ -138,7 +144,7 @@ class AlertSystem:
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         self._loop = loop
-        self._alert_queue = asyncio.Queue()
+        self._alert_queue = asyncio.Queue(maxsize=self.ALERT_QUEUE_MAX_SIZE)
         self._queue_ready.set()
         try:
             loop.run_until_complete(self._alert_worker())
@@ -210,19 +216,31 @@ class AlertSystem:
         """Dispatch a single alert through all configured channels (async wrapper).
 
         Each synchronous I/O call (_webhook_alert, _slack_alert) is offloaded to
-        the default executor so the event loop is never blocked.
+        the default executor so the event loop is never blocked.  Raises
+        RuntimeError if any configured channel fails so the caller (_alert_worker)
+        can apply retry logic.
         """
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_running_loop()
+        failed_channels = []
 
         # Console output is fast (no I/O); run directly in event loop thread.
         if self.config.console:
             self._console_alert(report)
 
         if self.config.webhook_enabled and self.config.webhook_url:
-            await loop.run_in_executor(None, self._webhook_alert, report)
+            ok = await loop.run_in_executor(None, self._webhook_alert, report)
+            if not ok:
+                failed_channels.append("webhook")
 
         if self.config.slack_enabled and self.config.slack_webhook:
-            await loop.run_in_executor(None, self._slack_alert, report)
+            ok = await loop.run_in_executor(None, self._slack_alert, report)
+            if not ok:
+                failed_channels.append("slack")
+
+        if failed_channels:
+            raise RuntimeError(
+                f"Alert dispatch failed for channels: {', '.join(failed_channels)}"
+            )
 
     def _dispatch_alert_sync(self, report: ThreatReport) -> None:
         """Synchronous alert dispatch used as a fallback when the worker is not running."""
@@ -261,14 +279,15 @@ class AlertSystem:
         queue = self._alert_queue
 
         if loop is not None and queue is not None and not loop.is_closed():
-            # Fire-and-forget: enqueue and return immediately.
-            # asyncio.run_coroutine_threadsafe returns a Future but we intentionally
-            # discard it here.  queue.put() only fails if the event loop is closing
-            # (checked above) or the queue has a maxsize cap (none is set).  Any
-            # enqueue error will propagate as an exception on the returned Future and
-            # be silently ignored; a warn-only callback is added so operator logs
-            # capture unexpected drops without blocking the caller.
-            fut = asyncio.run_coroutine_threadsafe(queue.put(threat_report), loop)
+            # Fire-and-forget: non-blocking enqueue then return immediately.
+            # put_nowait raises asyncio.QueueFull if the queue is at capacity
+            # (capped at ALERT_QUEUE_MAX_SIZE); the exception propagates as a
+            # Future error and is surfaced via _on_enqueue_done so operators
+            # see dropped alerts in logs without the pipeline being blocked.
+            async def _do_enqueue():
+                queue.put_nowait(threat_report)
+
+            fut = asyncio.run_coroutine_threadsafe(_do_enqueue(), loop)
             fut.add_done_callback(self._on_enqueue_done)
         else:
             # Worker not started: synchronous fallback (no alerts lost).
@@ -295,7 +314,15 @@ class AlertSystem:
             self.logger.error("Unexpected error while inspecting enqueue future: %s", unexpected)
             return
         if exc is not None:
-            self.logger.error("Failed to enqueue alert: %s", exc)
+            if isinstance(exc, asyncio.QueueFull):
+                self.logger.error(
+                    "Alert queue is full (%d items); alert dropped. "
+                    "Consider increasing ALERT_QUEUE_MAX_SIZE or "
+                    "investigating slow/unavailable webhook endpoints.",
+                    self.ALERT_QUEUE_MAX_SIZE,
+                )
+            else:
+                self.logger.error("Failed to enqueue alert: %s", exc)
 
     def _print_alert_row(self, text: str, risk_color: str, indent: int = 0):
         """Helper to print a row with the left border"""
@@ -626,14 +653,20 @@ class AlertSystem:
             return text[:width-3] + "..."
         return text
 
-    def _webhook_alert(self, report: ThreatReport):
-        """Send alert via webhook"""
+    def _webhook_alert(self, report: ThreatReport) -> bool:
+        """Send alert via webhook.
+
+        Returns True on successful delivery, False on any failure (SSRF block,
+        non-200 response, or network error).  All errors are logged here; the
+        return value lets ``_dispatch_alert_async`` surface the failure so the
+        retry loop in ``_alert_worker`` can attempt redelivery.
+        """
         try:
             # SECURITY: Perform SSRF check at request time to mitigate DNS rebinding attacks
             is_safe, err_msg = is_safe_webhook_url(self.config.webhook_url)
             if not is_safe:
                 self.logger.error(f"Aborting webhook alert (SSRF prevention): {err_msg}")
-                return
+                return False
 
             payload = asdict(report)
 
@@ -655,11 +688,14 @@ class AlertSystem:
 
             if response.status_code == 200:
                 self.logger.info("Webhook alert sent successfully")
+                return True
             else:
                 self.logger.warning(f"Webhook alert failed: {response.status_code}")
+                return False
 
         except Exception as e:
             self.logger.error(f"Failed to send webhook alert: {self._sanitize_error_message(e)}")
+            return False
 
     def _sanitize_error_message(self, error: Exception) -> str:
         """
@@ -844,14 +880,20 @@ class AlertSystem:
             "short": True
         }
 
-    def _slack_alert(self, report: ThreatReport):
-        """Send alert to Slack"""
+    def _slack_alert(self, report: ThreatReport) -> bool:
+        """Send alert to Slack.
+
+        Returns True on successful delivery, False on any failure (SSRF block,
+        non-200 response, or network error).  All errors are logged here; the
+        return value lets ``_dispatch_alert_async`` surface the failure so the
+        retry loop in ``_alert_worker`` can attempt redelivery.
+        """
         try:
             # SECURITY: Perform SSRF check at request time to mitigate DNS rebinding attacks
             is_safe, err_msg = is_safe_webhook_url(self.config.slack_webhook)
             if not is_safe:
                 self.logger.error(f"Aborting Slack alert (SSRF prevention): {err_msg}")
-                return
+                return False
 
             # Format Slack message
             color = {
@@ -952,11 +994,14 @@ class AlertSystem:
 
             if response.status_code == 200:
                 self.logger.info("Slack alert sent successfully")
+                return True
             else:
                 self.logger.warning(f"Slack alert failed: {response.status_code}")
+                return False
 
         except Exception as e:
             self.logger.error(f"Failed to send Slack alert: {self._sanitize_error_message(e)}")
+            return False
 
     @staticmethod
     def _generate_recommendations(

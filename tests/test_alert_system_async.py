@@ -10,6 +10,7 @@ Validates that the async alert worker:
 - Falls back to synchronous dispatch when the worker is not running
 """
 
+import asyncio
 import threading
 import time
 import unittest
@@ -113,15 +114,24 @@ class TestAsyncAlertDispatch(unittest.TestCase):
     """Test that send_alert() enqueues asynchronously when worker is running."""
 
     def _wait_for_queue_drain(self, system: AlertSystem, timeout: float = 5.0) -> None:
-        """Block until all queued alerts have been processed or timeout expires."""
-        deadline = time.monotonic() + timeout
-        while time.monotonic() < deadline:
-            q = system._alert_queue
-            if q is not None and q.empty():
-                # Give the worker one more tick to call task_done().
-                time.sleep(0.05)
-                return
-            time.sleep(0.05)
+        """Block until all queued alerts have been processed.
+
+        Uses ``asyncio.Queue.join()`` scheduled on the worker's own event loop
+        so the completion signal is issued by the worker coroutine itself (via
+        ``task_done()``), which is fully thread-safe and avoids the data-race
+        that arises from calling ``queue.empty()`` across threads.
+        """
+        loop = system._loop
+        if loop is None or loop.is_closed():
+            return
+        queue = system._alert_queue
+        if queue is None:
+            return
+        try:
+            fut = asyncio.run_coroutine_threadsafe(queue.join(), loop)
+            fut.result(timeout=timeout)
+        except Exception:
+            pass
 
     @patch("src.modules.alert_system.requests.post")
     @patch("src.modules.alert_system.is_safe_webhook_url")
@@ -235,9 +245,12 @@ class TestAlertWorkerTimeout(unittest.TestCase):
         timeout_triggered = {"value": False}
 
         async def timeout_once(coro, timeout):
-            # First call simulates a timeout of the slow/hanging alert
+            # First call simulates a timeout of the slow/hanging alert.
+            # Close the coroutine explicitly to suppress the "coroutine was
+            # never awaited" RuntimeWarning that would otherwise be emitted.
             if not timeout_triggered["value"]:
                 timeout_triggered["value"] = True
+                coro.close()
                 raise asyncio.TimeoutError()
             # Subsequent calls behave as normal wait_for
             return await coro
@@ -302,36 +315,44 @@ class TestAlertWorkerRetry(unittest.TestCase):
             finally:
                 system.stop_worker()
 
-    @patch("src.modules.alert_system.requests.post")
     @patch("src.modules.alert_system.is_safe_webhook_url")
-    def test_permanent_failure_logged_after_max_retries(self, mock_safe, mock_post):
-        """After MAX_DISPATCH_RETRIES exhausted, an error is logged and the worker continues."""
+    def test_permanent_failure_logged_after_max_retries(self, mock_safe):
+        """After MAX_DISPATCH_RETRIES exhausted, all retries are attempted and the worker continues.
+
+        We patch _webhook_alert directly (not requests.post) so failures
+        propagate to _dispatch_alert_async and the retry loop actually counts
+        them.  _webhook_alert normally catches requests.post exceptions, so
+        patching at the HTTP layer would have no visible effect on the retries.
+        """
         mock_safe.return_value = (True, "")
-        mock_post.side_effect = Exception("Permanent failure")
+        call_count = [0]
+
+        def always_fail(report):
+            call_count[0] += 1
+            raise RuntimeError("Permanent failure")
 
         async def instant_sleep(_delay):
-            """Skip actual backoff delays in tests."""
             pass  # no-op: avoids real waits during testing
 
         system = AlertSystem(_make_config(webhook=True))
+        # Both patches must wrap start_worker AND stop_worker so they remain
+        # active while the worker processes the alert in the background.
         with patch("asyncio.sleep", new=instant_sleep):
-            system.start_worker()
-            try:
-                system.send_alert(_make_report(email_id="fail-1"))
+            with patch.object(system, "_webhook_alert", side_effect=always_fail):
+                system.start_worker()
+                try:
+                    system.send_alert(_make_report(email_id="fail-1"))
+                    # stop_worker() drains the queue; by the time it returns all
+                    # MAX_DISPATCH_RETRIES attempts have completed.
+                finally:
+                    system.stop_worker()
 
-                # Verify the queue drains (the worker kept running despite the failure)
-                deadline = time.monotonic() + 10
-                drained = False
-                while time.monotonic() < deadline:
-                    q = system._alert_queue
-                    if q is not None and q.empty():
-                        drained = True
-                        break
-                    time.sleep(0.05)
-
-                self.assertTrue(drained, "Queue did not drain after permanent failure")
-            finally:
-                system.stop_worker()
+        # Verify that all retry attempts were made (not short-circuited).
+        self.assertEqual(
+            call_count[0],
+            AlertSystem.MAX_DISPATCH_RETRIES,
+            f"Expected {AlertSystem.MAX_DISPATCH_RETRIES} retry attempts, got {call_count[0]}",
+        )
 
 
 class TestZeroAlertsLostOnShutdown(unittest.TestCase):
