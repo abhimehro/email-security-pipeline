@@ -187,6 +187,7 @@
 
 **Merged pull requests:**
 
+- 🎨 Palette: Add Ctrl+C hint to CountdownTimer [\#478](https://github.com/abhimehro/email-security-pipeline/pull/478) ([abhimehro](https://github.com/abhimehro))
 - ⚡ Bolt: Optimize simple regex occurrence counting [\#474](https://github.com/abhimehro/email-security-pipeline/pull/474) ([abhimehro](https://github.com/abhimehro))
 - Daily Backlog Burner: Add unit tests for NLPThreatAnalyzer.\_run\_transformer\_analysis \(closes \#472\) [\#473](https://github.com/abhimehro/email-security-pipeline/pull/473) ([github-actions[bot]](https://github.com/apps/github-actions))
 - 🛡️ Sentinel: \[HIGH\] Fix SSRF bypass in webhooks [\#468](https://github.com/abhimehro/email-security-pipeline/pull/468) ([abhimehro](https://github.com/abhimehro))
