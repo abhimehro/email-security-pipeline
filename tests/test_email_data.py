@@ -344,13 +344,17 @@ class TestEmailDataEquality(unittest.TestCase):
         self.assertEqual(email1, email2)
 
     def test_differing_subjects_are_not_equal(self):
-        email1 = _make_email(subject="Alpha")
-        email2 = _make_email(subject="Beta")
+        # Share the same raw Message so inequality is driven by subject only.
+        raw = Message()
+        email1 = _make_email(subject="Alpha", raw_email=raw)
+        email2 = _make_email(subject="Beta", raw_email=raw)
         self.assertNotEqual(email1, email2)
 
     def test_differing_folders_are_not_equal(self):
-        email1 = _make_email(folder="INBOX")
-        email2 = _make_email(folder="Spam")
+        # Share the same raw Message so inequality is driven by folder only.
+        raw = Message()
+        email1 = _make_email(folder="INBOX", raw_email=raw)
+        email2 = _make_email(folder="Spam", raw_email=raw)
         self.assertNotEqual(email1, email2)
 
 
