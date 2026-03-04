@@ -30,14 +30,14 @@ class SpamAnalyzer:
 
     # Spam indicator patterns
     SPAM_KEYWORDS = [
-        r"\b(viagra|cialis|pharmacy|pills)\b",
-        r"\b(winner|congratulations|prize|lottery)\b",
-        r"\b(urgent|immediate|action required|act now)\b",
-        r"\b(click here|click now|limited time)\b",
-        r"\b(free money|make money|earn cash)\b",
-        r"\b(nigerian prince|inheritance|beneficiary)\b",
-        r"\b(enlarge|enhancement|weight loss)\b",
-        r"\b(casino|poker|gambling)\b",
+        r"\b(?:viagra|cialis|pharmacy|pills)\b",
+        r"\b(?:winner|congratulations|prize|lottery)\b",
+        r"\b(?:urgent|immediate|action required|act now)\b",
+        r"\b(?:click here|click now|limited time)\b",
+        r"\b(?:free money|make money|earn cash)\b",
+        r"\b(?:nigerian prince|inheritance|beneficiary)\b",
+        r"\b(?:enlarge|enhancement|weight loss)\b",
+        r"\b(?:casino|poker|gambling)\b",
     ]
 
     # Pre-compiled regex patterns for performance
