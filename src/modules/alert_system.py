@@ -3,13 +3,15 @@ Alert and Response System
 Handles threat notifications and alerting across multiple channels
 """
 
+import asyncio
 import logging
 import re
+import threading
 import requests
 import unicodedata
 import shutil
 import textwrap
-from typing import Dict, List
+from typing import Dict, List, Optional
 from dataclasses import dataclass, asdict
 from datetime import datetime
 from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
@@ -55,6 +57,9 @@ class AlertSystem:
     MAX_NLP_INDICATORS_DISPLAY = 3
     MAX_MEDIA_WARNINGS_DISPLAY = 3
 
+    # Maximum dispatch attempts per alert before giving up (worker mode).
+    MAX_DISPATCH_RETRIES = 3
+
     def __init__(self, config):
         """
         Initialize alert system
@@ -65,32 +70,187 @@ class AlertSystem:
         self.config = config
         self.logger = logging.getLogger("AlertSystem")
 
+        # Async alert queue infrastructure.
+        # The event loop and queue are created inside _run_worker_loop() so they
+        # live in the worker thread.  All three attributes are set/read across
+        # threads; in CPython, simple attribute reads/writes are protected by the
+        # GIL, so no additional lock is required for these scalar references.
+        self._loop: Optional[asyncio.AbstractEventLoop] = None
+        self._alert_queue: Optional[asyncio.Queue] = None
+        self._worker_thread: Optional[threading.Thread] = None
+        # Signals that the queue is ready to accept alerts.
+        self._queue_ready = threading.Event()
+
+    def start_worker(self) -> None:
+        """Start the background alert worker in a dedicated thread with its own event loop.
+
+        Call this once before processing emails so that alerts are dispatched
+        asynchronously without blocking the main pipeline.  Idempotent – safe to
+        call multiple times; a second call while the worker is alive is a no-op.
+        """
+        if self._worker_thread and self._worker_thread.is_alive():
+            return
+
+        self._queue_ready.clear()
+        self._worker_thread = threading.Thread(
+            target=self._run_worker_loop,
+            daemon=True,
+            name="alert-worker",
+        )
+        self._worker_thread.start()
+
+        # Block the caller briefly until the queue is ready so the first
+        # send_alert() call is guaranteed to see a live queue.
+        if not self._queue_ready.wait(timeout=5):
+            self.logger.warning("Alert worker did not become ready within 5 s")
+
+    def stop_worker(self) -> None:
+        """Gracefully stop the alert worker, flushing all queued alerts first.
+
+        Sends a sentinel ``None`` value into the queue, waits for the worker
+        coroutine to drain the remaining items, then joins the thread.
+        Zero alerts are lost as long as the join completes within the timeout.
+        """
+        loop = self._loop
+        queue = self._alert_queue
+        if loop is None or queue is None or loop.is_closed():
+            return
+
+        try:
+            # Enqueue the stop sentinel.
+            fut = asyncio.run_coroutine_threadsafe(queue.put(None), loop)
+            fut.result(timeout=5)
+        except Exception as exc:
+            self.logger.error("Error sending stop sentinel to alert worker: %s", exc)
+            return
+
+        thread = self._worker_thread
+        if thread:
+            thread.join(timeout=30)
+            if thread.is_alive():
+                self.logger.warning("Alert worker did not stop within 30 s")
+
+    def _run_worker_loop(self) -> None:
+        """Entry point for the worker thread: creates the event loop and queue, then runs the worker."""
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        self._loop = loop
+        self._alert_queue = asyncio.Queue()
+        self._queue_ready.set()
+        try:
+            loop.run_until_complete(self._alert_worker())
+        finally:
+            loop.close()
+            self._loop = None
+
+    async def _alert_worker(self) -> None:
+        """Background coroutine: dequeues alerts and dispatches them with timeout + retry.
+
+        Alert ordering is preserved because asyncio.Queue is FIFO.
+        Each alert gets up to MAX_DISPATCH_RETRIES attempts with exponential
+        backoff (1 s, 2 s, 4 s …).  After all retries are exhausted the alert
+        is dropped and an error is logged (preventing indefinite blocking).
+        """
+        assert self._alert_queue is not None  # set before event loop starts
+
+        while True:
+            report = await self._alert_queue.get()
+            if report is None:
+                # Sentinel received – drain complete, stop worker.
+                self._alert_queue.task_done()
+                break
+
+            dispatched = False
+            for attempt in range(self.MAX_DISPATCH_RETRIES):
+                try:
+                    await asyncio.wait_for(
+                        self._dispatch_alert_async(report), timeout=10.0
+                    )
+                    dispatched = True
+                    break
+                except asyncio.TimeoutError:
+                    self.logger.error(
+                        "Alert dispatch timed out for email %s (attempt %d/%d)",
+                        report.email_id, attempt + 1, self.MAX_DISPATCH_RETRIES,
+                    )
+                except Exception as exc:
+                    self.logger.error(
+                        "Alert dispatch failed for email %s (attempt %d/%d): %s",
+                        report.email_id, attempt + 1, self.MAX_DISPATCH_RETRIES, exc,
+                    )
+
+                if attempt < self.MAX_DISPATCH_RETRIES - 1:
+                    # Exponential backoff: 1 s → 2 s → 4 s
+                    await asyncio.sleep(2 ** attempt)
+
+            if not dispatched:
+                self.logger.error(
+                    "Alert permanently failed for email %s after %d attempts",
+                    report.email_id, self.MAX_DISPATCH_RETRIES,
+                )
+
+            self._alert_queue.task_done()
+
+    async def _dispatch_alert_async(self, report: ThreatReport) -> None:
+        """Dispatch a single alert through all configured channels (async wrapper).
+
+        Each synchronous I/O call (_webhook_alert, _slack_alert) is offloaded to
+        the default executor so the event loop is never blocked.
+        """
+        loop = asyncio.get_event_loop()
+
+        # Console output is fast (no I/O); run directly in event loop thread.
+        if self.config.console:
+            self._console_alert(report)
+
+        if self.config.webhook_enabled and self.config.webhook_url:
+            await loop.run_in_executor(None, self._webhook_alert, report)
+
+        if self.config.slack_enabled and self.config.slack_webhook:
+            await loop.run_in_executor(None, self._slack_alert, report)
+
+    def _dispatch_alert_sync(self, report: ThreatReport) -> None:
+        """Synchronous alert dispatch used as a fallback when the worker is not running."""
+        if self.config.console:
+            self._console_alert(report)
+
+        if self.config.webhook_enabled and self.config.webhook_url:
+            self._webhook_alert(report)
+
+        if self.config.slack_enabled and self.config.slack_webhook:
+            self._slack_alert(report)
+
     def send_alert(self, threat_report: ThreatReport):
         """
-        Send alert through configured channels
+        Queue an alert for non-blocking async dispatch.
+
+        If the background worker is running the alert is enqueued and this
+        method returns in < 1 ms (fire-and-forget).  If the worker has not been
+        started (e.g. in tests or single-shot scripts) the alert is dispatched
+        synchronously so no alerts are silently dropped.
 
         Args:
             threat_report: Threat report to alert on
         """
         # Only alert on significant threats
         if threat_report.overall_threat_score < self.config.threat_low:
-            self.logger.debug(f"Threat score too low to alert: {threat_report.overall_threat_score}")
+            self.logger.debug(
+                "Threat score too low to alert: %s", threat_report.overall_threat_score
+            )
             # Provide positive feedback for clean emails if console is enabled
             if self.config.console:
                 self._console_clean_report(threat_report)
             return
 
-        # Console alert
-        if self.config.console:
-            self._console_alert(threat_report)
+        loop = self._loop
+        queue = self._alert_queue
 
-        # Webhook alert
-        if self.config.webhook_enabled and self.config.webhook_url:
-            self._webhook_alert(threat_report)
-
-        # Slack alert
-        if self.config.slack_enabled and self.config.slack_webhook:
-            self._slack_alert(threat_report)
+        if loop is not None and queue is not None and not loop.is_closed():
+            # Fire-and-forget: enqueue and return immediately.
+            asyncio.run_coroutine_threadsafe(queue.put(threat_report), loop)
+        else:
+            # Worker not started: synchronous fallback (no alerts lost).
+            self._dispatch_alert_sync(threat_report)
 
     def _print_alert_row(self, text: str, risk_color: str, indent: int = 0):
         """Helper to print a row with the left border"""
