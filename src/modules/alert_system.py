@@ -275,8 +275,25 @@ class AlertSystem:
             self._dispatch_alert_sync(threat_report)
 
     def _on_enqueue_done(self, fut) -> None:
-        """Callback invoked when the enqueue Future completes; logs unexpected errors."""
-        exc = fut.exception()
+        """Callback invoked when the enqueue Future completes; logs unexpected errors.
+
+        Note: fut.exception() raises asyncio.CancelledError if the Future was cancelled,
+        which is expected during shutdown. We handle that explicitly so this callback
+        never raises and doesn't pollute logs or mask the original shutdown reason.
+        """
+        try:
+            exc = fut.exception()
+        except asyncio.CancelledError:
+            # Cancellation is expected when the event loop or worker is shutting down;
+            # treat this as a benign condition and avoid logging it as an error.
+            if self.logger.isEnabledFor(logging.DEBUG):
+                self.logger.debug("Alert enqueue future was cancelled (likely during shutdown).")
+            return
+        except Exception as unexpected:
+            # Defensive: if checking the Future's exception itself fails, log that
+            # rather than letting the callback raise and hide the root cause.
+            self.logger.error("Unexpected error while inspecting enqueue future: %s", unexpected)
+            return
         if exc is not None:
             self.logger.error("Failed to enqueue alert: %s", exc)
 
