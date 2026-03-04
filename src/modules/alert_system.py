@@ -73,8 +73,11 @@ class AlertSystem:
         # Async alert queue infrastructure.
         # The event loop and queue are created inside _run_worker_loop() so they
         # live in the worker thread.  All three attributes are set/read across
-        # threads; in CPython, simple attribute reads/writes are protected by the
-        # GIL, so no additional lock is required for these scalar references.
+        # threads.  In CPython the GIL makes simple attribute reads/writes on
+        # built-in types effectively atomic; however this is a CPython
+        # implementation detail.  If the code is ever ported to a free-threaded
+        # runtime (e.g. Python 3.13+ with --disable-gil) explicit locking should
+        # be added around these references.
         self._loop: Optional[asyncio.AbstractEventLoop] = None
         self._alert_queue: Optional[asyncio.Queue] = None
         self._worker_thread: Optional[threading.Thread] = None
@@ -247,10 +250,23 @@ class AlertSystem:
 
         if loop is not None and queue is not None and not loop.is_closed():
             # Fire-and-forget: enqueue and return immediately.
-            asyncio.run_coroutine_threadsafe(queue.put(threat_report), loop)
+            # asyncio.run_coroutine_threadsafe returns a Future but we intentionally
+            # discard it here.  queue.put() only fails if the event loop is closing
+            # (checked above) or the queue has a maxsize cap (none is set).  Any
+            # enqueue error will propagate as an exception on the returned Future and
+            # be silently ignored; a warn-only callback is added so operator logs
+            # capture unexpected drops without blocking the caller.
+            fut = asyncio.run_coroutine_threadsafe(queue.put(threat_report), loop)
+            fut.add_done_callback(self._on_enqueue_done)
         else:
             # Worker not started: synchronous fallback (no alerts lost).
             self._dispatch_alert_sync(threat_report)
+
+    def _on_enqueue_done(self, fut) -> None:
+        """Callback invoked when the enqueue Future completes; logs unexpected errors."""
+        exc = fut.exception()
+        if exc is not None:
+            self.logger.error("Failed to enqueue alert: %s", exc)
 
     def _print_alert_row(self, text: str, risk_color: str, indent: int = 0):
         """Helper to print a row with the left border"""

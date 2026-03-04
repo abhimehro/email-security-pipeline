@@ -259,6 +259,7 @@ class TestAlertWorkerRetry(unittest.TestCase):
 
         async def instant_sleep(_delay):
             """Skip actual backoff delays in tests."""
+            pass  # no-op: avoids real waits during testing
 
         system = AlertSystem(_make_config(webhook=True))
         with patch("asyncio.sleep", new=instant_sleep):
@@ -284,6 +285,7 @@ class TestAlertWorkerRetry(unittest.TestCase):
 
         async def instant_sleep(_delay):
             """Skip actual backoff delays in tests."""
+            pass  # no-op: avoids real waits during testing
 
         system = AlertSystem(_make_config(webhook=True))
         with patch("asyncio.sleep", new=instant_sleep):
