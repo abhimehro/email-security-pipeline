@@ -204,31 +204,58 @@ class TestAlertWorkerTimeout(unittest.TestCase):
         """
         SECURITY STORY: A single slow/hanging webhook must not block all
         subsequent alerts.  The 10 s timeout ensures the queue keeps draining.
+
+        This test simulates a true timeout at the asyncio.wait_for layer:
+        - The first call to wait_for raises TimeoutError, representing a
+          slow/hanging webhook dispatch that hits the 10 s cap.
+        - Subsequent calls behave normally so we can verify that the second
+          alert is still dispatched.
         """
         mock_safe.return_value = (True, "")
 
         fast_called = threading.Event()
 
-        def slow_then_fast(*args, **kwargs):
+        def track_fast_post(*args, **kwargs):
+            """
+            Side effect for requests.post that simply records when the 'fast'
+            alert is dispatched. We no longer raise here; the timeout is
+            simulated via asyncio.wait_for so the 'slow' alert should never
+            reach this function.
+            """
             payload = kwargs.get("json", {})
-            if payload.get("email_id") == "slow":
-                # Simulate a timeout-triggering delay longer than the 10 s cap.
-                # We use a shorter sleep and patch wait_for to avoid slow tests.
-                raise Exception("Simulated network failure")
-            fast_called.set()
+            if payload.get("email_id") == "fast":
+                fast_called.set()
             return MagicMock(status_code=200)
 
-        mock_post.side_effect = slow_then_fast
+        mock_post.side_effect = track_fast_post
+
+        # Patch asyncio.wait_for so the first dispatch times out and subsequent
+        # ones complete normally. This directly exercises the 10 s timeout cap
+        # without introducing real-time delays into the test suite.
+        timeout_triggered = {"value": False}
+
+        async def timeout_once(coro, timeout):
+            # First call simulates a timeout of the slow/hanging alert
+            if not timeout_triggered["value"]:
+                timeout_triggered["value"] = True
+                raise asyncio.TimeoutError()
+            # Subsequent calls behave as normal wait_for
+            return await coro
 
         system = AlertSystem(_make_config(webhook=True))
-        system.start_worker()
-        try:
-            system.send_alert(_make_report(email_id="slow"))
-            system.send_alert(_make_report(email_id="fast"))
-            # Fast alert must still be dispatched even after the slow one fails
-            self.assertTrue(fast_called.wait(timeout=10), "Fast alert was never dispatched")
-        finally:
-            system.stop_worker()
+        with patch("asyncio.wait_for", new=timeout_once):
+            system.start_worker()
+            try:
+                system.send_alert(_make_report(email_id="slow"))
+                system.send_alert(_make_report(email_id="fast"))
+                # Fast alert must still be dispatched even after the slow one
+                # has timed out at the wait_for layer.
+                self.assertTrue(
+                    fast_called.wait(timeout=10),
+                    "Fast alert was never dispatched",
+                )
+            finally:
+                system.stop_worker()
 
 
 class TestAlertWorkerRetry(unittest.TestCase):
