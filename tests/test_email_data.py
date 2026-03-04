@@ -15,6 +15,7 @@ pure-Python with zero external dependencies. This makes the suite fast and
 immune to environment issues.
 """
 
+import dataclasses
 import unittest
 from datetime import datetime
 from email.message import Message
@@ -94,7 +95,6 @@ class TestEmailDataInit(unittest.TestCase):
 
     def test_is_dataclass(self):
         """EmailData must be a dataclass (has __dataclass_fields__)."""
-        import dataclasses
         self.assertTrue(dataclasses.is_dataclass(EmailData))
 
 
