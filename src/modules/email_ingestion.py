@@ -17,6 +17,7 @@ interface to a complex subsystem (IMAP + parsing + security).
 
 import imaplib
 import logging
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import List, Dict, Any, Optional, Tuple
 
 from ..utils.config import EmailAccountConfig
@@ -309,6 +310,7 @@ class EmailIngestionManager:
         max_total_attachment_bytes: int = 100 * 1024 * 1024,
         max_attachment_count: int = 10,
         max_body_size_bytes: int = 1024 * 1024,
+        max_parallel_accounts: int = 3,
     ):
         """
         Initialize ingestion manager
@@ -320,6 +322,7 @@ class EmailIngestionManager:
             max_total_attachment_bytes: Maximum total size of all attachments per email
             max_attachment_count: Maximum number of attachments per email
             max_body_size_bytes: Maximum size of email body text/html in bytes
+            max_parallel_accounts: Maximum number of accounts to process simultaneously
         """
         self.accounts = accounts
         self.rate_limit_delay = rate_limit_delay
@@ -327,6 +330,7 @@ class EmailIngestionManager:
         self.max_total_attachment_bytes = max_total_attachment_bytes
         self.max_attachment_count = max_attachment_count
         self.max_body_size = max_body_size_bytes
+        self.max_parallel_accounts = max(1, max_parallel_accounts)
         self.clients: Dict[str, IMAPClient] = {}
         self.logger = logging.getLogger("EmailIngestionManager")
 
@@ -365,43 +369,91 @@ class EmailIngestionManager:
         self.logger.info(f"Connected to {success_count}/{len(self.accounts)} accounts")
         return True
 
+    def _process_account(self, account: EmailAccountConfig, max_per_folder: int) -> List[EmailData]:
+        """
+        Fetch and parse all emails for a single account across its configured folders.
+
+        This helper is designed to run in its own thread — each account gets an
+        isolated IMAPClient so that IMAP connections are never shared between threads.
+
+        Args:
+            account: The email account configuration to process
+            max_per_folder: Maximum emails to fetch per folder
+
+        Returns:
+            List of EmailData objects collected from all folders of this account
+        """
+        emails: List[EmailData] = []
+        client = self.clients.get(account.email)
+        if client is None:
+            return emails
+
+        for folder in account.folders:
+            if not client.ensure_connection():
+                self.logger.error(
+                    f"Unable to reconnect to {redact_email(account.email)}; "
+                    f"skipping remaining folders"
+                )
+                break
+
+            self.logger.info(
+                f"Fetching from {redact_email(account.email)}/"
+                f"{sanitize_for_logging(folder)}"
+            )
+
+            raw_emails = client.fetch_unseen_emails(folder, max_per_folder)
+
+            for email_id, raw_email in raw_emails:
+                email_data = client.parse_email(email_id, raw_email, folder)
+                if email_data:
+                    emails.append(email_data)
+
+        return emails
+
     def fetch_all_emails(self, max_per_folder: int = 50) -> List[EmailData]:
         """
-        Fetch emails from all configured accounts and folders
+        Fetch emails from all configured accounts and folders in parallel.
+
+        Accounts are processed concurrently using a ThreadPoolExecutor with up to
+        ``max_parallel_accounts`` worker threads.  Each account runs in its own
+        thread with an isolated IMAPClient, so IMAP connections are never shared.
+        Per-account errors are caught and logged without blocking other accounts.
 
         Args:
             max_per_folder: Maximum emails to fetch per folder
 
         Returns:
-            List of EmailData objects
+            List of EmailData objects aggregated from all accounts
         """
-        all_emails = []
+        active_accounts = [
+            account for account in self.accounts
+            if account.enabled and account.email in self.clients
+        ]
 
-        for account in self.accounts:
-            if not account.enabled or account.email not in self.clients:
-                continue
+        if not active_accounts:
+            self.logger.info("Fetched 0 emails total")
+            return []
 
-            client = self.clients[account.email]
+        all_emails: List[EmailData] = []
 
-            for folder in account.folders:
-                if not client.ensure_connection():
+        with ThreadPoolExecutor(max_workers=self.max_parallel_accounts) as executor:
+            future_to_account = {
+                executor.submit(self._process_account, account, max_per_folder): account
+                for account in active_accounts
+            }
+
+            for future in as_completed(future_to_account):
+                account = future_to_account[future]
+                try:
+                    account_emails = future.result()
+                    all_emails.extend(account_emails)
+                except Exception as exc:
+                    # SECURITY: Per-account errors must not block other accounts.
+                    # Log and continue so the pipeline keeps monitoring healthy accounts.
                     self.logger.error(
-                        f"Unable to reconnect to {redact_email(account.email)}; "
-                        f"skipping remaining folders"
+                        f"Error processing account {redact_email(account.email)}: {exc}",
+                        exc_info=True,
                     )
-                    break
-
-                self.logger.info(
-                    f"Fetching from {redact_email(account.email)}/"
-                    f"{sanitize_for_logging(folder)}"
-                )
-
-                raw_emails = client.fetch_unseen_emails(folder, max_per_folder)
-
-                for email_id, raw_email in raw_emails:
-                    email_data = client.parse_email(email_id, raw_email, folder)
-                    if email_data:
-                        all_emails.append(email_data)
 
         self.logger.info(f"Fetched {len(all_emails)} emails total")
         return all_emails
