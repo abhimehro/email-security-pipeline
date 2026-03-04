@@ -102,6 +102,33 @@ class TestAlertSystemSecurity(unittest.TestCase):
 
     @patch('src.modules.alert_system.is_safe_webhook_url')
     @patch('src.modules.alert_system.requests.post')
+    def test_webhook_redirect_prevention(self, mock_post, mock_is_safe):
+        """Test that webhook calls are made with allow_redirects=False to prevent SSRF bypass"""
+        self.config.webhook_enabled = True
+        self.config.webhook_url = "https://safe.example.com/webhook"
+
+        # Mock the safety check to pass
+        mock_is_safe.return_value = (True, "")
+
+        report = ThreatReport(
+            email_id="123", subject="Test", sender="sender",
+            recipient="recipient", date="2023-01-01",
+            overall_threat_score=90.0, risk_level="high",
+            spam_analysis={}, nlp_analysis={}, media_analysis={},
+            recommendations=[], timestamp="2023-01-01"
+        )
+
+        system = AlertSystem(self.config)
+        system._webhook_alert(report)
+
+        # Verify the post was called with allow_redirects=False
+        mock_post.assert_called_once()
+        _, kwargs = mock_post.call_args
+        self.assertIn('allow_redirects', kwargs)
+        self.assertFalse(kwargs['allow_redirects'])
+
+    @patch('src.modules.alert_system.is_safe_webhook_url')
+    @patch('src.modules.alert_system.requests.post')
     def test_webhook_ssrf_prevention(self, mock_post, mock_is_safe):
         """Test that webhook calls are aborted if unsafe at request time"""
         self.config.webhook_enabled = True
@@ -147,6 +174,33 @@ class TestAlertSystemSecurity(unittest.TestCase):
 
         # Verify the post was NOT called
         mock_post.assert_not_called()
+
+    @patch('src.modules.alert_system.is_safe_webhook_url')
+    @patch('src.modules.alert_system.requests.post')
+    def test_slack_redirect_prevention(self, mock_post, mock_is_safe):
+        """Test that Slack calls are made with allow_redirects=False to prevent SSRF bypass"""
+        self.config.slack_enabled = True
+        self.config.slack_webhook = "https://hooks.slack.com/services/test"
+
+        # Mock the safety check to pass
+        mock_is_safe.return_value = (True, "")
+
+        report = ThreatReport(
+            email_id="123", subject="Test", sender="sender",
+            recipient="recipient", date="2023-01-01",
+            overall_threat_score=90.0, risk_level="high",
+            spam_analysis={}, nlp_analysis={}, media_analysis={},
+            recommendations=[], timestamp="2023-01-01"
+        )
+
+        system = AlertSystem(self.config)
+        system._slack_alert(report)
+
+        # Verify the post was called with allow_redirects=False
+        mock_post.assert_called_once()
+        _, kwargs = mock_post.call_args
+        self.assertIn('allow_redirects', kwargs)
+        self.assertFalse(kwargs['allow_redirects'])
 
     def test_unicode_bidi_spoofing(self):
         """

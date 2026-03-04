@@ -444,7 +444,8 @@ class AlertSystem:
                 self.config.webhook_url,
                 json=payload,
                 headers={'Content-Type': 'application/json'},
-                timeout=10
+                timeout=10,
+                allow_redirects=False
             )
 
             if response.status_code == 200:
@@ -740,7 +741,8 @@ class AlertSystem:
                 self.config.slack_webhook,
                 json=payload,
                 headers={'Content-Type': 'application/json'},
-                timeout=10
+                timeout=10,
+                allow_redirects=False
             )
 
             if response.status_code == 200:
