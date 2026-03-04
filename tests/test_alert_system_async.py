@@ -10,11 +10,10 @@ Validates that the async alert worker:
 - Falls back to synchronous dispatch when the worker is not running
 """
 
-import asyncio
 import threading
 import time
 import unittest
-from unittest.mock import MagicMock, patch, call
+from unittest.mock import MagicMock, patch
 from datetime import datetime
 
 from src.modules.alert_system import AlertSystem, ThreatReport
