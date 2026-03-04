@@ -37,6 +37,7 @@
 
 **Closed issues:**
 
+- \[Code Quality\] Add direct unit tests for NLPThreatAnalyzer.\_run\_transformer\_analysis scoring logic [\#472](https://github.com/abhimehro/email-security-pipeline/issues/472)
 - \[repo-status\] Daily Repo Status — 2026-03-03 [\#465](https://github.com/abhimehro/email-security-pipeline/issues/465)
 - \[Code Quality\] Add unit tests for SpamAnalyzer.\_analyze\_subject and \_calculate\_risk\_level [\#463](https://github.com/abhimehro/email-security-pipeline/issues/463)
 - \[Code Quality\] Add unit tests for NLPThreatAnalyzer social engineering and authority impersonation detection [\#462](https://github.com/abhimehro/email-security-pipeline/issues/462)
@@ -187,6 +188,7 @@
 **Merged pull requests:**
 
 - ⚡ Bolt: Optimize simple regex occurrence counting [\#474](https://github.com/abhimehro/email-security-pipeline/pull/474) ([abhimehro](https://github.com/abhimehro))
+- Daily Backlog Burner: Add unit tests for NLPThreatAnalyzer.\_run\_transformer\_analysis \(closes \#472\) [\#473](https://github.com/abhimehro/email-security-pipeline/pull/473) ([github-actions[bot]](https://github.com/apps/github-actions))
 - 🛡️ Sentinel: \[HIGH\] Fix SSRF bypass in webhooks [\#468](https://github.com/abhimehro/email-security-pipeline/pull/468) ([abhimehro](https://github.com/abhimehro))
 - test: add unit tests for NLPThreatAnalyzer social engineering and authority impersonation detection [\#467](https://github.com/abhimehro/email-security-pipeline/pull/467) ([Copilot](https://github.com/apps/copilot-swe-agent))
 - test: Add direct unit tests for SpamAnalyzer.\_analyze\_subject and \_calculate\_risk\_level [\#466](https://github.com/abhimehro/email-security-pipeline/pull/466) ([Copilot](https://github.com/apps/copilot-swe-agent))
