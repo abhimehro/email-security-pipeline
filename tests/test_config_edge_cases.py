@@ -317,7 +317,8 @@ class TestConfigurationDefaults(unittest.TestCase):
             max_attachment_size_mb=int(os.getenv("MAX_ATTACHMENT_SIZE_MB", "25")),
             max_total_attachment_size_mb=int(os.getenv("MAX_TOTAL_ATTACHMENT_SIZE_MB", "100")),
             max_attachment_count=int(os.getenv("MAX_ATTACHMENT_COUNT", "10")),
-            max_body_size_kb=int(os.getenv("MAX_BODY_SIZE_KB", "1024"))
+            max_body_size_kb=int(os.getenv("MAX_BODY_SIZE_KB", "1024")),
+            max_parallel_accounts=int(os.getenv("MAX_PARALLEL_ACCOUNTS", "3")),
         )
 
         # Verify conservative defaults
@@ -347,7 +348,8 @@ class TestConfigurationDefaults(unittest.TestCase):
             max_attachment_size_mb=25,
             max_total_attachment_size_mb=100,
             max_attachment_count=10,
-            max_body_size_kb=1024
+            max_body_size_kb=1024,
+            max_parallel_accounts=3,
         )
 
         # Rate limit should be enabled by default (1 second)

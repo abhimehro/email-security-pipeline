@@ -4,6 +4,7 @@ Tests concurrent account processing, isolation, and rate limiting
 """
 
 import unittest
+from threading import Lock
 from unittest.mock import MagicMock, patch, Mock
 import sys
 from pathlib import Path
@@ -417,6 +418,176 @@ class TestMultiAccountProcessing(unittest.TestCase):
 
         # Should respect the limit
         self.assertLessEqual(len(emails), 10)
+
+
+class TestParallelAccountProcessing(unittest.TestCase):
+    """
+    Tests verifying that EmailIngestionManager processes accounts in parallel.
+
+    PATTERN RECOGNITION: This is analogous to a thread pool that dispatches
+    database queries concurrently — each worker is independent and failures
+    in one do not cascade to others.
+    """
+
+    def _make_account(self, email, folders=None):
+        return EmailAccountConfig(
+            enabled=True,
+            email=email,
+            imap_server="imap.example.com",
+            imap_port=993,
+            app_password="secret",
+            folders=folders or ["INBOX"],
+            provider="test",
+            use_ssl=True,
+            verify_ssl=True,
+        )
+
+    def test_max_parallel_accounts_stored(self):
+        """
+        PATTERN RECOGNITION: max_parallel_accounts should be stored on the manager
+        so callers can inspect the configured concurrency level.
+        """
+        manager = EmailIngestionManager([], max_parallel_accounts=5)
+        self.assertEqual(manager.max_parallel_accounts, 5)
+
+    def test_max_parallel_accounts_defaults_to_three(self):
+        """Default concurrency is 3 (matching the 3-account reference deployment)."""
+        manager = EmailIngestionManager([])
+        self.assertEqual(manager.max_parallel_accounts, 3)
+
+    def test_max_parallel_accounts_minimum_is_one(self):
+        """
+        SECURITY STORY: Passing 0 or a negative value must not disable processing.
+        We clamp the value to 1 so at least sequential processing always occurs.
+        """
+        manager = EmailIngestionManager([], max_parallel_accounts=0)
+        self.assertEqual(manager.max_parallel_accounts, 1)
+
+        manager2 = EmailIngestionManager([], max_parallel_accounts=-99)
+        self.assertEqual(manager2.max_parallel_accounts, 1)
+
+    def test_fetch_all_emails_uses_thread_pool(self):
+        """
+        Verify that fetch_all_emails submits account work to a ThreadPoolExecutor.
+
+        PATTERN RECOGNITION: We patch ThreadPoolExecutor so we can inspect which
+        callables are submitted, without needing real IMAP connections.
+        """
+        account1 = self._make_account("a@x.com")
+        account2 = self._make_account("b@x.com")
+        manager = EmailIngestionManager([account1, account2], max_parallel_accounts=2)
+        manager.logger = MagicMock()
+
+        mock_email = MagicMock()
+
+        # Patch _process_account so it returns a predictable list
+        with patch.object(manager, "_process_account", return_value=[mock_email]) as mock_proc:
+            mock_client = MagicMock()
+            manager.clients = {"a@x.com": mock_client, "b@x.com": mock_client}
+
+            results = manager.fetch_all_emails(max_per_folder=10)
+
+        # _process_account must be called once per active account
+        self.assertEqual(mock_proc.call_count, 2)
+        # Both accounts' emails are aggregated
+        self.assertEqual(len(results), 2)
+
+    def test_parallel_accounts_run_concurrently(self):
+        """
+        3x throughput test: 3 accounts each sleeping 0.1s should finish in ~0.1s,
+        not ~0.3s, when max_parallel_accounts >= 3.
+
+        INDUSTRY CONTEXT: Real-world deployments of 3 accounts at ~30s each see
+        ~30s total with parallelism vs ~90s sequential.
+        """
+        accounts = [self._make_account(f"u{i}@x.com") for i in range(3)]
+        manager = EmailIngestionManager(accounts, max_parallel_accounts=3)
+        manager.logger = MagicMock()
+
+        call_times = []
+        lock = Lock()
+
+        def slow_process(account, max_per_folder):
+            time.sleep(0.1)
+            with lock:
+                call_times.append(time.monotonic())
+            return []
+
+        mock_client = MagicMock()
+        manager.clients = {a.email: mock_client for a in accounts}
+
+        with patch.object(manager, "_process_account", side_effect=slow_process):
+            start = time.monotonic()
+            manager.fetch_all_emails()
+            elapsed = time.monotonic() - start
+
+        # With parallelism: should finish in well under 3 × 0.1 = 0.3 s
+        # Allow a generous 0.3 s budget for test environment overhead
+        self.assertLess(elapsed, 0.3,
+                        f"Expected parallel execution < 0.3s but took {elapsed:.3f}s")
+        # All 3 accounts were processed
+        self.assertEqual(len(call_times), 3)
+
+    def test_per_account_error_does_not_block_others(self):
+        """
+        SECURITY STORY: If one account's IMAP server is unreachable or throws,
+        the remaining accounts must still be processed. This preserves partial
+        monitoring even under account-level failures.
+
+        MAINTENANCE WISDOM: Without this isolation, a single expired password
+        would silently stop monitoring all other accounts.
+        """
+        account_ok = self._make_account("ok@x.com")
+        account_bad = self._make_account("bad@x.com")
+        manager = EmailIngestionManager([account_ok, account_bad], max_parallel_accounts=2)
+        manager.logger = MagicMock()
+
+        good_email = MagicMock()
+
+        def process_side_effect(account, max_per_folder):
+            if account.email == "bad@x.com":
+                raise ConnectionError("IMAP server unreachable")
+            return [good_email]
+
+        mock_client = MagicMock()
+        manager.clients = {account_ok.email: mock_client, account_bad.email: mock_client}
+
+        with patch.object(manager, "_process_account", side_effect=process_side_effect):
+            results = manager.fetch_all_emails()
+
+        # Email from the healthy account is returned
+        self.assertEqual(results, [good_email])
+        # Error for the bad account was logged
+        manager.logger.error.assert_called()
+
+    def test_process_account_skips_missing_client(self):
+        """
+        _process_account returns an empty list when the account's client
+        has not been registered (e.g., connection failed at initialisation).
+        """
+        account = self._make_account("missing@x.com")
+        manager = EmailIngestionManager([account])
+        manager.logger = MagicMock()
+        manager.clients = {}  # No client registered
+
+        result = manager._process_account(account, max_per_folder=10)
+
+        self.assertEqual(result, [])
+
+    def test_fetch_all_emails_no_active_accounts(self):
+        """
+        When no accounts are active (none enabled or none connected),
+        fetch_all_emails returns an empty list without raising.
+        """
+        account = self._make_account("u@x.com")
+        account.enabled = False
+        manager = EmailIngestionManager([account])
+        manager.logger = MagicMock()
+        manager.clients = {}
+
+        result = manager.fetch_all_emails()
+
+        self.assertEqual(result, [])
 
 
 if __name__ == '__main__':

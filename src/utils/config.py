@@ -89,6 +89,7 @@ class SystemConfig:
     max_total_attachment_size_mb: int
     max_attachment_count: int
     max_body_size_kb: int
+    max_parallel_accounts: int
 
 
 class Config:
@@ -207,7 +208,8 @@ class Config:
             max_attachment_size_mb=int(os.getenv("MAX_ATTACHMENT_SIZE_MB", "25")),
             max_total_attachment_size_mb=int(os.getenv("MAX_TOTAL_ATTACHMENT_SIZE_MB", "100")),
             max_attachment_count=int(os.getenv("MAX_ATTACHMENT_COUNT", "10")),
-            max_body_size_kb=int(os.getenv("MAX_BODY_SIZE_KB", "1024"))  # Default 1MB limit for body text
+            max_body_size_kb=int(os.getenv("MAX_BODY_SIZE_KB", "1024")),  # Default 1MB limit for body text
+            max_parallel_accounts=int(os.getenv("MAX_PARALLEL_ACCOUNTS", "3"))
         )
 
     @staticmethod

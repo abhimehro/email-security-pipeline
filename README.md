@@ -246,7 +246,25 @@ LOG_LEVEL=INFO                  # DEBUG, INFO, WARNING, ERROR
 CHECK_INTERVAL=300              # Seconds between email checks
 MAX_EMAILS_PER_BATCH=50        # Max emails to process per cycle
 RATE_LIMIT_DELAY=1              # Delay between IMAP operations (seconds)
+MAX_PARALLEL_ACCOUNTS=3        # Max accounts processed simultaneously (default: 3)
 ```
+
+### Parallel Account Processing
+
+Multiple email accounts are fetched **concurrently** using a `ThreadPoolExecutor`.
+Each account runs in its own thread with an isolated IMAP connection, so credentials
+and session state are never shared.
+
+**Performance impact (example with 3 accounts at 30 s each):**
+
+| Mode | Total time |
+|------|-----------|
+| Sequential (before) | ~90 s |
+| Parallel (after, `MAX_PARALLEL_ACCOUNTS=3`) | ~30 s |
+
+- Per-account errors are caught and logged without interrupting other accounts.
+- Rate limiting (`RATE_LIMIT_DELAY`) is applied independently per account thread.
+- Memory footprint scales linearly with the number of parallel accounts and emails fetched.
 
 ### Logging Configuration
 
