@@ -152,6 +152,7 @@
 - \[Code Quality\] Add parallel account processing for 3x throughput [\#254](https://github.com/abhimehro/email-security-pipeline/issues/254)
 - \[Code Quality\] Optimize CI duration with parallel testing and incremental linting [\#253](https://github.com/abhimehro/email-security-pipeline/issues/253)
 - \[Code Quality\] Implement IMAP connection pooling for 10x speedup [\#252](https://github.com/abhimehro/email-security-pipeline/issues/252)
+- \[Code Quality\] Implement async alert dispatch to prevent webhook blocking [\#251](https://github.com/abhimehro/email-security-pipeline/issues/251)
 - Daily Perf ImproverResearch and Plan [\#250](https://github.com/abhimehro/email-security-pipeline/issues/250)
 - \[Code Quality\] Move hardcoded magic numbers to centralized configuration [\#245](https://github.com/abhimehro/email-security-pipeline/issues/245)
 - \[Code Quality\] Add specific exception handling to media analyzer [\#244](https://github.com/abhimehro/email-security-pipeline/issues/244)
@@ -195,6 +196,7 @@
 
 - test: Add direct unit tests for AlertSystem.\_generate\_recommendations branch logic [\#487](https://github.com/abhimehro/email-security-pipeline/pull/487) ([Copilot](https://github.com/apps/copilot-swe-agent))
 - feat: Parallel account ingestion via ThreadPoolExecutor \(3x throughput\) [\#486](https://github.com/abhimehro/email-security-pipeline/pull/486) ([Copilot](https://github.com/apps/copilot-swe-agent))
+- Implement async alert dispatch to prevent webhook blocking [\#485](https://github.com/abhimehro/email-security-pipeline/pull/485) ([Copilot](https://github.com/apps/copilot-swe-agent))
 - Add test\_email\_data.py: comprehensive unit tests for EmailData dataclass [\#484](https://github.com/abhimehro/email-security-pipeline/pull/484) ([Copilot](https://github.com/apps/copilot-swe-agent))
 - fix: convert SPAM\_KEYWORDS capturing groups to non-capturing \(closes \#477\) [\#479](https://github.com/abhimehro/email-security-pipeline/pull/479) ([github-actions[bot]](https://github.com/apps/github-actions))
 - 🎨 Palette: Add Ctrl+C hint to CountdownTimer [\#478](https://github.com/abhimehro/email-security-pipeline/pull/478) ([abhimehro](https://github.com/abhimehro))
