@@ -37,8 +37,14 @@
 
 **Closed issues:**
 
+- \[repo-status\] Daily Status Report — March 4, 2026 🛡️⚡ [\#482](https://github.com/abhimehro/email-security-pipeline/issues/482)
+- fix: convert SPAM\_KEYWORDS capturing groups to non-capturing \(closes \#477\) [\#480](https://github.com/abhimehro/email-security-pipeline/issues/480)
 - \[Code Quality\] Convert SPAM\_KEYWORDS capturing groups to non-capturing to fix findall\(\) tuple allocation [\#477](https://github.com/abhimehro/email-security-pipeline/issues/477)
+- \[Code Quality\] Add direct unit tests for AlertSystem.\_generate\_recommendations branch logic [\#475](https://github.com/abhimehro/email-security-pipeline/issues/475)
 - \[Code Quality\] Add direct unit tests for NLPThreatAnalyzer.\_run\_transformer\_analysis scoring logic [\#472](https://github.com/abhimehro/email-security-pipeline/issues/472)
+- \[Code Quality\] Add direct unit tests for NLPThreatAnalyzer.\_scan\_text\_patterns category aggregation [\#471](https://github.com/abhimehro/email-security-pipeline/issues/471)
+- \[Code Quality\] Add direct unit tests for SpamAnalyzer.\_analyze\_body hidden-text and image-heavy detection [\#470](https://github.com/abhimehro/email-security-pipeline/issues/470)
+- \[Code Quality\] Add direct unit tests for SpamAnalyzer.\_analyze\_headers SPF/DKIM detection [\#469](https://github.com/abhimehro/email-security-pipeline/issues/469)
 - \[repo-status\] Daily Repo Status — 2026-03-03 [\#465](https://github.com/abhimehro/email-security-pipeline/issues/465)
 - \[Code Quality\] Add unit tests for SpamAnalyzer.\_analyze\_subject and \_calculate\_risk\_level [\#463](https://github.com/abhimehro/email-security-pipeline/issues/463)
 - \[Code Quality\] Add unit tests for NLPThreatAnalyzer social engineering and authority impersonation detection [\#462](https://github.com/abhimehro/email-security-pipeline/issues/462)
@@ -143,6 +149,7 @@
 - \[Code Quality\] Fix silent exception handling in ZIP inspection [\#259](https://github.com/abhimehro/email-security-pipeline/issues/259)
 - \[Code Quality\] Add missing test coverage for IMAPConnection.list\_folders\(\) [\#258](https://github.com/abhimehro/email-security-pipeline/issues/258)
 - \[Code Quality\] Add CI performance regression detection with pytest-benchmark [\#255](https://github.com/abhimehro/email-security-pipeline/issues/255)
+- \[Code Quality\] Add parallel account processing for 3x throughput [\#254](https://github.com/abhimehro/email-security-pipeline/issues/254)
 - \[Code Quality\] Optimize CI duration with parallel testing and incremental linting [\#253](https://github.com/abhimehro/email-security-pipeline/issues/253)
 - \[Code Quality\] Implement IMAP connection pooling for 10x speedup [\#252](https://github.com/abhimehro/email-security-pipeline/issues/252)
 - Daily Perf ImproverResearch and Plan [\#250](https://github.com/abhimehro/email-security-pipeline/issues/250)
@@ -170,6 +177,7 @@
 - \[Code Quality\] Validate regex patterns in nlp\_analyzer.py for ReDoS vulnerabilities [\#218](https://github.com/abhimehro/email-security-pipeline/issues/218)
 - \[Code Quality\] Replace bare pass statements with explicit logging in exception handlers [\#217](https://github.com/abhimehro/email-security-pipeline/issues/217)
 - \[Code Quality\] Fix bare except clauses that silently swallow exceptions in analyzer modules [\#216](https://github.com/abhimehro/email-security-pipeline/issues/216)
+- \[Code Quality\] Add comprehensive test coverage for email\_data.py and imap\_connection.py modules [\#215](https://github.com/abhimehro/email-security-pipeline/issues/215)
 - \[Code Quality\] Add integration and error recovery test coverage [\#210](https://github.com/abhimehro/email-security-pipeline/issues/210)
 - \[Code Quality\] Refactor email\_ingestion.py into smaller focused modules [\#209](https://github.com/abhimehro/email-security-pipeline/issues/209)
 - \[Code Quality\] Implement structured logging and metrics collection [\#207](https://github.com/abhimehro/email-security-pipeline/issues/207)
@@ -185,6 +193,9 @@
 
 **Merged pull requests:**
 
+- test: Add direct unit tests for AlertSystem.\_generate\_recommendations branch logic [\#487](https://github.com/abhimehro/email-security-pipeline/pull/487) ([Copilot](https://github.com/apps/copilot-swe-agent))
+- feat: Parallel account ingestion via ThreadPoolExecutor \(3x throughput\) [\#486](https://github.com/abhimehro/email-security-pipeline/pull/486) ([Copilot](https://github.com/apps/copilot-swe-agent))
+- Add test\_email\_data.py: comprehensive unit tests for EmailData dataclass [\#484](https://github.com/abhimehro/email-security-pipeline/pull/484) ([Copilot](https://github.com/apps/copilot-swe-agent))
 - fix: convert SPAM\_KEYWORDS capturing groups to non-capturing \(closes \#477\) [\#479](https://github.com/abhimehro/email-security-pipeline/pull/479) ([github-actions[bot]](https://github.com/apps/github-actions))
 - 🎨 Palette: Add Ctrl+C hint to CountdownTimer [\#478](https://github.com/abhimehro/email-security-pipeline/pull/478) ([abhimehro](https://github.com/abhimehro))
 - ⚡ Bolt: Optimize simple regex occurrence counting [\#474](https://github.com/abhimehro/email-security-pipeline/pull/474) ([abhimehro](https://github.com/abhimehro))
