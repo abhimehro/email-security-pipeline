@@ -141,6 +141,9 @@ class EmailSecurityPipeline:
 
             self.running = True
 
+            # Start async alert worker for non-blocking alert dispatch.
+            self.alert_system.start_worker()
+
             # Main monitoring loop
             self._monitoring_loop()
 
@@ -164,6 +167,10 @@ class EmailSecurityPipeline:
         self.logger.info("Stopping Email Security Pipeline")
         self.running = False
         self.ingestion_manager.close_all_connections()
+        # Flush and stop the async alert worker before shutting down the executor
+        # so any in-flight alerts complete gracefully.
+        if hasattr(self, 'alert_system'):
+            self.alert_system.stop_worker()
         if hasattr(self, 'executor'):
             self.executor.shutdown(wait=True)
         if hasattr(self, 'media_analyzer'):
