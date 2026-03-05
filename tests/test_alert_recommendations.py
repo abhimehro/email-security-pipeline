@@ -68,7 +68,7 @@ class TestGenerateRecommendations(unittest.TestCase):
         result = AlertSystem._generate_recommendations(
             _make_spam(), _make_nlp(), _make_media()
         )
-        self.assertEqual(result, ["Review email carefully before taking action"])
+        self.assertEqual(result, ["✅ No issues detected: Email appears safe, but maintain standard caution"])
 
     # ------------------------------------------------------------------
     # Individual branch tests

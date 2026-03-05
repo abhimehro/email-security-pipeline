@@ -1034,7 +1034,7 @@ class AlertSystem:
 
         # General recommendations
         if not recommendations:
-            recommendations.append("Review email carefully before taking action")
+            recommendations.append("✅ No issues detected: Email appears safe, but maintain standard caution")
 
         return recommendations
 
