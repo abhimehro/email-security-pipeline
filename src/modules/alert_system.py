@@ -322,7 +322,7 @@ class AlertSystem:
             self.logger.error(
                 "Unexpected error while inspecting enqueue future: %s",
                 unexpected,
-                exc_info=True,
+                exc_info=unexpected,
             )
             return
         if exc is not None:
