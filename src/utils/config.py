@@ -56,6 +56,8 @@ class AnalysisConfig:
     deepfake_api_key: Optional[str] = field(repr=False)
     deepfake_api_url: Optional[str]
     deepfake_model_path: Optional[str]
+
+    # Global NLP / ML toggle (applies across analysis layers, not just media)
     enable_ml_model: bool = True
 
 
