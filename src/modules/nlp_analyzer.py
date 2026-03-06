@@ -168,8 +168,8 @@ class NLPThreatAnalyzer:
         return compile_patterns(raw_patterns, re.I)
 
     def _should_use_ml_model(self) -> bool:
-        """Check if ML model should be loaded"""
-        return True
+        """Check if ML model should be loaded based on config."""
+        return getattr(self.config, "enable_ml_model", True)
 
     def _initialize_model(self):
         """Initialize transformer model"""
