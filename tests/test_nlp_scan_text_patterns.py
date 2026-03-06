@@ -170,3 +170,7 @@ class TestScanTextPatternsTwoPhase(_BaseNLPScanTest):
                 f"Category '{key}' should be empty when simple_master_pattern "
                 f"finds no keywords (two-phase gate regression)"
             )
+
+
+if __name__ == "__main__":
+    unittest.main()
