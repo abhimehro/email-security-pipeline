@@ -10,6 +10,9 @@ import itertools
 
 from .colors import Colors
 
+CURSOR_HIDE = "\033[?25l"
+CURSOR_SHOW = "\033[?25h"
+
 
 class CountdownTimer:
     """
@@ -31,6 +34,10 @@ class CountdownTimer:
             # In non-interactive mode, just wait
             time.sleep(self.duration)
             return
+
+        # Hide cursor
+        sys.stdout.write(CURSOR_HIDE)
+        sys.stdout.flush()
 
         try:
             remaining = self.duration
@@ -66,6 +73,10 @@ class CountdownTimer:
             sys.stdout.write("\n")
             sys.stdout.flush()
             raise
+        finally:
+            # Restore cursor
+            sys.stdout.write(CURSOR_SHOW)
+            sys.stdout.flush()
 
     def stop(self):
         """Stop the countdown"""
@@ -119,6 +130,10 @@ class Spinner:
 
     def __enter__(self):
         if sys.stdout.isatty():
+            # Hide cursor
+            sys.stdout.write(CURSOR_HIDE)
+            sys.stdout.flush()
+
             self.busy = True
             self.thread = threading.Thread(target=self._spin)
             self.thread.start()
@@ -128,24 +143,29 @@ class Spinner:
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         if sys.stdout.isatty():
-            self.busy = False
-            if self.thread:
-                self.thread.join()
-            final_message = ""
+            try:
+                self.busy = False
+                if self.thread:
+                    self.thread.join()
+                final_message = ""
 
-            if exc_type is not None:
-                # Failure logic
-                msg = self.fail_msg if self.fail_msg else self.message
-                final_message = f"{Colors.RED}✘{Colors.RESET} {msg}\n"
-            elif self.success_msg:
-                # Explicit success message always persists
-                final_message = f"{Colors.GREEN}✔{Colors.RESET} {self.success_msg}\n"
-            elif self.persist:
-                # Default persistence
-                final_message = f"{Colors.GREEN}✔{Colors.RESET} {self.message}\n"
+                if exc_type is not None:
+                    # Failure logic
+                    msg = self.fail_msg if self.fail_msg else self.message
+                    final_message = f"{Colors.RED}✘{Colors.RESET} {msg}\n"
+                elif self.success_msg:
+                    # Explicit success message always persists
+                    final_message = f"{Colors.GREEN}✔{Colors.RESET} {self.success_msg}\n"
+                elif self.persist:
+                    # Default persistence
+                    final_message = f"{Colors.GREEN}✔{Colors.RESET} {self.message}\n"
 
-            sys.stdout.write(f"\r\033[K{final_message}")
-            sys.stdout.flush()
+                sys.stdout.write(f"\r\033[K{final_message}")
+                sys.stdout.flush()
+            finally:
+                # Restore cursor
+                sys.stdout.write(CURSOR_SHOW)
+                sys.stdout.flush()
         else:
             # Non-TTY: provide simple success/failure feedback without ANSI codes
             if exc_type is not None:
