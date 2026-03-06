@@ -16,7 +16,7 @@ class TestSSRFPrevention(unittest.TestCase):
     def test_invalid_scheme(self):
         is_safe, msg = is_safe_webhook_url("ftp://example.com")
         self.assertFalse(is_safe)
-        self.assertIn("scheme must be http or https", msg)
+        self.assertIn("scheme must be https", msg)
 
     def test_missing_hostname(self):
         is_safe, msg = is_safe_webhook_url("https://")
@@ -66,7 +66,7 @@ class TestSSRFPrevention(unittest.TestCase):
         mock_getaddrinfo.return_value = [
             (socket.AF_INET, socket.SOCK_STREAM, 6, '', ('169.254.169.254', 443))
         ]
-        is_safe, msg = is_safe_webhook_url("http://169.254.169.254/latest/meta-data/")
+        is_safe, msg = is_safe_webhook_url("https://169.254.169.254/latest/meta-data/")
         self.assertFalse(is_safe)
         # Note: Depending on the Python version, link-local could also report as private.
         # Check for link-local or private logic to handle `ipaddress` variations
@@ -81,7 +81,7 @@ class TestSSRFPrevention(unittest.TestCase):
         mock_getaddrinfo.return_value = [
             (socket.AF_INET, socket.SOCK_STREAM, 6, '', ('0.0.0.0', 443))  # nosec B104
         ]
-        is_safe, msg = is_safe_webhook_url("http://0.0.0.0/webhook")
+        is_safe, msg = is_safe_webhook_url("https://0.0.0.0/webhook")
         self.assertFalse(is_safe)
         # 0.0.0.0 often returns true for `is_private` as well in Python ipaddress
         self.assertTrue(

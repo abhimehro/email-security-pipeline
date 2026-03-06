@@ -27,6 +27,10 @@ from ..utils.security_validators import is_safe_webhook_url
 # Regex pattern for stripping ANSI codes (compiled once for performance)
 ANSI_PATTERN = re.compile(r'\x1b\[[0-9;]*m')
 
+# Regex pattern for extracting URLs from error messages (compiled once for performance)
+# Expanded to catch bare paths/hosts for complete redaction when scheme is missing.
+URL_PATTERN = re.compile(r'(?:https?://[^\s<>"]+|www\.[^\s<>"]+|/[^\s<>"]+)')
+
 
 @dataclass
 class ThreatReport:
@@ -319,7 +323,7 @@ class AlertSystem:
             self.logger.error(
                 "Unexpected error while inspecting enqueue future: %s",
                 unexpected,
-                exc_info=True,
+                exc_info=unexpected,
             )
             return
         if exc is not None:
@@ -715,7 +719,7 @@ class AlertSystem:
         try:
             # Find all URLs in the message
             # Simple regex for http/https URLs to catch full URLs including query params
-            urls = re.findall(r'https?://[^\s<>"]+|www\.[^\s<>"]+', msg)
+            urls = URL_PATTERN.findall(msg)
 
             for url in urls:
                 # Clean up trailing punctuation that might have been matched
@@ -768,7 +772,7 @@ class AlertSystem:
             # 3. Redact Slack Webhooks
             # Format: /services/T000/B000/TOKEN
             netloc = parsed.netloc.lower()
-            if (netloc == "hooks.slack.com" or netloc.endswith(".slack.com")) and parsed.path.startswith("/services/"):
+            if (not netloc or netloc == "hooks.slack.com" or netloc.endswith(".slack.com")) and parsed.path.startswith("/services/"):
                 parts = parsed.path.split('/')
                 # parts[0] is empty, parts[1] is 'services'
                 # parts[2] is Team ID, parts[3] is Bot ID, parts[4] is Token
@@ -781,7 +785,7 @@ class AlertSystem:
 
             # 4. Redact Discord Webhooks
             # Format: /api/webhooks/ID/TOKEN
-            if (netloc == "discord.com" or netloc.endswith(".discord.com")) and parsed.path.startswith("/api/webhooks/"):
+            if (not netloc or netloc == "discord.com" or netloc.endswith(".discord.com")) and parsed.path.startswith("/api/webhooks/"):
                 parts = parsed.path.split('/')
                 # parts[-1] is likely the token
                 if len(parts) >= 5:

@@ -211,8 +211,9 @@ def is_safe_webhook_url(url: str) -> Tuple[bool, str]:
     except Exception as e:
         return False, f"Failed to parse URL: {e}"
 
-    if parsed.scheme not in ('http', 'https'):
-        return False, f"URL scheme must be http or https, got: {parsed.scheme}"
+    # Explicitly enforce HTTPS for webhook destinations
+    if parsed.scheme != 'https':
+        return False, f"URL scheme must be https, got: {parsed.scheme}"
 
     hostname = parsed.hostname
     if not hostname:
