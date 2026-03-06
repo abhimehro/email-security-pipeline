@@ -8,7 +8,7 @@ Covers:
 """
 
 import unittest
-from unittest.mock import patch, MagicMock, call
+from unittest.mock import patch, MagicMock
 from io import StringIO
 
 from src.utils.ui import CountdownTimer
