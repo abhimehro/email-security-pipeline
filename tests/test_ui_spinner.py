@@ -155,3 +155,27 @@ class TestSpinner(unittest.TestCase):
         output = mock_stdout.getvalue()
         # Verify custom failure message is printed in non-TTY mode
         self.assertIn("✘ Custom Failed!", output)
+
+    @patch('sys.stdout')
+    def test_cursor_hide_show_in_tty(self, mock_stdout):
+        """Test cursor is hidden and restored when isatty is True"""
+        mock_stdout.isatty.return_value = True
+
+        with Spinner("Loading", delay=0):
+            pass
+
+        writes = "".join(call.args[0] for call in mock_stdout.write.mock_calls if call.args)
+        self.assertIn("\033[?25l", writes)  # CURSOR_HIDE
+        self.assertIn("\033[?25h", writes)  # CURSOR_SHOW
+
+    @patch('sys.stdout')
+    def test_cursor_hide_show_not_in_non_tty(self, mock_stdout):
+        """Test cursor escape sequences are not written when isatty is False"""
+        mock_stdout.isatty.return_value = False
+
+        with Spinner("Loading", delay=0):
+            pass
+
+        writes = "".join(call.args[0] for call in mock_stdout.write.mock_calls if call.args)
+        self.assertNotIn("\033[?25l", writes)
+        self.assertNotIn("\033[?25h", writes)
