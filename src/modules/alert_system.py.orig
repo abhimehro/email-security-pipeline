@@ -27,9 +27,6 @@ from ..utils.security_validators import is_safe_webhook_url
 # Regex pattern for stripping ANSI codes (compiled once for performance)
 ANSI_PATTERN = re.compile(r'\x1b\[[0-9;]*m')
 
-# Regex pattern for extracting URLs from error messages (compiled once for performance)
-URL_PATTERN = re.compile(r'https?://[^\s<>"]+|www\.[^\s<>"]+')
-
 
 @dataclass
 class ThreatReport:
@@ -718,7 +715,7 @@ class AlertSystem:
         try:
             # Find all URLs in the message
             # Simple regex for http/https URLs to catch full URLs including query params
-            urls = URL_PATTERN.findall(msg)
+            urls = re.findall(r'https?://[^\s<>"]+|www\.[^\s<>"]+', msg)
 
             for url in urls:
                 # Clean up trailing punctuation that might have been matched
