@@ -415,5 +415,140 @@ class TestSyncFallback(unittest.TestCase):
             mock_sync.assert_not_called()
 
 
+class TestOnEnqueueDone(unittest.TestCase):
+    """Unit tests for AlertSystem._on_enqueue_done Future callback.
+
+    The callback is synchronous and purely inspects the Future; no real asyncio
+    event loop or threads are needed.  All branches are exercised via MagicMock
+    futures with controlled side-effects on fut.exception().
+    """
+
+    def _make_system(self) -> AlertSystem:
+        return AlertSystem(_make_config())
+
+    def test_branch_a_cancelled_error_no_error_logged(self):
+        """Branch A — fut.exception() raises CancelledError: no error is logged.
+
+        SECURITY STORY: During shutdown the worker loop is cancelled; this should
+        never pollute the logs with spurious error messages that mask real alerts.
+        """
+        system = self._make_system()
+        system.logger = MagicMock()
+        # Make the DEBUG-level behaviour explicit: when DEBUG is enabled, we expect
+        # a debug log even though no error is recorded.
+        system.logger.isEnabledFor.return_value = True
+        fut = MagicMock()
+        fut.exception.side_effect = asyncio.CancelledError()
+
+        system._on_enqueue_done(fut)
+
+        system.logger.error.assert_not_called()
+        system.logger.debug.assert_called_once()
+
+    def test_branch_a_cancelled_error_debug_not_logged_when_debug_disabled(self):
+        """Branch A (DEBUG disabled) — fut.exception() raises CancelledError: no logs.
+
+        PATTERN RECOGNITION: This mirrors the previous test but with DEBUG turned
+        off, so we verify that _on_enqueue_done respects the logger's level.
+        """
+        system = self._make_system()
+        system.logger = MagicMock()
+        # When DEBUG is not enabled, we should see neither error nor debug logs.
+        system.logger.isEnabledFor.return_value = False
+        fut = MagicMock()
+        fut.exception.side_effect = asyncio.CancelledError()
+
+        system._on_enqueue_done(fut)
+
+        system.logger.error.assert_not_called()
+        system.logger.debug.assert_not_called()
+    def test_branch_b_unexpected_exception_logs_error(self):
+        """Branch B — fut.exception() itself raises unexpectedly: logs exactly one error.
+
+        MAINTENANCE WISDOM: If the Future framework ever changes behaviour, we want
+        a visible diagnostic rather than a silent failure.
+        """
+        system = self._make_system()
+        system.logger = MagicMock()
+        fut = MagicMock()
+        fut.exception.side_effect = RuntimeError("internal error")
+
+        system._on_enqueue_done(fut)
+
+        # First, ensure exactly one error log entry was emitted.
+        system.logger.error.assert_called_once()
+        # Then, verify the diagnostic content and that the original exception
+        # raised by fut.exception() is passed through to the logger. This pins
+        # the Branch B behaviour rather than just the fact that "something" was logged.
+        error_args, error_kwargs = system.logger.error.call_args
+        # Defensive: we expect the first positional arg to be the log message
+        self.assertIsInstance(error_args[0], str)
+        self.assertTrue(
+            error_args[0].startswith("Unexpected error while inspecting enqueue future"),
+            msg=f"Unexpected error log message: {error_args[0]!r}",
+        )
+        # The runtime error that fut.exception() raised should be surfaced to logging.
+        # Common pattern: logger.error(message, exc_info=err)
+        self.assertIn("exc_info", error_kwargs)
+        self.assertIs(error_kwargs["exc_info"], fut.exception.side_effect)
+
+    def test_branch_c_queue_full_logs_dropped_alert(self):
+        """Branch C — QueueFull: logs error with 'queue is full' and 'alert dropped'.
+
+        SECURITY STORY: This is the ONLY observability point when an alert is
+        silently dropped because the queue is saturated.  A regression here means
+        operators would never know alerts were lost.
+        """
+        system = self._make_system()
+        system.logger = MagicMock()
+        fut = MagicMock()
+        fut.exception.return_value = asyncio.QueueFull()
+
+        system._on_enqueue_done(fut)
+
+        system.logger.error.assert_called_once()
+        # The format string is the first positional arg; it must contain both
+        # sentinel phrases so the log is recognisable in production monitoring.
+        error_format = system.logger.error.call_args[0][0]
+        self.assertIn("queue is full", error_format.lower())
+        self.assertIn("alert dropped", error_format.lower())
+
+    def test_branch_d_generic_failure_logs_error(self):
+        """Branch D — generic enqueue exception: logs error with correct message and exception."""
+        system = self._make_system()
+        system.logger = MagicMock()
+        fut = MagicMock()
+        # Use a named exception instance so we can assert identity, not just equality.
+        enqueue_exc = ValueError("bad payload")
+        fut.exception.return_value = enqueue_exc
+
+        system._on_enqueue_done(fut)
+
+        # Ensure exactly one error log was emitted for this failure.
+        system.logger.error.assert_called_once()
+        error_args = system.logger.error.call_args[0]
+        # Expect a standard logging call: logger.error("Failed to enqueue alert: %s", exc)
+        self.assertGreaterEqual(
+            len(error_args),
+            2,
+            "logger.error should be called with a format string and the exception object",
+        )
+        self.assertEqual("Failed to enqueue alert: %s", error_args[0])
+        # The exception passed to logger.error must be the same object returned by fut.exception()
+        self.assertIs(enqueue_exc, error_args[1])
+
+    def test_happy_path_no_exception_nothing_logged(self):
+        """Happy path — fut.exception() returns None: nothing is logged at all."""
+        system = self._make_system()
+        system.logger = MagicMock()
+        fut = MagicMock()
+        fut.exception.return_value = None
+
+        system._on_enqueue_done(fut)
+
+        system.logger.error.assert_not_called()
+        system.logger.debug.assert_not_called()
+
+
 if __name__ == "__main__":
     unittest.main()
