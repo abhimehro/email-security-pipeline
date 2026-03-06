@@ -201,6 +201,7 @@
 
 **Merged pull requests:**
 
+- 🎨 Palette: Hide terminal cursor during CLI animations for smoother UX [\#514](https://github.com/abhimehro/email-security-pipeline/pull/514) ([abhimehro](https://github.com/abhimehro))
 - ⚡ Bolt: Pre-compile URL extraction regex in AlertSystem [\#506](https://github.com/abhimehro/email-security-pipeline/pull/506) ([abhimehro](https://github.com/abhimehro))
 - Daily Backlog Burner: Add unit tests for CountdownTimer \(closes \#504\) [\#505](https://github.com/abhimehro/email-security-pipeline/pull/505) ([github-actions[bot]](https://github.com/apps/github-actions))
 - Add unit tests for NLPThreatAnalyzer.\_scan\_text\_patterns\(\) [\#497](https://github.com/abhimehro/email-security-pipeline/pull/497) ([Copilot](https://github.com/apps/copilot-swe-agent))
