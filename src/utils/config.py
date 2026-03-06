@@ -57,6 +57,9 @@ class AnalysisConfig:
     deepfake_api_url: Optional[str]
     deepfake_model_path: Optional[str]
 
+    # Global NLP / ML toggle (applies across analysis layers, not just media)
+    enable_ml_model: bool = True
+
 
 @dataclass
 class AlertConfig:
@@ -166,6 +169,7 @@ class Config:
             nlp_model=os.getenv("NLP_MODEL", "distilbert-base-uncased"),
             nlp_threshold=float(os.getenv("NLP_THRESHOLD", "0.7")),
             nlp_batch_size=int(os.getenv("NLP_BATCH_SIZE", "8")),
+            enable_ml_model=self._get_bool("NLP_ENABLE_ML", True),
             check_social_engineering=self._get_bool("CHECK_SOCIAL_ENGINEERING", True),
             check_urgency_markers=self._get_bool("CHECK_URGENCY_MARKERS", True),
             check_authority_impersonation=self._get_bool("CHECK_AUTHORITY_IMPERSONATION", True),

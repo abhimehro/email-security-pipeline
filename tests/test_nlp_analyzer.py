@@ -1,6 +1,7 @@
 
 import unittest
 from datetime import datetime
+from unittest.mock import patch
 from src.modules.nlp_analyzer import NLPThreatAnalyzer
 from src.modules.email_ingestion import EmailData
 
@@ -13,6 +14,7 @@ class MockConfig:
         self.check_psychological_triggers = True
         self.nlp_threshold = 0.5
         self.nlp_model = 'distilbert-base-uncased'
+        self.enable_ml_model = True
 
 class TestNLPAnalyzer(unittest.TestCase):
     def setUp(self):
@@ -91,6 +93,23 @@ class TestNLPAnalyzer(unittest.TestCase):
         # "ceo" is not in "company.com" (substring check).
         # So mismatch is expected here with current logic.
         self.assertTrue(has_mismatch)
+
+
+    def test_ml_model_disabled_skips_initialize(self):
+        """When enable_ml_model=False, _initialize_model() must not be called."""
+        config = MockConfig()
+        config.enable_ml_model = False
+        with patch.object(NLPThreatAnalyzer, '_initialize_model') as mock_init:
+            NLPThreatAnalyzer(config)
+            mock_init.assert_not_called()
+
+    def test_ml_model_enabled_calls_initialize(self):
+        """When enable_ml_model=True (default), _initialize_model() must be called."""
+        config = MockConfig()
+        config.enable_ml_model = True
+        with patch.object(NLPThreatAnalyzer, '_initialize_model') as mock_init:
+            NLPThreatAnalyzer(config)
+            mock_init.assert_called_once()
 
 if __name__ == '__main__':
     unittest.main()
