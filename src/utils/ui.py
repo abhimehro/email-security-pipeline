@@ -32,6 +32,10 @@ class CountdownTimer:
             time.sleep(self.duration)
             return
 
+        # Hide cursor
+        sys.stdout.write("\033[?25l")
+        sys.stdout.flush()
+
         try:
             remaining = self.duration
             while remaining > 0 and not self._stop_event.is_set():
@@ -66,6 +70,10 @@ class CountdownTimer:
             sys.stdout.write("\n")
             sys.stdout.flush()
             raise
+        finally:
+            # Restore cursor
+            sys.stdout.write("\033[?25h")
+            sys.stdout.flush()
 
     def stop(self):
         """Stop the countdown"""
@@ -119,6 +127,10 @@ class Spinner:
 
     def __enter__(self):
         if sys.stdout.isatty():
+            # Hide cursor
+            sys.stdout.write("\033[?25l")
+            sys.stdout.flush()
+
             self.busy = True
             self.thread = threading.Thread(target=self._spin)
             self.thread.start()
@@ -131,6 +143,9 @@ class Spinner:
             self.busy = False
             if self.thread:
                 self.thread.join()
+
+            # Restore cursor
+            sys.stdout.write("\033[?25h")
             final_message = ""
 
             if exc_type is not None:

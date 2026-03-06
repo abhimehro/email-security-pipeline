@@ -94,3 +94,7 @@
 
 **Learning:** For CLI long-running operations (like polling loops or wait states), users often experience anxiety about whether they can gracefully exit the application without causing corruption or hanging processes. A simple keyboard shortcut hint dramatically reduces this anxiety.
 **Action:** Append keyboard shortcut hints like `(Press Ctrl+C to stop)` to the displayed messages during blocking/waiting operations (e.g., in `CountdownTimer.wait`) to improve the user experience.
+
+## 2025-03-06 - Terminal Cursor Flicker
+**Learning:** CLI animations like spinners and countdown timers often cause distracting cursor flicker because the terminal repeatedly redraws the cursor block over moving text elements.
+**Action:** Always wrap CLI animation loops in cursor hiding (`\033[?25l`) and showing (`\033[?25h`) ANSI escape sequences, ensuring a `finally` block restores the cursor even on keyboard interrupts.
