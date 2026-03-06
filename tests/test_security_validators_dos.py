@@ -9,9 +9,9 @@ from src.utils.security_validators import (
     validate_subject_length,
 )
 
-# The 5 MB overhead added by calculate_max_email_size is an implementation
-# constant defined inline in security_validators.py.  Mirror it here so all
-# tests stay consistent when the value changes in the implementation.
+# calculate_max_email_size is expected to add a fixed 5 MB overhead to any
+# positive attachment limit. Mirror that contract here so the tests clearly
+# document and verify this behavior.
 _OVERHEAD_BYTES = 5 * 1024 * 1024
 
 
