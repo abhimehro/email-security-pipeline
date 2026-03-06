@@ -146,6 +146,7 @@ class Spinner:
 
             # Restore cursor
             sys.stdout.write("\033[?25h")
+            sys.stdout.flush()
             final_message = ""
 
             if exc_type is not None:
