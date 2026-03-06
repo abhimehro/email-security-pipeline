@@ -37,6 +37,7 @@
 
 **Closed issues:**
 
+- \[Code Quality\] Add unit tests for CountdownTimer non-TTY path, stop\(\), and wait\(\) hint injection [\#504](https://github.com/abhimehro/email-security-pipeline/issues/504)
 - \[repo-status\] Daily Status Report — March 5, 2026 [\#494](https://github.com/abhimehro/email-security-pipeline/issues/494)
 - \[Code Quality\] Implement \_should\_use\_ml\_model\(\) to respect config \(currently hardcoded True\) [\#492](https://github.com/abhimehro/email-security-pipeline/issues/492)
 - \[Code Quality\] Add unit tests for NLPThreatAnalyzer.\_scan\_text\_patterns\(\) [\#491](https://github.com/abhimehro/email-security-pipeline/issues/491)
@@ -200,6 +201,8 @@
 
 **Merged pull requests:**
 
+- ⚡ Bolt: Pre-compile URL extraction regex in AlertSystem [\#506](https://github.com/abhimehro/email-security-pipeline/pull/506) ([abhimehro](https://github.com/abhimehro))
+- Daily Backlog Burner: Add unit tests for CountdownTimer \(closes \#504\) [\#505](https://github.com/abhimehro/email-security-pipeline/pull/505) ([github-actions[bot]](https://github.com/apps/github-actions))
 - Add unit tests for NLPThreatAnalyzer.\_scan\_text\_patterns\(\) [\#497](https://github.com/abhimehro/email-security-pipeline/pull/497) ([Copilot](https://github.com/apps/copilot-swe-agent))
 - Implement `_should_use_ml_model()` to respect `NLP_ENABLE_ML` config [\#496](https://github.com/abhimehro/email-security-pipeline/pull/496) ([Copilot](https://github.com/apps/copilot-swe-agent))
 - 🎨 Palette: Add positive reinforcement to clean alert reports [\#490](https://github.com/abhimehro/email-security-pipeline/pull/490) ([abhimehro](https://github.com/abhimehro))
