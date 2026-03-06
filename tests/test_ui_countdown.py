@@ -51,15 +51,25 @@ class TestCountdownTimerWait(unittest.TestCase):
     def test_wait_non_tty_no_hint(self, mock_stdout, mock_start):
         """wait() must NOT append the Ctrl+C hint when stdout is not a TTY."""
         mock_stdout.isatty = MagicMock(return_value=False)
-        CountdownTimer.wait(5, "Reconnecting")
+
+        # Capture the message used to construct CountdownTimer inside wait().
+        created_messages = []
+        original_init = CountdownTimer.__init__
+
+        def capturing_init(self_inner, duration, message="Waiting", interval=1.0):
+            # Record the message so we can assert that the Ctrl+C hint is absent
+            created_messages.append(message)
+            # Delegate to the real __init__ to preserve original behavior
+            original_init(self_inner, duration, message, interval)
+
+        with patch.object(CountdownTimer, "__init__", capturing_init):
+            CountdownTimer.wait(5, "Reconnecting")
+
         mock_start.assert_called_once()
-        # Retrieve the CountdownTimer instance that was created inside wait()
-        # by inspecting the mock call — the hint should NOT be in the message.
-        # We verify indirectly: mock_start is an instance method mock, so we
-        # check that 'Press Ctrl+C' was never embedded in the message arg used
-        # to construct the timer.  We do this by ensuring it is absent from any
-        # write to stdout (there should be none in non-TTY mode without start()).
-        self.assertNotIn("Press Ctrl+C", mock_stdout.getvalue())
+        # Ensure we actually captured a constructed timer
+        self.assertTrue(len(created_messages) > 0)
+        # In non-TTY mode, wait() must NOT inject the Ctrl+C hint into the message
+        self.assertNotIn("Press Ctrl+C to stop", created_messages[0])
 
     @patch("src.utils.ui.CountdownTimer.start")
     @patch("sys.stdout", new_callable=StringIO)
