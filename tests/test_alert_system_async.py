@@ -434,15 +434,34 @@ class TestOnEnqueueDone(unittest.TestCase):
         """
         system = self._make_system()
         system.logger = MagicMock()
+        # Make the DEBUG-level behaviour explicit: when DEBUG is enabled, we expect
+        # a debug log even though no error is recorded.
+        system.logger.isEnabledFor.return_value = True
         fut = MagicMock()
         fut.exception.side_effect = asyncio.CancelledError()
 
         system._on_enqueue_done(fut)
 
         system.logger.error.assert_not_called()
-        # Debug log IS emitted when DEBUG level is enabled (MagicMock isEnabledFor is truthy)
         system.logger.debug.assert_called_once()
 
+    def test_branch_a_cancelled_error_debug_not_logged_when_debug_disabled(self):
+        """Branch A (DEBUG disabled) — fut.exception() raises CancelledError: no logs.
+
+        PATTERN RECOGNITION: This mirrors the previous test but with DEBUG turned
+        off, so we verify that _on_enqueue_done respects the logger's level.
+        """
+        system = self._make_system()
+        system.logger = MagicMock()
+        # When DEBUG is not enabled, we should see neither error nor debug logs.
+        system.logger.isEnabledFor.return_value = False
+        fut = MagicMock()
+        fut.exception.side_effect = asyncio.CancelledError()
+
+        system._on_enqueue_done(fut)
+
+        system.logger.error.assert_not_called()
+        system.logger.debug.assert_not_called()
     def test_branch_b_unexpected_exception_logs_error(self):
         """Branch B — fut.exception() itself raises unexpectedly: logs exactly one error.
 
