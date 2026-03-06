@@ -66,6 +66,11 @@ class AlertSystem:
     # longer than ALERT_QUEUE_MAX_SIZE * mean-dispatch-time seconds.
     ALERT_QUEUE_MAX_SIZE = 1000
 
+    # Fallback recommendation text used by _generate_recommendations when no
+    # specific threat condition is matched.  Defined as a class constant so
+    # tests can reference it without hardcoding the string in two places.
+    DEFAULT_CLEAN_RECOMMENDATION = "Review email carefully before taking action"
+
     def __init__(self, config):
         """
         Initialize alert system
@@ -311,7 +316,11 @@ class AlertSystem:
         except Exception as unexpected:
             # Defensive: if checking the Future's exception itself fails, log that
             # rather than letting the callback raise and hide the root cause.
-            self.logger.error("Unexpected error while inspecting enqueue future: %s", unexpected)
+            self.logger.error(
+                "Unexpected error while inspecting enqueue future: %s",
+                unexpected,
+                exc_info=True,
+            )
             return
         if exc is not None:
             if isinstance(exc, asyncio.QueueFull):
@@ -1034,7 +1043,7 @@ class AlertSystem:
 
         # General recommendations
         if not recommendations:
-            recommendations.append("Review email carefully before taking action")
+            recommendations.append(AlertSystem.DEFAULT_CLEAN_RECOMMENDATION)
 
         return recommendations
 
