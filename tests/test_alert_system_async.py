@@ -456,7 +456,22 @@ class TestOnEnqueueDone(unittest.TestCase):
 
         system._on_enqueue_done(fut)
 
+        # First, ensure exactly one error log entry was emitted.
         system.logger.error.assert_called_once()
+        # Then, verify the diagnostic content and that the original exception
+        # raised by fut.exception() is passed through to the logger. This pins
+        # the Branch B behaviour rather than just the fact that "something" was logged.
+        error_args, error_kwargs = system.logger.error.call_args
+        # Defensive: we expect the first positional arg to be the log message
+        self.assertIsInstance(error_args[0], str)
+        self.assertTrue(
+            error_args[0].startswith("Unexpected error while inspecting enqueue future"),
+            msg=f"Unexpected error log message: {error_args[0]!r}",
+        )
+        # The runtime error that fut.exception() raised should be surfaced to logging.
+        # Common pattern: logger.error(message, exc_info=err)
+        self.assertIn("exc_info", error_kwargs)
+        self.assertIs(error_kwargs["exc_info"], fut.exception.side_effect)
 
     def test_branch_c_queue_full_logs_dropped_alert(self):
         """Branch C — QueueFull: logs error with 'queue is full' and 'alert dropped'.
