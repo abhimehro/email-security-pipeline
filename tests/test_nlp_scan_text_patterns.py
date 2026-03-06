@@ -15,7 +15,6 @@ silently break impersonation scoring.
 """
 
 import unittest
-from collections import defaultdict
 
 from src.modules.nlp_analyzer import NLPThreatAnalyzer
 
