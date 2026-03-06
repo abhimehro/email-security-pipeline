@@ -495,15 +495,28 @@ class TestOnEnqueueDone(unittest.TestCase):
         self.assertIn("alert dropped", error_format.lower())
 
     def test_branch_d_generic_failure_logs_error(self):
-        """Branch D — generic enqueue exception: logs exactly one error."""
+        """Branch D — generic enqueue exception: logs error with correct message and exception."""
         system = self._make_system()
         system.logger = MagicMock()
         fut = MagicMock()
-        fut.exception.return_value = ValueError("bad payload")
+        # Use a named exception instance so we can assert identity, not just equality.
+        enqueue_exc = ValueError("bad payload")
+        fut.exception.return_value = enqueue_exc
 
         system._on_enqueue_done(fut)
 
+        # Ensure exactly one error log was emitted for this failure.
         system.logger.error.assert_called_once()
+        error_args = system.logger.error.call_args[0]
+        # Expect a standard logging call: logger.error("Failed to enqueue alert: %s", exc)
+        self.assertGreaterEqual(
+            len(error_args),
+            2,
+            "logger.error should be called with a format string and the exception object",
+        )
+        self.assertEqual("Failed to enqueue alert: %s", error_args[0])
+        # The exception passed to logger.error must be the same object returned by fut.exception()
+        self.assertIs(enqueue_exc, error_args[1])
 
     def test_happy_path_no_exception_nothing_logged(self):
         """Happy path — fut.exception() returns None: nothing is logged at all."""
