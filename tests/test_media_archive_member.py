@@ -94,6 +94,7 @@ class TestInspectArchiveMemberNestedArchive(unittest.TestCase):
         finally:
             # Restore original configuration so other tests are unaffected.
             self.analyzer.SUSPICIOUS_EXTENSIONS = original_suspicious
+
     def test_nested_handler_called_exactly_once(self):
         handler = MagicMock(return_value=(0.0, []))
         self.analyzer._inspect_archive_member("outer.zip", "inner.zip", handler)
