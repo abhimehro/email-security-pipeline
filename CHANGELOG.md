@@ -214,6 +214,7 @@
 
 **Merged pull requests:**
 
+- ⚡ Bolt: Optimize sender domain check in SpamAnalyzer [\#530](https://github.com/abhimehro/email-security-pipeline/pull/530) ([abhimehro](https://github.com/abhimehro))
 - Daily Backlog Burner: Add unit tests for IMAPConnection.\_parse\_email\_payload\(\) \(closes \#528\) [\#529](https://github.com/abhimehro/email-security-pipeline/pull/529) ([github-actions[bot]](https://github.com/apps/github-actions))
 - chore: remove stale development artifact files from repo root [\#519](https://github.com/abhimehro/email-security-pipeline/pull/519) ([Copilot](https://github.com/apps/copilot-swe-agent))
 - Add unit tests for CountdownTimer \(start, stop, wait\) in test\_ui\_countdown.py [\#518](https://github.com/abhimehro/email-security-pipeline/pull/518) ([Copilot](https://github.com/apps/copilot-swe-agent))
