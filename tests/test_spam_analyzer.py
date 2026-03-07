@@ -136,3 +136,26 @@ def test_suspicious_urls(spam_analyzer, clean_email):
 
     assert len(result.suspicious_urls) > 0
     assert "http://bit.ly/suspicious" in result.suspicious_urls
+
+def test_sender_freemail_detection(spam_analyzer, clean_email):
+    """Test that corporate titles from freemail domains are flagged correctly."""
+    clean_email.sender = "CEO <ceo@gmail.com>"
+    result = spam_analyzer.analyze(clean_email)
+
+    assert "Corporate title with freemail provider" in result.indicators
+    # Score should increase by 1.5 for this specific rule
+    assert result.score >= 1.5
+
+def test_sender_freemail_detection_negative(spam_analyzer, clean_email):
+    """Test that corporate titles from non-freemail domains are NOT flagged."""
+    clean_email.sender = "CEO <ceo@notgmail.com>"
+    result = spam_analyzer.analyze(clean_email)
+
+    assert "Corporate title with freemail provider" not in result.indicators
+
+def test_sender_freemail_detection_false_positive(spam_analyzer, clean_email):
+    """Test that domains merely containing freemail provider strings as a substring are NOT flagged."""
+    clean_email.sender = "CEO <ceo@gmail.com.scam.net>"
+    result = spam_analyzer.analyze(clean_email)
+
+    assert "Corporate title with freemail provider" not in result.indicators

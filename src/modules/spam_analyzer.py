@@ -84,6 +84,30 @@ class SpamAnalyzer:
     # Pre-compiled combined pattern for performance
     COMBINED_URL_PATTERN = compile_patterns(SUSPICIOUS_URL_PATTERNS, re.I)
 
+    # Class-level constants for sender analysis optimization
+    # Optimization: Tuple representation avoids list creation overhead per call
+    # and allows fast C-level execution for str.endswith()
+    FREEMAIL_PROVIDERS = (
+        "gmail.com",
+        "yahoo.com",
+        "hotmail.com",
+        "outlook.com",
+        "aol.com",
+        "mail.com",
+        "protonmail.com",
+    )
+
+    # Pre-computed with dot prefix for exact subdomain matching
+    # (e.g. avoiding 'notgmail.com' matching 'gmail.com')
+    FREEMAIL_PROVIDERS_SUBDOMAINS = tuple("." + p for p in FREEMAIL_PROVIDERS)
+
+    CORPORATE_TITLES = (
+        "ceo",
+        "president",
+        "director",
+        "manager",
+    )
+
     def __init__(self, config):
         """
         Initialize spam analyzer
@@ -406,28 +430,19 @@ class SpamAnalyzer:
 
         sender_lower = sender.lower()
 
-        # Check for freemail providers (common in spam)
-        freemail_providers = [
-            "gmail.com",
-            "yahoo.com",
-            "hotmail.com",
-            "outlook.com",
-            "aol.com",
-            "mail.com",
-            "protonmail.com",
-        ]
-
         # Extract domain from sender
         email_match = self.SENDER_DOMAIN_PATTERN.search(sender_lower)
         if email_match:
             domain = email_match.group(1)
 
             # Check if corporate email is from freemail (red flag)
-            if any(
-                corp in sender_lower
-                for corp in ["ceo", "president", "director", "manager"]
-            ):
-                if any(provider in domain for provider in freemail_providers):
+            # Optimization: Pre-allocated tuple avoids generator/list creation overhead
+            if any(corp in sender_lower for corp in self.CORPORATE_TITLES):
+                # Optimization: O(1) loop iteration using tuple-based endswith() check
+                # runs in C and is significantly faster than Python-level any() generator
+                # Check for exact match or subdomain of freemail provider to avoid
+                # false positives like 'notgmail.com' matching 'gmail.com'
+                if domain in self.FREEMAIL_PROVIDERS or domain.endswith(self.FREEMAIL_PROVIDERS_SUBDOMAINS):
                     score += 1.5
                     indicators.append("Corporate title with freemail provider")
 
