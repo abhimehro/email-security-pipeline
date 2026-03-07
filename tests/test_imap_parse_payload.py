@@ -73,6 +73,10 @@ class TestParseEmailPayload(unittest.TestCase):
         email_id, raw = result
         self.assertEqual(email_id, "1234")
         self.assertEqual(raw, body)
+        # Success path: ensure no warnings or errors were logged, mirroring
+        # test_normal_tuple_returns_id_and_bytes so logging regressions are caught.
+        self.conn.logger.warning.assert_not_called()
+        self.conn.logger.error.assert_not_called()
 
     # ------------------------------------------------------------------
     # Path 3: body is not bytes → None + logger.warning called once
