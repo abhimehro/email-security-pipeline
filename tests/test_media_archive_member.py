@@ -72,18 +72,28 @@ class TestInspectArchiveMemberNestedArchive(unittest.TestCase):
         self.assertIn("nested warning", warnings)
 
     def test_nested_archive_early_exit_when_score_reaches_five(self):
-        """When nested score pushes total to ≥ 5.0 the suspicious check is skipped."""
-        # Handler returns 3.0; 2.0 + 3.0 = 5.0 → early return before suspicious check.
-        # Use a .zip.exe name so BOTH nested and suspicious would fire, but .zip.exe
-        # is in SUSPICIOUS_EXTENSIONS — if early return works the score stays at 5.0,
-        # not 8.0.
-        score, warnings = self.analyzer._inspect_archive_member(
-            "outer.zip", "inner.zip", lambda: (3.0, [])
-        )
-        self.assertGreaterEqual(score, 5.0)
-        # Suspicious branch would add another 3.0 → total 8.0; must NOT happen
-        self.assertEqual(score, 5.0)
+        """When nested score pushes total to ≥ 5.0 the suspicious check is skipped.
 
+        This test temporarily treats ``.zip`` as a suspicious extension so that the
+        same member name (``inner.zip``) qualifies as both a nested archive and a
+        suspicious file. If the early-return after the nested-archive recursion is
+        broken, the suspicious-extension branch would run and push the score above
+        5.0 and emit a "suspicious file" warning.
+        """
+        original_suspicious = self.analyzer.SUSPICIOUS_EXTENSIONS
+        try:
+            # Force overlap: ".zip" is both a nested archive and a suspicious extension.
+            self.analyzer.SUSPICIOUS_EXTENSIONS = (".zip",)
+            score, warnings = self.analyzer._inspect_archive_member(
+                "outer.zip", "inner.zip", lambda: (3.0, [])
+            )
+            # 2.0 (nested archive) + 3.0 (handler) = 5.0; suspicious branch must NOT run.
+            self.assertEqual(score, 5.0)
+            # If suspicious branch ran, we would expect a "suspicious file" style warning.
+            self.assertFalse(any("suspicious file" in w.lower() for w in warnings))
+        finally:
+            # Restore original configuration so other tests are unaffected.
+            self.analyzer.SUSPICIOUS_EXTENSIONS = original_suspicious
     def test_nested_handler_called_exactly_once(self):
         handler = MagicMock(return_value=(0.0, []))
         self.analyzer._inspect_archive_member("outer.zip", "inner.zip", handler)
