@@ -434,8 +434,8 @@ class SpamAnalyzer:
             # Check if corporate email is from freemail (red flag)
             # Optimization: Pre-allocated tuple avoids generator/list creation overhead
             if any(corp in sender_lower for corp in self.CORPORATE_TITLES):
-                # Optimization: O(1) loop iteration using tuple-based endswith() check
-                # runs in C and is significantly faster than Python-level any() generator
+                # Optimization: Using str.endswith() with a tuple is highly efficient
+                # as it delegates the loop to C, making it much faster than a Python-level any() generator.
                 if domain.endswith(self.FREEMAIL_PROVIDERS):
                     score += 1.5
                     indicators.append("Corporate title with freemail provider")
