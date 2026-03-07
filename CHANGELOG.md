@@ -37,11 +37,20 @@
 
 **Closed issues:**
 
+- \[Code Quality\] Add direct unit tests for IMAPConnection.\_parse\_email\_payload\(\) IMAP response parsing [\#528](https://github.com/abhimehro/email-security-pipeline/issues/528)
 - \[repo-status\] Daily Status Report — March 6, 2026 [\#516](https://github.com/abhimehro/email-security-pipeline/issues/516)
 - \[Code Quality\] Add direct unit tests for security\_validators DoS-prevention functions [\#513](https://github.com/abhimehro/email-security-pipeline/issues/513)
 - \[Code Quality\] Add unit tests for CountdownTimer \(start, stop, wait\) in test\_ui\_countdown.py [\#512](https://github.com/abhimehro/email-security-pipeline/issues/512)
+- \[Code Quality\] Add dedicated unit tests for TTLCache init validation, \_\_contains\_\_ expiry, and keys\(\) filtering [\#509](https://github.com/abhimehro/email-security-pipeline/issues/509)
+- \[Code Quality\] Add direct unit tests for SpamAnalyzer.\_analyze\_headers DKIM, SPF auth-results, and Return-Path mismatch [\#508](https://github.com/abhimehro/email-security-pipeline/issues/508)
+- \[Code Quality\] Add direct unit tests for SpamAnalyzer.\_analyze\_body image-only and hidden text detection [\#507](https://github.com/abhimehro/email-security-pipeline/issues/507)
 - \[Code Quality\] Add unit tests for CountdownTimer non-TTY path, stop\(\), and wait\(\) hint injection [\#504](https://github.com/abhimehro/email-security-pipeline/issues/504)
+- \[Code Quality\] Add direct unit tests for security boundary functions in security\_validators.py [\#503](https://github.com/abhimehro/email-security-pipeline/issues/503)
+- \[Code Quality\] Add unit tests for \_apply\_ssl\_overrides verify\_ssl=False code path [\#502](https://github.com/abhimehro/email-security-pipeline/issues/502)
 - \[Code Quality\] Remove development artifact files from repository root [\#501](https://github.com/abhimehro/email-security-pipeline/issues/501)
+- \[Code Quality\] Add unit tests for MediaAnalyzer.\_inspect\_archive\_member dangerous extension early-exit gate [\#500](https://github.com/abhimehro/email-security-pipeline/issues/500)
+- \[Code Quality\] Add unit tests for MediaAnalyzer signature validation score thresholds [\#499](https://github.com/abhimehro/email-security-pipeline/issues/499)
+- \[Code Quality\] Add unit tests for SpamAnalyzer.\_check\_urls URL deduplication and edge cases [\#495](https://github.com/abhimehro/email-security-pipeline/issues/495)
 - \[repo-status\] Daily Status Report — March 5, 2026 [\#494](https://github.com/abhimehro/email-security-pipeline/issues/494)
 - \[Code Quality\] Implement \_should\_use\_ml\_model\(\) to respect config \(currently hardcoded True\) [\#492](https://github.com/abhimehro/email-security-pipeline/issues/492)
 - \[Code Quality\] Add unit tests for NLPThreatAnalyzer.\_scan\_text\_patterns\(\) [\#491](https://github.com/abhimehro/email-security-pipeline/issues/491)
@@ -205,6 +214,7 @@
 
 **Merged pull requests:**
 
+- Daily Backlog Burner: Add unit tests for IMAPConnection.\_parse\_email\_payload\(\) \(closes \#528\) [\#529](https://github.com/abhimehro/email-security-pipeline/pull/529) ([github-actions[bot]](https://github.com/apps/github-actions))
 - chore: remove stale development artifact files from repo root [\#519](https://github.com/abhimehro/email-security-pipeline/pull/519) ([Copilot](https://github.com/apps/copilot-swe-agent))
 - Add unit tests for CountdownTimer \(start, stop, wait\) in test\_ui\_countdown.py [\#518](https://github.com/abhimehro/email-security-pipeline/pull/518) ([Copilot](https://github.com/apps/copilot-swe-agent))
 - Add direct unit tests for security\_validators DoS-prevention functions [\#517](https://github.com/abhimehro/email-security-pipeline/pull/517) ([Copilot](https://github.com/apps/copilot-swe-agent))
