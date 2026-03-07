@@ -37,6 +37,7 @@
 
 **Closed issues:**
 
+- \[Code Quality\] Add direct unit tests for EmailParser.\_append\_body\_part and \_add\_body\_content size-limiting logic [\#534](https://github.com/abhimehro/email-security-pipeline/issues/534)
 - \[Code Quality\] Add direct unit tests for IMAPConnection.\_parse\_email\_payload\(\) IMAP response parsing [\#528](https://github.com/abhimehro/email-security-pipeline/issues/528)
 - \[repo-status\] Daily Status Report — March 6, 2026 [\#516](https://github.com/abhimehro/email-security-pipeline/issues/516)
 - \[Code Quality\] Add direct unit tests for security\_validators DoS-prevention functions [\#513](https://github.com/abhimehro/email-security-pipeline/issues/513)
@@ -214,6 +215,7 @@
 
 **Merged pull requests:**
 
+- Add direct unit tests for EmailParser body size limiting methods [\#536](https://github.com/abhimehro/email-security-pipeline/pull/536) ([Copilot](https://github.com/apps/copilot-swe-agent))
 - ⚡ Bolt: Optimize sender domain check in SpamAnalyzer [\#530](https://github.com/abhimehro/email-security-pipeline/pull/530) ([abhimehro](https://github.com/abhimehro))
 - Daily Backlog Burner: Add unit tests for IMAPConnection.\_parse\_email\_payload\(\) \(closes \#528\) [\#529](https://github.com/abhimehro/email-security-pipeline/pull/529) ([github-actions[bot]](https://github.com/apps/github-actions))
 - chore: remove stale development artifact files from repo root [\#519](https://github.com/abhimehro/email-security-pipeline/pull/519) ([Copilot](https://github.com/apps/copilot-swe-agent))
