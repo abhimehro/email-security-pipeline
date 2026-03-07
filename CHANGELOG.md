@@ -37,11 +37,14 @@
 
 **Closed issues:**
 
+- \[repo-status\] Daily Status Report — March 7, 2026 [\#537](https://github.com/abhimehro/email-security-pipeline/issues/537)
 - \[Code Quality\] Add direct unit tests for EmailParser.\_append\_body\_part and \_add\_body\_content size-limiting logic [\#534](https://github.com/abhimehro/email-security-pipeline/issues/534)
+- \[Code Quality\] Add direct unit tests for MediaAnalyzer.\_inspect\_archive\_member scoring branches [\#533](https://github.com/abhimehro/email-security-pipeline/issues/533)
 - \[Code Quality\] Add direct unit tests for IMAPConnection.\_parse\_email\_payload\(\) IMAP response parsing [\#528](https://github.com/abhimehro/email-security-pipeline/issues/528)
 - \[repo-status\] Daily Status Report — March 6, 2026 [\#516](https://github.com/abhimehro/email-security-pipeline/issues/516)
 - \[Code Quality\] Add direct unit tests for security\_validators DoS-prevention functions [\#513](https://github.com/abhimehro/email-security-pipeline/issues/513)
 - \[Code Quality\] Add unit tests for CountdownTimer \(start, stop, wait\) in test\_ui\_countdown.py [\#512](https://github.com/abhimehro/email-security-pipeline/issues/512)
+- \[Code Quality\] Add unit tests for NLPThreatAnalyzer.\_detect\_urgency and \_detect\_psychological\_triggers [\#511](https://github.com/abhimehro/email-security-pipeline/issues/511)
 - \[Code Quality\] Add dedicated unit tests for TTLCache init validation, \_\_contains\_\_ expiry, and keys\(\) filtering [\#509](https://github.com/abhimehro/email-security-pipeline/issues/509)
 - \[Code Quality\] Add direct unit tests for SpamAnalyzer.\_analyze\_headers DKIM, SPF auth-results, and Return-Path mismatch [\#508](https://github.com/abhimehro/email-security-pipeline/issues/508)
 - \[Code Quality\] Add direct unit tests for SpamAnalyzer.\_analyze\_body image-only and hidden text detection [\#507](https://github.com/abhimehro/email-security-pipeline/issues/507)
@@ -215,6 +218,7 @@
 
 **Merged pull requests:**
 
+- Add direct unit tests for `_inspect_archive_member` scoring branches [\#538](https://github.com/abhimehro/email-security-pipeline/pull/538) ([Copilot](https://github.com/apps/copilot-swe-agent))
 - Add direct unit tests for EmailParser body size limiting methods [\#536](https://github.com/abhimehro/email-security-pipeline/pull/536) ([Copilot](https://github.com/apps/copilot-swe-agent))
 - ⚡ Bolt: Optimize sender domain check in SpamAnalyzer [\#530](https://github.com/abhimehro/email-security-pipeline/pull/530) ([abhimehro](https://github.com/abhimehro))
 - Daily Backlog Burner: Add unit tests for IMAPConnection.\_parse\_email\_payload\(\) \(closes \#528\) [\#529](https://github.com/abhimehro/email-security-pipeline/pull/529) ([github-actions[bot]](https://github.com/apps/github-actions))
