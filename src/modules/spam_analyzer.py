@@ -97,6 +97,10 @@ class SpamAnalyzer:
         "protonmail.com",
     )
 
+    # Pre-computed with dot prefix for exact subdomain matching
+    # (e.g. avoiding 'notgmail.com' matching 'gmail.com')
+    FREEMAIL_PROVIDERS_SUBDOMAINS = tuple("." + p for p in FREEMAIL_PROVIDERS)
+
     CORPORATE_TITLES = (
         "ceo",
         "president",
@@ -434,9 +438,11 @@ class SpamAnalyzer:
             # Check if corporate email is from freemail (red flag)
             # Optimization: Pre-allocated tuple avoids generator/list creation overhead
             if any(corp in sender_lower for corp in self.CORPORATE_TITLES):
-                # Optimization: Using str.endswith() with a tuple is highly efficient
-                # as it delegates the loop to C, making it much faster than a Python-level any() generator.
-                if domain.endswith(self.FREEMAIL_PROVIDERS):
+                # Optimization: O(1) loop iteration using tuple-based endswith() check
+                # runs in C and is significantly faster than Python-level any() generator
+                # Check for exact match or subdomain of freemail provider to avoid
+                # false positives like 'notgmail.com' matching 'gmail.com'
+                if domain in self.FREEMAIL_PROVIDERS or domain.endswith(self.FREEMAIL_PROVIDERS_SUBDOMAINS):
                     score += 1.5
                     indicators.append("Corporate title with freemail provider")
 
