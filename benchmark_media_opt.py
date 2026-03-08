@@ -72,8 +72,11 @@ def bench_after():
     for _ in range(1000):
         _validate_signature_match("test.docx", "zip")
 
-t_before = timeit.timeit(bench_before, number=100)
-t_after = timeit.timeit(bench_after, number=100)
-print(f"Before: {t_before:.4f}s")
-print(f"After:  {t_after:.4f}s")
-print(f"Speedup: {t_before / t_after:.2f}x")
+if __name__ == "__main__":
+    # Run benchmarks only when this module is executed as a script,
+    # not when it is imported. This avoids surprising side effects.
+    t_before = timeit.timeit(bench_before, number=100)
+    t_after = timeit.timeit(bench_after, number=100)
+    print(f"Before: {t_before:.4f}s")
+    print(f"After:  {t_after:.4f}s")
+    print(f"Speedup: {t_before / t_after:.2f}x")
