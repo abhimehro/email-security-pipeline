@@ -87,6 +87,29 @@ class MediaAuthenticityAnalyzer:
     MEDIA_RISK_LOW_THRESHOLD = 2.0
     MEDIA_RISK_HIGH_THRESHOLD = 5.0
 
+    # Expected extensions for content type mismatch checking
+    # Optimization: Moving this dictionary to the class level avoids re-creating
+    # it on every file check, and using tuples allows fast C-level str.endswith()
+    EXPECTED_EXTENSIONS = {
+        'pdf': ('.pdf',),
+        'zip': ('.zip', '.docx', '.xlsx', '.pptx', '.jar'),
+        'jpeg': ('.jpg', '.jpeg'),
+        'png': ('.png',),
+        'gif': ('.gif',),
+        'doc': ('.doc', '.xls', '.ppt', '.msi'),
+        'exe': ('.exe',),
+        'mp4': ('.mp4', '.mov', '.m4a', '.3gp'),
+        'avi': ('.avi',),
+        'wav': ('.wav',),
+        'mp3': ('.mp3',),
+        'mkv': ('.mkv', '.webm'),
+        'webp': ('.webp',),
+        'wmv': ('.wmv',),
+        'flv': ('.flv',),
+        'ogg': ('.ogg', '.oga', '.ogv', '.ogx'),
+        'flac': ('.flac',),
+    }
+
     def __init__(self, config):
         """
         Initialize media analyzer
@@ -357,31 +380,9 @@ class MediaAuthenticityAnalyzer:
             return 5.0, "Executable disguised as another file type"
 
         # Check for general mismatches
-        expected_extensions = {
-            'pdf': ['.pdf'],
-            'zip': ['.zip', '.docx', '.xlsx', '.pptx', '.jar'],
-            'jpeg': ['.jpg', '.jpeg'],
-            'png': ['.png'],
-            'gif': ['.gif'],
-            'doc': ['.doc', '.xls', '.ppt', '.msi'],
-            'exe': ['.exe'],
-            'mp4': ['.mp4', '.mov', '.m4a', '.3gp'],
-            'avi': ['.avi'],
-            'wav': ['.wav'],
-            'mp3': ['.mp3'],
-            'mkv': ['.mkv', '.webm'],
-            'webp': ['.webp'],
-            'wmv': ['.wmv'],
-            'flv': ['.flv'],
-            'ogg': ['.ogg', '.oga', '.ogv', '.ogx'],
-            'flac': ['.flac'],
-        }
-
-        if actual_type in expected_extensions:
-            # Optimization: Tuple conversion allows fast C-level str.endswith execution
-            expected_exts = tuple(expected_extensions[actual_type])
-            if not filename_lower.endswith(expected_exts):
-                return 2.0, f"File type mismatch: {filename} (detected {actual_type})"
+        expected_exts = self.EXPECTED_EXTENSIONS.get(actual_type)
+        if expected_exts and not filename_lower.endswith(expected_exts):
+            return 2.0, f"File type mismatch: {filename} (detected {actual_type})"
 
         return 0.0, ""
 
