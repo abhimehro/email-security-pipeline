@@ -73,7 +73,7 @@ class AlertSystem:
     # Fallback recommendation text used by _generate_recommendations when no
     # specific threat condition is matched.  Defined as a class constant so
     # tests can reference it without hardcoding the string in two places.
-    DEFAULT_CLEAN_RECOMMENDATION = "✅ No issues detected. Review email carefully before taking action"
+    DEFAULT_CLEAN_RECOMMENDATION = "Review email carefully before taking action"
 
     def __init__(self, config):
         """
