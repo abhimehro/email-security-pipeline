@@ -380,11 +380,9 @@ class MediaAuthenticityAnalyzer:
             return 5.0, "Executable disguised as another file type"
 
         # Check for general mismatches
-        if actual_type in self.EXPECTED_EXTENSIONS:
-            # Optimization: EXPECTED_EXTENSIONS already contains tuples for fast C-level execution
-            expected_exts = self.EXPECTED_EXTENSIONS[actual_type]
-            if not filename_lower.endswith(expected_exts):
-                return 2.0, f"File type mismatch: {filename} (detected {actual_type})"
+        expected_exts = self.EXPECTED_EXTENSIONS.get(actual_type)
+        if expected_exts and not filename_lower.endswith(expected_exts):
+            return 2.0, f"File type mismatch: {filename} (detected {actual_type})"
 
         return 0.0, ""
 
