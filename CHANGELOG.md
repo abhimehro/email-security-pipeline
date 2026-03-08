@@ -40,7 +40,17 @@
 - \[repo-status\] Daily Status Report — March 7, 2026 [\#537](https://github.com/abhimehro/email-security-pipeline/issues/537)
 - \[Code Quality\] Add direct unit tests for EmailParser.\_append\_body\_part and \_add\_body\_content size-limiting logic [\#534](https://github.com/abhimehro/email-security-pipeline/issues/534)
 - \[Code Quality\] Add direct unit tests for MediaAnalyzer.\_inspect\_archive\_member scoring branches [\#533](https://github.com/abhimehro/email-security-pipeline/issues/533)
+- \[Code Quality\] Add direct unit tests for MediaAnalyzer.\_check\_size\_anomaly\(\) size threshold scoring [\#532](https://github.com/abhimehro/email-security-pipeline/issues/532)
+- \[Code Quality\] Add direct unit tests for MediaAnalyzer.\_validate\_signature\_match\(\) and \_validate\_missing\_signature\(\) [\#531](https://github.com/abhimehro/email-security-pipeline/issues/531)
 - \[Code Quality\] Add direct unit tests for IMAPConnection.\_parse\_email\_payload\(\) IMAP response parsing [\#528](https://github.com/abhimehro/email-security-pipeline/issues/528)
+- \[Code Quality\] Add direct unit tests for EmailParser.\_append\_body\_part\(\) body-size DoS protection [\#527](https://github.com/abhimehro/email-security-pipeline/issues/527)
+- \[Code Quality\] Add direct unit tests for \_apply\_ssl\_overrides\(\) SSL bypass function [\#526](https://github.com/abhimehro/email-security-pipeline/issues/526)
+- \[Code Quality\] Add unit tests to verify create\_secure\_ssl\_context\(\) enforces TLS 1.2+, hostname checking, and cert verification [\#525](https://github.com/abhimehro/email-security-pipeline/issues/525)
+- \[Code Quality\] Add unit tests for SpamAnalyzer.\_analyze\_headers\(\) DKIM, SPF softfail, and Return-Path coverage gaps [\#524](https://github.com/abhimehro/email-security-pipeline/issues/524)
+- \[Code Quality\] Add direct unit tests for TTLCache constructor validation and API methods [\#523](https://github.com/abhimehro/email-security-pipeline/issues/523)
+- \[Code Quality\] Add unit tests for MediaAnalyzer.\_check\_file\_extension scoring contracts [\#522](https://github.com/abhimehro/email-security-pipeline/issues/522)
+- \[Code Quality\] Add direct unit tests for SpamAnalyzer.\_analyze\_body, \_analyze\_headers, and \_check\_sender [\#521](https://github.com/abhimehro/email-security-pipeline/issues/521)
+- \[Code Quality\] Add unit tests for NLPThreatAnalyzer.\_detect\_urgency and \_detect\_psychological\_triggers [\#520](https://github.com/abhimehro/email-security-pipeline/issues/520)
 - \[repo-status\] Daily Status Report — March 6, 2026 [\#516](https://github.com/abhimehro/email-security-pipeline/issues/516)
 - \[Code Quality\] Add direct unit tests for security\_validators DoS-prevention functions [\#513](https://github.com/abhimehro/email-security-pipeline/issues/513)
 - \[Code Quality\] Add unit tests for CountdownTimer \(start, stop, wait\) in test\_ui\_countdown.py [\#512](https://github.com/abhimehro/email-security-pipeline/issues/512)
@@ -218,6 +228,7 @@
 
 **Merged pull requests:**
 
+- ⚡ Bolt: Optimize `_validate_signature_match` in Media Analyzer [\#539](https://github.com/abhimehro/email-security-pipeline/pull/539) ([abhimehro](https://github.com/abhimehro))
 - Add direct unit tests for `_inspect_archive_member` scoring branches [\#538](https://github.com/abhimehro/email-security-pipeline/pull/538) ([Copilot](https://github.com/apps/copilot-swe-agent))
 - Add direct unit tests for EmailParser body size limiting methods [\#536](https://github.com/abhimehro/email-security-pipeline/pull/536) ([Copilot](https://github.com/apps/copilot-swe-agent))
 - ⚡ Bolt: Optimize sender domain check in SpamAnalyzer [\#530](https://github.com/abhimehro/email-security-pipeline/pull/530) ([abhimehro](https://github.com/abhimehro))
