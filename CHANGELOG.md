@@ -228,6 +228,7 @@
 
 **Merged pull requests:**
 
+- 🎨 Palette: Colorize spinner success/failure symbols [\#541](https://github.com/abhimehro/email-security-pipeline/pull/541) ([abhimehro](https://github.com/abhimehro))
 - 🎨 Palette: Add explicit "No issues detected" feedback to clean alerts [\#540](https://github.com/abhimehro/email-security-pipeline/pull/540) ([abhimehro](https://github.com/abhimehro))
 - ⚡ Bolt: Optimize `_validate_signature_match` in Media Analyzer [\#539](https://github.com/abhimehro/email-security-pipeline/pull/539) ([abhimehro](https://github.com/abhimehro))
 - Add direct unit tests for `_inspect_archive_member` scoring branches [\#538](https://github.com/abhimehro/email-security-pipeline/pull/538) ([Copilot](https://github.com/apps/copilot-swe-agent))
