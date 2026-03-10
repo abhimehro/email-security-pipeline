@@ -58,10 +58,10 @@ class AlertSystem:
     # Pre-allocated tuple for fast C-level execution of startswith()
     RECOMMENDATION_PREFIXES_TUPLE = tuple(RECOMMENDATION_PREFIXES)
 
-    # Compiled regex patterns for fast substring keyword checks in recommendations.
-    # Use compile_patterns for consistency and centralized safety checks across modules.
-    RED_KEYWORDS_PATTERN, = compile_patterns([r'HIGH RISK|DANGEROUS|PHISHING'])
-    YELLOW_KEYWORDS_PATTERN, = compile_patterns([r'SUSPICIOUS|VERIFY|URGENCY|IMPERSONATION'])
+    # Compiled regex patterns for fast substring keyword checks in recommendations
+    # Use re.compile directly since we are passing a single regex string, not a list
+    RED_KEYWORDS_PATTERN = re.compile(r'HIGH RISK|DANGEROUS|PHISHING')
+    YELLOW_KEYWORDS_PATTERN = re.compile(r'SUSPICIOUS|VERIFY|URGENCY|IMPERSONATION')
 
     # Maximum number of items shown per section in the console threat report.
     # Helps keep the output readable; lists may be truncated in the console view.
@@ -501,7 +501,6 @@ class AlertSystem:
                 for prefix in self.RECOMMENDATION_PREFIXES:
                     if rec.startswith(prefix):
                         rec = rec[len(prefix):]
-                        break
 
             # Optimization: compiled regex search is faster than any() generator loop for substring matching
             if self.RED_KEYWORDS_PATTERN.search(rec_upper):
