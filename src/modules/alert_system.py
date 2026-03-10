@@ -501,6 +501,7 @@ class AlertSystem:
                 for prefix in self.RECOMMENDATION_PREFIXES:
                     if rec.startswith(prefix):
                         rec = rec[len(prefix):]
+                        break
 
             # Optimization: compiled regex search is faster than any() generator loop for substring matching
             if self.RED_KEYWORDS_PATTERN.search(rec_upper):
