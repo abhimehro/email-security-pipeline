@@ -17,6 +17,7 @@ from datetime import datetime
 from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
 
 from ..utils.sanitization import sanitize_for_csv
+from ..utils.pattern_compiler import compile_patterns
 from .email_data import EmailData
 from .spam_analyzer import SpamAnalysisResult
 from .nlp_analyzer import NLPAnalysisResult
@@ -54,6 +55,14 @@ class AlertSystem:
 
     # Common prefixes for recommendations to strip during display to prevent duplication
     RECOMMENDATION_PREFIXES = ["⚠️ ", "🎣 ", "🔗 ", "⏰ ", "📎 ", "👤 "]
+
+    # Pre-allocated tuple for fast C-level execution of startswith()
+    RECOMMENDATION_PREFIXES_TUPLE = tuple(RECOMMENDATION_PREFIXES)
+
+    # Compiled regex patterns for fast substring keyword checks in recommendations
+    # Use re.compile directly since we are passing a single regex string, not a list
+    RED_KEYWORDS_PATTERN = re.compile(r'HIGH RISK|DANGEROUS|PHISHING')
+    YELLOW_KEYWORDS_PATTERN = re.compile(r'SUSPICIOUS|VERIFY|URGENCY|IMPERSONATION')
 
     # Maximum number of items shown per section in the console threat report.
     # Helps keep the output readable; lists may be truncated in the console view.
@@ -486,13 +495,18 @@ class AlertSystem:
             icon = "►"
 
             # Remove existing prefixes to prevent double icons
-            for prefix in self.RECOMMENDATION_PREFIXES:
-                if rec.startswith(prefix):
-                    rec = rec[len(prefix):]
+            # Optimization: tuple-based startswith executes entirely in C and avoids Python loop overhead
+            # We still need to find which prefix matched to slice it correctly, but the initial
+            # fast check filters out the vast majority of cases instantly.
+            if rec.startswith(self.RECOMMENDATION_PREFIXES_TUPLE):
+                for prefix in self.RECOMMENDATION_PREFIXES:
+                    if rec.startswith(prefix):
+                        rec = rec[len(prefix):]
 
-            if any(key in rec_upper for key in ["HIGH RISK", "DANGEROUS", "PHISHING"]):
+            # Optimization: compiled regex search is faster than any() generator loop for substring matching
+            if self.RED_KEYWORDS_PATTERN.search(rec_upper):
                 color = Colors.RED
-            elif any(key in rec_upper for key in ["SUSPICIOUS", "VERIFY", "URGENCY", "IMPERSONATION"]):
+            elif self.YELLOW_KEYWORDS_PATTERN.search(rec_upper):
                 color = Colors.YELLOW
 
             # Calculate available width for text
