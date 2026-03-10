@@ -6,6 +6,6 @@
 **Learning:** When checking if a string is a suffix of a known set of strings (e.g., validating a domain against freemail providers), using `text.endswith(tuple_of_suffixes)` is both more correct and more performant than `any(substring in text for ...)`. The `in` operator can cause false positives on partial matches (e.g., `gmail.com.scam.com`), whereas `endswith` correctly validates suffixes. This method also delegates the loop to C for a significant speedup.
 **Action:** When checking if a string ends with (or starts with) any of a set of known suffixes/prefixes, always use a pre-allocated class-level tuple with `str.endswith()` or `str.startswith()` instead of a Python-level `for` loop or `any()` generator expression.
 
-## 2025-03-10 - [Optimize Substring keyword matching]
+## 2026-03-10 - [Optimize Substring keyword matching]
 **Learning:** Checking for substrings using generator loops `any(key in text for key in KEYWORDS)` is significantly slower than using compiled regular expressions `PATTERN.search(text)`.
 **Action:** Replace `any()` generator loops with `re.search()` using compiled regular expression patterns when checking for a static set of keywords.
