@@ -59,6 +59,21 @@ def _make_media(file_type_warnings=None):
 class TestGenerateRecommendations(unittest.TestCase):
     """Direct unit tests for AlertSystem._generate_recommendations."""
 
+    def test_recommendation_keyword_patterns_match_expected_terms(self):
+        """Regression test: class-level recommendation regexes remain import-safe and usable."""
+        self.assertIsNotNone(
+            AlertSystem.RED_KEYWORDS_PATTERN.search("HIGH RISK sender"),
+        )
+        self.assertIsNotNone(
+            AlertSystem.RED_KEYWORDS_PATTERN.search("DANGEROUS attachment"),
+        )
+        self.assertIsNotNone(
+            AlertSystem.YELLOW_KEYWORDS_PATTERN.search("VERIFY sender identity"),
+        )
+        self.assertIsNotNone(
+            AlertSystem.YELLOW_KEYWORDS_PATTERN.search("URGENCY tactics detected"),
+        )
+
     # ------------------------------------------------------------------
     # Fallback
     # ------------------------------------------------------------------
