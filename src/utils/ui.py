@@ -152,13 +152,17 @@ class Spinner:
                 if exc_type is not None:
                     # Failure logic
                     msg = self.fail_msg if self.fail_msg else self.message
-                    final_message = f"{Colors.RED}✘{Colors.RESET} {msg}\n"
+                    # Use Colors.colorize to ensure we get proper fallback if colors are disabled
+                    cross = Colors.colorize("✘", Colors.RED)
+                    final_message = f"{cross} {msg}\n"
                 elif self.success_msg:
                     # Explicit success message always persists
-                    final_message = f"{Colors.GREEN}✔{Colors.RESET} {self.success_msg}\n"
+                    check = Colors.colorize("✔", Colors.GREEN)
+                    final_message = f"{check} {self.success_msg}\n"
                 elif self.persist:
                     # Default persistence
-                    final_message = f"{Colors.GREEN}✔{Colors.RESET} {self.message}\n"
+                    check = Colors.colorize("✔", Colors.GREEN)
+                    final_message = f"{check} {self.message}\n"
 
                 sys.stdout.write(f"\r\033[K{final_message}")
                 sys.stdout.flush()
@@ -167,7 +171,9 @@ class Spinner:
                 sys.stdout.write(CURSOR_SHOW)
                 sys.stdout.flush()
         else:
-            # Non-TTY: provide simple success/failure feedback without ANSI codes
+            # Non-TTY: provide simple success/failure feedback without ANSI codes.
+            # Colors.ENABLED is computed at import time, so use plain symbols here
+            # to avoid leaking escape sequences when stdout is redirected later.
             if exc_type is not None:
                 msg = self.fail_msg if self.fail_msg else self.message
                 sys.stdout.write(f"✘ {msg}\n")

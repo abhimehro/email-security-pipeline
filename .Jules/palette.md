@@ -98,3 +98,7 @@
 ## 2025-03-06 - Terminal Cursor Flicker
 **Learning:** CLI animations like spinners and countdown timers often cause distracting cursor flicker because the terminal repeatedly redraws the cursor block over moving text elements.
 **Action:** Always wrap CLI animation loops in cursor hiding (`\033[?25l`) and showing (`\033[?25h`) ANSI escape sequences, ensuring a `finally` block restores the cursor even on keyboard interrupts.
+
+## 2025-03-06 - Color String Fallbacks
+**Learning:** Directly concatenating ANSI escape codes with strings (e.g., `f"{Colors.RED}text{Colors.RESET}"`) bypasses non-TTY and NO_COLOR fallback configurations, leading to unreadable output in CI/CD or log files.
+**Action:** Always use a centralized helper like `Colors.colorize(text, color)` which internally handles fallback logic, ensuring plain text is produced when colors are disabled.
