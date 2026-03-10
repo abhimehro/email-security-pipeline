@@ -75,6 +75,7 @@ class TestSpinner(unittest.TestCase):
         output = mock_stdout.getvalue()
         # Verify checkmark success line is present even when not in a TTY
         self.assertIn("✔ Testing non TTY persist", output)
+        self.assertNotIn("\x1b[", output)
 
     @patch('sys.stdout', new_callable=StringIO)
     def test_spinner_success_no_persist_non_tty(self, mock_stdout):
@@ -103,6 +104,7 @@ class TestSpinner(unittest.TestCase):
         output = mock_stdout.getvalue()
         # Verify failure cross message is present in non-TTY mode
         self.assertIn("✘ Testing non TTY failure", output)
+        self.assertNotIn("\x1b[", output)
 
     @patch('sys.stdout', new_callable=StringIO)
     def test_spinner_custom_success(self, mock_stdout):
@@ -140,6 +142,7 @@ class TestSpinner(unittest.TestCase):
         output = mock_stdout.getvalue()
         # Verify custom success message overrides persist=False in non-TTY mode
         self.assertIn("✔ Custom Done!", output)
+        self.assertNotIn("\x1b[", output)
 
     @patch('sys.stdout', new_callable=StringIO)
     def test_spinner_custom_failure_non_tty(self, mock_stdout):
@@ -155,6 +158,7 @@ class TestSpinner(unittest.TestCase):
         output = mock_stdout.getvalue()
         # Verify custom failure message is printed in non-TTY mode
         self.assertIn("✘ Custom Failed!", output)
+        self.assertNotIn("\x1b[", output)
 
     @patch('sys.stdout')
     def test_cursor_hide_show_in_tty(self, mock_stdout):

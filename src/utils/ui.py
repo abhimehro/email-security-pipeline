@@ -171,16 +171,14 @@ class Spinner:
                 sys.stdout.write(CURSOR_SHOW)
                 sys.stdout.flush()
         else:
-            # Non-TTY: provide simple success/failure feedback
+            # Non-TTY: provide simple success/failure feedback without ANSI codes.
+            # Colors.ENABLED is computed at import time, so use plain symbols here
+            # to avoid leaking escape sequences when stdout is redirected later.
             if exc_type is not None:
                 msg = self.fail_msg if self.fail_msg else self.message
-                # Colorize logic handles whether it's enabled or not
-                cross = Colors.colorize("✘", Colors.RED)
-                sys.stdout.write(f"{cross} {msg}\n")
+                sys.stdout.write(f"✘ {msg}\n")
             elif self.success_msg:
-                check = Colors.colorize("✔", Colors.GREEN)
-                sys.stdout.write(f"{check} {self.success_msg}\n")
+                sys.stdout.write(f"✔ {self.success_msg}\n")
             elif self.persist:
-                check = Colors.colorize("✔", Colors.GREEN)
-                sys.stdout.write(f"{check} {self.message}\n")
+                sys.stdout.write(f"✔ {self.message}\n")
             sys.stdout.flush()
