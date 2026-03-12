@@ -108,6 +108,10 @@ class SpamAnalyzer:
         "manager",
     )
 
+    # Optimization: Pre-compiled regex replaces any() generator for O(N) C-level execution
+    # Preserving exact substring matching behavior without word boundaries
+    CORPORATE_TITLES_PATTERN = re.compile(r"(?:ceo|president|director|manager)", re.IGNORECASE)
+
     def __init__(self, config):
         """
         Initialize spam analyzer
@@ -436,8 +440,8 @@ class SpamAnalyzer:
             domain = email_match.group(1)
 
             # Check if corporate email is from freemail (red flag)
-            # Optimization: Pre-allocated tuple avoids generator/list creation overhead
-            if any(corp in sender_lower for corp in self.CORPORATE_TITLES):
+            # Optimization: Pre-compiled regex avoids Python-level generator overhead
+            if self.CORPORATE_TITLES_PATTERN.search(sender_lower):
                 # Optimization: O(1) loop iteration using tuple-based endswith() check
                 # runs in C and is significantly faster than Python-level any() generator
                 # Check for exact match or subdomain of freemail provider to avoid
