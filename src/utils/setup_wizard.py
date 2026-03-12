@@ -205,55 +205,61 @@ def run_setup_wizard(config_file: str = ".env", template_file: str = ".env.examp
     """
 
     if not Path(template_file).exists():
-        print(f"{Colors.RED}Error: Template file '{template_file}' not found.{Colors.RESET}")
+        print(Colors.colorize(f"Error: Template file '{template_file}' not found.", Colors.RED))
         return False
 
-    print(f"\n{Colors.BOLD}🧙 Welcome to the Email Security Pipeline Setup Wizard! 🧙{Colors.RESET}")
-    print(f"{Colors.GREY}Let's get your environment configured quickly.{Colors.RESET}")
+    print("\n" + Colors.colorize("🧙 Welcome to the Email Security Pipeline Setup Wizard! 🧙", Colors.BOLD))
+    print(Colors.colorize("Let's get your environment configured quickly.", Colors.GREY))
+    print(Colors.colorize("(Press Ctrl+C at any time to cancel setup)", Colors.GREY))
 
-    # 1. Select Provider
-    choice = _select_provider()
-    if choice == '4':
-        return False
-
-    provider_map = {
-        '1': ('GMAIL', 'Gmail'),
-        '2': ('PROTON', 'Proton Mail'),
-        '3': ('OUTLOOK', 'Outlook')
-    }
-    selected_key, selected_name = provider_map[choice]
-
-    # 2. Get Credentials
-    email, app_secret = _get_credentials(choice, selected_name)
-    if not email or not app_secret:
-        return False
-
-    # 3. Read Template
     try:
-        with open(template_file, 'r') as f:
-            template_content = f.read()
-    except Exception as e:
-        print(f"{Colors.RED}Error reading template: {e}{Colors.RESET}")
+        # 1. Select Provider
+        choice = _select_provider()
+        if choice == '4':
+            return False
+
+        provider_map = {
+            '1': ('GMAIL', 'Gmail'),
+            '2': ('PROTON', 'Proton Mail'),
+            '3': ('OUTLOOK', 'Outlook')
+        }
+        selected_key, selected_name = provider_map[choice]
+
+        # 2. Get Credentials
+        email, app_secret = _get_credentials(choice, selected_name)
+        if not email or not app_secret:
+            return False
+
+        # 3. Read Template
+        try:
+            with open(template_file, 'r') as f:
+                template_content = f.read()
+        except Exception as e:
+            print(Colors.colorize(f"Error reading template: {e}", Colors.RED))
+            return False
+
+        # 4. Generate Config
+        new_content = _generate_config_content(template_content, selected_key, email, app_secret)
+
+        # 5. Write Config
+        try:
+            # Create file with restrictive permissions (600)
+            # Using os.open to set mode atomically if possible, or chmod after
+            fd = os.open(config_file, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+            with os.fdopen(fd, 'w') as f:
+                f.write(new_content)
+
+            print("\n" + Colors.colorize(f"✔ Configuration saved to {config_file}", Colors.GREEN))
+        except Exception as e:
+            print(Colors.colorize(f"Error writing config: {e}", Colors.RED))
+            return False
+
+        print("\n" + Colors.colorize("Next Steps:", Colors.BOLD))
+        print("1. Review .env to ensure settings are correct.")
+        print("2. Run the pipeline!")
+
+        return True
+
+    except KeyboardInterrupt:
+        print("\n\n" + Colors.colorize("Setup cancelled by user. No changes were made.", Colors.YELLOW))
         return False
-
-    # 4. Generate Config
-    new_content = _generate_config_content(template_content, selected_key, email, app_secret)
-
-    # 5. Write Config
-    try:
-        # Create file with restrictive permissions (600)
-        # Using os.open to set mode atomically if possible, or chmod after
-        fd = os.open(config_file, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
-        with os.fdopen(fd, 'w') as f:
-            f.write(new_content)
-
-        print(f"\n{Colors.GREEN}✔ Configuration saved to {config_file}{Colors.RESET}")
-    except Exception as e:
-        print(f"{Colors.RED}Error writing config: {e}{Colors.RESET}")
-        return False
-
-    print(f"\n{Colors.BOLD}Next Steps:{Colors.RESET}")
-    print("1. Review .env to ensure settings are correct.")
-    print("2. Run the pipeline!")
-
-    return True
