@@ -228,6 +228,9 @@
 
 **Merged pull requests:**
 
+- Palette 🎨: Add graceful KeyboardInterrupt handling to setup wizard [\#544](https://github.com/abhimehro/email-security-pipeline/pull/544) ([abhimehro](https://github.com/abhimehro))
+- Add regression coverage for alert recommendation regex initialization [\#543](https://github.com/abhimehro/email-security-pipeline/pull/543) ([Copilot](https://github.com/apps/copilot-swe-agent))
+- ⚡ Bolt: Optimize string recommendation checks [\#542](https://github.com/abhimehro/email-security-pipeline/pull/542) ([abhimehro](https://github.com/abhimehro))
 - 🎨 Palette: Colorize spinner success/failure symbols [\#541](https://github.com/abhimehro/email-security-pipeline/pull/541) ([abhimehro](https://github.com/abhimehro))
 - 🎨 Palette: Add explicit "No issues detected" feedback to clean alerts [\#540](https://github.com/abhimehro/email-security-pipeline/pull/540) ([abhimehro](https://github.com/abhimehro))
 - ⚡ Bolt: Optimize `_validate_signature_match` in Media Analyzer [\#539](https://github.com/abhimehro/email-security-pipeline/pull/539) ([abhimehro](https://github.com/abhimehro))
