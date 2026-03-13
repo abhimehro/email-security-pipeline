@@ -108,8 +108,8 @@ class SpamAnalyzer:
         "manager",
     )
 
-    # Optimization: Pre-compiled regex replaces any() generator for O(N) C-level execution
-    # Preserving exact substring matching behavior without word boundaries
+    # Optimization: Pre-compiled regex reduces Python-level iteration compared to an any()-based loop
+    # while preserving the original substring-matching behavior (no word boundaries)
     CORPORATE_TITLES_PATTERN = compile_patterns(CORPORATE_TITLES, re.IGNORECASE)
 
     def __init__(self, config):
