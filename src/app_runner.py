@@ -117,7 +117,7 @@ class AppRunner:
                 for error in errors:
                     print(f"  • {Colors.colorize(error, Colors.YELLOW)}")
 
-                print("\nPlease edit " + Colors.colorize(self.config_file, Colors.BOLD) + " with your actual credentials.")
+                print(f"\nPlease edit {Colors.colorize(self.config_file, Colors.BOLD)} with your actual credentials.")
                 sys.exit(1)
 
         except Exception as e:
