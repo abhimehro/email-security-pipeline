@@ -34,7 +34,7 @@ class JSONFormatter(logging.Formatter):
 
     # Pre-compiled regex pattern for faster substring matching (avoids generator loop)
     # Uses re.IGNORECASE to match case-insensitively.
-    _SENSITIVE_PATTERN = re.compile('|'.join(map(re.escape, SENSITIVE_FIELDS)), re.IGNORECASE)
+    _SENSITIVE_PATTERN = re.compile('|'.join(map(re.escape, SENSITIVE_FIELDS)) or '(?!)', re.IGNORECASE)
 
     def format(self, record: logging.LogRecord) -> str:
         """
