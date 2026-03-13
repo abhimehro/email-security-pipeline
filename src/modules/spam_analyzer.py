@@ -110,7 +110,7 @@ class SpamAnalyzer:
 
     # Optimization: Pre-compiled regex replaces any() generator for O(N) C-level execution
     # Preserving exact substring matching behavior without word boundaries
-    CORPORATE_TITLES_PATTERN = re.compile(r"(?:ceo|president|director|manager)", re.IGNORECASE)
+    CORPORATE_TITLES_PATTERN = compile_patterns(CORPORATE_TITLES, re.IGNORECASE)
 
     def __init__(self, config):
         """
