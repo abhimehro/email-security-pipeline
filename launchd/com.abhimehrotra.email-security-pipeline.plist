@@ -15,12 +15,12 @@
 
     <key>ProgramArguments</key>
     <array>
-        <string>/Users/speedybee/Documents/dev/email-security-pipeline/venv/bin/python3</string>
-        <string>/Users/speedybee/Documents/dev/email-security-pipeline/src/main.py</string>
+        <string>/Users/speedybee/dev/email-security-pipeline/venv/bin/python3</string>
+        <string>/Users/speedybee/dev/email-security-pipeline/src/main.py</string>
     </array>
 
     <key>WorkingDirectory</key>
-    <string>/Users/speedybee/Documents/dev/email-security-pipeline</string>
+    <string>/Users/speedybee/dev/email-security-pipeline</string>
 
     <key>StandardOutPath</key>
     <string>/Users/speedybee/Library/Logs/email-security-pipeline/pipeline.out</string>
