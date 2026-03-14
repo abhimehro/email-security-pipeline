@@ -44,3 +44,31 @@ class TestPaletteUI(TestCase):
             writes = "".join(call.args[0] for call in mock_stdout.write.mock_calls if call.args)
             self.assertNotIn("\033[?25l", writes)
             self.assertNotIn("\033[?25h", writes)
+
+    def test_spinner_keyboard_interrupt_tty(self):
+        """Test graceful cancellation message on KeyboardInterrupt in TTY mode"""
+        from src.utils.ui import Spinner
+        with patch('sys.stdout') as mock_stdout:
+            mock_stdout.isatty.return_value = True
+
+            spinner = Spinner(message="Test Cancel")
+            spinner.__enter__()
+            spinner.__exit__(KeyboardInterrupt, None, None)
+
+            writes = "".join(call.args[0] for call in mock_stdout.write.mock_calls if call.args)
+            self.assertIn("Test Cancel (Cancelled)", writes)
+            self.assertIn("⚠", writes)
+
+    def test_spinner_keyboard_interrupt_non_tty(self):
+        """Test graceful cancellation message on KeyboardInterrupt in non-TTY mode"""
+        from src.utils.ui import Spinner
+        with patch('sys.stdout') as mock_stdout:
+            mock_stdout.isatty.return_value = False
+
+            spinner = Spinner(message="Test Cancel")
+            spinner.__enter__()
+            spinner.__exit__(KeyboardInterrupt, None, None)
+
+            writes = "".join(call.args[0] for call in mock_stdout.write.mock_calls if call.args)
+            self.assertIn("Test Cancel (Cancelled)", writes)
+            self.assertIn("⚠", writes)
