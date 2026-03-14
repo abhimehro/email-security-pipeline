@@ -469,11 +469,19 @@ class IMAPConnection:
         server_lower = self.config.imap_server.lower()
 
         # Check for authentication failures
-        auth_keywords = [
-            "authentication failed", "login failed", "invalid credentials",
-            "logon failure", "authenticate"
-        ]
-        if not any(k in msg_lower for k in auth_keywords):
+        # Optimization: compiled regex search is faster than any() generator loop for substring matching
+        # Lazy load regex class level property to avoid circular imports / module-level init issues
+        if not hasattr(self.__class__, '_AUTH_KEYWORD_PATTERN'):
+            import re
+            auth_keywords = [
+                "authentication failed", "login failed", "invalid credentials",
+                "logon failure", "authenticate"
+            ]
+            self.__class__._AUTH_KEYWORD_PATTERN = re.compile(
+                '|'.join(re.escape(k) for k in auth_keywords), re.IGNORECASE
+            )
+
+        if not self.__class__._AUTH_KEYWORD_PATTERN.search(msg_lower):
             return None
 
         if "outlook" in server_lower or "office365" in server_lower:

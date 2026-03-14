@@ -5,6 +5,7 @@ Provides JSON-formatted logging for better integration with log aggregation tool
 
 import json
 import logging
+import re
 from typing import Any
 
 
@@ -30,6 +31,9 @@ class JSONFormatter(logging.Formatter):
         'password', 'token', 'api_key', 'secret', 'credential',
         'app_password', 'webhook_url', 'slack_webhook'
     }
+
+    # Optimization: Pre-compile regex for faster substring matching
+    SENSITIVE_PATTERN = re.compile('|'.join(re.escape(s) for s in SENSITIVE_FIELDS), flags=re.IGNORECASE)
 
     def format(self, record: logging.LogRecord) -> str:
         """
@@ -88,7 +92,7 @@ class JSONFormatter(logging.Formatter):
             Original value or "[REDACTED]" for sensitive fields
         """
         # Check if key contains any sensitive field name
-        key_lower = key.lower()
-        if any(sensitive in key_lower for sensitive in self.SENSITIVE_FIELDS):
+        # Optimization: compiled regex search is faster than any() generator loop for substring matching
+        if self.SENSITIVE_PATTERN.search(key):
             return "[REDACTED]"
         return value

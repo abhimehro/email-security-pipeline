@@ -9,3 +9,6 @@
 ## 2025-03-10 - [Optimize Substring keyword matching]
 **Learning:** Checking for substrings using generator loops `any(key in text for key in KEYWORDS)` is significantly slower than using compiled regular expressions `PATTERN.search(text)`.
 **Action:** Replace `any()` generator loops with `re.search()` using compiled regular expression patterns when checking for a static set of keywords.
+## 2025-03-14 - [Imports in class declarations]
+**Learning:** Re.compile needs `re` imported correctly in Python. Attempting to dynamically import `re` within the class declaration itself but outside a function body raises a `NameError` inside list comprehensions inside `re.compile()`.
+**Action:** Import modules at the top of the file to ensure they're available inside class-level property assignments.
