@@ -90,6 +90,9 @@ class AppRunner:
                 else:
                     print("Please create a .env file based on .env.example")
                     sys.exit(1)
+        except KeyboardInterrupt:
+            print("\n\n" + Colors.colorize("Setup cancelled by user. No changes were made.", Colors.YELLOW))
+            sys.exit(0)
         except EOFError:
             self._handle_missing_config_non_interactive()
 
