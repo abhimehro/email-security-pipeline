@@ -18,6 +18,7 @@ import ssl
 import time
 from typing import List, Tuple, Optional, Dict, Any
 from datetime import datetime
+import re
 
 from ..utils.config import EmailAccountConfig
 from ..utils.sanitization import sanitize_for_logging, redact_email
@@ -25,6 +26,7 @@ from ..utils.security_validators import (
     create_secure_ssl_context,
     calculate_max_email_size
 )
+from ..utils.pattern_compiler import compile_patterns
 
 
 logger = logging.getLogger(__name__)
@@ -469,11 +471,20 @@ class IMAPConnection:
         server_lower = self.config.imap_server.lower()
 
         # Check for authentication failures
-        auth_keywords = [
-            "authentication failed", "login failed", "invalid credentials",
-            "logon failure", "authenticate"
-        ]
-        if not any(k in msg_lower for k in auth_keywords):
+        # Optimization: compiled regex search is faster than any() generator loop for substring matching
+        # Lazy-load class-level regex pattern to avoid recompilation on every call
+        if not hasattr(self.__class__, '_AUTH_KEYWORD_PATTERN'):
+            auth_keywords = [
+                "authentication failed", "login failed", "invalid credentials",
+                "logon failure", "authenticate"
+            ]
+            # Use shared pattern compiler for consistent escaping/grouping and safety checks
+            self.__class__._AUTH_KEYWORD_PATTERN = compile_patterns(
+                auth_keywords,
+                flags=re.IGNORECASE,
+            )
+
+        if not self.__class__._AUTH_KEYWORD_PATTERN.search(error_msg):
             return None
 
         if "outlook" in server_lower or "office365" in server_lower:
