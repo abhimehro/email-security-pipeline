@@ -230,8 +230,10 @@
 
 **Merged pull requests:**
 
+- 🎨 Palette: Graceful KeyboardInterrupt handling during config setup [\#551](https://github.com/abhimehro/email-security-pipeline/pull/551) ([abhimehro](https://github.com/abhimehro))
 - 🎨 Palette: Graceful spinner cancellation on KeyboardInterrupt [\#549](https://github.com/abhimehro/email-security-pipeline/pull/549) ([abhimehro](https://github.com/abhimehro))
 - ⚡ Bolt: Optimize SENSITIVE\_FIELDS check in JSONFormatter [\#548](https://github.com/abhimehro/email-security-pipeline/pull/548) ([abhimehro](https://github.com/abhimehro))
+- 🎨 Palette: Add visual feedback for graceful shutdown [\#547](https://github.com/abhimehro/email-security-pipeline/pull/547) ([abhimehro](https://github.com/abhimehro))
 - ⚡ Bolt: Optimize sender checking in SpamAnalyzer [\#546](https://github.com/abhimehro/email-security-pipeline/pull/546) ([abhimehro](https://github.com/abhimehro))
 - Palette 🎨: Add graceful KeyboardInterrupt handling to setup wizard [\#544](https://github.com/abhimehro/email-security-pipeline/pull/544) ([abhimehro](https://github.com/abhimehro))
 - Add regression coverage for alert recommendation regex initialization [\#543](https://github.com/abhimehro/email-security-pipeline/pull/543) ([Copilot](https://github.com/apps/copilot-swe-agent))
