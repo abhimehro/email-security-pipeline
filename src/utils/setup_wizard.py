@@ -29,6 +29,11 @@ except ImportError:
     IMAPConnection = None
     Spinner = None
 
+# Centralized Outlook troubleshooting tip to avoid duplication/drift
+OUTLOOK_APP_PASSWORD_TIP = (
+    f"{Colors.YELLOW}Tip: Personal Outlook accounts NO LONGER support App Passwords.{Colors.RESET}"
+)
+
 def _is_valid_email(email: str) -> bool:
     """Check if the email format is valid."""
     # Disallow consecutive dots
@@ -99,13 +104,13 @@ def _test_connection(email: str, app_password: str, provider_choice: str) -> boo
         else:
             print(f"{Colors.RED}✘ Connection failed.{Colors.RESET}")
             if provider_choice == '3':
-                print(f"{Colors.YELLOW}Tip: Personal Outlook accounts NO LONGER support App Passwords.{Colors.RESET}")
+                print(OUTLOOK_APP_PASSWORD_TIP)
             return False
 
     except Exception as e:
         print(f"{Colors.RED}✘ Error during connection test: {e}{Colors.RESET}")
         if provider_choice == '3':
-            print(f"{Colors.YELLOW}Tip: Personal Outlook accounts NO LONGER support App Passwords.{Colors.RESET}")
+            print(OUTLOOK_APP_PASSWORD_TIP)
         return False
 
 def _select_provider() -> str:
