@@ -63,15 +63,15 @@ class AppRunner:
         """Handle missing configuration interactively (wizard or copy)."""
         print(f"Configuration file '{self.config_file}' not found.")
         try:
-            print(f"\n{Colors.CYAN}Would you like to run the interactive setup wizard?{Colors.RESET}")
-            print(f"{Colors.GREY}(This will help you configure your email provider){Colors.RESET}")
+            print("\n" + Colors.colorize("Would you like to run the interactive setup wizard?", Colors.CYAN))
+            print(Colors.colorize("(This will help you configure your email provider)", Colors.GREY))
 
             response = input("Run setup wizard? [Y/n] ").strip().lower()
             if response in ('', 'y', 'yes'):
                 if run_setup_wizard(self.config_file):
                     sys.exit(0)
                 else:
-                    print(f"{Colors.YELLOW}Setup skipped.{Colors.RESET}")
+                    print(Colors.colorize("Setup skipped.", Colors.YELLOW))
 
             # Fallback to copy only if wizard wasn't run or failed
             if not Path(self.config_file).exists():
@@ -90,6 +90,9 @@ class AppRunner:
                 else:
                     print("Please create a .env file based on .env.example")
                     sys.exit(1)
+        except KeyboardInterrupt:
+            print("\n\n" + Colors.colorize("Setup cancelled by user. No changes were made.", Colors.YELLOW))
+            sys.exit(0)
         except EOFError:
             self._handle_missing_config_non_interactive()
 
@@ -111,21 +114,21 @@ class AppRunner:
 
             errors = check_default_credentials(config_validator)
             if errors:
-                print(f"\n{Colors.RED}❌ Configuration Error: Default credentials detected{Colors.RESET}")
-                print(f"{Colors.GREY}The following issues must be resolved in your .env file before starting:{Colors.RESET}\n")
+                print("\n" + Colors.colorize("❌ Configuration Error: Default credentials detected", Colors.RED))
+                print(Colors.colorize("The following issues must be resolved in your .env file before starting:", Colors.GREY) + "\n")
 
                 for error in errors:
-                    print(f"  • {Colors.YELLOW}{error}{Colors.RESET}")
+                    print(f"  • {Colors.colorize(error, Colors.YELLOW)}")
 
-                print(f"\nPlease edit {Colors.BOLD}{self.config_file}{Colors.RESET} with your actual credentials.")
+                print(f"\nPlease edit {Colors.colorize(self.config_file, Colors.BOLD)} with your actual credentials.")
                 sys.exit(1)
 
         except Exception as e:
-            print(f"{Colors.YELLOW}Warning: Could not validate configuration: {e}{Colors.RESET}")
+            print(Colors.colorize(f"Warning: Could not validate configuration: {e}", Colors.YELLOW))
 
     def start_pipeline(self) -> None:
         """Instantiate and start the main pipeline."""
         from src.main import EmailSecurityPipeline
-        print(f"{Colors.GREEN}🚀 Starting pipeline...{Colors.RESET}")
+        print(Colors.colorize("🚀 Starting pipeline...", Colors.GREEN))
         pipeline = EmailSecurityPipeline(self.config_file)
         pipeline.start()

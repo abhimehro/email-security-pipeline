@@ -32,8 +32,9 @@ class JSONFormatter(logging.Formatter):
         'app_password', 'webhook_url', 'slack_webhook'
     }
 
-    # Optimization: Pre-compile regex for faster substring matching
-    SENSITIVE_PATTERN = re.compile('|'.join(re.escape(s) for s in SENSITIVE_FIELDS), flags=re.IGNORECASE)
+    # Pre-compiled regex pattern for faster substring matching (avoids generator loop)
+    # Uses re.IGNORECASE to match case-insensitively.
+    _SENSITIVE_PATTERN = re.compile('|'.join(map(re.escape, SENSITIVE_FIELDS)) or '(?!)', re.IGNORECASE)
 
     def format(self, record: logging.LogRecord) -> str:
         """
@@ -93,6 +94,6 @@ class JSONFormatter(logging.Formatter):
         """
         # Check if key contains any sensitive field name
         # Optimization: compiled regex search is faster than any() generator loop for substring matching
-        if self.SENSITIVE_PATTERN.search(key):
+        if self._SENSITIVE_PATTERN.search(key):
             return "[REDACTED]"
         return value

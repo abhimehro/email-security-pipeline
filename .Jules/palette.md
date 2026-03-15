@@ -102,3 +102,7 @@
 ## 2025-03-06 - Color String Fallbacks
 **Learning:** Directly concatenating ANSI escape codes with strings (e.g., `f"{Colors.RED}text{Colors.RESET}"`) bypasses non-TTY and NO_COLOR fallback configurations, leading to unreadable output in CI/CD or log files.
 **Action:** Always use a centralized helper like `Colors.colorize(text, color)` which internally handles fallback logic, ensuring plain text is produced when colors are disabled.
+
+## 2025-03-06 - Visual Feedback for Graceful Shutdown
+**Learning:** Graceful shutdown sequences that take several seconds (e.g., draining thread pools, closing network connections) can make the CLI feel frozen or unresponsive after the user hits Ctrl+C.
+**Action:** Wrap the shutdown sequence in a visual loading state (like a spinner) to provide immediate feedback that cleanup is actively progressing, reducing user anxiety.

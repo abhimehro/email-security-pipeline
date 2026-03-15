@@ -149,7 +149,11 @@ class Spinner:
                     self.thread.join()
                 final_message = ""
 
-                if exc_type is not None:
+                if exc_type is KeyboardInterrupt:
+                    msg = self.message
+                    warning = Colors.colorize("⚠", Colors.YELLOW)
+                    final_message = f"{warning} {msg} (Cancelled)\n"
+                elif exc_type is not None:
                     # Failure logic
                     msg = self.fail_msg if self.fail_msg else self.message
                     # Use Colors.colorize to ensure we get proper fallback if colors are disabled
@@ -174,7 +178,9 @@ class Spinner:
             # Non-TTY: provide simple success/failure feedback without ANSI codes.
             # Colors.ENABLED is computed at import time, so use plain symbols here
             # to avoid leaking escape sequences when stdout is redirected later.
-            if exc_type is not None:
+            if exc_type is KeyboardInterrupt:
+                sys.stdout.write(f"⚠ {self.message} (Cancelled)\n")
+            elif exc_type is not None:
                 msg = self.fail_msg if self.fail_msg else self.message
                 sys.stdout.write(f"✘ {msg}\n")
             elif self.success_msg:
