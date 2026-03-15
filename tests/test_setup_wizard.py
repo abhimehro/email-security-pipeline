@@ -235,11 +235,7 @@ OUTLOOK_APP_PASSWORD=password
         expected_tip = f"{Colors.YELLOW}Tip: Personal Outlook accounts NO LONGER support App Passwords.{Colors.RESET}"
 
         # Check if the tip string is in any of the print calls
-        found_tip = False
-        for print_call in mock_print.call_args_list:
-            if print_call.args and expected_tip in print_call.args[0]:
-                found_tip = True
-                break
+        found_tip = any(print_call.args and expected_tip in print_call.args[0] for print_call in mock_print.call_args_list)
 
         self.assertTrue(found_tip, "Outlook specific troubleshooting tip not printed on connection failure.")
 
