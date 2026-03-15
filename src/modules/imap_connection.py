@@ -481,7 +481,7 @@ class IMAPConnection:
                 '|'.join(re.escape(k) for k in auth_keywords), re.IGNORECASE
             )
 
-        if not self.__class__._AUTH_KEYWORD_PATTERN.search(msg_lower):
+        if not self.__class__._AUTH_KEYWORD_PATTERN.search(error_msg):
             return None
 
         if "outlook" in server_lower or "office365" in server_lower:
