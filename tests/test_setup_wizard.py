@@ -204,5 +204,44 @@ OUTLOOK_APP_PASSWORD=password
         self.assertIn("GMAIL_EMAIL=good@gmail.com", written_content)
         self.assertIn("GMAIL_APP_PASSWORD=goodpassword", written_content)
 
+    @patch('builtins.print')
+    @patch('src.utils.setup_wizard.IMAPConnection')
+    @patch('builtins.input')
+    @patch('getpass.getpass')
+    @patch('os.fdopen')
+    @patch('os.open')
+    @patch('builtins.open', new_callable=mock_open)
+    @patch('pathlib.Path.exists')
+    def test_connection_failure_outlook_tip(self, mock_exists, mock_read_file, mock_os_open, mock_os_fdopen, mock_getpass, mock_input, mock_imap_conn, mock_print):
+        """Test that the wizard provides specific troubleshooting tips for Outlook on connection failure"""
+        mock_exists.return_value = True
+        mock_read_file.return_value.read.return_value = self.example_content
+        mock_os_open.return_value = 123
+        mock_write_handle = MagicMock()
+        mock_os_fdopen.return_value.__enter__.return_value = mock_write_handle
+
+        mock_conn_instance = mock_imap_conn.return_value
+        mock_conn_instance.connect.side_effect = [False, True]
+
+        # 1. Choice: '3' (Outlook)
+        mock_input.side_effect = ['3', 'bad@outlook.com', 'y', 'good@outlook.com']
+        mock_getpass.side_effect = ['badpassword', 'goodpassword']
+
+        result = run_setup_wizard(config_file=".env", template_file=".env.example")
+        self.assertTrue(result)
+
+        # Ensure the tip was printed during the first failure
+        from src.utils.colors import Colors
+        expected_tip = f"{Colors.YELLOW}Tip: Personal Outlook accounts NO LONGER support App Passwords.{Colors.RESET}"
+
+        # Check if the tip string is in any of the print calls
+        found_tip = False
+        for print_call in mock_print.call_args_list:
+            if print_call.args and expected_tip in print_call.args[0]:
+                found_tip = True
+                break
+
+        self.assertTrue(found_tip, "Outlook specific troubleshooting tip not printed on connection failure.")
+
 if __name__ == '__main__':
     unittest.main()

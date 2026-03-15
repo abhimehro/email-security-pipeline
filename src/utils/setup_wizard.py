@@ -98,10 +98,14 @@ def _test_connection(email: str, app_password: str, provider_choice: str) -> boo
             return True
         else:
             print(f"{Colors.RED}✘ Connection failed.{Colors.RESET}")
+            if provider_choice == '3':
+                print(f"{Colors.YELLOW}Tip: Personal Outlook accounts NO LONGER support App Passwords.{Colors.RESET}")
             return False
 
     except Exception as e:
         print(f"{Colors.RED}✘ Error during connection test: {e}{Colors.RESET}")
+        if provider_choice == '3':
+            print(f"{Colors.YELLOW}Tip: Personal Outlook accounts NO LONGER support App Passwords.{Colors.RESET}")
         return False
 
 def _select_provider() -> str:
