@@ -1,9 +1,7 @@
 # Email Security Analysis Pipeline
 
+[![CodeScene general](https://codescene.io/images/analyzed-by-codescene-badge.svg)](https://codescene.io/projects/78057)
 [![Changelog Status](https://github.com/abhimehro/email-security-pipeline/actions/workflows/changelog.yml/badge.svg)](https://github.com/abhimehro/email-security-pipeline/actions/workflows/changelog.yml)
-[![CodeScene Average Code Health](https://codescene.io/projects/78057/status-badges/average-code-health)](https://codescene.io/projects/78057)
-[![CodeScene Hotspot Code Health](https://codescene.io/projects/78057/status-badges/hotspot-code-health)](https://codescene.io/projects/78057)
-[![CodeScene Missed Goals](https://codescene.io/projects/78057/status-badges/missed-goals)](https://codescene.io/projects/78057)
 [![CodeScene System Mastery](https://codescene.io/projects/78057/status-badges/system-mastery?component-name=Email-security-pipeline)](https://codescene.io/projects/78057/)
 
 
