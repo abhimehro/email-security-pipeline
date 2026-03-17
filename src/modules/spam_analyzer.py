@@ -452,9 +452,9 @@ class SpamAnalyzer:
         # Check for display name mismatch
         # Optimization: Use str.find() instead of regex for simple prefix extraction.
         # This operates entirely in C and avoids regex engine overhead, providing ~1.6x speedup.
-        idx = sender.find("<")
+        idx = sender_lower.find("<")
         if idx > 0:
-            display_name = sender[:idx].strip().lower()
+            display_name = sender_lower[:idx].strip()
 
             # Check if display name contains different domain
             if "@" in display_name or "." in display_name:

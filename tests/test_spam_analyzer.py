@@ -159,3 +159,28 @@ def test_sender_freemail_detection_false_positive(spam_analyzer, clean_email):
     result = spam_analyzer.analyze(clean_email)
 
     assert "Corporate title with freemail provider" not in result.indicators
+
+def test_sender_display_name_extraction(spam_analyzer, clean_email):
+    # Valid Name <email> with mismatched domains in display name
+    clean_email.sender = '"CEO @ company.com" <ceo@freemail.com>'
+    score, indicators = spam_analyzer._check_sender(clean_email.sender, clean_email.headers)
+    assert score >= 1.0
+    assert "Suspicious display name format" in indicators
+
+    # NameOnly - no < email > part, should not trigger index extraction mismatch
+    clean_email.sender = 'Just a normal name'
+    score, indicators = spam_analyzer._check_sender(clean_email.sender, clean_email.headers)
+    assert score == 0.0
+    assert not any("Suspicious display name format" in ind for ind in indicators)
+
+    # <email> only - idx is 0, should not extract a display name
+    clean_email.sender = '<ceo@company.com>'
+    score, indicators = spam_analyzer._check_sender(clean_email.sender, clean_email.headers)
+    assert score == 0.0
+    assert not any("Suspicious display name format" in ind for ind in indicators)
+
+    # Match case sensitivity handling
+    clean_email.sender = '"Admin.COMPANY" <admin@freemail.com>'
+    score, indicators = spam_analyzer._check_sender(clean_email.sender, clean_email.headers)
+    assert score >= 1.0
+    assert "Suspicious display name format" in indicators
