@@ -230,6 +230,7 @@
 
 **Merged pull requests:**
 
+- ⚡ Bolt: Optimize sender display name extraction [\#554](https://github.com/abhimehro/email-security-pipeline/pull/554) ([abhimehro](https://github.com/abhimehro))
 - chore\(ux\): no suitable UX enhancement identified [\#553](https://github.com/abhimehro/email-security-pipeline/pull/553) ([abhimehro](https://github.com/abhimehro))
 - 🎨 Palette: Add specific troubleshooting tip for Outlook connection failures [\#552](https://github.com/abhimehro/email-security-pipeline/pull/552) ([abhimehro](https://github.com/abhimehro))
 - 🎨 Palette: Graceful KeyboardInterrupt handling during config setup [\#551](https://github.com/abhimehro/email-security-pipeline/pull/551) ([abhimehro](https://github.com/abhimehro))
