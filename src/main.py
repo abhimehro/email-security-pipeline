@@ -136,6 +136,7 @@ class EmailSecurityPipeline:
             # Initialize email clients
             with Spinner("Initializing email clients...") as spinner:
                 if not self.ingestion_manager.initialize_clients():
+                    spinner.fail("Failed to initialize email clients")
                     raise RuntimeError("Failed to initialize email clients")
                 spinner.success("Email clients initialized")
 
@@ -218,6 +219,10 @@ class EmailSecurityPipeline:
                     )
                     if emails:
                         spinner.success(f"Found {len(emails)} new emails")
+                    else:
+                        # Persist=False is used, so it typically disappears,
+                        # but just in case we can be explicit, though it's optional.
+                        pass
 
                 if not emails:
                     self.logger.info("No new emails to analyze")
