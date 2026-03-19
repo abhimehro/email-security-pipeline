@@ -86,7 +86,7 @@ def _test_connection(email: str, app_password: str, provider_choice: str) -> boo
 
     try:
         success = False
-        with Spinner("Connecting to IMAP server..."):
+        with Spinner("Connecting to IMAP server...") as spinner:
             # Suppress logging during check to avoid clutter
             import logging
             logging.disable(logging.CRITICAL)
@@ -98,16 +98,22 @@ def _test_connection(email: str, app_password: str, provider_choice: str) -> boo
             finally:
                 logging.disable(logging.NOTSET)
 
-        if success:
-            print(f"{Colors.GREEN}✔ Connection successful!{Colors.RESET}")
-            return True
-        else:
-            print(f"{Colors.RED}✘ Connection failed.{Colors.RESET}")
+            if success:
+                spinner.success("Connection successful!")
+            else:
+                spinner.fail("Connection failed.")
+
+        if not success:
             if provider_choice == '3':
                 print(OUTLOOK_APP_PASSWORD_TIP)
             return False
 
+        return True
+
     except Exception as e:
+        # We don't have access to the spinner here easily if the exception is outside,
+        # but in most cases errors happen inside the context manager. If it happens
+        # outside, we just print as before.
         print(f"{Colors.RED}✘ Error during connection test: {e}{Colors.RESET}")
         if provider_choice == '3':
             print(OUTLOOK_APP_PASSWORD_TIP)

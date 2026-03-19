@@ -153,7 +153,7 @@ class Spinner:
                     msg = self.message
                     warning = Colors.colorize("⚠", Colors.YELLOW)
                     final_message = f"{warning} {msg} (Cancelled)\n"
-                elif exc_type is not None:
+                elif exc_type is not None or self.fail_msg:
                     # Failure logic
                     msg = self.fail_msg if self.fail_msg else self.message
                     # Use Colors.colorize to ensure we get proper fallback if colors are disabled
@@ -180,7 +180,7 @@ class Spinner:
             # to avoid leaking escape sequences when stdout is redirected later.
             if exc_type is KeyboardInterrupt:
                 sys.stdout.write(f"⚠ {self.message} (Cancelled)\n")
-            elif exc_type is not None:
+            elif exc_type is not None or self.fail_msg:
                 msg = self.fail_msg if self.fail_msg else self.message
                 sys.stdout.write(f"✘ {msg}\n")
             elif self.success_msg:
