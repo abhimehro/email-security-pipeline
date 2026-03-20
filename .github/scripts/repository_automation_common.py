@@ -58,7 +58,7 @@ def run_process(
     command: list[str],
     *,
     input_text: str | None = None,
-    timeout: int | None = 300,
+    timeout: int = 300,
     check: bool = False,
 ) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
