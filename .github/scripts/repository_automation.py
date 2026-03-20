@@ -792,21 +792,19 @@ def main() -> int:
         return enforce_result(args.result_path)
 
     config = load_config()
-    task = args.task
-    if task == "workflow-updater":
-        run_workflow_updater(config)
-    elif task == "performance-optimizer":
-        run_performance_optimizer(config)
-    elif task == "quality-assurance":
-        run_quality_assurance(config)
-    elif task == "backlog-manager":
-        run_backlog_manager(config)
-    elif task == "daily-status-report":
-        run_daily_status_report(config)
-    elif task == "weekly-retrospective":
-        run_weekly_retrospective(config)
+    task_runners = {
+        "workflow-updater": run_workflow_updater,
+        "performance-optimizer": run_performance_optimizer,
+        "quality-assurance": run_quality_assurance,
+        "backlog-manager": run_backlog_manager,
+        "daily-status-report": run_daily_status_report,
+        "weekly-retrospective": run_weekly_retrospective,
+    }
+    runner = task_runners.get(args.task)
+    if runner:
+        runner(config)
     else:
-        print(f"Unknown task: {task}")
+        print(f"Unknown task: {args.task}")
         return 1
     return 0
 
