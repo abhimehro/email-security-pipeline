@@ -72,5 +72,8 @@ automation:
     branch_prefix: automation/weekly-workflow-tuning
     commit_message: "chore(actions): apply safe weekly automation tuning"
     allowed_paths:
-      - .github/**
+      - .github/workflows/*.yml
+      - .github/workflows/*.yaml
+      - .github/actions/**/*.yml
+      - .github/actions/**/*.yaml
     safe_adjustment_commands: []
