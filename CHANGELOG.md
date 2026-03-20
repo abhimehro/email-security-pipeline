@@ -230,6 +230,7 @@
 
 **Merged pull requests:**
 
+- chore\(actions\): sync automation polish [\#557](https://github.com/abhimehro/email-security-pipeline/pull/557) ([abhimehro](https://github.com/abhimehro))
 - chore\(actions\): consolidate repository automation [\#556](https://github.com/abhimehro/email-security-pipeline/pull/556) ([abhimehro](https://github.com/abhimehro))
 - 🎨 Palette: Improve Spinner Failure Feedback [\#555](https://github.com/abhimehro/email-security-pipeline/pull/555) ([abhimehro](https://github.com/abhimehro))
 - ⚡ Bolt: Optimize sender display name extraction [\#554](https://github.com/abhimehro/email-security-pipeline/pull/554) ([abhimehro](https://github.com/abhimehro))
