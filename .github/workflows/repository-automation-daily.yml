@@ -15,7 +15,9 @@ name: Repository Automation - Daily
 #   * A daily GitHub Issue summarising what ran, what changed, and what needs review
 on:
   schedule:
-    - cron: "17 9 * * *"
+    # email-security-pipeline slot: staggered well after the other repos so
+    # it avoids top-of-hour congestion and keeps review windows separated.
+    - cron: "41 12 * * *"
   workflow_dispatch:
     inputs:
       allow_write_actions:
@@ -24,8 +26,7 @@ on:
         default: true
         type: boolean
 
-permissions:
-  contents: read
+permissions: {}
 
 concurrency:
   group: repository-automation-daily-${{ github.repository }}
