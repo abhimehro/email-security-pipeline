@@ -1,0 +1,76 @@
+schema_version: 1
+repository:
+  default_branch: main
+automation:
+  human_review_label: needs-human-review
+  protected_paths:
+    - auth/**
+    - migrations/**
+    - database/**
+    - src/auth/**
+  reporting:
+    daily_issue_prefix: "[repo-automation] Daily Status Report"
+    weekly_issue_prefix: "[repo-automation] Weekly Retrospective"
+  workflow_updater:
+    enabled: true
+    create_draft_pr: true
+    branch_prefix: automation/workflow-updates
+    commit_message: "chore(actions): consolidate and refresh workflow dependencies"
+    pr_title: "chore(actions): consolidate workflow automation"
+    allowed_paths:
+      - .github/workflows/*.yml
+      - .github/workflows/*.yaml
+      - .github/actions/**/*.yml
+      - .github/actions/**/*.yaml
+  performance_optimizer:
+    enabled: true
+    commands: []
+    suggestions:
+      - Use the hotspot table to focus on large mail-parsing modules before attempting behavioural performance edits.
+      - Keep ML-dependent performance work manual unless a dry-run or benchmark path exists for the exact change.
+  quality_assurance:
+    enabled: true
+    setup_commands:
+      - name: install ci dependencies
+        run: python -m pip install --upgrade pip && python -m pip install -r requirements-ci.txt pre-commit bandit
+        optional: false
+        timeout_seconds: 1800
+    commands:
+      - name: pytest suite
+        run: python -m pytest
+        optional: false
+        timeout_seconds: 2400
+      - name: pre-commit hygiene
+        run: pre-commit run --all-files
+        optional: false
+        timeout_seconds: 1800
+      - name: trunk parity check
+        run: trunk check --all
+        optional: true
+        timeout_seconds: 1800
+    security_commands:
+      - name: bandit source scan
+        run: python -m bandit -r src -ll -c .bandit
+        optional: true
+        timeout_seconds: 1200
+  backlog_manager:
+    enabled: true
+    stale_days: 14
+    max_issues: 10
+    max_pull_requests: 10
+    include_discussions: false
+    create_tracking_issue: false
+  status_report:
+    enabled: true
+    publish_issue: true
+    labels: []
+  weekly_retrospective:
+    enabled: true
+    publish_issue: true
+    labels: []
+    auto_apply_safe_changes: false
+    branch_prefix: automation/weekly-workflow-tuning
+    commit_message: "chore(actions): apply safe weekly automation tuning"
+    allowed_paths:
+      - .github/**
+    safe_adjustment_commands: []
