@@ -87,9 +87,11 @@ def gh_json(args: list[str], default=None):
         env={**os.environ, "GH_PAGER": "cat"},
     )
     if proc.returncode != 0:
+        error_message = proc.stderr.strip() or proc.stdout.strip()
         if default is not None:
+            print(f"Warning: gh command failed with: {error_message}. Using default value.", file=sys.stderr)
             return default
-        raise RuntimeError(proc.stderr.strip() or proc.stdout.strip())
+        raise RuntimeError(error_message)
     output = proc.stdout.strip()
     if not output:
         return default
