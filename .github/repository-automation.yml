@@ -52,7 +52,7 @@ automation:
         optional: false
         timeout_seconds: 2400
       - name: pre-commit hygiene
-        run: SKIP=trailing-whitespace,end-of-file-fixer,mixed-line-ending,requirements-txt-fixer,python-no-eval pre-commit run --all-files
+        run: SKIP=trailing-whitespace,end-of-file-fixer,mixed-line-ending,requirements-txt-fixer pre-commit run --all-files
         optional: false
         timeout_seconds: 1800
       - name: trunk parity check
