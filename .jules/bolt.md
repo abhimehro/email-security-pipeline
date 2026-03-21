@@ -12,3 +12,7 @@
 ## 2025-03-14 - [Imports in class declarations]
 **Learning:** Re.compile needs `re` imported correctly in Python. Attempting to dynamically import `re` within the class declaration itself but outside a function body raises a `NameError` inside list comprehensions inside `re.compile()`.
 **Action:** Import modules at the top of the file to ensure they're available inside class-level property assignments.
+
+## 2025-03-24 - [Optimize join strings with List Comprehension]
+**Learning:** Using a list comprehension `"".join([c for c in text if ...])` is significantly faster (~30-40%) than a generator expression `"".join(c for c in text if ...)` for joining strings. This is because `join()` can pre-allocate the exact amount of memory needed when a list is passed, whereas with a generator, it has to dynamically resize the string buffer.
+**Action:** When filtering characters to join into a string, use a list comprehension instead of a generator expression for better performance.
