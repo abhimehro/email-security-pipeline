@@ -106,3 +106,10 @@
 ## 2025-03-06 - Visual Feedback for Graceful Shutdown
 **Learning:** Graceful shutdown sequences that take several seconds (e.g., draining thread pools, closing network connections) can make the CLI feel frozen or unresponsive after the user hits Ctrl+C.
 **Action:** Wrap the shutdown sequence in a visual loading state (like a spinner) to provide immediate feedback that cleanup is actively progressing, reducing user anxiety.
+## 2025-02-15 - Cancellation Warning UX
+**Learning:** For user-initiated interruptions (like pressing Ctrl+C/KeyboardInterrupt), it's a better UX to use a warning indicator (e.g., ⚠️) and explicit "(Cancelled)" text instead of a failure indicator (e.g., ✘). This clearly differentiates cancellations from actual system errors, reducing user confusion.
+**Action:** Implemented this distinction in `src/utils/ui.py`'s `Spinner.__exit__`.
+
+## 2025-02-15 - Consistent Input Prompt Styling
+**Learning:** In CLI applications, unstyled `input()` prompts can blend into the surrounding informational text, causing users to pause and wonder if the program is hung.
+**Action:** Styled all interactive input and getpass prompts consistently with `Colors.BOLD` (using `Colors.colorize()` to respect fallback logic) to clearly signal when user action is required.

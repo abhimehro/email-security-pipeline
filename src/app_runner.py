@@ -66,7 +66,7 @@ class AppRunner:
             print("\n" + Colors.colorize("Would you like to run the interactive setup wizard?", Colors.CYAN))
             print(Colors.colorize("(This will help you configure your email provider)", Colors.GREY))
 
-            response = input("Run setup wizard? [Y/n] ").strip().lower()
+            response = input(Colors.colorize("Run setup wizard? [Y/n] ", Colors.BOLD)).strip().lower()
             if response in ('', 'y', 'yes'):
                 if run_setup_wizard(self.config_file):
                     sys.exit(0)
@@ -75,7 +75,7 @@ class AppRunner:
 
             # Fallback to copy only if wizard wasn't run or failed
             if not Path(self.config_file).exists():
-                response = input(f"Create '{self.config_file}' from template without wizard? [Y/n] ").strip().lower()
+                response = input(Colors.colorize(f"Create '{self.config_file}' from template without wizard? [Y/n] ", Colors.BOLD)).strip().lower()
                 if response in ('', 'y', 'yes'):
                     try:
                         shutil.copy(".env.example", self.config_file)
