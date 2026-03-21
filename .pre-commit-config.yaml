@@ -12,6 +12,7 @@ repos:
       - id: check-merge-conflict
       - id: debug-statements
       - id: check-case-conflict
+        exclude: ^(\.Jules/|\.jules/)
       - id: check-json
       - id: check-toml
       - id: mixed-line-ending
@@ -19,7 +20,7 @@ repos:
 
   # Security checks with bandit (already used in CI)
   - repo: https://github.com/PyCQA/bandit
-    rev: 1.7.6
+    rev: 1.9.4
     hooks:
       - id: bandit
         args: ['-ll', '-c', '.bandit']
