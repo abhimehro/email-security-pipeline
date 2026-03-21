@@ -1,0 +1,39 @@
+services:
+  email-security-pipeline:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    
+    container_name: email-security-pipeline-test
+    
+    # Environment configuration
+    env_file:
+      - .env
+    
+    # Volumes for testing
+    volumes:
+      - ./src:/app/src:ro
+      - ./logs:/app/logs
+      - ./data:/app/data
+      - ./tests:/app/tests:ro
+    
+    # Network configuration
+    networks:
+      - email-security-net
+    
+    # Disable security constraints for testing
+    security_opt:
+      - no-new-privileges:false
+    
+    read_only: false
+    
+    # Resource limits for testing
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2G
+
+networks:
+  email-security-net:
+    driver: bridge
