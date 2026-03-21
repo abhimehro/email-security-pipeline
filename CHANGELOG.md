@@ -230,6 +230,8 @@
 
 **Merged pull requests:**
 
+- 🎨 Palette: Consistent Input Prompt Styling [\#559](https://github.com/abhimehro/email-security-pipeline/pull/559) ([abhimehro](https://github.com/abhimehro))
+- ⚡ Bolt: Optimize `sanitize_text` and `sanitize_for_logging` with List Comprehension [\#558](https://github.com/abhimehro/email-security-pipeline/pull/558) ([abhimehro](https://github.com/abhimehro))
 - chore\(actions\): sync automation polish [\#557](https://github.com/abhimehro/email-security-pipeline/pull/557) ([abhimehro](https://github.com/abhimehro))
 - chore\(actions\): consolidate repository automation [\#556](https://github.com/abhimehro/email-security-pipeline/pull/556) ([abhimehro](https://github.com/abhimehro))
 - 🎨 Palette: Improve Spinner Failure Feedback [\#555](https://github.com/abhimehro/email-security-pipeline/pull/555) ([abhimehro](https://github.com/abhimehro))
