@@ -72,3 +72,20 @@ class TestPaletteUI(TestCase):
             writes = "".join(call.args[0] for call in mock_stdout.write.mock_calls if call.args)
             self.assertIn("Test Cancel (Cancelled)", writes)
             self.assertIn("⚠", writes)
+
+    def test_countdown_keyboard_interrupt_tty(self):
+        """Test graceful cancellation message on KeyboardInterrupt in TTY mode for CountdownTimer"""
+        with patch('sys.stdout') as mock_stdout:
+            mock_stdout.isatty.return_value = True
+
+            timer = CountdownTimer(duration=10, message="Testing Cancel (Press Ctrl+C to stop)")
+
+            # Mock time.sleep to raise KeyboardInterrupt to test the except block
+            with patch('time.sleep', side_effect=KeyboardInterrupt):
+                with self.assertRaises(KeyboardInterrupt):
+                    timer.start()
+
+            writes = "".join(call.args[0] for call in mock_stdout.write.mock_calls if call.args)
+            self.assertIn("Testing Cancel (Cancelled)", writes)
+            self.assertNotIn("(Press Ctrl+C to stop) (Cancelled)", writes)
+            self.assertIn("⚠", writes)

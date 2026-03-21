@@ -70,7 +70,9 @@ class CountdownTimer:
 
         except KeyboardInterrupt:
             # Clean up line on interrupt
-            sys.stdout.write("\n")
+            warning = Colors.colorize("⚠", Colors.YELLOW)
+            clean_msg = self.message.replace(" (Press Ctrl+C to stop)", "")
+            sys.stdout.write(f"\r\033[K{warning} {clean_msg} (Cancelled)\n")
             sys.stdout.flush()
             raise
         finally:
