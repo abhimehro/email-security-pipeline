@@ -129,7 +129,8 @@ def _select_provider() -> str:
 
     while True:
         try:
-            choice = input(Colors.colorize("\nSelect provider [1-4]: ", Colors.BOLD)).strip()
+            prompt = "\n" + Colors.colorize("? ", Colors.CYAN) + Colors.colorize("Select provider [1-4]: ", Colors.BOLD)
+            choice = input(prompt).strip()
             if choice in ('1', '2', '3', '4'):
                 return choice
             print(f"{Colors.YELLOW}Invalid choice. Please enter 1, 2, 3, or 4.{Colors.RESET}")
@@ -144,7 +145,8 @@ def _get_credentials(choice: str, provider_name: str) -> tuple[str, str]:
         while True: # Outer loop for retry mechanism
             # Email input loop
             while True:
-                email = input(Colors.colorize(f"Enter your {provider_name} email address: ", Colors.BOLD)).strip()
+                prompt = Colors.colorize("? ", Colors.CYAN) + Colors.colorize(f"Enter your {provider_name} email address: ", Colors.BOLD)
+                email = input(prompt).strip()
                 if not email:
                     print(f"{Colors.YELLOW}Email is required.{Colors.RESET}")
                     continue
@@ -165,10 +167,11 @@ def _get_credentials(choice: str, provider_name: str) -> tuple[str, str]:
                 print(f"\n{Colors.GREY}Note: Personal Outlook accounts are not supported.")
                 print(f"Business accounts may require an App Password if MFA is enabled.{Colors.RESET}")
 
-            app_secret = getpass.getpass(Colors.colorize(f"Enter your {provider_name} app password: ", Colors.BOLD)).strip()
+            prompt = Colors.colorize("? ", Colors.CYAN) + Colors.colorize(f"Enter your {provider_name} app password: ", Colors.BOLD)
+            app_secret = getpass.getpass(prompt).strip()
             while not app_secret:
                 print(f"{Colors.YELLOW}Password is required.{Colors.RESET}")
-                app_secret = getpass.getpass(Colors.colorize(f"Enter your {provider_name} app password: ", Colors.BOLD)).strip()
+                app_secret = getpass.getpass(prompt).strip()
 
             # Test the connection immediately
             if _test_connection(email, app_secret, choice):
@@ -179,7 +182,8 @@ def _get_credentials(choice: str, provider_name: str) -> tuple[str, str]:
             print(f"  y: Try again")
             print(f"  n: Proceed anyway (skip verification)")
 
-            retry = input(Colors.colorize("Retry? [Y/n] ", Colors.BOLD)).strip().lower()
+            prompt = Colors.colorize("? ", Colors.CYAN) + Colors.colorize("Retry? [Y/n] ", Colors.BOLD)
+            retry = input(prompt).strip().lower()
             if retry not in ('', 'y', 'yes'):
                 print(f"{Colors.GREY}Proceeding with entered credentials (unverified).{Colors.RESET}")
                 return email, app_secret
