@@ -232,6 +232,7 @@
 **Merged pull requests:**
 
 - 🎨 Palette: Improve CountdownTimer Cancellation UX [\#566](https://github.com/abhimehro/email-security-pipeline/pull/566) ([abhimehro](https://github.com/abhimehro))
+- chore\(actions\): consolidate workflow automation [\#565](https://github.com/abhimehro/email-security-pipeline/pull/565) ([abhimehro](https://github.com/abhimehro))
 - fix\(actions\): stabilize email daily quality assurance [\#563](https://github.com/abhimehro/email-security-pipeline/pull/563) ([abhimehro](https://github.com/abhimehro))
 - fix\(actions\): restore automation workflow permissions and archive stale agentic artifacts [\#560](https://github.com/abhimehro/email-security-pipeline/pull/560) ([abhimehro](https://github.com/abhimehro))
 - 🎨 Palette: Consistent Input Prompt Styling [\#559](https://github.com/abhimehro/email-security-pipeline/pull/559) ([abhimehro](https://github.com/abhimehro))
