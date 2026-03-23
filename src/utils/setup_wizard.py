@@ -265,6 +265,14 @@ def run_setup_wizard(config_file: str = ".env", template_file: str = ".env.examp
             # Create file with restrictive permissions (600)
             # Using os.open to set mode atomically if possible, or chmod after
             fd = os.open(config_file, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+
+            # os.open mode only applies to new files. If the file exists, we must explicitly set permissions.
+            # Use fchmod to prevent TOCTOU vulnerabilities, falling back to chmod on Windows.
+            try:
+                os.fchmod(fd, 0o600)
+            except AttributeError:
+                os.chmod(config_file, 0o600)
+
             with os.fdopen(fd, 'w') as f:
                 f.write(new_content)
 

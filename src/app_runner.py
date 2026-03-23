@@ -80,9 +80,19 @@ class AppRunner:
                 response = input(prompt).strip().lower()
                 if response in ('', 'y', 'yes'):
                     try:
-                        shutil.copy(".env.example", self.config_file)
                         import os
-                        os.chmod(self.config_file, 0o600)
+                        with open(".env.example", "rb") as src:
+                            content = src.read()
+
+                        fd = os.open(self.config_file, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+                        try:
+                            os.fchmod(fd, 0o600)
+                        except AttributeError:
+                            os.chmod(self.config_file, 0o600)
+
+                        with os.fdopen(fd, "wb") as dst:
+                            dst.write(content)
+
                         print(f"Created '{self.config_file}' from '.env.example'.")
                         print("IMPORTANT: Please edit .env with your actual credentials before proceeding.")
                         sys.exit(0)
