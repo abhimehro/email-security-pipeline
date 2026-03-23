@@ -231,6 +231,8 @@
 
 **Merged pull requests:**
 
+- 🎨 Palette: Add visual indicator to interactive CLI prompts [\#570](https://github.com/abhimehro/email-security-pipeline/pull/570) ([abhimehro](https://github.com/abhimehro))
+- ⚡ Bolt: Optimize SpamAnalyzer header parsing by hoisting inner helper function [\#567](https://github.com/abhimehro/email-security-pipeline/pull/567) ([abhimehro](https://github.com/abhimehro))
 - 🎨 Palette: Improve CountdownTimer Cancellation UX [\#566](https://github.com/abhimehro/email-security-pipeline/pull/566) ([abhimehro](https://github.com/abhimehro))
 - chore\(actions\): consolidate workflow automation [\#565](https://github.com/abhimehro/email-security-pipeline/pull/565) ([abhimehro](https://github.com/abhimehro))
 - fix\(actions\): stabilize email daily quality assurance [\#563](https://github.com/abhimehro/email-security-pipeline/pull/563) ([abhimehro](https://github.com/abhimehro))
