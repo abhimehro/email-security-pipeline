@@ -219,19 +219,21 @@ def _generate_config_content(template_content: str, provider_key: str, email: st
 
 def _write_config_file(config_file: str, new_content: str) -> bool:
     """Helper to write the configuration to a file securely."""
-    config_path = Path(config_file).resolve()
+    # False Positive: CLI tool accepting a configuration file path is intended behavior.
+    config_path = Path(config_file).resolve()  # codeql[py/path-injection]
 
     try:
         # Create file with restrictive permissions (600)
         # Using os.open to set mode atomically if possible, or chmod after
-        fd = os.open(str(config_path), os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+        # False Positive: File path operates safely under OS user execution level.
+        fd = os.open(str(config_path), os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)  # codeql[py/path-injection]
 
         # os.open mode only applies to new files. If the file exists, we must explicitly set permissions.
         # Use fchmod to prevent TOCTOU vulnerabilities, falling back to chmod on Windows.
         try:
             os.fchmod(fd, 0o600)
         except AttributeError:
-            os.chmod(str(config_path), 0o600)
+            os.chmod(str(config_path), 0o600)  # codeql[py/path-injection]
 
         with os.fdopen(fd, 'w') as f:
             f.write(new_content)

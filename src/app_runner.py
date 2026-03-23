@@ -23,7 +23,8 @@ class AppRunner:
 
         raw_config_file = self.args[1] if len(self.args) > 1 else ".env"
 
-        config_path = Path(raw_config_file).resolve()
+        # False Positive: CLI tool accepting a configuration file path is intended behavior.
+        config_path = Path(raw_config_file).resolve()  # codeql[py/path-injection]
         self.config_file = str(config_path)
 
     def run(self) -> None:
@@ -88,11 +89,12 @@ class AppRunner:
                         with open(".env.example", "rb") as src:
                             content = src.read()
 
-                        fd = os.open(self.config_file, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+                        # False Positive: Config path logic operates securely within user privileges.
+                        fd = os.open(self.config_file, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)  # codeql[py/path-injection]
                         try:
                             os.fchmod(fd, 0o600)
                         except AttributeError:
-                            os.chmod(self.config_file, 0o600)
+                            os.chmod(self.config_file, 0o600)  # codeql[py/path-injection]
 
                         with os.fdopen(fd, "wb") as dst:
                             dst.write(content)
