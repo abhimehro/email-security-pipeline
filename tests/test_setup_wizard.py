@@ -1,4 +1,5 @@
 import unittest
+from pathlib import Path
 from unittest.mock import patch, mock_open, call, MagicMock
 from src.utils.setup_wizard import run_setup_wizard, _is_valid_email
 import os
@@ -67,7 +68,7 @@ OUTLOOK_APP_PASSWORD=password
         self.assertTrue(result)
 
         # Verify permissions were set (0o600 = 384 in decimal)
-        mock_os_open.assert_called_with(".env", os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+        mock_os_open.assert_called_with(str(Path(".env").resolve()), os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
 
         # Verify file write
         # Combine all written content

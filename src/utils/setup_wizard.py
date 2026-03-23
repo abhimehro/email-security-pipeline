@@ -217,6 +217,31 @@ def _generate_config_content(template_content: str, provider_key: str, email: st
 
     return content
 
+def _write_config_file(config_file: str, new_content: str) -> bool:
+    """Helper to write the configuration to a file securely."""
+    config_path = Path(config_file).resolve()
+
+    try:
+        # Create file with restrictive permissions (600)
+        # Using os.open to set mode atomically if possible, or chmod after
+        fd = os.open(str(config_path), os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+
+        # os.open mode only applies to new files. If the file exists, we must explicitly set permissions.
+        # Use fchmod to prevent TOCTOU vulnerabilities, falling back to chmod on Windows.
+        try:
+            os.fchmod(fd, 0o600)
+        except AttributeError:
+            os.chmod(str(config_path), 0o600)
+
+        with os.fdopen(fd, 'w') as f:
+            f.write(new_content)
+
+        print("\n" + Colors.colorize(f"✔ Configuration saved to {config_file}", Colors.GREEN))
+        return True
+    except Exception as e:
+        print(Colors.colorize(f"Error writing config: {e}", Colors.RED))
+        return False
+
 def run_setup_wizard(config_file: str = ".env", template_file: str = ".env.example") -> bool:
     """
     Run an interactive setup wizard to configure the application.
@@ -261,24 +286,7 @@ def run_setup_wizard(config_file: str = ".env", template_file: str = ".env.examp
         new_content = _generate_config_content(template_content, selected_key, email, app_secret)
 
         # 5. Write Config
-        try:
-            # Create file with restrictive permissions (600)
-            # Using os.open to set mode atomically if possible, or chmod after
-            fd = os.open(config_file, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
-
-            # os.open mode only applies to new files. If the file exists, we must explicitly set permissions.
-            # Use fchmod to prevent TOCTOU vulnerabilities, falling back to chmod on Windows.
-            try:
-                os.fchmod(fd, 0o600)
-            except AttributeError:
-                os.chmod(config_file, 0o600)
-
-            with os.fdopen(fd, 'w') as f:
-                f.write(new_content)
-
-            print("\n" + Colors.colorize(f"✔ Configuration saved to {config_file}", Colors.GREEN))
-        except Exception as e:
-            print(Colors.colorize(f"Error writing config: {e}", Colors.RED))
+        if not _write_config_file(config_file, new_content):
             return False
 
         print("\n" + Colors.colorize("Next Steps:", Colors.BOLD))

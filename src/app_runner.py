@@ -20,7 +20,11 @@ class AppRunner:
             args: Command line arguments (defaults to sys.argv)
         """
         self.args = args if args is not None else sys.argv
-        self.config_file = self.args[1] if len(self.args) > 1 else ".env"
+
+        raw_config_file = self.args[1] if len(self.args) > 1 else ".env"
+
+        config_path = Path(raw_config_file).resolve()
+        self.config_file = str(config_path)
 
     def run(self) -> None:
         """Execute the main application flow."""
