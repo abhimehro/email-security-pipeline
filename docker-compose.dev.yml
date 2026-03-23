@@ -3,27 +3,27 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    
+
     container_name: email-security-pipeline-dev
-    
+
     # Environment configuration
     env_file:
       - .env
-    
+
     # Volumes for development with hot reload
     volumes:
       - ./src:/app/src
       - ./logs:/app/logs
       - ./data:/app/data
-    
+
     # Network configuration
     networks:
       - email-security-net
-    
+
     # Allow interactive debugging
     stdin_open: true
     tty: true
-    
+
     # Remove resource limits for development
     # Logging
     logging:
