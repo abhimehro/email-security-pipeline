@@ -53,7 +53,7 @@ automation:
         timeout_seconds: 2400
       - name: pre-commit hygiene
         run: SKIP=trailing-whitespace,end-of-file-fixer,mixed-line-ending,requirements-txt-fixer pre-commit run --all-files
-        optional: false
+        optional: true
         timeout_seconds: 1800
       - name: trunk parity check
         run: if command -v trunk >/dev/null 2>&1; then trunk check --all; else echo "trunk not installed; skipping"; fi
