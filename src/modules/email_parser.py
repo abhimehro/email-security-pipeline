@@ -249,12 +249,17 @@ class EmailParser:
 
             content_type = part.get_content_type()
             content_disposition = str(part.get("Content-Disposition", ""))
-            # Extract text/HTML body
-            if content_type in ("text/plain", "text/html") and "attachment" not in content_disposition:
+
+            is_multipart = part.get_content_maintype() == 'multipart'
+            has_filename = bool(part.get_filename() and part.get_filename().strip())
+            is_attachment_disp = "attachment" in content_disposition
+
+            # Extract text/HTML body if it's explicitly body content
+            if content_type in ("text/plain", "text/html") and not is_attachment_disp and not has_filename:
                 decoded_part = self._decode_part_payload(part)
                 self._add_body_content(content_type, decoded_part, body_dict, safe_email_id)
-            # Extract attachments
-            elif "attachment" in content_disposition:
+            # Extract as attachment if it has a filename, attachment disposition, or is a non-text/non-multipart
+            elif not is_multipart:
                 attachment = self._extract_attachment(
                     part, attachments, current_total_size, safe_email_id
                 )
@@ -281,22 +286,37 @@ class EmailParser:
         }
 
         content_type = msg.get_content_type()
-        try:
-            payload = msg.get_payload(decode=True)
-            if payload:
-                decoded = self._decode_bytes(payload, msg.get_content_charset())
-                self._add_body_content(content_type, decoded, body_dict, safe_email_id)
-        except UnicodeDecodeError as e:
-            self.logger.warning(
-                f"Failed to decode email payload for {safe_email_id}: {e}"
-            )
-        except Exception as e:
-            self.logger.error(
-                f"Unexpected error extracting content from {safe_email_id}: "
-                f"{type(e).__name__}: {e}"
-            )
+        content_disposition = str(msg.get("Content-Disposition", ""))
 
-        return "".join(body_dict['text_parts']), "".join(body_dict['html_parts']), []
+        has_filename = bool(msg.get_filename() and msg.get_filename().strip())
+        is_attachment_disp = "attachment" in content_disposition
+        attachments = []
+
+        # Extract text/HTML body if it's explicitly body content
+        if content_type in ("text/plain", "text/html") and not is_attachment_disp and not has_filename:
+            try:
+                payload = msg.get_payload(decode=True)
+                if payload:
+                    decoded = self._decode_bytes(payload, msg.get_content_charset())
+                    self._add_body_content(content_type, decoded, body_dict, safe_email_id)
+            except UnicodeDecodeError as e:
+                self.logger.warning(
+                    f"Failed to decode email payload for {safe_email_id}: {e}"
+                )
+            except Exception as e:
+                self.logger.error(
+                    f"Unexpected error extracting content from {safe_email_id}: "
+                    f"{type(e).__name__}: {e}"
+                )
+        else:
+            # Treat as attachment
+            attachment = self._extract_attachment(
+                msg, attachments, 0, safe_email_id
+            )
+            if attachment:
+                attachments.append(attachment)
+
+        return "".join(body_dict['text_parts']), "".join(body_dict['html_parts']), attachments
     def _append_body_part(
         self,
         parts: List[str],

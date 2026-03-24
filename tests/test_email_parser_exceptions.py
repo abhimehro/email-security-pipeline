@@ -48,6 +48,7 @@ class TestExtractSinglepartContent:
         msg = MagicMock(spec=Message)
         msg.get_content_type.return_value = "text/plain"
         msg.get_content_charset.return_value = "utf-8"
+        msg.get_filename.return_value = None
         # Simulate UnicodeDecodeError when fetching payload
         msg.get_payload.side_effect = UnicodeDecodeError(
             "utf-8", b"\xff", 0, 1, "invalid start byte"
@@ -74,6 +75,7 @@ class TestExtractSinglepartContent:
         msg = MagicMock(spec=Message)
         msg.get_content_type.return_value = "text/plain"
         msg.get_content_charset.return_value = "utf-8"
+        msg.get_filename.return_value = None
         msg.get_payload.side_effect = RuntimeError("simulated parser error")
 
         body_text, body_html, attachments = parser._extract_singlepart_content(
