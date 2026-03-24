@@ -215,6 +215,23 @@ class EmailParser:
         else:
             return self._extract_singlepart_content(msg, safe_email_id)
 
+    @staticmethod
+    def _is_body_text_part(part: Message) -> bool:
+        """
+        Determine if a MIME part should be treated as body text instead of an attachment.
+
+        SECURITY STORY: Validates that the part is strictly text/html or text/plain
+        and does not contain an explicit filename or attachment disposition, preventing
+        malicious attachments from bypassing security controls.
+        """
+        content_type = part.get_content_type()
+        content_disposition = str(part.get("Content-Disposition", ""))
+
+        has_filename = bool(part.get_filename() and part.get_filename().strip())
+        is_attachment_disp = "attachment" in content_disposition
+
+        return content_type in ("text/plain", "text/html") and not is_attachment_disp and not has_filename
+
     def _extract_multipart_content(
         self,
         msg: Message,
@@ -247,17 +264,12 @@ class EmailParser:
                 )
                 break
 
-            content_type = part.get_content_type()
-            content_disposition = str(part.get("Content-Disposition", ""))
-
             is_multipart = part.get_content_maintype() == 'multipart'
-            has_filename = bool(part.get_filename() and part.get_filename().strip())
-            is_attachment_disp = "attachment" in content_disposition
 
             # Extract text/HTML body if it's explicitly body content
-            if content_type in ("text/plain", "text/html") and not is_attachment_disp and not has_filename:
+            if self._is_body_text_part(part):
                 decoded_part = self._decode_part_payload(part)
-                self._add_body_content(content_type, decoded_part, body_dict, safe_email_id)
+                self._add_body_content(part.get_content_type(), decoded_part, body_dict, safe_email_id)
             # Extract as attachment if it has a filename, attachment disposition, or is a non-text/non-multipart
             elif not is_multipart:
                 attachment = self._extract_attachment(
@@ -272,6 +284,28 @@ class EmailParser:
         body_html = "".join(body_dict['html_parts'])
         return body_text, body_html, attachments
 
+    def _process_singlepart_body(
+        self,
+        msg: Message,
+        body_dict: Dict[str, Any],
+        safe_email_id: str
+    ) -> None:
+        """Helper to process and decode body content for a singlepart message."""
+        try:
+            payload = msg.get_payload(decode=True)
+            if payload:
+                decoded = self._decode_bytes(payload, msg.get_content_charset())
+                self._add_body_content(msg.get_content_type(), decoded, body_dict, safe_email_id)
+        except UnicodeDecodeError as e:
+            self.logger.warning(
+                f"Failed to decode email payload for {safe_email_id}: {e}"
+            )
+        except Exception as e:
+            self.logger.error(
+                f"Unexpected error extracting content from {safe_email_id}: "
+                f"{type(e).__name__}: {e}"
+            )
+
     def _extract_singlepart_content(
         self,
         msg: Message,
@@ -285,29 +319,11 @@ class EmailParser:
             'html_parts': [], 'html_len': 0,
         }
 
-        content_type = msg.get_content_type()
-        content_disposition = str(msg.get("Content-Disposition", ""))
-
-        has_filename = bool(msg.get_filename() and msg.get_filename().strip())
-        is_attachment_disp = "attachment" in content_disposition
         attachments = []
 
         # Extract text/HTML body if it's explicitly body content
-        if content_type in ("text/plain", "text/html") and not is_attachment_disp and not has_filename:
-            try:
-                payload = msg.get_payload(decode=True)
-                if payload:
-                    decoded = self._decode_bytes(payload, msg.get_content_charset())
-                    self._add_body_content(content_type, decoded, body_dict, safe_email_id)
-            except UnicodeDecodeError as e:
-                self.logger.warning(
-                    f"Failed to decode email payload for {safe_email_id}: {e}"
-                )
-            except Exception as e:
-                self.logger.error(
-                    f"Unexpected error extracting content from {safe_email_id}: "
-                    f"{type(e).__name__}: {e}"
-                )
+        if self._is_body_text_part(msg):
+            self._process_singlepart_body(msg, body_dict, safe_email_id)
         else:
             # Treat as attachment
             attachment = self._extract_attachment(
