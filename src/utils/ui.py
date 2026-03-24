@@ -121,9 +121,11 @@ class Spinner:
 
     def _spin(self):
         while self.busy:
+            elapsed = time.time() - getattr(self, "start_time", time.time())
+            time_str = Colors.colorize(f" [{elapsed:.1f}s]", Colors.GREY) if elapsed >= 1.0 else ""
             # \r moves cursor to start of line, \033[K clears the line
             spin_char = Colors.colorize(next(self.spinner), Colors.CYAN)
-            sys.stdout.write(f"\r{spin_char} {self.message}   \033[K")
+            sys.stdout.write(f"\r{spin_char} {self.message}{time_str}   \033[K")
             sys.stdout.flush()
             time.sleep(self.delay)
             # Check again to avoid writing after stop
@@ -131,6 +133,7 @@ class Spinner:
                 break
 
     def __enter__(self):
+        self.start_time = time.time()
         if sys.stdout.isatty():
             # Hide cursor
             sys.stdout.write(CURSOR_HIDE)
@@ -140,10 +143,16 @@ class Spinner:
             self.thread = threading.Thread(target=self._spin)
             self.thread.start()
         else:
-            print(f"{self.message}...")
+            msg = self.message
+            if not msg.endswith("..."):
+                msg += "..."
+            print(msg)
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
+        elapsed = time.time() - getattr(self, "start_time", time.time())
+        time_str = Colors.colorize(f" [{elapsed:.1f}s]", Colors.GREY) if elapsed >= 1.0 else ""
+
         if sys.stdout.isatty():
             try:
                 self.busy = False
@@ -154,21 +163,21 @@ class Spinner:
                 if exc_type is KeyboardInterrupt:
                     msg = self.message
                     warning = Colors.colorize("⚠", Colors.YELLOW)
-                    final_message = f"{warning} {msg} (Cancelled)\n"
+                    final_message = f"{warning} {msg} (Cancelled){time_str}\n"
                 elif exc_type is not None or self.fail_msg:
                     # Failure logic
                     msg = self.fail_msg if self.fail_msg else self.message
                     # Use Colors.colorize to ensure we get proper fallback if colors are disabled
                     cross = Colors.colorize("✘", Colors.RED)
-                    final_message = f"{cross} {msg}\n"
+                    final_message = f"{cross} {msg}{time_str}\n"
                 elif self.success_msg:
                     # Explicit success message always persists
                     check = Colors.colorize("✔", Colors.GREEN)
-                    final_message = f"{check} {self.success_msg}\n"
+                    final_message = f"{check} {self.success_msg}{time_str}\n"
                 elif self.persist:
                     # Default persistence
                     check = Colors.colorize("✔", Colors.GREEN)
-                    final_message = f"{check} {self.message}\n"
+                    final_message = f"{check} {self.message}{time_str}\n"
 
                 sys.stdout.write(f"\r\033[K{final_message}")
                 sys.stdout.flush()
@@ -180,13 +189,14 @@ class Spinner:
             # Non-TTY: provide simple success/failure feedback without ANSI codes.
             # Colors.ENABLED is computed at import time, so use plain symbols here
             # to avoid leaking escape sequences when stdout is redirected later.
+            raw_time_str = f" [{elapsed:.1f}s]" if elapsed >= 1.0 else ""
             if exc_type is KeyboardInterrupt:
-                sys.stdout.write(f"⚠ {self.message} (Cancelled)\n")
+                sys.stdout.write(f"⚠ {self.message} (Cancelled){raw_time_str}\n")
             elif exc_type is not None or self.fail_msg:
                 msg = self.fail_msg if self.fail_msg else self.message
-                sys.stdout.write(f"✘ {msg}\n")
+                sys.stdout.write(f"✘ {msg}{raw_time_str}\n")
             elif self.success_msg:
-                sys.stdout.write(f"✔ {self.success_msg}\n")
+                sys.stdout.write(f"✔ {self.success_msg}{raw_time_str}\n")
             elif self.persist:
-                sys.stdout.write(f"✔ {self.message}\n")
+                sys.stdout.write(f"✔ {self.message}{raw_time_str}\n")
             sys.stdout.flush()
