@@ -233,8 +233,11 @@
 
 **Merged pull requests:**
 
+- 🎨 Palette: Add elapsed time to long-running CLI spinners [\#584](https://github.com/abhimehro/email-security-pipeline/pull/584) ([abhimehro](https://github.com/abhimehro))
 - Daily QA Agentic Review [\#581](https://github.com/abhimehro/email-security-pipeline/pull/581) ([abhimehro](https://github.com/abhimehro))
 - chore: Daily QA Review - No issues found [\#580](https://github.com/abhimehro/email-security-pipeline/pull/580) ([abhimehro](https://github.com/abhimehro))
+- fix\(nlp\): pin revision for Hugging Face model downloads \(Bandit B615\) [\#579](https://github.com/abhimehro/email-security-pipeline/pull/579) ([abhimehro](https://github.com/abhimehro))
+- ⚡ Bolt: Optimize short-circuit evaluation in string sanitization [\#578](https://github.com/abhimehro/email-security-pipeline/pull/578) ([abhimehro](https://github.com/abhimehro))
 - 🎨 Palette: Explicit positive reinforcement for clean threat reports [\#575](https://github.com/abhimehro/email-security-pipeline/pull/575) ([abhimehro](https://github.com/abhimehro))
 - chore\(ci\): update github actions to latest stable versions [\#571](https://github.com/abhimehro/email-security-pipeline/pull/571) ([abhimehro](https://github.com/abhimehro))
 - 🎨 Palette: Add visual indicator to interactive CLI prompts [\#570](https://github.com/abhimehro/email-security-pipeline/pull/570) ([abhimehro](https://github.com/abhimehro))
