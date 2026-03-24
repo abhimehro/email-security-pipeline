@@ -49,7 +49,7 @@ def test_ensure_config_exists_interactive(mock_isatty, mock_path, mock_app_runne
     # We want config_file to NOT exist, but .env.example TO exist
     def path_side_effect(arg):
         mock = MagicMock()
-        if arg == ".env":
+        if str(arg) == mock_app_runner.config_file or arg == mock_app_runner.config_file:
             mock.exists.return_value = False
         elif arg == ".env.example":
             mock.exists.return_value = True
@@ -125,5 +125,5 @@ def test_start_pipeline(mock_pipeline_class, mock_app_runner):
 
     mock_app_runner.start_pipeline()
 
-    mock_pipeline_class.assert_called_once_with(".env")
+    mock_pipeline_class.assert_called_once_with(mock_app_runner.config_file)
     mock_pipeline_instance.start.assert_called_once()
