@@ -113,3 +113,7 @@
 ## 2025-02-15 - Consistent Input Prompt Styling
 **Learning:** In CLI applications, unstyled `input()` prompts can blend into the surrounding informational text, causing users to pause and wonder if the program is hung.
 **Action:** Styled all interactive input and getpass prompts consistently with `Colors.BOLD` (using `Colors.colorize()` to respect fallback logic) to clearly signal when user action is required.
+
+## 2026-02-15 - Interactive Spinner Timing Indicators
+**Learning:** Operations with indeterminate progress (spinners) cause user anxiety if they run longer than expected. Adding a subtle elapsed time indicator (`[1.2s]`) to the spinner after a brief delay (1s) transforms the experience from "Is it hung?" to active feedback, without cluttering fast operations.
+**Action:** Always track and display elapsed time on indeterminate loading states that might exceed 1 second. Ensure the time format is subtle (e.g., greyed out) to maintain focus on the primary message.
