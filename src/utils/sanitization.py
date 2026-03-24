@@ -53,9 +53,11 @@ def sanitize_for_logging(text: str, max_length: int = 255) -> str:
     # So we keep ch if it's '\t', printable, or a Zs (separator) character.
     # Optimization: A list comprehension inside join() is ~30-40% faster than a generator
     # expression because join() can pre-allocate the required memory when the length is known.
+    # Optimization: ch.isprintable() is true for the vast majority of characters and evaluating
+    # it first leverages short-circuit evaluation to avoid the overhead of subsequent checks.
     text = "".join([
         ch for ch in text
-        if ch == '\t' or ch.isprintable() or unicodedata.category(ch) == 'Zs'
+        if ch.isprintable() or ch == '\t' or unicodedata.category(ch) == 'Zs'
     ])
 
     # 5. Truncate if necessary to prevent log flooding
