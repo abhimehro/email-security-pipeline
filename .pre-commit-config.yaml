@@ -1,8 +1,10 @@
 repos:
   # Basic file quality checks
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.5.0
+    rev: <version>
     hooks:
+      - id: python-no-eval
+        exclude: ^src/modules/nlp_analyzer\.py$
       - id: trailing-whitespace
         args: [--markdown-linebreak-ext=md]
       - id: end-of-file-fixer
