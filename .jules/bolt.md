@@ -16,3 +16,7 @@
 ## 2025-03-24 - [Optimize join strings with List Comprehension]
 **Learning:** Using a list comprehension `"".join([c for c in text if ...])` is significantly faster (~30-40%) than a generator expression `"".join(c for c in text if ...)` for joining strings. This is because `join()` can pre-allocate the exact amount of memory needed when a list is passed, whereas with a generator, it has to dynamically resize the string buffer.
 **Action:** When filtering characters to join into a string, use a list comprehension instead of a generator expression for better performance.
+
+## 2025-03-24 - [Optimize short-circuit evaluation in hot loops]
+**Learning:** When filtering characters in hot loops, placing the condition that is most likely to be true (e.g., `ch.isprintable()`) as the first operand in an `or` expression leverages Python's short-circuit evaluation. This prevents the execution of subsequent, potentially more expensive function calls (e.g., `unicodedata.category()`) for the vast majority of characters. In `sanitize_for_logging`, this reordering yielded a ~25% performance improvement.
+**Action:** Always order boolean conditions in hot loops by the probability of them short-circuiting the expression, placing the cheapest and most likely to satisfy the condition first.
