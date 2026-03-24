@@ -181,9 +181,11 @@ class NLPThreatAnalyzer:
             model_name = getattr(
                 self.config, 'nlp_model', 'distilbert-base-uncased'
             )
-            self.tokenizer = AutoTokenizer.from_pretrained(model_name)
+            # FIX: Ensure Hugging Face model download pins the revision
+            revision = getattr(self.config, 'nlp_model_revision', 'main')
+            self.tokenizer = AutoTokenizer.from_pretrained(model_name, revision=revision)
             self.model = AutoModelForSequenceClassification.from_pretrained(
-                model_name
+                model_name, revision=revision
             )
             self.model.eval()
             self.device = next(self.model.parameters()).device
