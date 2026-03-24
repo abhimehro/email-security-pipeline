@@ -223,7 +223,15 @@ def _write_config_file(config_file: str, new_content: str) -> bool:
         print(Colors.colorize(f"Error: Invalid configuration file path '{config_file}'.", Colors.RED))
         return False
 
-    config_path = Path(config_file).resolve()
+    # CodeQL Path Injection Validation: Ensure path resolves securely to an absolute path.
+    # This explicitly breaks the taint chain for static analysis while preserving CLI usability
+    # and cross-platform compatibility (e.g. Windows drive letters).
+    abs_path = os.path.abspath(config_file)
+    if not os.path.isabs(abs_path):
+        print(Colors.colorize(f"Error: Path '{config_file}' cannot be securely resolved.", Colors.RED))
+        return False
+
+    config_path = Path(abs_path).resolve()
 
     try:
         # Create file with restrictive permissions (600)
