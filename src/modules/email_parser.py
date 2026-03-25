@@ -230,7 +230,11 @@ class EmailParser:
         has_filename = bool(part.get_filename() and part.get_filename().strip())
         is_attachment_disp = "attachment" in content_disposition
 
-        return content_type in ("text/plain", "text/html") and not is_attachment_disp and not has_filename
+        return (
+            content_type in ("text/plain", "text/html")
+            and not is_attachment_disp
+            and not has_filename
+        )
 
     def _extract_multipart_content(
         self,
@@ -269,8 +273,10 @@ class EmailParser:
             # Extract text/HTML body if it's explicitly body content
             if self._is_body_text_part(part):
                 decoded_part = self._decode_part_payload(part)
-                self._add_body_content(part.get_content_type(), decoded_part, body_dict, safe_email_id)
-            # Extract as attachment if it has a filename, attachment disposition, or is a non-text/non-multipart
+                self._add_body_content(
+                    part.get_content_type(), decoded_part, body_dict, safe_email_id
+                )
+            # Treat as attachment if not a multipart container (and not explicitly body content)
             elif not is_multipart:
                 attachment = self._extract_attachment(
                     part, attachments, current_total_size, safe_email_id
