@@ -1,9 +1,10 @@
-
 import unittest
 from datetime import datetime
-from src.modules.media_analyzer import MediaAuthenticityAnalyzer, MediaAnalysisResult
+
 from src.modules.email_ingestion import EmailData
+from src.modules.media_analyzer import MediaAuthenticityAnalyzer
 from src.utils.config import AnalysisConfig
+
 
 class TestMediaAnalyzerSecurity(unittest.TestCase):
     def setUp(self):
@@ -23,12 +24,12 @@ class TestMediaAnalyzerSecurity(unittest.TestCase):
             deepfake_provider="simulator",
             deepfake_api_key=None,
             deepfake_api_url=None,
-            deepfake_model_path=None
+            deepfake_model_path=None,
         )
         self.analyzer = MediaAuthenticityAnalyzer(self.config)
 
     def test_extension_bypass_with_trailing_space(self):
-        """Test that filenames with trailing spaces are correctly identified as dangerous"""
+        """Test that filenames with trailing spaces are correctly identified as dangerous."""
         email_data = EmailData(
             message_id="test",
             subject="Test",
@@ -38,16 +39,18 @@ class TestMediaAnalyzerSecurity(unittest.TestCase):
             body_text="",
             body_html="",
             headers={},
-            attachments=[{
-                "filename": "virus.exe ",
-                "content_type": "application/x-msdownload",
-                "size": 1000,
-                "data": b"MZ...",
-                "truncated": False
-            }],
+            attachments=[
+                {
+                    "filename": "virus.exe ",
+                    "content_type": "application/x-msdownload",
+                    "size": 1000,
+                    "data": b"MZ...",
+                    "truncated": False,
+                }
+            ],
             raw_email=None,
             account_email="me@example.com",
-            folder="INBOX"
+            folder="INBOX",
         )
 
         result = self.analyzer.analyze(email_data)
@@ -59,10 +62,12 @@ class TestMediaAnalyzerSecurity(unittest.TestCase):
                 found_dangerous = True
                 break
 
-        self.assertTrue(found_dangerous, "Failed to detect dangerous extension with trailing space")
+        self.assertTrue(
+            found_dangerous, "Failed to detect dangerous extension with trailing space"
+        )
 
     def test_extension_bypass_with_null_byte(self):
-        """Test that filenames with null bytes are handled safely"""
+        """Test that filenames with null bytes are handled safely."""
         # Python strings can contain null bytes, but they can truncate in some C-apis.
         # However, for endswith, it works. But let's see if our logic handles it.
         email_data = EmailData(
@@ -74,16 +79,18 @@ class TestMediaAnalyzerSecurity(unittest.TestCase):
             body_text="",
             body_html="",
             headers={},
-            attachments=[{
-                "filename": "virus.exe\0.txt",
-                "content_type": "text/plain",
-                "size": 1000,
-                "data": b"MZ...",
-                "truncated": False
-            }],
+            attachments=[
+                {
+                    "filename": "virus.exe\0.txt",
+                    "content_type": "text/plain",
+                    "size": 1000,
+                    "data": b"MZ...",
+                    "truncated": False,
+                }
+            ],
             raw_email=None,
             account_email="me@example.com",
-            folder="INBOX"
+            folder="INBOX",
         )
 
         # If the system blindly trusts the extension after null byte, it sees .txt
@@ -96,13 +103,13 @@ class TestMediaAnalyzerSecurity(unittest.TestCase):
         # For this test, let's just see what happens currently.
         # The analyzer checks extension on the filename as is.
 
-        result = self.analyzer.analyze(email_data)
+        self.analyzer.analyze(email_data)
         # We expect this to NOT be flagged as .exe currently because it ends in .txt
         # But we want to ENHANCE the system to strip control chars.
         pass
 
     def test_double_extension_spoofing(self):
-        """Test detection of double extensions"""
+        """Test detection of double extensions."""
         email_data = EmailData(
             message_id="test",
             subject="Test",
@@ -112,33 +119,49 @@ class TestMediaAnalyzerSecurity(unittest.TestCase):
             body_text="",
             body_html="",
             headers={},
-            attachments=[{
-                "filename": "document.pdf.exe",
-                "content_type": "application/x-msdownload",
-                "size": 1000,
-                "data": b"MZ...",
-                "truncated": False
-            }],
+            attachments=[
+                {
+                    "filename": "document.pdf.exe",
+                    "content_type": "application/x-msdownload",
+                    "size": 1000,
+                    "data": b"MZ...",
+                    "truncated": False,
+                }
+            ],
             raw_email=None,
             account_email="me@example.com",
-            folder="INBOX"
+            folder="INBOX",
         )
 
         result = self.analyzer.analyze(email_data)
 
         found_suspicious = False
         for warning in result.file_type_warnings:
-            if "Suspicious file extension" in warning or "Multiple extensions detected" in warning:
+            if (
+                "Suspicious file extension" in warning
+                or "Multiple extensions detected" in warning
+            ):
                 found_suspicious = True
 
         self.assertTrue(found_suspicious, "Failed to detect double extension")
 
     def test_dangerous_server_extensions(self):
-        """Test that server-side script extensions are blocked"""
+        """Test that server-side script extensions are blocked."""
         dangerous_extensions = [
-            '.php', '.php3', '.php4', '.php5', '.phtml',
-            '.pl', '.py', '.rb', '.asp', '.aspx', '.jsp', '.jspx', '.cgi',
-            '.bash'
+            ".php",
+            ".php3",
+            ".php4",
+            ".php5",
+            ".phtml",
+            ".pl",
+            ".py",
+            ".rb",
+            ".asp",
+            ".aspx",
+            ".jsp",
+            ".jspx",
+            ".cgi",
+            ".bash",
         ]
 
         for ext in dangerous_extensions:
@@ -152,16 +175,18 @@ class TestMediaAnalyzerSecurity(unittest.TestCase):
                 body_text="",
                 body_html="",
                 headers={},
-                attachments=[{
-                    "filename": filename,
-                    "content_type": "text/plain",
-                    "size": 100,
-                    "data": b"script content",
-                    "truncated": False
-                }],
+                attachments=[
+                    {
+                        "filename": filename,
+                        "content_type": "text/plain",
+                        "size": 100,
+                        "data": b"script content",
+                        "truncated": False,
+                    }
+                ],
                 raw_email=None,
                 account_email="me@example.com",
-                folder="INBOX"
+                folder="INBOX",
             )
 
             result = self.analyzer.analyze(email_data)
@@ -172,8 +197,12 @@ class TestMediaAnalyzerSecurity(unittest.TestCase):
                     found_dangerous = True
                     break
 
-            self.assertTrue(found_dangerous, f"Failed to detect dangerous extension: {ext}")
-            self.assertEqual(result.risk_level, "high", f"Risk level should be high for {ext}")
+            self.assertTrue(
+                found_dangerous, f"Failed to detect dangerous extension: {ext}"
+            )
+            self.assertEqual(
+                result.risk_level, "high", f"Risk level should be high for {ext}"
+            )
 
     def test_suspicious_extension_no_false_positive(self):
         """Test that a filename containing a suspicious extension as a substring is NOT flagged.
@@ -191,24 +220,27 @@ class TestMediaAnalyzerSecurity(unittest.TestCase):
             body_text="",
             body_html="",
             headers={},
-            attachments=[{
-                "filename": "my.docm_backup.txt",
-                "content_type": "text/plain",
-                "size": 100,
-                "data": b"plain text",
-                "truncated": False
-            }],
+            attachments=[
+                {
+                    "filename": "my.docm_backup.txt",
+                    "content_type": "text/plain",
+                    "size": 100,
+                    "data": b"plain text",
+                    "truncated": False,
+                }
+            ],
             raw_email=None,
             account_email="me@example.com",
-            folder="INBOX"
+            folder="INBOX",
         )
 
         result = self.analyzer.analyze(email_data)
 
         for warning in result.file_type_warnings:
             self.assertNotIn(
-                "Suspicious file extension", warning,
-                "False positive: 'my.docm_backup.txt' should not be flagged as suspicious"
+                "Suspicious file extension",
+                warning,
+                "False positive: 'my.docm_backup.txt' should not be flagged as suspicious",
             )
 
     def test_compound_extension_exe_flagged_as_dangerous(self):
@@ -227,22 +259,28 @@ class TestMediaAnalyzerSecurity(unittest.TestCase):
             body_text="",
             body_html="",
             headers={},
-            attachments=[{
-                "filename": "archive.pdf.exe",
-                "content_type": "application/x-msdownload",
-                "size": 1000,
-                "data": b"MZ",
-                "truncated": False
-            }],
+            attachments=[
+                {
+                    "filename": "archive.pdf.exe",
+                    "content_type": "application/x-msdownload",
+                    "size": 1000,
+                    "data": b"MZ",
+                    "truncated": False,
+                }
+            ],
             raw_email=None,
             account_email="me@example.com",
-            folder="INBOX"
+            folder="INBOX",
         )
 
         result = self.analyzer.analyze(email_data)
 
-        found_dangerous = any("Dangerous file type" in w for w in result.file_type_warnings)
-        self.assertTrue(found_dangerous, "'archive.pdf.exe' must be flagged as dangerous")
+        found_dangerous = any(
+            "Dangerous file type" in w for w in result.file_type_warnings
+        )
+        self.assertTrue(
+            found_dangerous, "'archive.pdf.exe' must be flagged as dangerous"
+        )
 
     def test_legitimate_docm_flagged_as_suspicious(self):
         """Test that 'legitimate.docm' is flagged as suspicious.
@@ -260,23 +298,29 @@ class TestMediaAnalyzerSecurity(unittest.TestCase):
             body_text="",
             body_html="",
             headers={},
-            attachments=[{
-                "filename": "legitimate.docm",
-                "content_type": "application/vnd.ms-word.document.macroEnabled.12",
-                "size": 500,
-                "data": b"PK",
-                "truncated": False
-            }],
+            attachments=[
+                {
+                    "filename": "legitimate.docm",
+                    "content_type": "application/vnd.ms-word.document.macroEnabled.12",
+                    "size": 500,
+                    "data": b"PK",
+                    "truncated": False,
+                }
+            ],
             raw_email=None,
             account_email="me@example.com",
-            folder="INBOX"
+            folder="INBOX",
         )
 
         result = self.analyzer.analyze(email_data)
 
-        found_suspicious = any("Suspicious file extension" in w for w in result.file_type_warnings)
-        self.assertTrue(found_suspicious, "'legitimate.docm' must be flagged as suspicious")
+        found_suspicious = any(
+            "Suspicious file extension" in w for w in result.file_type_warnings
+        )
+        self.assertTrue(
+            found_suspicious, "'legitimate.docm' must be flagged as suspicious"
+        )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

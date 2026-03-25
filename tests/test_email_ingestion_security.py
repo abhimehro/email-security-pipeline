@@ -1,14 +1,15 @@
-import unittest
-from unittest.mock import MagicMock
 import sys
+import unittest
 from pathlib import Path
+from unittest.mock import MagicMock
 
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.modules.email_ingestion import IMAPClient, EmailAccountConfig
+from src.modules.email_ingestion import EmailAccountConfig, IMAPClient
 from src.utils.sanitization import sanitize_for_logging
 from src.utils.security_validators import sanitize_filename
+
 
 class TestEmailIngestionSecurity(unittest.TestCase):
 
@@ -22,14 +23,14 @@ class TestEmailIngestionSecurity(unittest.TestCase):
             folders=["INBOX"],
             provider="test",
             use_ssl=True,
-            verify_ssl=True
+            verify_ssl=True,
         )
         self.client = IMAPClient(self.config)
         # Mock the logger
         self.client.logger = MagicMock()
 
     def test_select_folder_log_injection(self):
-        """Test that folder names are sanitized when logging"""
+        """Test that folder names are sanitized when logging."""
         # Simulate a malicious folder name
         malicious_folder = "INBOX\nFake Log Entry\nAnother Fake Entry"
 
@@ -55,7 +56,7 @@ class TestEmailIngestionSecurity(unittest.TestCase):
         self.assertTrue(found_sanitized, "Logger did not receive sanitized folder name")
 
     def test_parse_email_filename_log_injection(self):
-        """Test that attachment filename logs are sanitized"""
+        """Test that attachment filename logs are sanitized."""
         email_id = "1"
         folder = "INBOX"
 
@@ -64,18 +65,20 @@ class TestEmailIngestionSecurity(unittest.TestCase):
         malicious_filename = "virus.exe\x1b[31mMALICIOUS\x1b[0m"
 
         # Construct raw bytes
-        from email.mime.multipart import MIMEMultipart
         from email.mime.base import MIMEBase
+        from email.mime.multipart import MIMEMultipart
 
         msg = MIMEMultipart()
-        msg['Subject'] = 'Test Email'
-        msg['From'] = 'attacker@example.com'
-        msg['To'] = 'victim@example.com'
+        msg["Subject"] = "Test Email"
+        msg["From"] = "attacker@example.com"
+        msg["To"] = "victim@example.com"
 
-        part = MIMEBase('application', 'octet-stream')
-        part.set_payload(b'malicious content')
+        part = MIMEBase("application", "octet-stream")
+        part.set_payload(b"malicious content")
         # Use proper parameter encoding
-        part.add_header('Content-Disposition', 'attachment', filename=malicious_filename)
+        part.add_header(
+            "Content-Disposition", "attachment", filename=malicious_filename
+        )
         msg.attach(part)
 
         raw_email = msg.as_bytes()
@@ -104,32 +107,34 @@ class TestEmailIngestionSecurity(unittest.TestCase):
         self.assertTrue(found_sanitized, "Logger did not receive sanitized filename")
 
     def test_fetch_skips_large_emails(self):
-        """Test that fetch_unseen_emails checks size before downloading"""
+        """Test that fetch_unseen_emails checks size before downloading."""
         self.client.connection = MagicMock()
         self.client.select_folder = MagicMock(return_value=True)
-        self.client.max_email_size = 10 * 1024 * 1024 # 10MB limit
+        self.client.max_email_size = 10 * 1024 * 1024  # 10MB limit
 
         # search returns 3 email IDs
         self.client.connection.search.return_value = ("OK", [b"1 2 3"])
 
         # Mock fetch response for RFC822.SIZE
         size_response = [
-            b'1 (RFC822.SIZE 1024)',
-            b'2 (RFC822.SIZE 104857600)', # 100MB
-            b'3 (RFC822.SIZE 2048)'
+            b"1 (RFC822.SIZE 1024)",
+            b"2 (RFC822.SIZE 104857600)",  # 100MB
+            b"3 (RFC822.SIZE 2048)",
         ]
 
         content_response = [
-            (b'1 (RFC822 {10})', b'Content 1'),
-            (b'3 (RFC822 {10})', b'Content 3')
+            (b"1 (RFC822 {10})", b"Content 1"),
+            (b"3 (RFC822 {10})", b"Content 3"),
         ]
 
         def fetch_side_effect(ids, message_parts):
             if "(RFC822.SIZE)" in message_parts:
                 return "OK", size_response
             elif "(RFC822)" in message_parts:
-                if b'2' in ids:
-                    raise AssertionError(f"Client attempted to fetch body of large email ID 2! IDs requested: {ids}")
+                if b"2" in ids:
+                    raise AssertionError(
+                        f"Client attempted to fetch body of large email ID 2! IDs requested: {ids}"
+                    )
                 return "OK", content_response
             return "NO", []
 
@@ -143,14 +148,17 @@ class TestEmailIngestionSecurity(unittest.TestCase):
 
         # Verify warning was logged for skipped email (ID 2)
         warning_calls = [
-            call[0][0] for call in self.client.logger.warning.call_args_list
+            call[0][0]
+            for call in self.client.logger.warning.call_args_list
             if "Skipping oversized email" in call[0][0]
         ]
-        self.assertTrue(len(warning_calls) > 0, "Warning not logged for oversized email")
+        self.assertTrue(
+            len(warning_calls) > 0, "Warning not logged for oversized email"
+        )
         self.assertIn("104857600 bytes", warning_calls[0])
 
     def test_fetch_handles_size_fetch_errors(self):
-        """Test that fetch handles errors during size check gracefully"""
+        """Test that fetch handles errors during size check gracefully."""
         self.client.connection = MagicMock()
         self.client.select_folder = MagicMock(return_value=True)
 
@@ -164,7 +172,7 @@ class TestEmailIngestionSecurity(unittest.TestCase):
 
         # Verify warning logged
         # self.client.logger.warning is likely called with "Failed to fetch batch..."
-        warning_found = any(
+        any(
             "Failed to fetch batch" in call[0][0]
             for call in self.client.logger.warning.call_args_list
         )
@@ -183,5 +191,6 @@ class TestEmailIngestionSecurity(unittest.TestCase):
         emails = self.client.fetch_unseen_emails("INBOX")
         self.assertEqual(len(emails), 0)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

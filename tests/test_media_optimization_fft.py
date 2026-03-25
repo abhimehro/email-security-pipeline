@@ -1,15 +1,16 @@
-
-import numpy as np
-import cv2
+import os
+import sys
 import unittest
 from unittest.mock import MagicMock
-import sys
-import os
+
+import cv2
+import numpy as np
 
 # Add src to path
-sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
 from src.modules.media_analyzer import MediaAuthenticityAnalyzer
+
 
 class TestMediaOptimization(unittest.TestCase):
     def setUp(self):
@@ -29,18 +30,23 @@ class TestMediaOptimization(unittest.TestCase):
         for gray in frames_to_check:
             dft = cv2.dft(np.float32(gray), flags=cv2.DFT_COMPLEX_OUTPUT)
             dft_shift = np.fft.fftshift(dft)
-            magnitude = cv2.magnitude(dft_shift[:,:,0], dft_shift[:,:,1])
+            magnitude = cv2.magnitude(dft_shift[:, :, 0], dft_shift[:, :, 1])
             magnitude_spectrum = 20 * np.log(magnitude + 1)
 
             h, w = gray.shape
             center_h, center_w = h // 2, w // 2
             mask_size = min(h, w) // 8
-            magnitude_spectrum[center_h-mask_size:center_h+mask_size, center_w-mask_size:center_w+mask_size] = 0
+            magnitude_spectrum[
+                center_h - mask_size : center_h + mask_size,
+                center_w - mask_size : center_w + mask_size,
+            ] = 0
 
             if np.mean(magnitude_spectrum) > 150:
                 high_freq_noise_count += 1
 
-        if len(frames_to_check) > 0 and (high_freq_noise_count / len(frames_to_check) > 0.6):
+        if len(frames_to_check) > 0 and (
+            high_freq_noise_count / len(frames_to_check) > 0.6
+        ):
             score += 1.0
             issues.append("Unusual high-frequency noise patterns detected")
 
@@ -82,5 +88,6 @@ class TestMediaOptimization(unittest.TestCase):
         self.assertEqual(orig_score2, opt_score2)
         self.assertEqual(orig_issues2, opt_issues2)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

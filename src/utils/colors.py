@@ -2,11 +2,13 @@
 ANSI Color codes for console output formatting.
 Used to improve UX of the CLI and logs without adding external dependencies.
 """
+
 import os
 import sys
 
+
 class Colors:
-    """ANSI color codes with support for NO_COLOR and TTY detection"""
+    """ANSI color codes with support for NO_COLOR and TTY detection."""
 
     # Check if colors should be enabled
     # 1. NO_COLOR env var (standard: https://no-color.org/)
@@ -32,14 +34,14 @@ class Colors:
 
     @classmethod
     def colorize(cls, text: str, color_code: str) -> str:
-        """Wrap text in color codes if enabled"""
+        """Wrap text in color codes if enabled."""
         if not cls.ENABLED:
             return text
         return f"{color_code}{text}{cls.RESET}"
 
     @classmethod
     def get_risk_color(cls, risk_level: str) -> str:
-        """Get color code for a risk level"""
+        """Get color code for a risk level."""
         if not cls.ENABLED:
             return ""
 
@@ -54,7 +56,7 @@ class Colors:
 
     @staticmethod
     def get_risk_symbol(risk_level: str) -> str:
-        """Get emoji symbol for a risk level"""
+        """Get emoji symbol for a risk level."""
         # Emojis are Unicode characters, not ANSI codes, so they are generally safe
         # unless specifically requested to be ASCII-only.
         # However, some non-TTY environments (like simple log files) might not handle emojis well.

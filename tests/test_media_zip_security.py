@@ -1,17 +1,18 @@
+import io
+import os
+import sys
 import unittest
 import zipfile
-import io
-import sys
-import os
 from datetime import datetime
 from unittest.mock import MagicMock
 
 # Add root to path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from src.modules.media_analyzer import MediaAuthenticityAnalyzer
 from src.modules.email_ingestion import EmailData
+from src.modules.media_analyzer import MediaAuthenticityAnalyzer
 from src.utils.config import AnalysisConfig
+
 
 class TestMediaZipSecurity(unittest.TestCase):
     def setUp(self):
@@ -22,12 +23,12 @@ class TestMediaZipSecurity(unittest.TestCase):
 
     def _create_zip_with_file(self, filename_inside):
         buffer = io.BytesIO()
-        with zipfile.ZipFile(buffer, 'w') as zf:
+        with zipfile.ZipFile(buffer, "w") as zf:
             zf.writestr(filename_inside, b"malicious content")
         return buffer.getvalue()
 
     def test_zip_containing_exe(self):
-        """Test that a zip file containing an executable is flagged"""
+        """Test that a zip file containing an executable is flagged."""
         zip_content = self._create_zip_with_file("payload.exe")
 
         email_data = EmailData(
@@ -39,16 +40,18 @@ class TestMediaZipSecurity(unittest.TestCase):
             body_text="",
             body_html="",
             headers={},
-            attachments=[{
-                "filename": "innocent.zip",
-                "content_type": "application/zip",
-                "size": len(zip_content),
-                "data": zip_content,
-                "truncated": False
-            }],
+            attachments=[
+                {
+                    "filename": "innocent.zip",
+                    "content_type": "application/zip",
+                    "size": len(zip_content),
+                    "data": zip_content,
+                    "truncated": False,
+                }
+            ],
             raw_email=None,
             account_email="me@example.com",
-            folder="INBOX"
+            folder="INBOX",
         )
 
         result = self.analyzer.analyze(email_data)
@@ -67,11 +70,15 @@ class TestMediaZipSecurity(unittest.TestCase):
                     found_warning = True
                     break
 
-        self.assertTrue(found_warning, "Failed to detect dangerous file inside zip archive")
-        self.assertGreaterEqual(result.threat_score, 5.0, "Threat score should be high for malware in zip")
+        self.assertTrue(
+            found_warning, "Failed to detect dangerous file inside zip archive"
+        )
+        self.assertGreaterEqual(
+            result.threat_score, 5.0, "Threat score should be high for malware in zip"
+        )
 
     def test_zip_containing_safe_file(self):
-        """Test that a zip file containing a text file is NOT flagged"""
+        """Test that a zip file containing a text file is NOT flagged."""
         zip_content = self._create_zip_with_file("notes.txt")
 
         email_data = EmailData(
@@ -83,16 +90,18 @@ class TestMediaZipSecurity(unittest.TestCase):
             body_text="",
             body_html="",
             headers={},
-            attachments=[{
-                "filename": "notes.zip",
-                "content_type": "application/zip",
-                "size": len(zip_content),
-                "data": zip_content,
-                "truncated": False
-            }],
+            attachments=[
+                {
+                    "filename": "notes.zip",
+                    "content_type": "application/zip",
+                    "size": len(zip_content),
+                    "data": zip_content,
+                    "truncated": False,
+                }
+            ],
             raw_email=None,
             account_email="me@example.com",
-            folder="INBOX"
+            folder="INBOX",
         )
 
         result = self.analyzer.analyze(email_data)
@@ -119,28 +128,39 @@ class TestMediaZipSecurity(unittest.TestCase):
             body_text="",
             body_html="",
             headers={},
-            attachments=[{
-                "filename": "archive.zip",
-                "content_type": "application/zip",
-                "size": len(zip_content),
-                "data": zip_content,
-                "truncated": False
-            }],
+            attachments=[
+                {
+                    "filename": "archive.zip",
+                    "content_type": "application/zip",
+                    "size": len(zip_content),
+                    "data": zip_content,
+                    "truncated": False,
+                }
+            ],
             raw_email=None,
             account_email="me@example.com",
-            folder="INBOX"
+            folder="INBOX",
         )
 
         result = self.analyzer.analyze(email_data)
 
         # Nested archive should add exactly 2.0, not 4.0 from a duplicate check
-        self.assertEqual(result.threat_score, 2.0,
-                         "Nested archive should be scored exactly once (2.0), not twice (4.0)")
+        self.assertEqual(
+            result.threat_score,
+            2.0,
+            "Nested archive should be scored exactly once (2.0), not twice (4.0)",
+        )
 
         # Exactly one warning for the nested archive
-        nested_warnings = [w for w in result.suspicious_attachments if "contains nested archive" in w]
-        self.assertEqual(len(nested_warnings), 1,
-                         "Should produce exactly one nested archive warning, not two")
+        nested_warnings = [
+            w for w in result.suspicious_attachments if "contains nested archive" in w
+        ]
+        self.assertEqual(
+            len(nested_warnings),
+            1,
+            "Should produce exactly one nested archive warning, not two",
+        )
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

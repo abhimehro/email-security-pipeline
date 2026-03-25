@@ -1,12 +1,13 @@
-import re
-import os
 import getpass
+import os
+import re
 from pathlib import Path
 
 # Check if Colors is available in the expected path, otherwise mock it
 try:
     from src.utils.colors import Colors
 except ImportError:
+
     class Colors:
         RESET = ""
         BOLD = ""
@@ -15,12 +16,15 @@ except ImportError:
         YELLOW = ""
         RED = ""
         GREY = ""
+
         @classmethod
-        def colorize(cls, text, color): return text
+        def colorize(cls, text, color):
+            return text
+
 
 try:
-    from src.utils.config import EmailAccountConfig
     from src.modules.imap_connection import IMAPConnection
+    from src.utils.config import EmailAccountConfig
     from src.utils.ui import Spinner
 except ImportError:
     # If these imports fail, we might be in a constrained environment
@@ -30,9 +34,8 @@ except ImportError:
     Spinner = None
 
 # Centralized Outlook troubleshooting tip to avoid duplication/drift
-OUTLOOK_APP_PASSWORD_TIP = (
-    f"{Colors.YELLOW}Tip: Personal Outlook accounts NO LONGER support App Passwords.{Colors.RESET}"
-)
+OUTLOOK_APP_PASSWORD_TIP = f"{Colors.YELLOW}Tip: Personal Outlook accounts NO LONGER support App Passwords.{Colors.RESET}"
+
 
 def _is_valid_email(email: str) -> bool:
     """Check if the email format is valid."""
@@ -43,34 +46,35 @@ def _is_valid_email(email: str) -> bool:
     pattern = r"^[\w\.\-\+]+@[\w\.-]+\.\w+$"
     return re.match(pattern, email) is not None
 
+
 def _test_connection(email: str, app_password: str, provider_choice: str) -> bool:
     """
     Test the connection with provided credentials.
     Returns True if successful, False otherwise.
     """
     if not (EmailAccountConfig and IMAPConnection and Spinner):
-        return True # Cannot verify, assume valid to proceed
+        return True  # Cannot verify, assume valid to proceed
 
     print(f"\n{Colors.CYAN}Verifying credentials...{Colors.RESET}")
 
     # Defaults based on provider
-    if provider_choice == '1': # Gmail
+    if provider_choice == "1":  # Gmail
         imap_server = "imap.gmail.com"
         imap_port = 993
         provider = "gmail"
         use_ssl = True
-    elif provider_choice == '2': # Proton
+    elif provider_choice == "2":  # Proton
         imap_server = "127.0.0.1"
         imap_port = 1143
         provider = "proton"
         use_ssl = True
-    elif provider_choice == '3': # Outlook
+    elif provider_choice == "3":  # Outlook
         imap_server = "outlook.office365.com"
         imap_port = 993
         provider = "outlook"
         use_ssl = True
     else:
-        return True # Should not happen based on caller
+        return True  # Should not happen based on caller
 
     config = EmailAccountConfig(
         enabled=True,
@@ -81,7 +85,7 @@ def _test_connection(email: str, app_password: str, provider_choice: str) -> boo
         folders=["INBOX"],
         provider=provider,
         use_ssl=use_ssl,
-        verify_ssl=True
+        verify_ssl=True,
     )
 
     try:
@@ -89,6 +93,7 @@ def _test_connection(email: str, app_password: str, provider_choice: str) -> boo
         with Spinner("Connecting to IMAP server...") as spinner:
             # Suppress logging during check to avoid clutter
             import logging
+
             logging.disable(logging.CRITICAL)
             try:
                 conn = IMAPConnection(config)
@@ -104,7 +109,7 @@ def _test_connection(email: str, app_password: str, provider_choice: str) -> boo
                 spinner.fail("Connection failed.")
 
         if not success:
-            if provider_choice == '3':
+            if provider_choice == "3":
                 print(OUTLOOK_APP_PASSWORD_TIP)
             return False
 
@@ -115,9 +120,10 @@ def _test_connection(email: str, app_password: str, provider_choice: str) -> boo
         # but in most cases errors happen inside the context manager. If it happens
         # outside, we just print as before.
         print(f"{Colors.RED}✘ Error during connection test: {e}{Colors.RESET}")
-        if provider_choice == '3':
+        if provider_choice == "3":
             print(OUTLOOK_APP_PASSWORD_TIP)
         return False
+
 
 def _select_provider() -> str:
     """Prompt user to select an email provider."""
@@ -129,23 +135,32 @@ def _select_provider() -> str:
 
     while True:
         try:
-            prompt = "\n" + Colors.colorize("? ", Colors.CYAN) + Colors.colorize("Select provider [1-4]: ", Colors.BOLD)
+            prompt = (
+                "\n"
+                + Colors.colorize("? ", Colors.CYAN)
+                + Colors.colorize("Select provider [1-4]: ", Colors.BOLD)
+            )
             choice = input(prompt).strip()
-            if choice in ('1', '2', '3', '4'):
+            if choice in ("1", "2", "3", "4"):
                 return choice
-            print(f"{Colors.YELLOW}Invalid choice. Please enter 1, 2, 3, or 4.{Colors.RESET}")
+            print(
+                f"{Colors.YELLOW}Invalid choice. Please enter 1, 2, 3, or 4.{Colors.RESET}"
+            )
         except EOFError:
-            return '4'
+            return "4"
+
 
 def _get_credentials(choice: str, provider_name: str) -> tuple[str, str]:
     """Prompt user for email and app secret."""
     print(f"\n{Colors.CYAN}Step 2: Configure {provider_name} Credentials{Colors.RESET}")
 
     try:
-        while True: # Outer loop for retry mechanism
+        while True:  # Outer loop for retry mechanism
             # Email input loop
             while True:
-                prompt = Colors.colorize("? ", Colors.CYAN) + Colors.colorize(f"Enter your {provider_name} email address: ", Colors.BOLD)
+                prompt = Colors.colorize("? ", Colors.CYAN) + Colors.colorize(
+                    f"Enter your {provider_name} email address: ", Colors.BOLD
+                )
                 email = input(prompt).strip()
                 if not email:
                     print(f"{Colors.YELLOW}Email is required.{Colors.RESET}")
@@ -154,20 +169,36 @@ def _get_credentials(choice: str, provider_name: str) -> tuple[str, str]:
                 if _is_valid_email(email):
                     break
 
-                print(f"{Colors.YELLOW}Invalid email format. Please enter a valid email address (e.g., user@example.com).{Colors.RESET}")
+                print(
+                    f"{Colors.YELLOW}Invalid email format. Please enter a valid email address (e.g., user@example.com).{Colors.RESET}"
+                )
 
             # Context-specific help
-            if choice == '1': # Gmail
-                print(f"\n{Colors.GREY}Note: Use an App Password, not your login password.")
-                print(f"Generate one at: Google Account -> Security -> 2-Step Verification -> App passwords{Colors.RESET}")
-            elif choice == '2': # Proton
-                print(f"\n{Colors.GREY}Note: Use the password generated by Proton Mail Bridge.")
-                print(f"Find it in: Proton Mail Bridge app -> Mailbox details{Colors.RESET}")
-            elif choice == '3': # Outlook
-                print(f"\n{Colors.GREY}Note: Personal Outlook accounts are not supported.")
-                print(f"Business accounts may require an App Password if MFA is enabled.{Colors.RESET}")
+            if choice == "1":  # Gmail
+                print(
+                    f"\n{Colors.GREY}Note: Use an App Password, not your login password."
+                )
+                print(
+                    f"Generate one at: Google Account -> Security -> 2-Step Verification -> App passwords{Colors.RESET}"
+                )
+            elif choice == "2":  # Proton
+                print(
+                    f"\n{Colors.GREY}Note: Use the password generated by Proton Mail Bridge."
+                )
+                print(
+                    f"Find it in: Proton Mail Bridge app -> Mailbox details{Colors.RESET}"
+                )
+            elif choice == "3":  # Outlook
+                print(
+                    f"\n{Colors.GREY}Note: Personal Outlook accounts are not supported."
+                )
+                print(
+                    f"Business accounts may require an App Password if MFA is enabled.{Colors.RESET}"
+                )
 
-            prompt = Colors.colorize("? ", Colors.CYAN) + Colors.colorize(f"Enter your {provider_name} app password: ", Colors.BOLD)
+            prompt = Colors.colorize("? ", Colors.CYAN) + Colors.colorize(
+                f"Enter your {provider_name} app password: ", Colors.BOLD
+            )
             app_secret = getpass.getpass(prompt).strip()
             while not app_secret:
                 print(f"{Colors.YELLOW}Password is required.{Colors.RESET}")
@@ -178,14 +209,20 @@ def _get_credentials(choice: str, provider_name: str) -> tuple[str, str]:
                 return email, app_secret
 
             # If connection failed, ask user how to proceed
-            print(f"\n{Colors.YELLOW}Connection failed. Would you like to try entering credentials again?{Colors.RESET}")
-            print(f"  y: Try again")
-            print(f"  n: Proceed anyway (skip verification)")
+            print(
+                f"\n{Colors.YELLOW}Connection failed. Would you like to try entering credentials again?{Colors.RESET}"
+            )
+            print("  y: Try again")
+            print("  n: Proceed anyway (skip verification)")
 
-            prompt = Colors.colorize("? ", Colors.CYAN) + Colors.colorize("Retry? [Y/n] ", Colors.BOLD)
+            prompt = Colors.colorize("? ", Colors.CYAN) + Colors.colorize(
+                "Retry? [Y/n] ", Colors.BOLD
+            )
             retry = input(prompt).strip().lower()
-            if retry not in ('', 'y', 'yes'):
-                print(f"{Colors.GREY}Proceeding with entered credentials (unverified).{Colors.RESET}")
+            if retry not in ("", "y", "yes"):
+                print(
+                    f"{Colors.GREY}Proceeding with entered credentials (unverified).{Colors.RESET}"
+                )
                 return email, app_secret
 
             # Loop continues to ask for email/password again
@@ -194,20 +231,29 @@ def _get_credentials(choice: str, provider_name: str) -> tuple[str, str]:
     except EOFError:
         return "", ""
 
-def _generate_config_content(template_content: str, provider_key: str, email: str, app_secret: str) -> str:
+
+def _generate_config_content(
+    template_content: str, provider_key: str, email: str, app_secret: str
+) -> str:
     """Generate configuration content by replacing template variables."""
     content = template_content
 
     # Helper to disable other providers
-    all_providers = ['GMAIL', 'PROTON', 'OUTLOOK']
+    all_providers = ["GMAIL", "PROTON", "OUTLOOK"]
     for provider in all_providers:
         if provider == provider_key:
-            content = re.sub(f"{provider}_ENABLED=.*", f"{provider}_ENABLED=true", content)
+            content = re.sub(
+                f"{provider}_ENABLED=.*", f"{provider}_ENABLED=true", content
+            )
         else:
-            content = re.sub(f"{provider}_ENABLED=.*", f"{provider}_ENABLED=false", content)
+            content = re.sub(
+                f"{provider}_ENABLED=.*", f"{provider}_ENABLED=false", content
+            )
 
     # Set email for selected provider
-    content = re.sub(f"{provider_key}_EMAIL=.*", f"{provider_key}_EMAIL={email}", content)
+    content = re.sub(
+        f"{provider_key}_EMAIL=.*", f"{provider_key}_EMAIL={email}", content
+    )
 
     # Set app_secret safely
     def replace_secret(match):
@@ -217,10 +263,15 @@ def _generate_config_content(template_content: str, provider_key: str, email: st
 
     return content
 
+
 def _write_config_file(config_file: str, new_content: str) -> bool:
     """Helper to write the configuration to a file securely."""
-    if '\0' in config_file:
-        print(Colors.colorize(f"Error: Invalid configuration file path '{config_file}'.", Colors.RED))
+    if "\0" in config_file:
+        print(
+            Colors.colorize(
+                f"Error: Invalid configuration file path '{config_file}'.", Colors.RED
+            )
+        )
         return False
 
     # CodeQL Path Injection Validation: Ensure path resolves securely to an absolute path.
@@ -228,7 +279,11 @@ def _write_config_file(config_file: str, new_content: str) -> bool:
     # and cross-platform compatibility (e.g. Windows drive letters).
     abs_path = os.path.abspath(config_file)
     if not os.path.isabs(abs_path):
-        print(Colors.colorize(f"Error: Path '{config_file}' cannot be securely resolved.", Colors.RED))
+        print(
+            Colors.colorize(
+                f"Error: Path '{config_file}' cannot be securely resolved.", Colors.RED
+            )
+        )
         return False
 
     config_path = Path(abs_path).resolve()
@@ -245,39 +300,56 @@ def _write_config_file(config_file: str, new_content: str) -> bool:
         except AttributeError:
             os.chmod(str(config_path), 0o600)
 
-        with os.fdopen(fd, 'w') as f:
+        with os.fdopen(fd, "w") as f:
             f.write(new_content)
 
-        print("\n" + Colors.colorize(f"✔ Configuration saved to {config_file}", Colors.GREEN))
+        print(
+            "\n"
+            + Colors.colorize(f"✔ Configuration saved to {config_file}", Colors.GREEN)
+        )
         return True
     except Exception as e:
         print(Colors.colorize(f"Error writing config: {e}", Colors.RED))
         return False
 
-def run_setup_wizard(config_file: str = ".env", template_file: str = ".env.example") -> bool:
+
+def run_setup_wizard(
+    config_file: str = ".env", template_file: str = ".env.example"
+) -> bool:
     """
     Run an interactive setup wizard to configure the application.
     Returns True if setup was successful, False otherwise.
     """
 
     if not Path(template_file).exists():
-        print(Colors.colorize(f"Error: Template file '{template_file}' not found.", Colors.RED))
+        print(
+            Colors.colorize(
+                f"Error: Template file '{template_file}' not found.", Colors.RED
+            )
+        )
         return False
 
-    print("\n" + Colors.colorize("🧙 Welcome to the Email Security Pipeline Setup Wizard! 🧙", Colors.BOLD))
-    print(Colors.colorize("Let's get your environment configured quickly.", Colors.GREY))
+    print(
+        "\n"
+        + Colors.colorize(
+            "🧙 Welcome to the Email Security Pipeline Setup Wizard! 🧙", Colors.BOLD
+        )
+    )
+    print(
+        Colors.colorize("Let's get your environment configured quickly.", Colors.GREY)
+    )
     print(Colors.colorize("(Press Ctrl+C at any time to cancel setup)", Colors.GREY))
 
     try:
         # 1. Select Provider
         choice = _select_provider()
-        if choice == '4':
+        if choice == "4":
             return False
 
         provider_map = {
-            '1': ('GMAIL', 'Gmail'),
-            '2': ('PROTON', 'Proton Mail'),
-            '3': ('OUTLOOK', 'Outlook')
+            "1": ("GMAIL", "Gmail"),
+            "2": ("PROTON", "Proton Mail"),
+            "3": ("OUTLOOK", "Outlook"),
         }
         selected_key, selected_name = provider_map[choice]
 
@@ -288,14 +360,16 @@ def run_setup_wizard(config_file: str = ".env", template_file: str = ".env.examp
 
         # 3. Read Template
         try:
-            with open(template_file, 'r') as f:
+            with open(template_file, "r") as f:
                 template_content = f.read()
         except Exception as e:
             print(Colors.colorize(f"Error reading template: {e}", Colors.RED))
             return False
 
         # 4. Generate Config
-        new_content = _generate_config_content(template_content, selected_key, email, app_secret)
+        new_content = _generate_config_content(
+            template_content, selected_key, email, app_secret
+        )
 
         # 5. Write Config
         if not _write_config_file(config_file, new_content):
@@ -308,5 +382,10 @@ def run_setup_wizard(config_file: str = ".env", template_file: str = ".env.examp
         return True
 
     except KeyboardInterrupt:
-        print("\n\n" + Colors.colorize("Setup cancelled by user. No changes were made.", Colors.YELLOW))
+        print(
+            "\n\n"
+            + Colors.colorize(
+                "Setup cancelled by user. No changes were made.", Colors.YELLOW
+            )
+        )
         return False

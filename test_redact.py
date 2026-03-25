@@ -1,9 +1,10 @@
 from src.modules.alert_system import AlertSystem
-import urllib.parse
+
 
 class DummyConfig:
     webhook_url = "https://example.com"
     console = True
+
 
 a = AlertSystem(DummyConfig())
 msg = "Error connecting to https://discord.com/api/webhooks/1234/MY_SECRET_TOKEN"

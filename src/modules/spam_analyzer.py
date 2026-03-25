@@ -1,6 +1,6 @@
 """
 Layer 1: Spam Detection Analyzer
-Traditional spam scoring based on headers, content patterns, and URLs
+Traditional spam scoring based on headers, content patterns, and URLs.
 """
 
 import logging
@@ -9,14 +9,14 @@ from dataclasses import dataclass
 from typing import Dict, List, Tuple, Union
 from urllib.parse import urlparse
 
-from .email_data import EmailData
 from ..utils.pattern_compiler import compile_named_group_pattern, compile_patterns
 from ..utils.threat_scoring import calculate_risk_level
+from .email_data import EmailData
 
 
 @dataclass
 class SpamAnalysisResult:
-    """Result of spam analysis"""
+    """Result of spam analysis."""
 
     score: float
     indicators: List[str]
@@ -26,7 +26,7 @@ class SpamAnalysisResult:
 
 
 class SpamAnalyzer:
-    """Analyzes emails for spam characteristics"""
+    """Analyzes emails for spam characteristics."""
 
     # Spam indicator patterns
     SPAM_KEYWORDS = [
@@ -113,23 +113,25 @@ class SpamAnalyzer:
 
     def __init__(self, config):
         """
-        Initialize spam analyzer
+        Initialize spam analyzer.
 
         Args:
             config: AnalysisConfig object
+
         """
         self.config = config
         self.logger = logging.getLogger("SpamAnalyzer")
 
     def analyze(self, email_data: EmailData) -> SpamAnalysisResult:
         """
-        Perform spam analysis on email
+        Perform spam analysis on email.
 
         Args:
             email_data: Email to analyze
 
         Returns:
             SpamAnalysisResult
+
         """
         score = 0.0
         indicators = []
@@ -145,7 +147,9 @@ class SpamAnalyzer:
         # Optimization: Process parts separately to avoid large string concatenation
         extracted_urls = self.URL_EXTRACTION_PATTERN.findall(email_data.body_text)
         if email_data.body_html:
-            extracted_urls.extend(self.URL_EXTRACTION_PATTERN.findall(email_data.body_html))
+            extracted_urls.extend(
+                self.URL_EXTRACTION_PATTERN.findall(email_data.body_html)
+            )
         link_count = len(extracted_urls)
 
         # Analyze body content
@@ -190,7 +194,7 @@ class SpamAnalyzer:
         )
 
     def _analyze_subject(self, subject: str) -> Tuple[float, List[str]]:
-        """Analyze subject line for spam indicators"""
+        """Analyze subject line for spam indicators."""
         score = 0.0
         indicators = []
         subject_lower = subject.lower()
@@ -231,7 +235,7 @@ class SpamAnalyzer:
     def _analyze_body(
         self, text_body: str, html_body: str, link_count: int
     ) -> Tuple[float, List[str]]:
-        """Analyze email body for spam indicators"""
+        """Analyze email body for spam indicators."""
         score = 0.0
         indicators = []
 
@@ -277,7 +281,7 @@ class SpamAnalyzer:
         return score, indicators
 
     def _check_urls(self, urls: List[str]) -> Tuple[float, List[str]]:
-        """Check for suspicious URLs"""
+        """Check for suspicious URLs."""
         score = 0.0
         suspicious = []
 
@@ -320,8 +324,10 @@ class SpamAnalyzer:
         return score, suspicious
 
     @staticmethod
-    def _get_header_list(headers: Dict[str, Union[str, List[str]]], key: str) -> List[str]:
-        """Helper to always get a list from headers
+    def _get_header_list(
+        headers: Dict[str, Union[str, List[str]]], key: str
+    ) -> List[str]:
+        """Helper to always get a list from headers.
 
         Optimization: Hoisting this inner helper function out of _analyze_headers
         avoids the overhead of recreating the function object on every call,
@@ -335,7 +341,7 @@ class SpamAnalyzer:
     def _analyze_headers(
         self, headers: Dict[str, Union[str, List[str]]]
     ) -> Tuple[float, List[str]]:
-        """Analyze email headers for anomalies"""
+        """Analyze email headers for anomalies."""
         score = 0.0
         issues = []
 
@@ -433,7 +439,7 @@ class SpamAnalyzer:
     def _check_sender(
         self, sender: str, headers: Dict[str, Union[str, List[str]]]
     ) -> Tuple[float, List[str]]:
-        """Check sender reputation and authenticity"""
+        """Check sender reputation and authenticity."""
         score = 0.0
         indicators = []
 
@@ -451,7 +457,9 @@ class SpamAnalyzer:
                 # runs in C and is significantly faster than Python-level any() generator
                 # Check for exact match or subdomain of freemail provider to avoid
                 # false positives like 'notgmail.com' matching 'gmail.com'
-                if domain in self.FREEMAIL_PROVIDERS or domain.endswith(self.FREEMAIL_PROVIDERS_SUBDOMAINS):
+                if domain in self.FREEMAIL_PROVIDERS or domain.endswith(
+                    self.FREEMAIL_PROVIDERS_SUBDOMAINS
+                ):
                     score += 1.5
                     indicators.append("Corporate title with freemail provider")
 
@@ -470,7 +478,7 @@ class SpamAnalyzer:
         return score, indicators
 
     def _calculate_risk_level(self, score: float) -> str:
-        """Calculate risk level based on spam score"""
+        """Calculate risk level based on spam score."""
         return calculate_risk_level(
             score,
             self.config.spam_threshold,

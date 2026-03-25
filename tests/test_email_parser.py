@@ -1,5 +1,5 @@
 """
-Unit tests for src/modules/email_parser.py
+Unit tests for src/modules/email_parser.py.
 
 SECURITY STORY: email_parser.py is the security boundary between raw, untrusted
 email bytes and the rest of the pipeline.  These tests validate that the four
@@ -12,10 +12,10 @@ main defences actually work:
 """
 
 import unittest
+from email import encoders
+from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-from email.mime.base import MIMEBase
-from email import encoders
 from unittest.mock import MagicMock
 
 from src.modules.email_parser import EmailParser
@@ -38,6 +38,7 @@ _PER_FILE_LIMIT_MULTIPLIER = 10
 # ---------------------------------------------------------------------------
 # Shared helpers
 # ---------------------------------------------------------------------------
+
 
 def _make_config() -> EmailAccountConfig:
     """Return a minimal EmailAccountConfig suitable for all tests."""
@@ -71,6 +72,7 @@ def _simple_raw(subject: str = "Test", body: str = "Hello") -> bytes:
 # ---------------------------------------------------------------------------
 # 1. MIME bomb prevention
 # ---------------------------------------------------------------------------
+
 
 class TestMimeBombPrevention(unittest.TestCase):
     """
@@ -135,8 +137,12 @@ class TestMimeBombPrevention(unittest.TestCase):
             str(call) for call in self.parser.logger.warning.call_args_list
         ]
         self.assertTrue(
-            any("max MIME parts" in t or "MAX_MIME_PARTS" in t or str(MAX_MIME_PARTS) in t
-                for t in warning_texts),
+            any(
+                "max MIME parts" in t
+                or "MAX_MIME_PARTS" in t
+                or str(MAX_MIME_PARTS) in t
+                for t in warning_texts
+            ),
             f"Expected a MIME-limit warning, got: {warning_texts}",
         )
 
@@ -157,9 +163,12 @@ class TestMimeBombPrevention(unittest.TestCase):
         # walk() yields the container itself first, so (MAX_MIME_PARTS - 1) children
         # are processed before the counter hits the ceiling.
         first_skipped = MAX_MIME_PARTS - 1
-        self.assertNotIn(f"Part {first_skipped}", result.body_text,
-                         f"Content from part {first_skipped} onward should have been truncated "
-                         f"(MAX_MIME_PARTS={MAX_MIME_PARTS}, container counts as part 1)")
+        self.assertNotIn(
+            f"Part {first_skipped}",
+            result.body_text,
+            f"Content from part {first_skipped} onward should have been truncated "
+            f"(MAX_MIME_PARTS={MAX_MIME_PARTS}, container counts as part 1)",
+        )
         # Content that IS within the limit should be present.
         self.assertIn("Part 0", result.body_text)
 
@@ -173,6 +182,7 @@ class TestMimeBombPrevention(unittest.TestCase):
 # ---------------------------------------------------------------------------
 # 2. Attachment size limits
 # ---------------------------------------------------------------------------
+
 
 class TestAttachmentSizeLimits(unittest.TestCase):
     """
@@ -223,8 +233,11 @@ class TestAttachmentSizeLimits(unittest.TestCase):
         self.assertIsNotNone(result)
         self.assertEqual(len(result.attachments), 1)
         att = result.attachments[0]
-        self.assertLessEqual(len(att["data"]), self.MAX_ATTACH,
-                             "Stored payload must not exceed the per-attachment limit")
+        self.assertLessEqual(
+            len(att["data"]),
+            self.MAX_ATTACH,
+            "Stored payload must not exceed the per-attachment limit",
+        )
 
     def test_attachment_truncation_sets_flag(self):
         """Truncated attachments must carry truncated=True."""
@@ -234,7 +247,9 @@ class TestAttachmentSizeLimits(unittest.TestCase):
         result = self.parser.parse_email("att-2", raw, "INBOX")
 
         att = result.attachments[0]
-        self.assertTrue(att["truncated"], "truncated flag must be True for oversized attachments")
+        self.assertTrue(
+            att["truncated"], "truncated flag must be True for oversized attachments"
+        )
 
     # -- metadata preservation ----------------------------------------------
 
@@ -269,8 +284,11 @@ class TestAttachmentSizeLimits(unittest.TestCase):
         result = self.parser.parse_email("att-5", raw, "INBOX")
 
         att = result.attachments[0]
-        self.assertEqual(att["size"], original_size,
-                         "Reported size should be the original size before truncation")
+        self.assertEqual(
+            att["size"],
+            original_size,
+            "Reported size should be the original size before truncation",
+        )
 
     # -- non-truncated attachment -------------------------------------------
 
@@ -301,14 +319,19 @@ class TestAttachmentSizeLimits(unittest.TestCase):
             part = MIMEBase("application", "octet-stream")
             part.set_payload(b"data")
             encoders.encode_base64(part)
-            part.add_header("Content-Disposition", "attachment", filename=f"file{i}.bin")
+            part.add_header(
+                "Content-Disposition", "attachment", filename=f"file{i}.bin"
+            )
             msg.attach(part)
 
         result = parser.parse_email("att-7", msg.as_bytes(), "INBOX")
 
         self.assertIsNotNone(result)
-        self.assertLessEqual(len(result.attachments), limit,
-                             f"Must not store more than {limit} attachments")
+        self.assertLessEqual(
+            len(result.attachments),
+            limit,
+            f"Must not store more than {limit} attachments",
+        )
 
     # -- total size limit ---------------------------------------------------
 
@@ -345,14 +368,18 @@ class TestAttachmentSizeLimits(unittest.TestCase):
 
         self.assertIsNotNone(result)
         # Only the first attachment (which fits the budget) must be present.
-        self.assertEqual(len(result.attachments), 1,
-                         "Second attachment should be rejected when it would exceed "
-                         "max_total_attachment_bytes")
+        self.assertEqual(
+            len(result.attachments),
+            1,
+            "Second attachment should be rejected when it would exceed "
+            "max_total_attachment_bytes",
+        )
 
 
 # ---------------------------------------------------------------------------
 # 3. Encoding fallbacks
 # ---------------------------------------------------------------------------
+
 
 class TestEncodingFallbacks(unittest.TestCase):
     """
@@ -458,6 +485,7 @@ class TestEncodingFallbacks(unittest.TestCase):
 # 4. Header size limits
 # ---------------------------------------------------------------------------
 
+
 class TestHeaderSizeLimits(unittest.TestCase):
     """
     SECURITY STORY: Extremely long headers (especially Subject) are a known
@@ -472,6 +500,7 @@ class TestHeaderSizeLimits(unittest.TestCase):
     def _parse_with_subject(self, subject: str):
         """Helper: build and parse an email with the given subject."""
         from email.message import EmailMessage
+
         msg = EmailMessage()
         msg["Subject"] = subject
         msg["From"] = "s@example.com"
@@ -510,8 +539,10 @@ class TestHeaderSizeLimits(unittest.TestCase):
         )
         warning_texts = [str(c) for c in self.parser.logger.warning.call_args_list]
         self.assertTrue(
-            any("truncated" in t.lower() or str(MAX_SUBJECT_LENGTH) in t
-                for t in warning_texts),
+            any(
+                "truncated" in t.lower() or str(MAX_SUBJECT_LENGTH) in t
+                for t in warning_texts
+            ),
             f"Expected a truncation warning, got: {warning_texts}",
         )
 
@@ -520,6 +551,7 @@ class TestHeaderSizeLimits(unittest.TestCase):
     def test_header_keys_are_lowercased(self):
         """All header keys must be stored in lowercase."""
         from email.mime.text import MIMEText
+
         msg = MIMEText("body")
         msg["Subject"] = "Case test"
         msg["From"] = "s@example.com"
@@ -530,8 +562,9 @@ class TestHeaderSizeLimits(unittest.TestCase):
 
         self.assertIsNotNone(result)
         for key in result.headers:
-            self.assertEqual(key, key.lower(),
-                             f"Header key '{key}' should be lowercase")
+            self.assertEqual(
+                key, key.lower(), f"Header key '{key}' should be lowercase"
+            )
 
     # -- duplicate headers stored as list -----------------------------------
 
@@ -540,7 +573,7 @@ class TestHeaderSizeLimits(unittest.TestCase):
         Headers that appear more than once (e.g. Received) must be stored as
         a Python list, not a scalar string.
         """
-        import email as email_lib
+
         raw_str = (
             "Subject: Dup test\r\n"
             "From: s@example.com\r\n"
@@ -556,8 +589,7 @@ class TestHeaderSizeLimits(unittest.TestCase):
 
         self.assertIsNotNone(result)
         x_tag = result.headers.get("x-tag")
-        self.assertIsInstance(x_tag, list,
-                              "Duplicate headers must be stored as a list")
+        self.assertIsInstance(x_tag, list, "Duplicate headers must be stored as a list")
         self.assertIn("first", x_tag)
         self.assertIn("second", x_tag)
 
@@ -566,6 +598,7 @@ class TestHeaderSizeLimits(unittest.TestCase):
     def test_missing_subject_returns_empty_string(self):
         """Emails without a Subject header produce an empty subject field."""
         from email.message import EmailMessage
+
         msg = EmailMessage()
         msg["From"] = "s@example.com"
         msg["To"] = "r@example.com"
@@ -581,6 +614,7 @@ class TestHeaderSizeLimits(unittest.TestCase):
 # ---------------------------------------------------------------------------
 # 5. General parsing (smoke tests)
 # ---------------------------------------------------------------------------
+
 
 class TestGeneralParsing(unittest.TestCase):
     """Basic happy-path and robustness checks for EmailParser.parse_email."""
@@ -618,8 +652,9 @@ class TestGeneralParsing(unittest.TestCase):
 
     def test_missing_date_falls_back_to_now(self):
         """When the Date header is absent/malformed the parser uses now()."""
-        from email.message import EmailMessage
         from datetime import datetime
+        from email.message import EmailMessage
+
         msg = EmailMessage()
         msg["From"] = "s@example.com"
         msg["Subject"] = "No date"

@@ -12,9 +12,9 @@ condition explicit and regression-proof.
 import unittest
 
 from src.modules.alert_system import AlertSystem
-from src.modules.spam_analyzer import SpamAnalysisResult
-from src.modules.nlp_analyzer import NLPAnalysisResult
 from src.modules.media_analyzer import MediaAnalysisResult
+from src.modules.nlp_analyzer import NLPAnalysisResult
+from src.modules.spam_analyzer import SpamAnalysisResult
 
 
 def _make_spam(risk_level="low", suspicious_urls=None):

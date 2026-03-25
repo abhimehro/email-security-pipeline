@@ -1,5 +1,5 @@
 """
-Async Alert Dispatch Tests
+Async Alert Dispatch Tests.
 
 Validates that the async alert worker:
 - Dispatches alerts without blocking the caller (fire-and-forget)
@@ -14,16 +14,16 @@ import asyncio
 import threading
 import time
 import unittest
-from unittest.mock import MagicMock, patch
 from datetime import datetime
+from unittest.mock import MagicMock, patch
 
 from src.modules.alert_system import AlertSystem, ThreatReport
 from src.utils.config import AlertConfig
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _make_config(*, console=False, webhook=False, slack=False, threat_low=10):
     """Build a minimal AlertConfig mock."""
@@ -60,6 +60,7 @@ def _make_report(email_id="test-001", score=85.0, risk_level="high"):
 # ---------------------------------------------------------------------------
 # Tests
 # ---------------------------------------------------------------------------
+
 
 class TestAlertWorkerLifecycle(unittest.TestCase):
     """Test worker start / stop lifecycle."""
@@ -143,7 +144,10 @@ class TestAsyncAlertDispatch(unittest.TestCase):
         """
         mock_safe.return_value = (True, "")
         # Simulate a slow webhook (1 second delay)
-        mock_post.side_effect = lambda *a, **kw: (time.sleep(1), MagicMock(status_code=200))[1]
+        mock_post.side_effect = lambda *a, **kw: (
+            time.sleep(1),
+            MagicMock(status_code=200),
+        )[1]
 
         system = AlertSystem(_make_config(webhook=True))
         system.start_worker()
@@ -384,7 +388,9 @@ class TestZeroAlertsLostOnShutdown(unittest.TestCase):
         # stop_worker() must flush the queue before returning
         system.stop_worker()
 
-        self.assertEqual(len(dispatched), n, f"Expected {n} alerts, got {len(dispatched)}")
+        self.assertEqual(
+            len(dispatched), n, f"Expected {n} alerts, got {len(dispatched)}"
+        )
 
 
 class TestSyncFallback(unittest.TestCase):
@@ -462,6 +468,7 @@ class TestOnEnqueueDone(unittest.TestCase):
 
         system.logger.error.assert_not_called()
         system.logger.debug.assert_not_called()
+
     def test_branch_b_unexpected_exception_logs_error(self):
         """Branch B — fut.exception() itself raises unexpectedly: logs exactly one error.
 
@@ -484,7 +491,9 @@ class TestOnEnqueueDone(unittest.TestCase):
         # Defensive: we expect the first positional arg to be the log message
         self.assertIsInstance(error_args[0], str)
         self.assertTrue(
-            error_args[0].startswith("Unexpected error while inspecting enqueue future"),
+            error_args[0].startswith(
+                "Unexpected error while inspecting enqueue future"
+            ),
             msg=f"Unexpected error log message: {error_args[0]!r}",
         )
         # The runtime error that fut.exception() raised should be surfaced to logging.

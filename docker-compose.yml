@@ -33,10 +33,10 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '1.0'
+          cpus: "1.0"
           memory: 1G
         reservations:
-          cpus: '0.5'
+          cpus: "0.5"
           memory: 512M
 
     # Logging configuration
@@ -49,7 +49,13 @@ services:
 
     # Health check
     healthcheck:
-      test: ["CMD", "python3", "-c", "import sys, os; sys.exit(0 if os.path.exists('/app/logs') else 1)"]
+      test:
+        [
+          "CMD",
+          "python3",
+          "-c",
+          "import sys, os; sys.exit(0 if os.path.exists('/app/logs') else 1)",
+        ]
       interval: 5m
       timeout: 3s
       start_period: 30s

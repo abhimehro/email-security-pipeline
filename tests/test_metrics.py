@@ -1,12 +1,12 @@
 """
-Tests for metrics collection functionality
+Tests for metrics collection functionality.
 """
 
+import sys
+import time
 import unittest
 from datetime import datetime, timedelta
 from pathlib import Path
-import sys
-import time
 
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -15,14 +15,14 @@ from src.utils.metrics import Metrics
 
 
 class TestMetrics(unittest.TestCase):
-    """Test cases for Metrics class"""
+    """Test cases for Metrics class."""
 
     def setUp(self):
-        """Set up test fixtures"""
+        """Set up test fixtures."""
         self.metrics = Metrics()
 
     def test_initialization(self):
-        """Test that metrics are initialized correctly"""
+        """Test that metrics are initialized correctly."""
         self.assertEqual(self.metrics.emails_processed, 0)
         self.assertEqual(len(self.metrics.threats_detected), 0)
         self.assertEqual(len(self.metrics.processing_time_ms), 0)
@@ -30,7 +30,7 @@ class TestMetrics(unittest.TestCase):
         self.assertIsInstance(self.metrics.start_time, datetime)
 
     def test_record_email_processed(self):
-        """Test recording processed emails"""
+        """Test recording processed emails."""
         self.metrics.record_email_processed()
         self.assertEqual(self.metrics.emails_processed, 1)
 
@@ -38,7 +38,7 @@ class TestMetrics(unittest.TestCase):
         self.assertEqual(self.metrics.emails_processed, 2)
 
     def test_record_threat(self):
-        """Test recording threats"""
+        """Test recording threats."""
         self.metrics.record_threat("phishing", "high")
 
         # Should record both the type and the type_severity combination
@@ -46,7 +46,7 @@ class TestMetrics(unittest.TestCase):
         self.assertEqual(self.metrics.threats_detected["phishing_high"], 1)
 
     def test_record_multiple_threats(self):
-        """Test recording multiple threats of different types"""
+        """Test recording multiple threats of different types."""
         self.metrics.record_threat("phishing", "high")
         self.metrics.record_threat("phishing", "medium")
         self.metrics.record_threat("spam", "low")
@@ -61,7 +61,7 @@ class TestMetrics(unittest.TestCase):
         self.assertEqual(self.metrics.threats_detected["spam_low"], 1)
 
     def test_record_processing_time(self):
-        """Test recording processing times"""
+        """Test recording processing times."""
         self.metrics.record_processing_time(100.5)
         self.metrics.record_processing_time(200.3)
 
@@ -70,7 +70,7 @@ class TestMetrics(unittest.TestCase):
         self.assertEqual(self.metrics.processing_time_ms[1], 200.3)
 
     def test_record_error(self):
-        """Test recording errors"""
+        """Test recording errors."""
         self.metrics.record_error("imap_connection")
         self.metrics.record_error("imap_connection")
         self.metrics.record_error("analysis_timeout")
@@ -79,7 +79,7 @@ class TestMetrics(unittest.TestCase):
         self.assertEqual(self.metrics.errors_count["analysis_timeout"], 1)
 
     def test_get_summary_empty(self):
-        """Test getting summary with no data"""
+        """Test getting summary with no data."""
         summary = self.metrics.get_summary()
 
         self.assertEqual(summary["emails_processed"], 0)
@@ -90,7 +90,7 @@ class TestMetrics(unittest.TestCase):
         self.assertEqual(summary["sample_count"], 0)
 
     def test_get_summary_with_data(self):
-        """Test getting summary with data"""
+        """Test getting summary with data."""
         # Add some data
         self.metrics.record_email_processed()
         self.metrics.record_email_processed()
@@ -115,7 +115,7 @@ class TestMetrics(unittest.TestCase):
         self.assertEqual(stats["p50_ms"], 150.0)
 
     def test_processing_time_percentiles(self):
-        """Test that percentile calculations work correctly"""
+        """Test that percentile calculations work correctly."""
         # Add 100 data points
         for i in range(100):
             self.metrics.record_processing_time(float(i))
@@ -131,7 +131,7 @@ class TestMetrics(unittest.TestCase):
         self.assertAlmostEqual(stats["p99_ms"], 99.0, delta=1.0)
 
     def test_reset(self):
-        """Test resetting metrics"""
+        """Test resetting metrics."""
         # Add some data
         self.metrics.record_email_processed()
         self.metrics.record_threat("phishing", "high")
@@ -157,7 +157,7 @@ class TestMetrics(unittest.TestCase):
         self.assertGreater(self.metrics.start_time, old_start_time)
 
     def test_uptime_calculation(self):
-        """Test that uptime is calculated correctly"""
+        """Test that uptime is calculated correctly."""
         # Set a known start time
         self.metrics.start_time = datetime.now() - timedelta(seconds=60)
 
@@ -168,7 +168,7 @@ class TestMetrics(unittest.TestCase):
         self.assertLess(summary["uptime_seconds"], 61)
 
     def test_single_processing_time(self):
-        """Test stats calculation with a single data point"""
+        """Test stats calculation with a single data point."""
         self.metrics.record_processing_time(123.5)
 
         summary = self.metrics.get_summary()
@@ -183,7 +183,7 @@ class TestMetrics(unittest.TestCase):
         self.assertEqual(stats["p99_ms"], 123.5)
 
     def test_bounded_processing_time(self):
-        """Test that processing time metrics are bounded to prevent memory leaks"""
+        """Test that processing time metrics are bounded to prevent memory leaks."""
         # Add 1500 data points (more than the limit of 1000)
         for i in range(1500):
             self.metrics.record_processing_time(float(i))
@@ -199,5 +199,5 @@ class TestMetrics(unittest.TestCase):
         self.assertEqual(self.metrics.processing_time_ms[-1], 1499.0)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

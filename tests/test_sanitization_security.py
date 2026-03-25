@@ -1,6 +1,5 @@
-
-import pytest
 from src.utils.sanitization import sanitize_for_logging
+
 
 def test_sanitize_bidi_characters():
     """Test that BiDi control characters are removed to prevent log spoofing."""
@@ -8,10 +7,11 @@ def test_sanitize_bidi_characters():
     # This reverses the text display.
     # "User admin[RLO]nimda" -> "User adminadmin" (if rendered blindly)
     # Actually [RLO] flips direction. "User admin\u202Enimda" -> "User adminadmin" (displayed reversed)
-    input_text = "User admin\u202Enimda"
+    input_text = "User admin\u202enimda"
     # We expect the \u202E to be removed
     expected = "User adminnimda"
     assert sanitize_for_logging(input_text) == expected
+
 
 def test_sanitize_c1_controls():
     """Test that C1 control characters (0x80-0x9F) are removed."""
@@ -19,6 +19,7 @@ def test_sanitize_c1_controls():
     input_text = "Data\u0090Loss"
     expected = "DataLoss"
     assert sanitize_for_logging(input_text) == expected
+
 
 def test_sanitize_line_separators():
     """Test that unicode line separators are removed or replaced."""
@@ -30,9 +31,10 @@ def test_sanitize_line_separators():
     expected = "Line1Line2"
     assert sanitize_for_logging(input_text) == expected
 
+
 def test_sanitize_format_characters():
     """Test that other format characters like Zero Width Space are removed."""
     # U+200B Zero Width Space
-    input_text = "Hid\u200Bden"
+    input_text = "Hid\u200bden"
     expected = "Hidden"
     assert sanitize_for_logging(input_text) == expected

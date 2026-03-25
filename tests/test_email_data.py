@@ -1,5 +1,5 @@
 """
-Unit tests for src/modules/email_data.py
+Unit tests for src/modules/email_data.py.
 
 PATTERN RECOGNITION: EmailData is a plain dataclass — the foundation for all
 analysis modules.  Every field that enters from the outside world (subject,
@@ -22,10 +22,10 @@ from email.message import Message
 
 from src.modules.email_data import EmailData
 
-
 # ---------------------------------------------------------------------------
 # Shared helpers
 # ---------------------------------------------------------------------------
+
 
 def _make_email(**overrides) -> EmailData:
     """Return a fully populated EmailData; keyword overrides replace defaults."""
@@ -50,6 +50,7 @@ def _make_email(**overrides) -> EmailData:
 # ---------------------------------------------------------------------------
 # 1. Basic initialisation
 # ---------------------------------------------------------------------------
+
 
 class TestEmailDataInit(unittest.TestCase):
     """EmailData stores every field exactly as supplied."""
@@ -101,6 +102,7 @@ class TestEmailDataInit(unittest.TestCase):
 # ---------------------------------------------------------------------------
 # 2. Field type contracts
 # ---------------------------------------------------------------------------
+
 
 class TestEmailDataFieldTypes(unittest.TestCase):
     """
@@ -161,6 +163,7 @@ class TestEmailDataFieldTypes(unittest.TestCase):
 # ---------------------------------------------------------------------------
 # 3. None / empty value handling
 # ---------------------------------------------------------------------------
+
 
 class TestEmailDataNoneAndEmptyValues(unittest.TestCase):
     """
@@ -224,6 +227,7 @@ class TestEmailDataNoneAndEmptyValues(unittest.TestCase):
 # 4. Headers — multi-value and duplicate-key support
 # ---------------------------------------------------------------------------
 
+
 class TestEmailDataHeaders(unittest.TestCase):
     """
     PATTERN RECOGNITION: The type annotation is Dict[str, Union[str, List[str]]].
@@ -273,6 +277,7 @@ class TestEmailDataHeaders(unittest.TestCase):
 # 5. Attachments structure
 # ---------------------------------------------------------------------------
 
+
 class TestEmailDataAttachments(unittest.TestCase):
     """
     SECURITY STORY: Attachment metadata drives the media analyser. If the
@@ -314,6 +319,7 @@ class TestEmailDataAttachments(unittest.TestCase):
 # ---------------------------------------------------------------------------
 # 6. Dataclass equality and identity
 # ---------------------------------------------------------------------------
+
 
 class TestEmailDataEquality(unittest.TestCase):
     """
@@ -362,6 +368,7 @@ class TestEmailDataEquality(unittest.TestCase):
 # 7. Field mutation (non-frozen dataclass)
 # ---------------------------------------------------------------------------
 
+
 class TestEmailDataMutability(unittest.TestCase):
     """
     MAINTENANCE WISDOM: EmailData is not frozen, so analysers can annotate it
@@ -389,6 +396,7 @@ class TestEmailDataMutability(unittest.TestCase):
 # ---------------------------------------------------------------------------
 # 8. Missing required field raises TypeError
 # ---------------------------------------------------------------------------
+
 
 class TestEmailDataMissingFields(unittest.TestCase):
     """
@@ -440,6 +448,7 @@ class TestEmailDataMissingFields(unittest.TestCase):
 # 9. Raw email field stores an email.message.Message object
 # ---------------------------------------------------------------------------
 
+
 class TestEmailDataRawEmail(unittest.TestCase):
     """
     INDUSTRY CONTEXT: raw_email preserves the original parsed MIME object so
@@ -467,6 +476,7 @@ class TestEmailDataRawEmail(unittest.TestCase):
 # ---------------------------------------------------------------------------
 # 10. Repr / str representation
 # ---------------------------------------------------------------------------
+
 
 class TestEmailDataRepr(unittest.TestCase):
     """

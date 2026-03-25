@@ -1,6 +1,6 @@
 """
 IMAP Connection Module
-Handles IMAP connection management, folder operations, and email fetching
+Handles IMAP connection management, folder operations, and email fetching.
 
 PATTERN RECOGNITION: This follows the Adapter pattern - it wraps Python's
 imaplib to provide a higher-level, more secure interface for email operations.
@@ -13,29 +13,26 @@ SECURITY STORY: IMAP connections are security-critical because:
 
 import imaplib
 import logging
+import re
 import socket
 import ssl
 import time
-from typing import List, Tuple, Optional, Dict, Any
 from datetime import datetime
-import re
+from typing import Any, Dict, List, Optional, Tuple
 
 from ..utils.config import EmailAccountConfig
-from ..utils.sanitization import sanitize_for_logging, redact_email
-from ..utils.security_validators import (
-    create_secure_ssl_context,
-    calculate_max_email_size
-)
 from ..utils.pattern_compiler import compile_patterns
-
+from ..utils.sanitization import redact_email, sanitize_for_logging
+from ..utils.security_validators import (
+    calculate_max_email_size,
+    create_secure_ssl_context,
+)
 
 logger = logging.getLogger(__name__)
 
 
 def _apply_ssl_overrides(
-    context: ssl.SSLContext,
-    verify_ssl: bool,
-    log_warning: callable
+    context: ssl.SSLContext, verify_ssl: bool, log_warning: callable
 ) -> None:
     """
     Apply SSL verification overrides to an SSL context.
@@ -54,6 +51,7 @@ def _apply_ssl_overrides(
         context: SSL context to configure
         verify_ssl: When False, hostname checking and cert validation are disabled
         log_warning: Callable used to emit a warning when verification is disabled
+
     """
     if not verify_ssl:
         context.check_hostname = False
@@ -63,7 +61,7 @@ def _apply_ssl_overrides(
 
 class IMAPConnection:
     """
-    Manages IMAP connection and folder operations
+    Manages IMAP connection and folder operations.
 
     MAINTENANCE WISDOM: Keep connection management separate from parsing.
     This makes it easier to test connection logic without parsing emails,
@@ -74,15 +72,16 @@ class IMAPConnection:
         self,
         config: EmailAccountConfig,
         rate_limit_delay: int = 1,
-        max_total_attachment_bytes: int = 100 * 1024 * 1024
+        max_total_attachment_bytes: int = 100 * 1024 * 1024,
     ):
         """
-        Initialize IMAP connection manager
+        Initialize IMAP connection manager.
 
         Args:
             config: Email account configuration
             rate_limit_delay: Delay between batch operations (seconds)
             max_total_attachment_bytes: Max total attachment size (for email size calculation)
+
         """
         self.config = config
         self.rate_limit_delay = rate_limit_delay
@@ -92,7 +91,7 @@ class IMAPConnection:
 
     def connect(self) -> bool:
         """
-        Establish connection to IMAP server with secure TLS
+        Establish connection to IMAP server with secure TLS.
 
         SECURITY STORY: We enforce TLS 1.2+ to protect against protocol-level
         attacks (SSLv3 POODLE, TLS 1.0 BEAST, etc.). We also set a 30-second
@@ -100,6 +99,7 @@ class IMAPConnection:
 
         Returns:
             True if connection successful, False otherwise
+
         """
         try:
             self.logger.info(
@@ -116,19 +116,21 @@ class IMAPConnection:
                     self.config.imap_server,
                     self.config.imap_port,
                     ssl_context=context,
-                    timeout=30  # SECURITY: Prevent indefinite hangs
+                    timeout=30,  # SECURITY: Prevent indefinite hangs
                 )
             else:
                 self.connection = imaplib.IMAP4(
                     self.config.imap_server,
                     self.config.imap_port,
-                    timeout=30  # SECURITY: Prevent indefinite hangs
+                    timeout=30,  # SECURITY: Prevent indefinite hangs
                 )
                 self.connection.starttls(ssl_context=context)
 
             # Authenticate
             self.connection.login(self.config.email, self.config.app_password)
-            self.logger.info(f"Successfully connected to {redact_email(self.config.email)}")
+            self.logger.info(
+                f"Successfully connected to {redact_email(self.config.email)}"
+            )
             return True
 
         except imaplib.IMAP4.error as e:
@@ -143,13 +145,14 @@ class IMAPConnection:
 
     def ensure_connection(self) -> bool:
         """
-        Ensure the IMAP connection is alive, reconnecting if necessary
+        Ensure the IMAP connection is alive, reconnecting if necessary.
 
         INDUSTRY CONTEXT: IMAP connections can timeout or drop. Professional
         email clients always check connection health before operations.
 
         Returns:
             True if connection is ready, False if reconnection failed
+
         """
         if not self.connection:
             return self.connect()
@@ -159,15 +162,13 @@ class IMAPConnection:
             self.connection.noop()
             return True
         except Exception as exc:
-            self.logger.warning(
-                f"IMAP connection lost ({exc}), attempting reconnect"
-            )
+            self.logger.warning(f"IMAP connection lost ({exc}), attempting reconnect")
             self.disconnect()
             return self.connect()
 
     def disconnect(self):
         """
-        Close IMAP connection gracefully
+        Close IMAP connection gracefully.
         """
         if not self.connection:
             return
@@ -183,10 +184,11 @@ class IMAPConnection:
 
     def list_folders(self) -> List[str]:
         """
-        List available mailbox folders
+        List available mailbox folders.
 
         Returns:
             List of folder names (e.g., ['INBOX', 'Sent', 'Spam'])
+
         """
         if not self.connection:
             return []
@@ -209,13 +211,14 @@ class IMAPConnection:
 
     def select_folder(self, folder: str) -> bool:
         """
-        Select a folder for operations
+        Select a folder for operations.
 
         Args:
             folder: Folder name (e.g., 'INBOX')
 
         Returns:
             True if folder selected successfully
+
         """
         if not self.connection:
             return False
@@ -228,9 +231,7 @@ class IMAPConnection:
                 return True
             else:
                 safe_folder = sanitize_for_logging(folder)
-                self.logger.warning(
-                    f"Could not select folder {safe_folder}: {status}"
-                )
+                self.logger.warning(f"Could not select folder {safe_folder}: {status}")
                 return False
         except Exception as e:
             safe_folder = sanitize_for_logging(folder)
@@ -238,12 +239,10 @@ class IMAPConnection:
             return False
 
     def fetch_unseen_emails(
-        self,
-        folder: str,
-        limit: int = 50
+        self, folder: str, limit: int = 50
     ) -> List[Tuple[str, bytes]]:
         """
-        Fetch unseen emails from folder with size validation
+        Fetch unseen emails from folder with size validation.
 
         SECURITY STORY: We check email sizes BEFORE downloading them to
         prevent DoS attacks from extremely large emails. We also process
@@ -255,6 +254,7 @@ class IMAPConnection:
 
         Returns:
             List of (email_id, raw_email_bytes) tuples
+
         """
         if not self.select_folder(folder):
             return []
@@ -262,13 +262,11 @@ class IMAPConnection:
         return self._fetch_emails_internal(folder, limit)
 
     def _fetch_emails_internal(
-        self,
-        folder: str,
-        limit: int = 50
+        self, folder: str, limit: int = 50
     ) -> List[Tuple[str, bytes]]:
         """
         Internal fetch logic without folder selection
-        (for backward compatibility with tests that mock select_folder)
+        (for backward compatibility with tests that mock select_folder).
         """
         try:
             # Search for unseen messages
@@ -289,9 +287,7 @@ class IMAPConnection:
             # Limit number of emails to fetch
             email_ids = email_ids[:limit]
 
-            self.logger.info(
-                f"Found {len(email_ids)} unseen emails in {safe_folder}"
-            )
+            self.logger.info(f"Found {len(email_ids)} unseen emails in {safe_folder}")
 
             # Process in batches for rate limiting
             emails = []
@@ -324,6 +320,7 @@ class IMAPConnection:
         Notes:
             The returned email_id is the IMAP message sequence number extracted
             from the FETCH response header (e.g., from b'123 (RFC822 {456}').
+
         """
         if not isinstance(item, tuple):
             return None
@@ -345,15 +342,13 @@ class IMAPConnection:
                     f"{type(raw_bytes)}"
                 )
         except Exception as parse_err:
-            self.logger.error(
-                f"Error parsing email payload {item}: {parse_err}"
-            )
+            self.logger.error(f"Error parsing email payload {item}: {parse_err}")
 
         return None
 
     def _fetch_batch(self, email_ids: List[bytes]) -> List[Tuple[str, bytes]]:
         """
-        Fetch a batch of emails with size pre-checking
+        Fetch a batch of emails with size pre-checking.
 
         SECURITY STORY: Two-step process prevents DoS:
         1. First, check sizes (RFC822.SIZE) - lightweight operation
@@ -364,6 +359,7 @@ class IMAPConnection:
 
         Returns:
             List of (email_id, raw_bytes) tuples
+
         """
         ids_str = b",".join(email_ids)
         emails = []
@@ -385,9 +381,7 @@ class IMAPConnection:
                     if parsed_email:
                         emails.append(parsed_email)
             else:
-                self.logger.warning(
-                    f"Failed to fetch batch {safe_ids_str}: {status}"
-                )
+                self.logger.warning(f"Failed to fetch batch {safe_ids_str}: {status}")
 
         except Exception as e:
             self.logger.error(f"Error fetching email batch {ids_str}: {e}")
@@ -396,13 +390,14 @@ class IMAPConnection:
 
     def _check_email_sizes(self, email_ids: List[bytes]) -> List[bytes]:
         """
-        Check email sizes and filter out oversized ones
+        Check email sizes and filter out oversized ones.
 
         Args:
             email_ids: List of email IDs to check
 
         Returns:
             List of email IDs that are within size limits
+
         """
         ids_str = b",".join(email_ids)
         safe_ids = []
@@ -421,17 +416,17 @@ class IMAPConnection:
                         try:
                             # Parse: b'1 (RFC822.SIZE 1024)'
                             # SECURITY: Use 'replace' to maintain visibility of encoding issues
-                            content = info.decode('ascii', errors='replace')
+                            content = info.decode("ascii", errors="replace")
 
-                            if 'RFC822.SIZE' in content:
+                            if "RFC822.SIZE" in content:
                                 # Extract sequence number
                                 parts = info.split()
                                 seq = parts[0]
 
                                 # Extract size
-                                size_idx = content.find('RFC822.SIZE') + 11
+                                size_idx = content.find("RFC822.SIZE") + 11
                                 remaining = content[size_idx:].strip()
-                                size_str = remaining.split(')')[0].strip()
+                                size_str = remaining.split(")")[0].strip()
                                 size = int(size_str)
 
                                 # Check against limit
@@ -456,7 +451,7 @@ class IMAPConnection:
 
     def _get_auth_tip(self, error_msg: str) -> Optional[str]:
         """
-        Get actionable tip based on error and provider
+        Get actionable tip based on error and provider.
 
         INDUSTRY CONTEXT: Major email providers now require app-specific
         passwords for IMAP access. This helps users troubleshoot authentication.
@@ -466,17 +461,21 @@ class IMAPConnection:
 
         Returns:
             User-friendly tip or None
+
         """
-        msg_lower = error_msg.lower()
+        error_msg.lower()
         server_lower = self.config.imap_server.lower()
 
         # Check for authentication failures
         # Optimization: compiled regex search is faster than any() generator loop for substring matching
         # Lazy-load class-level regex pattern to avoid recompilation on every call
-        if not hasattr(self.__class__, '_AUTH_KEYWORD_PATTERN'):
+        if not hasattr(self.__class__, "_AUTH_KEYWORD_PATTERN"):
             auth_keywords = [
-                "authentication failed", "login failed", "invalid credentials",
-                "logon failure", "authenticate"
+                "authentication failed",
+                "login failed",
+                "invalid credentials",
+                "logon failure",
+                "authenticate",
             ]
             # Use shared pattern compiler for consistent escaping/grouping and safety checks
             self.__class__._AUTH_KEYWORD_PATTERN = compile_patterns(
@@ -513,7 +512,7 @@ class IMAPConnection:
 
 class IMAPDiagnostics:
     """
-    Diagnostic utilities for troubleshooting IMAP connections
+    Diagnostic utilities for troubleshooting IMAP connections.
 
     MAINTENANCE WISDOM: Keep diagnostics separate from connection logic
     to avoid cluttering the main class. Users only need diagnostics when
@@ -522,22 +521,26 @@ class IMAPDiagnostics:
 
     def __init__(self, config: EmailAccountConfig):
         """
-        Initialize diagnostics
+        Initialize diagnostics.
 
         Args:
             config: Email account configuration to diagnose
+
         """
         self.config = config
         self.logger = logging.getLogger(f"IMAPDiagnostics.{config.provider}")
 
     def diagnose_connection_issues(self) -> Dict[str, Any]:
         """
-        Run comprehensive connection diagnostics
+        Run comprehensive connection diagnostics.
 
         Returns:
             Dictionary with diagnostic results for each check
+
         """
-        self.logger.info(f"Running diagnostics for {redact_email(self.config.email)}...")
+        self.logger.info(
+            f"Running diagnostics for {redact_email(self.config.email)}..."
+        )
 
         return {
             "server_reachable": self._check_server_reachability(),
@@ -548,7 +551,7 @@ class IMAPDiagnostics:
 
     def _check_server_reachability(self) -> Dict[str, Any]:
         """
-        Check if the IMAP server is reachable via DNS
+        Check if the IMAP server is reachable via DNS.
         """
         result = {"host_resolved": None, "resolves_to": None, "error": None}
         try:
@@ -562,13 +565,16 @@ class IMAPDiagnostics:
 
     def _check_port_open(self) -> Dict[str, Any]:
         """
-        Check if the IMAP port is open and accepting connections
+        Check if the IMAP port is open and accepting connections.
         """
         result = {"open": False, "error": None}
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
             sock.settimeout(5)
             try:
-                if sock.connect_ex((self.config.imap_server, self.config.imap_port)) == 0:
+                if (
+                    sock.connect_ex((self.config.imap_server, self.config.imap_port))
+                    == 0
+                ):
                     result["open"] = True
             except Exception as e:
                 result["error"] = f"Port check failed: {e}"
@@ -576,7 +582,7 @@ class IMAPDiagnostics:
 
     def _check_ssl_certificate(self) -> Dict[str, Any]:
         """
-        Validate the SSL certificate of the IMAP server
+        Validate the SSL certificate of the IMAP server.
         """
         result = {"valid": False, "expires_in_days": None, "error": None}
         try:
@@ -584,19 +590,16 @@ class IMAPDiagnostics:
             _apply_ssl_overrides(context, self.config.verify_ssl, self.logger.warning)
 
             with socket.create_connection(
-                (self.config.imap_server, self.config.imap_port),
-                timeout=5
+                (self.config.imap_server, self.config.imap_port), timeout=5
             ) as sock:
                 with context.wrap_socket(
-                    sock,
-                    server_hostname=self.config.imap_server
+                    sock, server_hostname=self.config.imap_server
                 ) as ssock:
                     cert = ssock.getpeercert()
                     if cert:
                         result["valid"] = True
                         expiry_date = datetime.strptime(
-                            cert["notAfter"],
-                            "%b %d %H:%M:%S %Y %Z"
+                            cert["notAfter"], "%b %d %H:%M:%S %Y %Z"
                         )
                         delta = expiry_date - datetime.now()
                         result["expires_in_days"] = delta.days
@@ -608,7 +611,7 @@ class IMAPDiagnostics:
 
     def _check_credentials(self) -> Dict[str, Any]:
         """
-        Attempt a login to verify credentials
+        Attempt a login to verify credentials.
         """
         result = {"valid": False, "error": None}
         try:
@@ -617,15 +620,10 @@ class IMAPDiagnostics:
 
             if self.config.use_ssl:
                 conn = imaplib.IMAP4_SSL(
-                    self.config.imap_server,
-                    self.config.imap_port,
-                    ssl_context=context
+                    self.config.imap_server, self.config.imap_port, ssl_context=context
                 )
             else:
-                conn = imaplib.IMAP4(
-                    self.config.imap_server,
-                    self.config.imap_port
-                )
+                conn = imaplib.IMAP4(self.config.imap_server, self.config.imap_port)
                 conn.starttls(ssl_context=context)
 
             conn.login(self.config.email, self.config.app_password)

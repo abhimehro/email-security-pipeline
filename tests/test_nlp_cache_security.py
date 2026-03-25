@@ -1,8 +1,10 @@
-import unittest
-import time
 import hashlib
+import time
+import unittest
+
 from src.modules.nlp_analyzer import NLPThreatAnalyzer
 from src.utils.caching import TTLCache
+
 
 # Mock Config
 class MockConfig:
@@ -12,7 +14,8 @@ class MockConfig:
         self.check_authority_impersonation = True
         self.check_psychological_triggers = True
         self.nlp_threshold = 0.5
-        self.nlp_model = 'distilbert-base-uncased'
+        self.nlp_model = "distilbert-base-uncased"
+
 
 class TestNLPCacheSecurity(unittest.TestCase):
     def setUp(self):
@@ -40,7 +43,9 @@ class TestNLPCacheSecurity(unittest.TestCase):
 
         # Second call
         result2 = self.analyzer.analyze_with_transformer(text)
-        self.assertEqual(self.call_count, 1, "Should be cached and not call core impl again")
+        self.assertEqual(
+            self.call_count, 1, "Should be cached and not call core impl again"
+        )
         self.assertEqual(result1, result2)
 
     def test_cache_key_is_hash(self):
@@ -73,7 +78,9 @@ class TestNLPCacheSecurity(unittest.TestCase):
         # Add one more — oldest entry (Email 0) must be evicted
         self.analyzer.analyze_with_transformer("Email 512")
 
-        self.assertEqual(len(self.analyzer._cache), 512, "Cache size should remain at max_size")
+        self.assertEqual(
+            len(self.analyzer._cache), 512, "Cache size should remain at max_size"
+        )
 
         # Verify oldest (Email 0) is gone
         hash0 = hashlib.sha256(b"Email 0").hexdigest()
@@ -109,8 +116,10 @@ class TestNLPCacheSecurity(unittest.TestCase):
 
         # Populate the cache
         self.analyzer.analyze_with_transformer(text)
-        self.assertIsNotNone(self.analyzer._cache.get(text_hash),
-                             "Entry should be present before TTL expires")
+        self.assertIsNotNone(
+            self.analyzer._cache.get(text_hash),
+            "Entry should be present before TTL expires",
+        )
 
         # Wait for TTL to expire
         time.sleep(1.1)
@@ -122,5 +131,6 @@ class TestNLPCacheSecurity(unittest.TestCase):
         # Confirm the key is no longer accessible via the public API
         self.assertNotIn(text_hash, self.analyzer._cache)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

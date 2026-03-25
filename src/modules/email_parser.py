@@ -1,6 +1,6 @@
 """
 Email Parser Module
-Handles parsing of raw email bytes into structured EmailData objects
+Handles parsing of raw email bytes into structured EmailData objects.
 
 PATTERN RECOGNITION: This follows the Parser pattern - it takes unstructured
 data (raw email bytes) and transforms it into a structured object (EmailData).
@@ -18,28 +18,27 @@ import email
 import logging
 import mimetypes
 import uuid
-from typing import Dict, List, Optional, Union, Any, Tuple
-from email.message import Message
-from email.header import decode_header, make_header
-from email.utils import getaddresses, parsedate_to_datetime
 from datetime import datetime
+from email.header import decode_header, make_header
+from email.message import Message
+from email.utils import getaddresses, parsedate_to_datetime
+from typing import Any, Dict, List, Optional, Tuple, Union
 
-from .email_data import EmailData
 from ..utils.config import EmailAccountConfig
 from ..utils.sanitization import sanitize_for_logging
 from ..utils.security_validators import (
-    MAX_SUBJECT_LENGTH,
     MAX_MIME_PARTS,
+    MAX_SUBJECT_LENGTH,
     sanitize_filename,
 )
-
+from .email_data import EmailData
 
 logger = logging.getLogger(__name__)
 
 
 class EmailParser:
     """
-    Parses raw email bytes into structured EmailData objects
+    Parses raw email bytes into structured EmailData objects.
 
     MAINTENANCE WISDOM: Keep parsing logic separate from I/O (IMAP connection).
     This makes it easier to test - you can parse test emails without needing
@@ -52,10 +51,10 @@ class EmailParser:
         max_body_size: int = 1024 * 1024,  # 1MB default
         max_attachment_bytes: int = 25 * 1024 * 1024,  # 25MB default
         max_total_attachment_bytes: int = 100 * 1024 * 1024,  # 100MB default
-        max_attachment_count: int = 10
+        max_attachment_count: int = 10,
     ):
         """
-        Initialize email parser
+        Initialize email parser.
 
         Args:
             config: Email account configuration (for account_email field)
@@ -63,6 +62,7 @@ class EmailParser:
             max_attachment_bytes: Maximum bytes per attachment
             max_total_attachment_bytes: Maximum total attachment size per email
             max_attachment_count: Maximum number of attachments per email
+
         """
         self.config = config
         self.max_body_size = max_body_size
@@ -71,9 +71,11 @@ class EmailParser:
         self.max_attachment_count = max_attachment_count
         self.logger = logging.getLogger(f"EmailParser.{config.provider}")
 
-    def parse_email(self, email_id: str, raw_email: bytes, folder: str) -> Optional[EmailData]:
+    def parse_email(
+        self, email_id: str, raw_email: bytes, folder: str
+    ) -> Optional[EmailData]:
         """
-        Parse raw email into EmailData object
+        Parse raw email into EmailData object.
 
         SECURITY STORY: This is the security boundary - untrusted email bytes
         come in, and we validate/sanitize everything before creating EmailData.
@@ -85,6 +87,7 @@ class EmailParser:
 
         Returns:
             EmailData object if parsing succeeds, None if it fails
+
         """
         try:
             msg = email.message_from_bytes(raw_email)
@@ -113,7 +116,7 @@ class EmailParser:
                 attachments=attachments,
                 raw_email=msg,
                 account_email=self.config.email,
-                folder=folder
+                folder=folder,
             )
 
         except Exception as e:
@@ -123,7 +126,7 @@ class EmailParser:
 
     def _extract_headers(self, msg: Message) -> Dict[str, Union[str, List[str]]]:
         """
-        Extract all headers from email, supporting duplicates
+        Extract all headers from email, supporting duplicates.
 
         SECURITY STORY: Keys are normalized to lowercase to prevent
         case-sensitivity bypasses (e.g., "X-Spam" vs "x-spam").
@@ -134,6 +137,7 @@ class EmailParser:
 
         Returns:
             Dictionary of headers (lowercase keys)
+
         """
         headers: Dict[str, Union[str, List[str]]] = {}
 
@@ -155,7 +159,7 @@ class EmailParser:
 
     def _extract_subject(self, msg: Message, email_id: str) -> str:
         """
-        Extract and validate subject line
+        Extract and validate subject line.
 
         SECURITY STORY: Truncate extremely long subjects to prevent DoS.
         """
@@ -172,13 +176,14 @@ class EmailParser:
 
     def _extract_date(self, msg: Message) -> datetime:
         """
-        Extract date from email, with fallback to current time
+        Extract date from email, with fallback to current time.
 
         Args:
             msg: Email message object
 
         Returns:
             Parsed datetime or current time if parsing fails
+
         """
         date_str = msg.get("Date", "")
         try:
@@ -188,12 +193,10 @@ class EmailParser:
             return datetime.now()
 
     def _extract_content(
-        self,
-        msg: Message,
-        email_id: str
+        self, msg: Message, email_id: str
     ) -> Tuple[str, str, List[Dict[str, Any]]]:
         """
-        Extract body text, HTML, and attachments from email
+        Extract body text, HTML, and attachments from email.
 
         SECURITY STORY: This is where we enforce limits on:
         - Number of MIME parts (prevent MIME bombs)
@@ -207,6 +210,7 @@ class EmailParser:
 
         Returns:
             Tuple of (body_text, body_html, attachments)
+
         """
         safe_email_id = sanitize_for_logging(email_id)
 
@@ -216,20 +220,20 @@ class EmailParser:
             return self._extract_singlepart_content(msg, safe_email_id)
 
     def _extract_multipart_content(
-        self,
-        msg: Message,
-        safe_email_id: str
+        self, msg: Message, safe_email_id: str
     ) -> Tuple[str, str, List[Dict[str, Any]]]:
         """
-        Extract content from multipart email
+        Extract content from multipart email.
 
         SECURITY STORY: We use list accumulation instead of string concatenation
         to avoid O(N^2) performance (which could be a DoS vector).
         """
         # Use lists for efficient accumulation
         body_dict: Dict[str, Any] = {
-            'text_parts': [], 'text_len': 0,
-            'html_parts': [], 'html_len': 0,
+            "text_parts": [],
+            "text_len": 0,
+            "html_parts": [],
+            "html_len": 0,
         }
 
         attachments = []
@@ -250,9 +254,14 @@ class EmailParser:
             content_type = part.get_content_type()
             content_disposition = str(part.get("Content-Disposition", ""))
             # Extract text/HTML body
-            if content_type in ("text/plain", "text/html") and "attachment" not in content_disposition:
+            if (
+                content_type in ("text/plain", "text/html")
+                and "attachment" not in content_disposition
+            ):
                 decoded_part = self._decode_part_payload(part)
-                self._add_body_content(content_type, decoded_part, body_dict, safe_email_id)
+                self._add_body_content(
+                    content_type, decoded_part, body_dict, safe_email_id
+                )
             # Extract attachments
             elif "attachment" in content_disposition:
                 attachment = self._extract_attachment(
@@ -263,21 +272,21 @@ class EmailParser:
                     current_total_size += attachment["size"]
 
         # Join accumulated parts
-        body_text = "".join(body_dict['text_parts'])
-        body_html = "".join(body_dict['html_parts'])
+        body_text = "".join(body_dict["text_parts"])
+        body_html = "".join(body_dict["html_parts"])
         return body_text, body_html, attachments
 
     def _extract_singlepart_content(
-        self,
-        msg: Message,
-        safe_email_id: str
+        self, msg: Message, safe_email_id: str
     ) -> Tuple[str, str, List[Dict[str, Any]]]:
         """
-        Extract content from single-part email
+        Extract content from single-part email.
         """
         body_dict: Dict[str, Any] = {
-            'text_parts': [], 'text_len': 0,
-            'html_parts': [], 'html_len': 0,
+            "text_parts": [],
+            "text_len": 0,
+            "html_parts": [],
+            "html_len": 0,
         }
 
         content_type = msg.get_content_type()
@@ -296,17 +305,18 @@ class EmailParser:
                 f"{type(e).__name__}: {e}"
             )
 
-        return "".join(body_dict['text_parts']), "".join(body_dict['html_parts']), []
+        return "".join(body_dict["text_parts"]), "".join(body_dict["html_parts"]), []
+
     def _append_body_part(
         self,
         parts: List[str],
         current_len: int,
         new_part: str,
         body_type: str,
-        safe_email_id: str
+        safe_email_id: str,
     ) -> Tuple[List[str], int]:
         """
-        Append body part with size checking and truncation
+        Append body part with size checking and truncation.
 
         Args:
             parts: List of body parts accumulated so far
@@ -317,6 +327,7 @@ class EmailParser:
 
         Returns:
             Tuple of (updated_parts, updated_len)
+
         """
         remaining = self.max_body_size - current_len
 
@@ -339,7 +350,7 @@ class EmailParser:
         content_type: str,
         part_data: str,
         body_dict: Dict[str, Any],
-        safe_email_id: str
+        safe_email_id: str,
     ) -> None:
         """
         Unified body content handler with size limiting.
@@ -356,30 +367,28 @@ class EmailParser:
             body_dict: Mutable dict with 'text_parts'/'html_parts' lists and
                        'text_len'/'html_len' counters
             safe_email_id: Sanitized email ID for logging
+
         """
-        key = 'html' if content_type == 'text/html' else 'text'
-        label = "Body HTML" if key == 'html' else "Body text"
-        current_len = body_dict[f'{key}_len']
+        key = "html" if content_type == "text/html" else "text"
+        label = "Body HTML" if key == "html" else "Body text"
+        current_len = body_dict[f"{key}_len"]
 
         if current_len < self.max_body_size:
             parts, new_len = self._append_body_part(
-                body_dict[f'{key}_parts'],
-                current_len,
-                part_data,
-                label,
-                safe_email_id
+                body_dict[f"{key}_parts"], current_len, part_data, label, safe_email_id
             )
-            body_dict[f'{key}_parts'] = parts
-            body_dict[f'{key}_len'] = new_len
+            body_dict[f"{key}_parts"] = parts
+            body_dict[f"{key}_len"] = new_len
+
     def _extract_attachment(
         self,
         part: Message,
         attachments: List[Dict[str, Any]],
         current_total_size: int,
-        safe_email_id: str
+        safe_email_id: str,
     ) -> Optional[Dict[str, Any]]:
         """
-        Extract attachment from MIME part with security checks
+        Extract attachment from MIME part with security checks.
 
         SECURITY STORY: We enforce three limits:
         1. Maximum attachment count (prevent resource exhaustion)
@@ -388,6 +397,7 @@ class EmailParser:
 
         Returns:
             Attachment dict if valid, None if rejected
+
         """
         # Check attachment count limit
         if len(attachments) >= self.max_attachment_count:
@@ -438,7 +448,7 @@ class EmailParser:
                 safe_filename,
                 original_size,
             )
-            payload = payload[:self.max_attachment_bytes]
+            payload = payload[: self.max_attachment_bytes]
             truncated = True
 
         return {
@@ -452,7 +462,7 @@ class EmailParser:
     @staticmethod
     def _decode_header_value(value: str) -> str:
         """
-        Decode RFC 2047 encoded header value
+        Decode RFC 2047 encoded header value.
 
         SECURITY STORY: Email headers can use various encodings (quoted-printable,
         base64, etc.). We decode them safely, with fallback to original value.
@@ -462,6 +472,7 @@ class EmailParser:
 
         Returns:
             Decoded string
+
         """
         if not value:
             return ""
@@ -474,13 +485,15 @@ class EmailParser:
             logger.debug(f"Unknown charset encountered, falling back to raw value: {e}")
             return value
         except Exception as e:
-            logger.debug(f"Unexpected error decoding header value: {type(e).__name__}: {e}")
+            logger.debug(
+                f"Unexpected error decoding header value: {type(e).__name__}: {e}"
+            )
             return value
 
     @classmethod
     def _format_addresses(cls, header_value: str) -> str:
         """
-        Parse and format email addresses from header
+        Parse and format email addresses from header.
 
         Args:
             header_value: Raw address header (From, To, Cc, etc.)
@@ -491,6 +504,7 @@ class EmailParser:
         Example:
             >>> _format_addresses('"John Doe" <john@example.com>')
             'John Doe <john@example.com>'
+
         """
         if not header_value:
             return ""
@@ -510,13 +524,14 @@ class EmailParser:
     @staticmethod
     def _decode_part_payload(part: Message) -> str:
         """
-        Decode MIME part payload to string
+        Decode MIME part payload to string.
 
         Args:
             part: MIME part
 
         Returns:
             Decoded string content
+
         """
         payload = part.get_payload(decode=True)
         if not payload:
@@ -526,7 +541,7 @@ class EmailParser:
     @staticmethod
     def _decode_bytes(data: bytes, charset: Optional[str]) -> str:
         """
-        Decode bytes to string with charset fallback
+        Decode bytes to string with charset fallback.
 
         SECURITY STORY: We use 'replace' error handling instead of 'strict'
         to prevent parsing failures from malformed input. This ensures we
@@ -538,6 +553,7 @@ class EmailParser:
 
         Returns:
             Decoded string
+
         """
         encoding = charset or "utf-8"
         try:

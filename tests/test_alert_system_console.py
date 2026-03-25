@@ -1,15 +1,15 @@
 """
 Alert System Console Rendering Tests
 Tests _console_clean_report and its helper methods:
-_get_visual_length, _truncate_text, _get_terminal_width
+_get_visual_length, _truncate_text, _get_terminal_width.
 """
 
 import sys
 import unittest
 from datetime import datetime
 from io import StringIO
-from unittest.mock import MagicMock, patch
 from pathlib import Path
+from unittest.mock import MagicMock, patch
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 

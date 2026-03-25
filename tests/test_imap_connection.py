@@ -1,5 +1,5 @@
 """
-Unit tests for IMAPConnection and IMAPDiagnostics classes
+Unit tests for IMAPConnection and IMAPDiagnostics classes.
 
 SECURITY STORY: The IMAP connection module is the entry point for all email
 analysis. Untested exception paths — auth failures, SSL errors, network
@@ -15,7 +15,7 @@ import imaplib
 import socket
 import ssl
 import unittest
-from unittest.mock import MagicMock, patch, call
+from unittest.mock import MagicMock, patch
 
 from src.modules.imap_connection import IMAPConnection, IMAPDiagnostics
 from src.utils.config import EmailAccountConfig
@@ -39,7 +39,7 @@ def _make_config(**overrides) -> EmailAccountConfig:
 
 
 class TestIMAPConnectionConnect(unittest.TestCase):
-    """Tests for IMAPConnection.connect()"""
+    """Tests for IMAPConnection.connect()."""
 
     def setUp(self):
         self.config = _make_config()
@@ -88,7 +88,9 @@ class TestIMAPConnectionConnect(unittest.TestCase):
 
     @patch("src.modules.imap_connection.create_secure_ssl_context")
     @patch("src.modules.imap_connection.imaplib.IMAP4_SSL")
-    def test_connect_generic_exception_returns_false(self, mock_imap4_ssl, mock_ssl_ctx):
+    def test_connect_generic_exception_returns_false(
+        self, mock_imap4_ssl, mock_ssl_ctx
+    ):
         """Unexpected errors (e.g. network timeout) must also return False safely."""
         mock_imap4_ssl.side_effect = OSError("network unreachable")
 
@@ -138,7 +140,7 @@ class TestIMAPConnectionConnect(unittest.TestCase):
 
 
 class TestIMAPConnectionDisconnect(unittest.TestCase):
-    """Tests for IMAPConnection.disconnect()"""
+    """Tests for IMAPConnection.disconnect()."""
 
     def setUp(self):
         self.config = _make_config()
@@ -182,7 +184,7 @@ class TestIMAPConnectionDisconnect(unittest.TestCase):
 
 
 class TestIMAPConnectionEnsureConnection(unittest.TestCase):
-    """Tests for IMAPConnection.ensure_connection()"""
+    """Tests for IMAPConnection.ensure_connection()."""
 
     def setUp(self):
         self.config = _make_config()
@@ -232,7 +234,7 @@ class TestIMAPConnectionEnsureConnection(unittest.TestCase):
 
 
 class TestIMAPConnectionListFolders(unittest.TestCase):
-    """Tests for IMAPConnection.list_folders()"""
+    """Tests for IMAPConnection.list_folders()."""
 
     def setUp(self):
         self.config = _make_config()
@@ -279,7 +281,7 @@ class TestIMAPConnectionListFolders(unittest.TestCase):
 
 
 class TestIMAPConnectionSelectFolder(unittest.TestCase):
-    """Tests for IMAPConnection.select_folder()"""
+    """Tests for IMAPConnection.select_folder()."""
 
     def setUp(self):
         self.config = _make_config()
@@ -332,7 +334,7 @@ class TestIMAPConnectionSelectFolder(unittest.TestCase):
 
 
 class TestIMAPConnectionCheckEmailSizes(unittest.TestCase):
-    """Tests for IMAPConnection._check_email_sizes()"""
+    """Tests for IMAPConnection._check_email_sizes()."""
 
     def setUp(self):
         self.config = _make_config()
@@ -351,7 +353,7 @@ class TestIMAPConnectionCheckEmailSizes(unittest.TestCase):
         mock_imap.fetch.return_value = (
             "OK",
             [
-                b"1 (RFC822.SIZE 512)",     # 512 bytes — well under limit
+                b"1 (RFC822.SIZE 512)",  # 512 bytes — well under limit
                 b"2 (RFC822.SIZE 99999999)",  # ~95 MB — over any reasonable limit
             ],
         )
@@ -394,7 +396,7 @@ class TestIMAPConnectionCheckEmailSizes(unittest.TestCase):
 
 
 class TestIMAPDiagnosticsServerReachability(unittest.TestCase):
-    """Tests for IMAPDiagnostics._check_server_reachability()"""
+    """Tests for IMAPDiagnostics._check_server_reachability()."""
 
     def setUp(self):
         self.config = _make_config()
@@ -428,7 +430,7 @@ class TestIMAPDiagnosticsServerReachability(unittest.TestCase):
 
 
 class TestIMAPDiagnosticsPortOpen(unittest.TestCase):
-    """Tests for IMAPDiagnostics._check_port_open()"""
+    """Tests for IMAPDiagnostics._check_port_open()."""
 
     def setUp(self):
         self.config = _make_config()
@@ -468,7 +470,7 @@ class TestIMAPDiagnosticsPortOpen(unittest.TestCase):
 
 
 class TestIMAPDiagnosticsSSLCertificate(unittest.TestCase):
-    """Tests for IMAPDiagnostics._check_ssl_certificate()"""
+    """Tests for IMAPDiagnostics._check_ssl_certificate()."""
 
     def setUp(self):
         self.config = _make_config()
@@ -487,9 +489,7 @@ class TestIMAPDiagnosticsSSLCertificate(unittest.TestCase):
         mock_ssl_ctx.return_value = mock_context
 
         mock_ssock = MagicMock()
-        mock_ssock.getpeercert.return_value = {
-            "notAfter": "Jan 01 00:00:00 2099 GMT"
-        }
+        mock_ssock.getpeercert.return_value = {"notAfter": "Jan 01 00:00:00 2099 GMT"}
         mock_context.wrap_socket.return_value.__enter__ = MagicMock(
             return_value=mock_ssock
         )

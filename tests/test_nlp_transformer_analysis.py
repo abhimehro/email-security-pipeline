@@ -1,5 +1,5 @@
 """
-Unit tests for NLPThreatAnalyzer._run_transformer_analysis
+Unit tests for NLPThreatAnalyzer._run_transformer_analysis.
 
 Tests cover:
   - Score mapping: threat_probability → (prob - 0.5) * 20 when prob > 0.5
@@ -11,8 +11,8 @@ import unittest
 from datetime import datetime
 from unittest.mock import MagicMock
 
-from src.modules.nlp_analyzer import NLPThreatAnalyzer
 from src.modules.email_data import EmailData
+from src.modules.nlp_analyzer import NLPThreatAnalyzer
 
 
 class MockConfig:
@@ -43,7 +43,7 @@ def _make_email(subject: str = "subject", body_text: str = "body") -> EmailData:
 
 
 class TestRunTransformerAnalysisScoring(unittest.TestCase):
-    """Score-mapping: (prob - 0.5) * 20 for prob > 0.5, else 0.0"""
+    """Score-mapping: (prob - 0.5) * 20 for prob > 0.5, else 0.0."""
 
     def setUp(self):
         self.config = MockConfig()
@@ -66,7 +66,7 @@ class TestRunTransformerAnalysisScoring(unittest.TestCase):
         self.assertEqual(indicators, [])
 
     def test_prob_just_above_threshold_yields_small_score(self):
-        """prob = 0.501 → score ≈ 0.02; indicator present."""
+        """Prob = 0.501 → score ≈ 0.02; indicator present."""
         score, indicators = self._call(0.501)
         self.assertAlmostEqual(score, (0.501 - 0.5) * 20, places=5)
         self.assertEqual(len(indicators), 1)
@@ -84,7 +84,7 @@ class TestRunTransformerAnalysisScoring(unittest.TestCase):
         self.assertEqual(len(indicators), 1)
 
     def test_prob_below_threshold_yields_zero(self):
-        """prob = 0.3 < 0.5 → score 0.0, no indicators."""
+        """Prob = 0.3 < 0.5 → score 0.0, no indicators."""
         score, indicators = self._call(0.3)
         self.assertEqual(score, 0.0)
         self.assertEqual(indicators, [])

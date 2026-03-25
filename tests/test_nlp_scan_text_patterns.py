@@ -1,5 +1,5 @@
 """
-Unit tests for NLPThreatAnalyzer._scan_text_patterns()
+Unit tests for NLPThreatAnalyzer._scan_text_patterns().
 
 SECURITY STORY: _scan_text_patterns is called on every email. The two-phase
 optimization and the heterogeneous AU list structure are both regression-prone:
@@ -43,6 +43,7 @@ class _BaseNLPScanTest(unittest.TestCase):
 # Empty / falsy input
 # ---------------------------------------------------------------------------
 
+
 class TestScanTextPatternsEmpty(_BaseNLPScanTest):
     """_scan_text_patterns must return sane defaults for empty or falsy input."""
 
@@ -51,8 +52,7 @@ class TestScanTextPatternsEmpty(_BaseNLPScanTest):
         self.assertEqual(caps_count, 0)
         for key in ("SE", "UG", "AU", "PS"):
             self.assertIn(key, matches, f"Key '{key}' must always be present")
-            self.assertEqual(len(matches[key]), 0,
-                             f"Category '{key}' must be empty")
+            self.assertEqual(len(matches[key]), 0, f"Category '{key}' must be empty")
 
     def test_empty_list_returns_zeros_and_all_keys(self):
         result = self.analyzer._scan_text_patterns([])
@@ -67,6 +67,7 @@ class TestScanTextPatternsEmpty(_BaseNLPScanTest):
 # ---------------------------------------------------------------------------
 # Exclamation and CAPS-word counting
 # ---------------------------------------------------------------------------
+
 
 class TestScanTextPatternsCounts(_BaseNLPScanTest):
     """Tests for the two simple counters returned alongside matches."""
@@ -96,6 +97,7 @@ class TestScanTextPatternsCounts(_BaseNLPScanTest):
 # Category population and value types
 # ---------------------------------------------------------------------------
 
+
 class TestScanTextPatternsCategories(_BaseNLPScanTest):
     """Tests for match categorisation and the critical heterogeneous value types."""
 
@@ -120,9 +122,11 @@ class TestScanTextPatternsCategories(_BaseNLPScanTest):
         )
         self.assertGreater(len(matches["AU"]), 0)
         for val in matches["AU"].values():
-            self.assertIsInstance(val, list,
-                                  "AU values must be lists (not int) to guard "
-                                  "impersonation scoring")
+            self.assertIsInstance(
+                val,
+                list,
+                "AU values must be lists (not int) to guard " "impersonation scoring",
+            )
             self.assertGreater(len(val), 0)
         # The matched text itself must be present (case-insensitive check)
         all_au_matches = [s.lower() for lst in matches["AU"].values() for s in lst]
@@ -154,6 +158,7 @@ class TestScanTextPatternsCategories(_BaseNLPScanTest):
 # Two-phase optimisation gate
 # ---------------------------------------------------------------------------
 
+
 class TestScanTextPatternsTwoPhase(_BaseNLPScanTest):
     """Confirms that the fast simple_master_pattern gate short-circuits correctly."""
 
@@ -166,9 +171,10 @@ class TestScanTextPatternsTwoPhase(_BaseNLPScanTest):
         matches, _, _ = self.analyzer._scan_text_patterns([neutral])
         for key in ("SE", "UG", "AU", "PS"):
             self.assertEqual(
-                len(matches[key]), 0,
+                len(matches[key]),
+                0,
                 f"Category '{key}' should be empty when simple_master_pattern "
-                f"finds no keywords (two-phase gate regression)"
+                f"finds no keywords (two-phase gate regression)",
             )
 
 

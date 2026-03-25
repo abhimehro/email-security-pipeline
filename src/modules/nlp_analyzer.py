@@ -1,26 +1,25 @@
 """
 Layer 2: NLP-Based Threat Detection
 Uses transformer models to detect social engineering,
-urgency markers, and psychological manipulation
+urgency markers, and psychological manipulation.
 """
 
-import re
-import logging
 import hashlib
-from typing import List, Dict, Tuple, Optional
+import logging
+import re
 from collections import defaultdict
 from dataclasses import dataclass
+from typing import Dict, List, Optional, Tuple
 
 from ..utils.caching import TTLCache
-
-from .email_data import EmailData
-from ..utils.pattern_compiler import compile_patterns, check_redos_safety
+from ..utils.pattern_compiler import check_redos_safety, compile_patterns
 from ..utils.threat_scoring import calculate_risk_level
+from .email_data import EmailData
 
 # Optional imports at module level
 try:
     import torch
-    from transformers import AutoTokenizer, AutoModelForSequenceClassification
+    from transformers import AutoModelForSequenceClassification, AutoTokenizer
 except (ImportError, OSError):
     torch = None
     AutoTokenizer = None
@@ -29,7 +28,8 @@ except (ImportError, OSError):
 
 @dataclass
 class NLPAnalysisResult:
-    """Result of NLP analysis"""
+    """Result of NLP analysis."""
+
     threat_score: float
     social_engineering_indicators: List[str]
     urgency_markers: List[str]
@@ -39,74 +39,76 @@ class NLPAnalysisResult:
 
 
 class NLPThreatAnalyzer:
-    """NLP-based threat detection analyzer"""
+    """NLP-based threat detection analyzer."""
 
     # Social engineering patterns
     SOCIAL_ENGINEERING_PATTERNS = [
-        (r'\b(verify|confirm|update|validate)\s+(your\s+)?(account|password|information|details|credentials)\b',
-         "Account verification request"),
-        (r'\b(suspended|locked|disabled|restricted|blocked)\s+(account|access)\b',
-         "Account suspension threat"),
-        (r'\b(unusual|suspicious|unauthorized)\s+(activity|login|access|transaction)\b',
-         "Suspicious activity claim"),
-        (r'\b(security\s+)(alert|warning|notice|breach|threat)\b',
-         "Security alert"),
-        (r'\b(reset|change|update)\s+your\s+password\b',
-         "Password reset request"),
+        (
+            r"\b(verify|confirm|update|validate)\s+(your\s+)?(account|password|information|details|credentials)\b",
+            "Account verification request",
+        ),
+        (
+            r"\b(suspended|locked|disabled|restricted|blocked)\s+(account|access)\b",
+            "Account suspension threat",
+        ),
+        (
+            r"\b(unusual|suspicious|unauthorized)\s+(activity|login|access|transaction)\b",
+            "Suspicious activity claim",
+        ),
+        (r"\b(security\s+)(alert|warning|notice|breach|threat)\b", "Security alert"),
+        (r"\b(reset|change|update)\s+your\s+password\b", "Password reset request"),
     ]
 
     # Urgency markers
     URGENCY_PATTERNS = [
-        (r'\b(urgent|immediate|asap|emergency|critical|time[-\s]sensitive)\b',
-         "Urgency keyword"),
-        (r'\b(within\s+\d+\s+(hours?|minutes?|days?))\b',
-         "Time pressure"),
-        (r'\b(expire[sd]?|expiring|expiration)\b',
-         "Expiration warning"),
-        (r'\b(act\s+now|respond\s+immediately|don\'t\s+delay)\b',
-         "Action pressure"),
-        (r'\b(limited\s+time|last\s+chance|final\s+(warning|notice))\b',
-         "Scarcity tactic"),
+        (
+            r"\b(urgent|immediate|asap|emergency|critical|time[-\s]sensitive)\b",
+            "Urgency keyword",
+        ),
+        (r"\b(within\s+\d+\s+(hours?|minutes?|days?))\b", "Time pressure"),
+        (r"\b(expire[sd]?|expiring|expiration)\b", "Expiration warning"),
+        (r"\b(act\s+now|respond\s+immediately|don\'t\s+delay)\b", "Action pressure"),
+        (
+            r"\b(limited\s+time|last\s+chance|final\s+(warning|notice))\b",
+            "Scarcity tactic",
+        ),
     ]
 
     # Authority impersonation indicators
     AUTHORITY_PATTERNS = [
-        (r'\b(bank|paypal|amazon|microsoft|apple|google|irs|fbi|police)\b',
-         "Authority entity mention"),
-        (r'\b(ceo|president|director|manager|supervisor|administrator)\b',
-         "Authority title"),
-        (r'\b(official|authorized|legitimate|certified)\b',
-         "Authority claim"),
-        (r'\b(government|federal|national|department of)\b',
-         "Government entity"),
-        (r'\b(court|legal|lawsuit|subpoena|warrant)\b',
-         "Legal threat"),
+        (
+            r"\b(bank|paypal|amazon|microsoft|apple|google|irs|fbi|police)\b",
+            "Authority entity mention",
+        ),
+        (
+            r"\b(ceo|president|director|manager|supervisor|administrator)\b",
+            "Authority title",
+        ),
+        (r"\b(official|authorized|legitimate|certified)\b", "Authority claim"),
+        (r"\b(government|federal|national|department of)\b", "Government entity"),
+        (r"\b(court|legal|lawsuit|subpoena|warrant)\b", "Legal threat"),
     ]
 
     # Psychological triggers
     PSYCHOLOGICAL_PATTERNS = [
-        (r'\b(free|bonus|gift|reward|prize|win|won|winner)\b',
-         "Reward temptation"),
-        (r'\b(fear|worry|concern|risk|danger|threat)\b',
-         "Fear appeal"),
-        (r'\b(opportunity|exclusive|special|limited)\b',
-         "Exclusivity appeal"),
-        (r'\b(guarantee|certified|approved|verified)\b',
-         "Trust signal"),
-        (r'\b(secret|confidential|private|insider)\b',
-         "Secrecy appeal"),
+        (r"\b(free|bonus|gift|reward|prize|win|won|winner)\b", "Reward temptation"),
+        (r"\b(fear|worry|concern|risk|danger|threat)\b", "Fear appeal"),
+        (r"\b(opportunity|exclusive|special|limited)\b", "Exclusivity appeal"),
+        (r"\b(guarantee|certified|approved|verified)\b", "Trust signal"),
+        (r"\b(secret|confidential|private|insider)\b", "Secrecy appeal"),
     ]
 
     # Pre-compiled patterns for optimization
-    CAPS_WORDS_PATTERN = re.compile(r'\b[A-Z]{4,}\b')
-    SENDER_DOMAIN_PATTERN = re.compile(r'@([\w\.-]+)')
+    CAPS_WORDS_PATTERN = re.compile(r"\b[A-Z]{4,}\b")
+    SENDER_DOMAIN_PATTERN = re.compile(r"@([\w\.-]+)")
 
     def __init__(self, config):
         """
-        Initialize NLP analyzer
+        Initialize NLP analyzer.
 
         Args:
             config: AnalysisConfig object
+
         """
         self.config = config
         self.logger = logging.getLogger("NLPThreatAnalyzer")
@@ -130,15 +132,18 @@ class NLPThreatAnalyzer:
         for p, d in self.PSYCHOLOGICAL_PATTERNS:
             all_patterns.append((p, "PS", d))
 
-        self.master_pattern, self.master_map = self._compile_master_pattern(all_patterns)
+        self.master_pattern, self.master_map = self._compile_master_pattern(
+            all_patterns
+        )
         self.simple_master_pattern = self._compile_simple_master_pattern(all_patterns)
 
         # Initialize model if needed
         if self._should_use_ml_model():
             self._initialize_model()
 
-    def _compile_master_pattern(self, patterns: List[Tuple[str, str, str]]) \
-            -> Tuple[re.Pattern, Dict[str, Tuple[str, str]]]:
+    def _compile_master_pattern(
+        self, patterns: List[Tuple[str, str, str]]
+    ) -> Tuple[re.Pattern, Dict[str, Tuple[str, str]]]:
         """
         Compile a list of regex patterns into a single combined regex.
         Returns the compiled regex and a mapping of group names to (prefix, description).
@@ -160,7 +165,9 @@ class NLPThreatAnalyzer:
         full_pattern = "|".join(regex_parts)
         return re.compile(full_pattern, re.IGNORECASE), group_map
 
-    def _compile_simple_master_pattern(self, patterns: List[Tuple[str, str, str]]) -> re.Pattern:
+    def _compile_simple_master_pattern(
+        self, patterns: List[Tuple[str, str, str]]
+    ) -> re.Pattern:
         """
         Compile a simplified master pattern without named groups for fast presence check.
         """
@@ -172,18 +179,20 @@ class NLPThreatAnalyzer:
         return getattr(self.config, "enable_ml_model", True)
 
     def _initialize_model(self):
-        """Initialize transformer model"""
+        """Initialize transformer model."""
         if not torch:
-            self.logger.warning("Torch/Transformers not installed. ML features disabled.")
+            self.logger.warning(
+                "Torch/Transformers not installed. ML features disabled."
+            )
             return
 
         try:
-            model_name = getattr(
-                self.config, 'nlp_model', 'distilbert-base-uncased'
-            )
+            model_name = getattr(self.config, "nlp_model", "distilbert-base-uncased")
             # FIX: Ensure Hugging Face model download pins the revision
-            revision = getattr(self.config, 'nlp_model_revision', 'main')
-            self.tokenizer = AutoTokenizer.from_pretrained(model_name, revision=revision)
+            revision = getattr(self.config, "nlp_model_revision", "main")
+            self.tokenizer = AutoTokenizer.from_pretrained(
+                model_name, revision=revision
+            )
             self.model = AutoModelForSequenceClassification.from_pretrained(
                 model_name, revision=revision
             )
@@ -198,13 +207,14 @@ class NLPThreatAnalyzer:
 
     def analyze(self, email_data: EmailData) -> NLPAnalysisResult:
         """
-        Perform NLP analysis on email content
+        Perform NLP analysis on email content.
 
         Args:
             email_data: Email to analyze
 
         Returns:
             NLPAnalysisResult
+
         """
         threat_score = 0.0
         social_engineering = []
@@ -216,17 +226,23 @@ class NLPThreatAnalyzer:
         parts = [email_data.subject, email_data.body_text]
 
         # Scan text for patterns and stats
-        matches_by_category, exclamation_count, caps_count = self._scan_text_patterns(parts)
+        matches_by_category, exclamation_count, caps_count = self._scan_text_patterns(
+            parts
+        )
 
         # Check for social engineering
         if self.config.check_social_engineering:
-            score, indicators = self._detect_social_engineering(matches_by_category["SE"])
+            score, indicators = self._detect_social_engineering(
+                matches_by_category["SE"]
+            )
             threat_score += score
             social_engineering.extend(indicators)
 
         # Check for urgency markers
         if self.config.check_urgency_markers:
-            score, indicators = self._detect_urgency(exclamation_count, caps_count, matches_by_category["UG"])
+            score, indicators = self._detect_urgency(
+                exclamation_count, caps_count, matches_by_category["UG"]
+            )
             threat_score += score
             urgency_markers.extend(indicators)
 
@@ -240,7 +256,9 @@ class NLPThreatAnalyzer:
 
         # Detect psychological triggers
         if getattr(self.config, "check_psychological_triggers", False):
-            score, indicators = self._detect_psychological_triggers(matches_by_category["PS"])
+            score, indicators = self._detect_psychological_triggers(
+                matches_by_category["PS"]
+            )
             threat_score += score
             psychological_triggers.extend(indicators)
 
@@ -263,18 +281,18 @@ class NLPThreatAnalyzer:
             urgency_markers=urgency_markers,
             authority_impersonation=authority_impersonation,
             psychological_triggers=psychological_triggers,
-            risk_level=risk_level
+            risk_level=risk_level,
         )
 
     def _scan_text_patterns(self, parts: List[Optional[str]]) -> Tuple[Dict, int, int]:
-        """Scan text parts for patterns and statistics"""
+        """Scan text parts for patterns and statistics."""
         exclamation_count = 0
         caps_count = 0
         matches_by_category = {
             "SE": defaultdict(int),
             "UG": defaultdict(int),
-            "AU": defaultdict(list), # Authority needs the actual match strings
-            "PS": defaultdict(int)
+            "AU": defaultdict(list),  # Authority needs the actual match strings
+            "PS": defaultdict(int),
         }
 
         for part in parts:
@@ -282,7 +300,7 @@ class NLPThreatAnalyzer:
                 continue
 
             # Accumulate simple counts for urgency detection
-            exclamation_count += part.count('!')
+            exclamation_count += part.count("!")
             # Optimization: len(findall) is faster than sum(finditer) because it avoids Python-level
             # generator iteration and executes entirely in C. Memory overhead is negligible for typical emails.
             caps_count += len(self.CAPS_WORDS_PATTERN.findall(part))
@@ -294,14 +312,18 @@ class NLPThreatAnalyzer:
                     if group_name and group_name in self.master_map:
                         prefix, description = self.master_map[group_name]
                         if prefix == "AU":
-                            matches_by_category[prefix][description].append(match.group())
+                            matches_by_category[prefix][description].append(
+                                match.group()
+                            )
                         else:
                             matches_by_category[prefix][description] += 1
 
         return matches_by_category, exclamation_count, caps_count
 
-    def _run_transformer_analysis(self, email_data: EmailData) -> Tuple[float, List[str]]:
-        """Run transformer model analysis on email content"""
+    def _run_transformer_analysis(
+        self, email_data: EmailData
+    ) -> Tuple[float, List[str]]:
+        """Run transformer model analysis on email content."""
         # Prepare text for transformer efficiently, avoiding huge concatenation
         # Truncate text before processing/caching
         # 4096 chars is ~1000 tokens, well above the 512 token limit of most models
@@ -335,8 +357,10 @@ class NLPThreatAnalyzer:
 
         return score, indicators
 
-    def _detect_social_engineering(self, counts: Dict[str, int]) -> Tuple[float, List[str]]:
-        """Detect social engineering patterns"""
+    def _detect_social_engineering(
+        self, counts: Dict[str, int]
+    ) -> Tuple[float, List[str]]:
+        """Detect social engineering patterns."""
         score = 0.0
         indicators = []
 
@@ -346,8 +370,10 @@ class NLPThreatAnalyzer:
 
         return score, indicators
 
-    def _detect_urgency(self, exclamation_count: int, caps_count: int, counts: Dict[str, int]) -> Tuple[float, List[str]]:
-        """Detect urgency and time pressure tactics"""
+    def _detect_urgency(
+        self, exclamation_count: int, caps_count: int, counts: Dict[str, int]
+    ) -> Tuple[float, List[str]]:
+        """Detect urgency and time pressure tactics."""
         score = 0.0
         indicators = []
 
@@ -367,8 +393,10 @@ class NLPThreatAnalyzer:
 
         return score, indicators
 
-    def _detect_authority_impersonation(self, sender: str, matches_by_desc: Dict[str, List[str]]) -> Tuple[float, List[str]]:
-        """Detect authority impersonation attempts"""
+    def _detect_authority_impersonation(
+        self, sender: str, matches_by_desc: Dict[str, List[str]]
+    ) -> Tuple[float, List[str]]:
+        """Detect authority impersonation attempts."""
         score = 0.0
         indicators = []
 
@@ -402,8 +430,10 @@ class NLPThreatAnalyzer:
 
         return score, indicators
 
-    def _detect_psychological_triggers(self, counts: Dict[str, int]) -> Tuple[float, List[str]]:
-        """Detect psychological manipulation tactics"""
+    def _detect_psychological_triggers(
+        self, counts: Dict[str, int]
+    ) -> Tuple[float, List[str]]:
+        """Detect psychological manipulation tactics."""
         score = 0.0
         indicators = []
 
@@ -414,19 +444,20 @@ class NLPThreatAnalyzer:
         return score, indicators
 
     def _calculate_risk_level(self, score: float) -> str:
-        """Calculate risk level based on NLP threat score"""
+        """Calculate risk level based on NLP threat score."""
         threshold = self.config.nlp_threshold * 10  # Scale threshold
         return calculate_risk_level(score, threshold, threshold * 2)
 
     def analyze_with_transformer(self, text: str) -> Dict:
         """
-        Analyze text using transformer model
+        Analyze text using transformer model.
 
         Args:
             text: Text to analyze
 
         Returns:
             Dictionary with analysis results
+
         """
         # Optimization: Truncate text before processing
         truncated_text = text[:4096]
@@ -451,7 +482,7 @@ class NLPThreatAnalyzer:
 
     def _analyze_core_impl(self, text: str) -> Dict:
         """
-        Core transformer analysis implementation
+        Core transformer analysis implementation.
         """
         if not self.model or not self.tokenizer:
             return {"error": "Model not loaded"}
@@ -466,7 +497,9 @@ class NLPThreatAnalyzer:
             )
 
             # Use cached device if available, otherwise fallback
-            device = self.device if self.device else next(self.model.parameters()).device
+            device = (
+                self.device if self.device else next(self.model.parameters()).device
+            )
 
             inputs = {k: v.to(device) for k, v in inputs.items()}
 
@@ -481,10 +514,7 @@ class NLPThreatAnalyzer:
             threat_prob = predictions[0][0].item()
             confidence = max(predictions[0]).item()
 
-            return {
-                "threat_probability": threat_prob,
-                "confidence": confidence
-            }
+            return {"threat_probability": threat_prob, "confidence": confidence}
         except Exception as e:
             self.logger.error(f"Transformer analysis error: {e}")
             return {"error": str(e)}

@@ -1,18 +1,19 @@
-import unittest
-import tarfile
-import zipfile
 import io
-import sys
 import os
+import sys
+import tarfile
+import unittest
+import zipfile
 from datetime import datetime
 from unittest.mock import MagicMock
 
 # Add root to path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from src.modules.media_analyzer import MediaAuthenticityAnalyzer
 from src.modules.email_ingestion import EmailData
+from src.modules.media_analyzer import MediaAuthenticityAnalyzer
 from src.utils.config import AnalysisConfig
+
 
 class TestMediaTarSecurity(unittest.TestCase):
     def setUp(self):
@@ -23,14 +24,14 @@ class TestMediaTarSecurity(unittest.TestCase):
 
     def _create_tar_with_file(self, filename_inside):
         buffer = io.BytesIO()
-        with tarfile.open(fileobj=buffer, mode='w') as tf:
+        with tarfile.open(fileobj=buffer, mode="w") as tf:
             info = tarfile.TarInfo(name=filename_inside)
             info.size = len(b"malicious content")
             tf.addfile(info, io.BytesIO(b"malicious content"))
         return buffer.getvalue()
 
     def test_tar_containing_exe(self):
-        """Test that a tar file containing an executable is flagged"""
+        """Test that a tar file containing an executable is flagged."""
         tar_content = self._create_tar_with_file("payload.exe")
 
         email_data = EmailData(
@@ -42,16 +43,18 @@ class TestMediaTarSecurity(unittest.TestCase):
             body_text="",
             body_html="",
             headers={},
-            attachments=[{
-                "filename": "archive.tar",
-                "content_type": "application/x-tar",
-                "size": len(tar_content),
-                "data": tar_content,
-                "truncated": False
-            }],
+            attachments=[
+                {
+                    "filename": "archive.tar",
+                    "content_type": "application/x-tar",
+                    "size": len(tar_content),
+                    "data": tar_content,
+                    "truncated": False,
+                }
+            ],
             raw_email=None,
             account_email="me@example.com",
-            folder="INBOX"
+            folder="INBOX",
         )
 
         result = self.analyzer.analyze(email_data)
@@ -70,11 +73,15 @@ class TestMediaTarSecurity(unittest.TestCase):
                     found_warning = True
                     break
 
-        self.assertTrue(found_warning, "Failed to detect dangerous file inside tar archive")
-        self.assertGreaterEqual(result.threat_score, 5.0, "Threat score should be high for malware in tar")
+        self.assertTrue(
+            found_warning, "Failed to detect dangerous file inside tar archive"
+        )
+        self.assertGreaterEqual(
+            result.threat_score, 5.0, "Threat score should be high for malware in tar"
+        )
 
     def test_tar_containing_safe_file(self):
-        """Test that a tar file containing a text file is NOT flagged"""
+        """Test that a tar file containing a text file is NOT flagged."""
         tar_content = self._create_tar_with_file("notes.txt")
 
         email_data = EmailData(
@@ -86,16 +93,18 @@ class TestMediaTarSecurity(unittest.TestCase):
             body_text="",
             body_html="",
             headers={},
-            attachments=[{
-                "filename": "notes.tar",
-                "content_type": "application/x-tar",
-                "size": len(tar_content),
-                "data": tar_content,
-                "truncated": False
-            }],
+            attachments=[
+                {
+                    "filename": "notes.tar",
+                    "content_type": "application/x-tar",
+                    "size": len(tar_content),
+                    "data": tar_content,
+                    "truncated": False,
+                }
+            ],
             raw_email=None,
             account_email="me@example.com",
-            folder="INBOX"
+            folder="INBOX",
         )
 
         result = self.analyzer.analyze(email_data)
@@ -105,16 +114,16 @@ class TestMediaTarSecurity(unittest.TestCase):
         self.assertEqual(result.suspicious_attachments, [])
 
     def test_tar_with_nested_zip_with_exe(self):
-        """Test that a tar file containing a zip with an executable is flagged"""
+        """Test that a tar file containing a zip with an executable is flagged."""
         # Create zip with exe
         zip_buffer = io.BytesIO()
-        with zipfile.ZipFile(zip_buffer, 'w') as zf:
+        with zipfile.ZipFile(zip_buffer, "w") as zf:
             zf.writestr("payload.exe", b"malicious content")
         zip_content = zip_buffer.getvalue()
 
         # Create tar with zip
         tar_buffer = io.BytesIO()
-        with tarfile.open(fileobj=tar_buffer, mode='w') as tf:
+        with tarfile.open(fileobj=tar_buffer, mode="w") as tf:
             info = tarfile.TarInfo(name="nested.zip")
             info.size = len(zip_content)
             tf.addfile(info, io.BytesIO(zip_content))
@@ -129,16 +138,18 @@ class TestMediaTarSecurity(unittest.TestCase):
             body_text="",
             body_html="",
             headers={},
-            attachments=[{
-                "filename": "archive.tar",
-                "content_type": "application/x-tar",
-                "size": len(tar_content),
-                "data": tar_content,
-                "truncated": False
-            }],
+            attachments=[
+                {
+                    "filename": "archive.tar",
+                    "content_type": "application/x-tar",
+                    "size": len(tar_content),
+                    "data": tar_content,
+                    "truncated": False,
+                }
+            ],
             raw_email=None,
             account_email="me@example.com",
-            folder="INBOX"
+            folder="INBOX",
         )
 
         result = self.analyzer.analyze(email_data)
@@ -157,13 +168,15 @@ class TestMediaTarSecurity(unittest.TestCase):
                     found_warning = True
                     break
 
-        self.assertTrue(found_warning, "Failed to detect dangerous file inside nested zip in tar")
+        self.assertTrue(
+            found_warning, "Failed to detect dangerous file inside nested zip in tar"
+        )
 
     def test_zip_with_nested_tar_with_exe(self):
-        """Test that a zip file containing a tar with an executable is flagged"""
+        """Test that a zip file containing a tar with an executable is flagged."""
         # Create tar with exe
         tar_buffer = io.BytesIO()
-        with tarfile.open(fileobj=tar_buffer, mode='w') as tf:
+        with tarfile.open(fileobj=tar_buffer, mode="w") as tf:
             info = tarfile.TarInfo(name="payload.exe")
             info.size = len(b"malicious content")
             tf.addfile(info, io.BytesIO(b"malicious content"))
@@ -171,7 +184,7 @@ class TestMediaTarSecurity(unittest.TestCase):
 
         # Create zip with tar
         zip_buffer = io.BytesIO()
-        with zipfile.ZipFile(zip_buffer, 'w') as zf:
+        with zipfile.ZipFile(zip_buffer, "w") as zf:
             zf.writestr("nested.tar", tar_content)
         zip_content = zip_buffer.getvalue()
 
@@ -184,16 +197,18 @@ class TestMediaTarSecurity(unittest.TestCase):
             body_text="",
             body_html="",
             headers={},
-            attachments=[{
-                "filename": "archive.zip",
-                "content_type": "application/zip",
-                "size": len(zip_content),
-                "data": zip_content,
-                "truncated": False
-            }],
+            attachments=[
+                {
+                    "filename": "archive.zip",
+                    "content_type": "application/zip",
+                    "size": len(zip_content),
+                    "data": zip_content,
+                    "truncated": False,
+                }
+            ],
             raw_email=None,
             account_email="me@example.com",
-            folder="INBOX"
+            folder="INBOX",
         )
 
         result = self.analyzer.analyze(email_data)
@@ -205,14 +220,16 @@ class TestMediaTarSecurity(unittest.TestCase):
                 found_warning = True
                 break
 
-        self.assertTrue(found_warning, "Failed to detect dangerous file inside nested tar in zip")
+        self.assertTrue(
+            found_warning, "Failed to detect dangerous file inside nested tar in zip"
+        )
 
     def test_tar_with_path_traversal_members(self):
         """Tar with path traversal and absolute-path members containing .exe should still be flagged."""
         # Create tar with suspicious member names that still contain dangerous executable content.
         # This simulates an attacker trying to hide payloads behind traversal-like paths.
         tar_buffer = io.BytesIO()
-        with tarfile.open(fileobj=tar_buffer, mode='w') as tf:
+        with tarfile.open(fileobj=tar_buffer, mode="w") as tf:
             malicious_content = b"malicious content"
 
             # Relative path traversal member
@@ -236,16 +253,18 @@ class TestMediaTarSecurity(unittest.TestCase):
             body_text="",
             body_html="",
             headers={},
-            attachments=[{
-                "filename": "archive.tar",
-                "content_type": "application/x-tar",
-                "size": len(tar_content),
-                "data": tar_content,
-                "truncated": False
-            }],
+            attachments=[
+                {
+                    "filename": "archive.tar",
+                    "content_type": "application/x-tar",
+                    "size": len(tar_content),
+                    "data": tar_content,
+                    "truncated": False,
+                }
+            ],
             raw_email=None,
             account_email="me@example.com",
-            folder="INBOX"
+            folder="INBOX",
         )
 
         result = self.analyzer.analyze(email_data)
@@ -259,8 +278,9 @@ class TestMediaTarSecurity(unittest.TestCase):
 
         self.assertTrue(
             found_warning,
-            "Failed to detect dangerous files inside tar with path traversal or absolute-path members"
+            "Failed to detect dangerous files inside tar with path traversal or absolute-path members",
         )
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

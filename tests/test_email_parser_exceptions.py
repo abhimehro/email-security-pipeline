@@ -5,20 +5,17 @@ Verifies that bare silent exception handlers have been replaced with
 specific types + logging, so no errors are swallowed silently.
 """
 
-import logging
 from datetime import datetime
 from email.message import Message
 from unittest.mock import MagicMock, patch
 
-import pytest
-
 from src.modules.email_parser import EmailParser
 from src.utils.config import EmailAccountConfig
-
 
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _make_parser() -> EmailParser:
     """Return an EmailParser with a mocked config and logger."""
@@ -41,6 +38,7 @@ def _make_parser() -> EmailParser:
 # ---------------------------------------------------------------------------
 # _extract_singlepart_content – UnicodeDecodeError path
 # ---------------------------------------------------------------------------
+
 
 class TestExtractSinglepartContent:
     def _make_msg_with_bad_payload(self) -> Message:
@@ -92,6 +90,7 @@ class TestExtractSinglepartContent:
 # _extract_date – logging on parse failure
 # ---------------------------------------------------------------------------
 
+
 class TestExtractDate:
     def test_bad_date_falls_back_and_logs_debug(self):
         parser = _make_parser()
@@ -121,6 +120,7 @@ class TestExtractDate:
 # _decode_header_value – specific exception paths
 # ---------------------------------------------------------------------------
 
+
 class TestDecodeHeaderValue:
     def test_valid_header_decoded_normally(self):
         result = EmailParser._decode_header_value("hello world")
@@ -148,7 +148,9 @@ class TestDecodeHeaderValue:
         """An unknown charset (LookupError) must return raw value and log at debug."""
         raw = "=?unknown-charset?b?dGVzdA==?="
         with patch("src.modules.email_parser.make_header") as mock_make_header:
-            mock_make_header.side_effect = LookupError("unknown encoding: unknown-charset")
+            mock_make_header.side_effect = LookupError(
+                "unknown encoding: unknown-charset"
+            )
             with patch("src.modules.email_parser.logger") as mock_logger:
                 result = EmailParser._decode_header_value(raw)
         assert result == raw

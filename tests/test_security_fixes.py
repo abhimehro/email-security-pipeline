@@ -1,8 +1,8 @@
-import unittest
-from unittest.mock import patch, MagicMock
-import sys
 import logging
+import sys
+import unittest
 from pathlib import Path
+from unittest.mock import MagicMock, patch
 
 # Add project root to path (conftest.py also does this, but keeping this makes the
 # file runnable directly via `python tests/test_security_fixes.py`).
@@ -13,14 +13,15 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 # tests (e.g., anything that imports `numpy.random`).
 
 from src.main import EmailSecurityPipeline
-from src.modules.email_ingestion import IMAPClient, EmailAccountConfig
+from src.modules.email_ingestion import EmailAccountConfig, IMAPClient
+
 
 class TestSecurityFixes(unittest.TestCase):
 
-    @patch('src.main.RotatingFileHandler')
-    @patch('src.main.Config')
+    @patch("src.main.RotatingFileHandler")
+    @patch("src.main.Config")
     def test_logging_uses_rotating_handler(self, mock_config, mock_rotating_handler):
-        """Test that RotatingFileHandler is used with configurable size/count"""
+        """Test that RotatingFileHandler is used with configurable size/count."""
         # Setup mock config with new rotation settings
         mock_config_instance = mock_config.return_value
         mock_config_instance.system.log_file = "logs/test.log"
@@ -29,7 +30,9 @@ class TestSecurityFixes(unittest.TestCase):
         mock_config_instance.system.log_rotation_size_mb = 10
         mock_config_instance.system.log_rotation_keep_files = 5
         mock_config_instance.system.enable_metrics = True
-        mock_config_instance.email_accounts = [] # Avoid initialization of IngestionManager failing hard
+        mock_config_instance.email_accounts = (
+            []
+        )  # Avoid initialization of IngestionManager failing hard
         mock_config_instance.analysis = MagicMock()
         mock_config_instance.alerts = MagicMock()
 
@@ -37,23 +40,25 @@ class TestSecurityFixes(unittest.TestCase):
         mock_rotating_handler.return_value.level = logging.INFO
 
         # We need to mock EmailIngestionManager too because it is initialized in __init__
-        with patch('src.main.EmailIngestionManager'), \
-             patch('src.main.SpamAnalyzer'), \
-             patch('src.main.NLPThreatAnalyzer'), \
-             patch('src.main.MediaAuthenticityAnalyzer'), \
-             patch('src.main.AlertSystem'):
+        with patch("src.main.EmailIngestionManager"), patch(
+            "src.main.SpamAnalyzer"
+        ), patch("src.main.NLPThreatAnalyzer"), patch(
+            "src.main.MediaAuthenticityAnalyzer"
+        ), patch(
+            "src.main.AlertSystem"
+        ):
 
-            pipeline = EmailSecurityPipeline(".env")
+            EmailSecurityPipeline(".env")
 
             # Verify RotatingFileHandler was initialized with configurable values
             mock_rotating_handler.assert_called_with(
                 "logs/test.log",
-                maxBytes=10*1024*1024,  # 10MB in bytes
-                backupCount=5
+                maxBytes=10 * 1024 * 1024,  # 10MB in bytes
+                backupCount=5,
             )
 
     def test_imap_connection_timeout(self):
-        """Test that IMAP connections use a timeout"""
+        """Test that IMAP connections use a timeout."""
         config = EmailAccountConfig(
             enabled=True,
             email="test@example.com",
@@ -63,15 +68,15 @@ class TestSecurityFixes(unittest.TestCase):
             folders=["INBOX"],
             provider="test",
             use_ssl=True,
-            verify_ssl=True
+            verify_ssl=True,
         )
         client = IMAPClient(config)
         client.logger = MagicMock()
 
         # Mock SSL context creation
-        with patch.object(client, '_create_secure_ssl_context') as mock_ctx:
+        with patch.object(client, "_create_secure_ssl_context") as mock_ctx:
             # Test SSL connection
-            with patch('imaplib.IMAP4_SSL') as mock_imap_ssl:
+            with patch("imaplib.IMAP4_SSL") as mock_imap_ssl:
                 client.connect()
 
                 # Verify timeout was passed
@@ -79,7 +84,7 @@ class TestSecurityFixes(unittest.TestCase):
                     "imap.example.com",
                     993,
                     ssl_context=mock_ctx.return_value,
-                    timeout=30
+                    timeout=30,
                 )
 
         # Test non-SSL connection
@@ -88,16 +93,13 @@ class TestSecurityFixes(unittest.TestCase):
         client = IMAPClient(config)
         client.logger = MagicMock()
 
-        with patch.object(client, '_create_secure_ssl_context') as mock_ctx:
-            with patch('imaplib.IMAP4') as mock_imap:
+        with patch.object(client, "_create_secure_ssl_context") as mock_ctx:
+            with patch("imaplib.IMAP4") as mock_imap:
                 client.connect()
 
                 # Verify timeout was passed
-                mock_imap.assert_called_with(
-                    "imap.example.com",
-                    143,
-                    timeout=30
-                )
+                mock_imap.assert_called_with("imap.example.com", 143, timeout=30)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

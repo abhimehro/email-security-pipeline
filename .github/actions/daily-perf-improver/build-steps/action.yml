@@ -1,14 +1,14 @@
 ---
-name: 'Performance Improver Build Steps'
-description: 'Validated build, test, and lint commands'
-author: 'Daily Perf Improver Workflow'
+name: "Performance Improver Build Steps"
+description: "Validated build, test, and lint commands"
+author: "Daily Perf Improver Workflow"
 
 # This action encapsulates the standard build/test/lint workflow
 # Security: Uses only commands from existing CI
 # No external dependencies or network calls beyond package managers
 
 runs:
-  using: 'composite'
+  using: "composite"
   steps:
     - name: Verify Python Installation
       shell: bash

@@ -5,7 +5,6 @@ Verifies boundary conditions (exact threshold values, values just above and
 below each boundary) and the full range of expected return labels.
 """
 
-import pytest
 from src.utils.threat_scoring import calculate_risk_level
 
 

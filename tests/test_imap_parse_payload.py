@@ -1,5 +1,5 @@
 """
-Unit tests for IMAPConnection._parse_email_payload()
+Unit tests for IMAPConnection._parse_email_payload().
 
 SECURITY STORY: _parse_email_payload() is the gatekeeper between raw IMAP
 server responses and the rest of the pipeline. Misbehaving IMAP servers can

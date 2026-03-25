@@ -1,5 +1,6 @@
 import signal
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
+
 import pytest
 
 from src.app_runner import AppRunner
@@ -34,8 +35,11 @@ def test_ensure_config_exists_when_file_present(mock_path, mock_app_runner):
     mock_path_instance.exists.return_value = True
     mock_path.return_value = mock_path_instance
 
-    with patch.object(mock_app_runner, "_handle_missing_config_interactive") as mock_interactive, \
-         patch.object(mock_app_runner, "_handle_missing_config_non_interactive") as mock_non_interactive:
+    with patch.object(
+        mock_app_runner, "_handle_missing_config_interactive"
+    ) as mock_interactive, patch.object(
+        mock_app_runner, "_handle_missing_config_non_interactive"
+    ) as mock_non_interactive:
 
         mock_app_runner.ensure_config_exists()
 
@@ -49,7 +53,10 @@ def test_ensure_config_exists_interactive(mock_isatty, mock_path, mock_app_runne
     # We want config_file to NOT exist, but .env.example TO exist
     def path_side_effect(arg):
         mock = MagicMock()
-        if str(arg) == mock_app_runner.config_file or arg == mock_app_runner.config_file:
+        if (
+            str(arg) == mock_app_runner.config_file
+            or arg == mock_app_runner.config_file
+        ):
             mock.exists.return_value = False
         elif arg == ".env.example":
             mock.exists.return_value = True
@@ -57,8 +64,11 @@ def test_ensure_config_exists_interactive(mock_isatty, mock_path, mock_app_runne
 
     mock_path.side_effect = path_side_effect
 
-    with patch.object(mock_app_runner, "_handle_missing_config_interactive") as mock_interactive, \
-         patch.object(mock_app_runner, "_handle_missing_config_non_interactive") as mock_non_interactive:
+    with patch.object(
+        mock_app_runner, "_handle_missing_config_interactive"
+    ) as mock_interactive, patch.object(
+        mock_app_runner, "_handle_missing_config_non_interactive"
+    ) as mock_non_interactive:
 
         mock_app_runner.ensure_config_exists()
 
@@ -77,8 +87,11 @@ def test_ensure_config_exists_non_interactive(mock_isatty, mock_path, mock_app_r
 
     mock_path.side_effect = path_side_effect
 
-    with patch.object(mock_app_runner, "_handle_missing_config_interactive") as mock_interactive, \
-         patch.object(mock_app_runner, "_handle_missing_config_non_interactive") as mock_non_interactive:
+    with patch.object(
+        mock_app_runner, "_handle_missing_config_interactive"
+    ) as mock_interactive, patch.object(
+        mock_app_runner, "_handle_missing_config_non_interactive"
+    ) as mock_non_interactive:
 
         mock_app_runner.ensure_config_exists()
 

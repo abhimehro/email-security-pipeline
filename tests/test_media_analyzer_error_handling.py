@@ -1,8 +1,9 @@
-
 import unittest
-from unittest.mock import MagicMock
 import zipfile
+from unittest.mock import MagicMock
+
 from src.modules.media_analyzer import MediaAuthenticityAnalyzer
+
 
 class TestMediaAnalyzerBug(unittest.TestCase):
     def test_read_zip_member_securely_name_error_fixed(self):
@@ -18,7 +19,7 @@ class TestMediaAnalyzerBug(unittest.TestCase):
 
         mock_zf = MagicMock(spec=zipfile.ZipFile)
         mock_file = MagicMock()
-        mock_file.read.side_effect = [b'some content', b''] # Return content then EOF
+        mock_file.read.side_effect = [b"some content", b""]  # Return content then EOF
 
         # Make close() raise BadZipFile
         mock_file.close.side_effect = zipfile.BadZipFile("CRC mismatch")
@@ -31,7 +32,7 @@ class TestMediaAnalyzerBug(unittest.TestCase):
         try:
             # This should NOT raise NameError anymore
             result = analyzer._read_zip_member_securely(mock_zf, "test.txt", 1000)
-            self.assertEqual(result, b'some content')
+            self.assertEqual(result, b"some content")
 
             # Verify it logged the debug message
             analyzer.logger.debug.assert_called()
@@ -44,5 +45,6 @@ class TestMediaAnalyzerBug(unittest.TestCase):
         except Exception as e:
             self.fail(f"Caught unexpected exception: {type(e).__name__}: {e}")
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

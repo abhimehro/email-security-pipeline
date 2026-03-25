@@ -1,6 +1,6 @@
 """
 Security Validators Module
-Centralizes security validation constants and utilities for email processing
+Centralizes security validation constants and utilities for email processing.
 
 SECURITY STORY: These validators protect against various attacks:
 - MAX_SUBJECT_LENGTH: Prevents buffer overflow and DoS from extremely long subjects
@@ -8,11 +8,11 @@ SECURITY STORY: These validators protect against various attacks:
 - DEFAULT_MAX_EMAIL_SIZE: Prevents DoS from downloading huge emails
 """
 
-import re
-import ssl
-import logging
-import socket
 import ipaddress
+import logging
+import re
+import socket
+import ssl
 from typing import Tuple
 from urllib.parse import urlparse
 
@@ -33,9 +33,28 @@ FILENAME_COLLAPSE_DOTS_PATTERN = re.compile(r"\.{2,}")
 # SECURITY STORY: Even on Linux, we sanitize these to prevent issues if files
 # are transferred to Windows systems or if the application runs on Windows.
 WINDOWS_RESERVED_NAMES = {
-    "CON", "PRN", "AUX", "NUL",
-    "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9",
-    "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9"
+    "CON",
+    "PRN",
+    "AUX",
+    "NUL",
+    "COM1",
+    "COM2",
+    "COM3",
+    "COM4",
+    "COM5",
+    "COM6",
+    "COM7",
+    "COM8",
+    "COM9",
+    "LPT1",
+    "LPT2",
+    "LPT3",
+    "LPT4",
+    "LPT5",
+    "LPT6",
+    "LPT7",
+    "LPT8",
+    "LPT9",
 }
 
 logger = logging.getLogger(__name__)
@@ -43,7 +62,7 @@ logger = logging.getLogger(__name__)
 
 def sanitize_filename(filename: str) -> str:
     """
-    Sanitize filename to prevent path traversal attacks (CWE-22)
+    Sanitize filename to prevent path traversal attacks (CWE-22).
 
     SECURITY STORY: This protects against attacks where a malicious email
     contains an attachment named "../../etc/passwd" which could write to
@@ -61,6 +80,7 @@ def sanitize_filename(filename: str) -> str:
         "etcpasswd"
         >>> sanitize_filename("normal_file.txt")
         "normal_file.txt"
+
     """
     if not filename:
         return "unnamed_attachment"
@@ -88,7 +108,7 @@ def sanitize_filename(filename: str) -> str:
     # Check for Windows reserved filenames (CON, PRN, AUX, etc.)
     # These are reserved regardless of extension (e.g., CON.txt is invalid)
     # We check the base name (part before the first dot)
-    base_name = sanitized.split('.')[0].strip().upper()
+    base_name = sanitized.split(".")[0].strip().upper()
     if base_name in WINDOWS_RESERVED_NAMES:
         sanitized = "_" + sanitized
 
@@ -98,7 +118,7 @@ def sanitize_filename(filename: str) -> str:
 
 def create_secure_ssl_context() -> ssl.SSLContext:
     """
-    Create a secure SSL context with modern TLS settings
+    Create a secure SSL context with modern TLS settings.
 
     SECURITY STORY: This enforces TLS 1.2+ to protect against attacks on
     older protocols like SSLv3 (POODLE) and TLS 1.0/1.1 (BEAST, CRIME).
@@ -107,6 +127,7 @@ def create_secure_ssl_context() -> ssl.SSLContext:
 
     Returns:
         Configured SSL context with security best practices
+
     """
     # Create SSL context with TLS 1.2+ (protects against SSLv3/TLS1.0/1.1 attacks)
     context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
@@ -125,7 +146,7 @@ def create_secure_ssl_context() -> ssl.SSLContext:
 
 def validate_subject_length(subject: str) -> str:
     """
-    Validate and truncate subject line to prevent DoS attacks
+    Validate and truncate subject line to prevent DoS attacks.
 
     SECURITY STORY: Extremely long subject lines can cause memory exhaustion
     or buffer overflows in downstream systems. We truncate to a safe length.
@@ -135,6 +156,7 @@ def validate_subject_length(subject: str) -> str:
 
     Returns:
         Truncated subject line if it exceeds MAX_SUBJECT_LENGTH
+
     """
     if len(subject) > MAX_SUBJECT_LENGTH:
         logger.warning(f"Subject exceeds {MAX_SUBJECT_LENGTH} chars, truncating")
@@ -144,7 +166,7 @@ def validate_subject_length(subject: str) -> str:
 
 def validate_mime_parts_count(count: int) -> bool:
     """
-    Check if MIME parts count is within safe limits
+    Check if MIME parts count is within safe limits.
 
     SECURITY STORY: MIME bomb attacks use deeply nested MIME structures
     to cause exponential processing time or memory exhaustion. We limit
@@ -155,6 +177,7 @@ def validate_mime_parts_count(count: int) -> bool:
 
     Returns:
         True if count is safe, False if it exceeds limits
+
     """
     if count > MAX_MIME_PARTS:
         logger.error(f"Email has {count} MIME parts, exceeds limit of {MAX_MIME_PARTS}")
@@ -164,7 +187,7 @@ def validate_mime_parts_count(count: int) -> bool:
 
 def calculate_max_email_size(max_total_attachment_bytes: int) -> int:
     """
-    Calculate maximum email size based on attachment limits
+    Calculate maximum email size based on attachment limits.
 
     SECURITY STORY: We derive the email size limit from attachment limits
     to prevent DoS attacks. The 5MB overhead accounts for headers and body.
@@ -174,6 +197,7 @@ def calculate_max_email_size(max_total_attachment_bytes: int) -> int:
 
     Returns:
         Maximum safe email size in bytes
+
     """
     if max_total_attachment_bytes > 0:
         # Add 5MB overhead for headers and body
@@ -202,6 +226,7 @@ def is_safe_webhook_url(url: str) -> Tuple[bool, str]:
 
     Returns:
         Tuple of (is_safe: bool, error_message: str)
+
     """
     if not url:
         return False, "URL is empty"
@@ -212,7 +237,7 @@ def is_safe_webhook_url(url: str) -> Tuple[bool, str]:
         return False, f"Failed to parse URL: {e}"
 
     # Explicitly enforce HTTPS for webhook destinations
-    if parsed.scheme != 'https':
+    if parsed.scheme != "https":
         return False, f"URL scheme must be https, got: {parsed.scheme}"
 
     hostname = parsed.hostname
@@ -223,8 +248,7 @@ def is_safe_webhook_url(url: str) -> Tuple[bool, str]:
         # Resolve the hostname to all available IP addresses
         # AF_UNSPEC allows both IPv4 and IPv6
         addr_info = socket.getaddrinfo(
-            hostname, parsed.port or 80,
-            socket.AF_UNSPEC, socket.SOCK_STREAM
+            hostname, parsed.port or 80, socket.AF_UNSPEC, socket.SOCK_STREAM
         )
     except socket.gaierror as e:
         # If it doesn't resolve, it can't be requested anyway

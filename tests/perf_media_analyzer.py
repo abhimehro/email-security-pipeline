@@ -1,21 +1,23 @@
-import time
-import sys
-import logging
 import concurrent.futures
+import logging
+import time
 from unittest.mock import MagicMock
-from src.modules.media_analyzer import MediaAuthenticityAnalyzer
+
 from src.modules.email_data import EmailData
+from src.modules.media_analyzer import MediaAuthenticityAnalyzer
 from src.utils.config import AnalysisConfig
 
 # Monkeypatch ThreadPoolExecutor to verify creation
 original_tpe = concurrent.futures.ThreadPoolExecutor
 tpe_creation_count = 0
 
+
 class TrackingTPE(original_tpe):
     def __init__(self, *args, **kwargs):
         global tpe_creation_count
         tpe_creation_count += 1
         super().__init__(*args, **kwargs)
+
 
 concurrent.futures.ThreadPoolExecutor = TrackingTPE
 
@@ -26,20 +28,23 @@ config.deepfake_detection_enabled = True
 config.media_analysis_timeout = 5
 config.deepfake_provider = "simulator"
 
+
 # Mock EmailData
 def create_mock_email(num_attachments=1):
     attachments = []
     # Valid MP4 header (ftyp at offset 4) + enough data to pass size check
-    mp4_data = b'\x00\x00\x00\x18ftypmp42' + b'\x00' * 2000
+    mp4_data = b"\x00\x00\x00\x18ftypmp42" + b"\x00" * 2000
 
     for i in range(num_attachments):
-        attachments.append({
-            'filename': f'video_{i}.mp4',
-            'content_type': 'video/mp4',
-            'size': len(mp4_data),
-            'data': mp4_data,
-            'truncated': False
-        })
+        attachments.append(
+            {
+                "filename": f"video_{i}.mp4",
+                "content_type": "video/mp4",
+                "size": len(mp4_data),
+                "data": mp4_data,
+                "truncated": False,
+            }
+        )
 
     return EmailData(
         message_id="123",
@@ -53,8 +58,9 @@ def create_mock_email(num_attachments=1):
         attachments=attachments,
         raw_email=None,
         account_email="me@example.com",
-        folder="INBOX"
+        folder="INBOX",
     )
+
 
 def run_benchmark():
     global tpe_creation_count
@@ -77,6 +83,7 @@ def run_benchmark():
     print(f"ThreadPoolExecutor created {tpe_creation_count} times")
     analyzer.shutdown()
     return duration
+
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.CRITICAL)

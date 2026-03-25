@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Configuration Test Script
-Tests the email security pipeline configuration and basic functionality
+Tests the email security pipeline configuration and basic functionality.
 """
 
 import sys
@@ -10,8 +10,9 @@ from pathlib import Path
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent))
 
+
 def test_config_loading():
-    """Test that configuration loads correctly"""
+    """Test that configuration loads correctly."""
     print("=" * 60)
     print("Test 1: Configuration Loading")
     print("=" * 60)
@@ -45,20 +46,30 @@ def test_config_loading():
             print(f"      Folders: {', '.join(account.folders)}")
 
         # Check analysis configuration
-        print(f"\n  Analysis Configuration:")
+        print("\n  Analysis Configuration:")
         print(f"    - Spam threshold: {config.analysis.spam_threshold}")
         print(f"    - NLP threshold: {config.analysis.nlp_threshold}")
-        print(f"    - Media analysis: {'enabled' if config.analysis.check_media_attachments else 'disabled'}")
+        print(
+            f"    - Media analysis: {'enabled' if config.analysis.check_media_attachments else 'disabled'}"
+        )
 
         # Check alert configuration
-        print(f"\n  Alert Configuration:")
-        print(f"    - Console alerts: {'enabled' if config.alerts.console else 'disabled'}")
-        print(f"    - Webhook alerts: {'enabled' if config.alerts.webhook_enabled else 'disabled'}")
-        print(f"    - Slack alerts: {'enabled' if config.alerts.slack_enabled else 'disabled'}")
-        print(f"    - Threat thresholds: LOW={config.alerts.threat_low}, MEDIUM={config.alerts.threat_medium}, HIGH={config.alerts.threat_high}")
+        print("\n  Alert Configuration:")
+        print(
+            f"    - Console alerts: {'enabled' if config.alerts.console else 'disabled'}"
+        )
+        print(
+            f"    - Webhook alerts: {'enabled' if config.alerts.webhook_enabled else 'disabled'}"
+        )
+        print(
+            f"    - Slack alerts: {'enabled' if config.alerts.slack_enabled else 'disabled'}"
+        )
+        print(
+            f"    - Threat thresholds: LOW={config.alerts.threat_low}, MEDIUM={config.alerts.threat_medium}, HIGH={config.alerts.threat_high}"
+        )
 
         # Check system configuration
-        print(f"\n  System Configuration:")
+        print("\n  System Configuration:")
         print(f"    - Log level: {config.system.log_level}")
         print(f"    - Check interval: {config.system.check_interval}s")
         print(f"    - Max emails per batch: {config.system.max_emails_per_batch}")
@@ -70,12 +81,13 @@ def test_config_loading():
     except Exception as e:
         print(f"❌ ERROR: {e}")
         import traceback
+
         traceback.print_exc()
         return False
 
 
 def test_module_imports():
-    """Test that all modules can be imported"""
+    """Test that all modules can be imported."""
     print("\n" + "=" * 60)
     print("Test 2: Module Imports")
     print("=" * 60)
@@ -107,17 +119,17 @@ def test_module_imports():
 
 
 def test_analyzer_initialization():
-    """Test that analyzers can be initialized"""
+    """Test that analyzers can be initialized."""
     print("\n" + "=" * 60)
     print("Test 3: Analyzer Initialization")
     print("=" * 60)
 
     try:
-        from src.utils.config import Config
-        from src.modules.spam_analyzer import SpamAnalyzer
-        from src.modules.nlp_analyzer import NLPThreatAnalyzer
-        from src.modules.media_analyzer import MediaAuthenticityAnalyzer
         from src.modules.alert_system import AlertSystem
+        from src.modules.media_analyzer import MediaAuthenticityAnalyzer
+        from src.modules.nlp_analyzer import NLPThreatAnalyzer
+        from src.modules.spam_analyzer import SpamAnalyzer
+        from src.utils.config import Config
 
         config = Config(".env")
 
@@ -149,7 +161,9 @@ def test_analyzer_initialization():
         if hasattr(media_analyzer, "status"):
             print(f"    MediaAuthenticityAnalyzer status: {media_analyzer.status()}")
         elif hasattr(media_analyzer, "is_enabled"):
-            print(f"    MediaAuthenticityAnalyzer enabled: {media_analyzer.is_enabled()}")
+            print(
+                f"    MediaAuthenticityAnalyzer enabled: {media_analyzer.is_enabled()}"
+            )
         else:
             print(f"    MediaAuthenticityAnalyzer object: {media_analyzer}")
 
@@ -169,12 +183,13 @@ def test_analyzer_initialization():
     except Exception as e:
         print(f"❌ ERROR: {e}")
         import traceback
+
         traceback.print_exc()
         return False
 
 
 def test_imap_connections(test_connections=True):
-    """Test IMAP connections (optional)"""
+    """Test IMAP connections (optional)."""
     print("\n" + "=" * 60)
     print("Test 4: IMAP Connections")
     print("=" * 60)
@@ -184,8 +199,8 @@ def test_imap_connections(test_connections=True):
         return True
 
     try:
-        from src.utils.config import Config
         from src.modules.email_ingestion import EmailIngestionManager
+        from src.utils.config import Config
 
         config = Config(".env")
 
@@ -196,13 +211,14 @@ def test_imap_connections(test_connections=True):
         print(f"Testing connections for {len(config.email_accounts)} account(s)...")
 
         ingestion_manager = EmailIngestionManager(
-            config.email_accounts,
-            config.system.rate_limit_delay
+            config.email_accounts, config.system.rate_limit_delay
         )
 
         # Try to initialize clients
         if ingestion_manager.initialize_clients():
-            print(f"✓ Successfully connected to {len(ingestion_manager.clients)} account(s)")
+            print(
+                f"✓ Successfully connected to {len(ingestion_manager.clients)} account(s)"
+            )
 
             # List folders for each account
             for email, client in ingestion_manager.clients.items():
@@ -210,7 +226,9 @@ def test_imap_connections(test_connections=True):
                     folders = client.list_folders()
                     print(f"  - {email}: Found {len(folders)} folder(s)")
                     if folders:
-                        print(f"    Folders: {', '.join(folders[:5])}{'...' if len(folders) > 5 else ''}")
+                        print(
+                            f"    Folders: {', '.join(folders[:5])}{'...' if len(folders) > 5 else ''}"
+                        )
                 except Exception as e:
                     print(f"  - {email}: Error listing folders - {e}")
 
@@ -226,16 +244,18 @@ def test_imap_connections(test_connections=True):
     except Exception as e:
         print(f"❌ ERROR: {e}")
         import traceback
+
         traceback.print_exc()
         return False
 
 
-import subprocess
 import json
+import subprocess
 from pathlib import Path
 
+
 def test_folder_parsing():
-    """Test folder parsing functionality"""
+    """Test folder parsing functionality."""
     print("\n" + "=" * 60)
     print("Test 5: Folder Parsing")
     print("=" * 60)
@@ -270,18 +290,20 @@ def test_folder_parsing():
     except Exception as e:
         print(f"❌ ERROR: {e}")
         import traceback
+
         traceback.print_exc()
         return False
 
 
 def test_diagnostics_script():
-    """Test the connectivity diagnostics script"""
+    """Test the connectivity diagnostics script."""
     print("\n" + "=" * 60)
     print("Test 6: Connectivity Diagnostics Script")
     print("=" * 60)
 
     try:
         from src.utils.config import Config
+
         config = Config(".env")
 
         if not config.email_accounts:
@@ -296,21 +318,23 @@ def test_diagnostics_script():
                 break
 
         if not test_account_email:
-            print("⚠️ No enabled email accounts found, skipping diagnostics script test")
+            print(
+                "⚠️ No enabled email accounts found, skipping diagnostics script test"
+            )
             return True
 
         print(f"Testing diagnostics for: {test_account_email}")
 
         script_path = "./scripts/diagnose_connectivity.py"
         if not Path(script_path).exists():
-             print(f"❌ ERROR: Diagnostics script not found at {script_path}")
-             return False
+            print(f"❌ ERROR: Diagnostics script not found at {script_path}")
+            return False
 
         result = subprocess.run(
             ["python3", script_path, test_account_email],
             capture_output=True,
             text=True,
-            check=False
+            check=False,
         )
 
         if result.returncode != 0:
@@ -322,19 +346,26 @@ def test_diagnostics_script():
             output = json.loads(result.stdout)
             print("✓ Script produced valid JSON output")
 
-            required_keys = ["server_reachable", "port_open", "ssl_valid", "credentials_valid"]
+            required_keys = [
+                "server_reachable",
+                "port_open",
+                "ssl_valid",
+                "credentials_valid",
+            ]
             if all(key in output for key in required_keys):
                 print("✓ JSON output contains all required keys")
                 # Basic check on a nested value
                 if "host_resolved" in output.get("server_reachable", {}):
-                     print("✓ Nested structure appears correct")
-                     print("\n✓ Diagnostics script test PASSED")
-                     return True
+                    print("✓ Nested structure appears correct")
+                    print("\n✓ Diagnostics script test PASSED")
+                    return True
                 else:
-                     print("❌ Nested structure is incorrect")
-                     return False
+                    print("❌ Nested structure is incorrect")
+                    return False
             else:
-                print(f"❌ JSON output missing required keys. Found: {list(output.keys())}")
+                print(
+                    f"❌ JSON output missing required keys. Found: {list(output.keys())}"
+                )
                 return False
 
         except json.JSONDecodeError:
@@ -345,12 +376,13 @@ def test_diagnostics_script():
     except Exception as e:
         print(f"❌ ERROR: {e}")
         import traceback
+
         traceback.print_exc()
         return False
 
 
 def main():
-    """Run all tests"""
+    """Run all tests."""
     print("\n" + "=" * 60)
     print("Email Security Pipeline - Configuration Test")
     print("=" * 60)

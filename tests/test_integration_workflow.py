@@ -1,30 +1,30 @@
 """
 Integration Workflow Tests
-Tests end-to-end email processing flow through the pipeline
+Tests end-to-end email processing flow through the pipeline.
 """
 
-import unittest
-from unittest.mock import MagicMock, patch, Mock
-from datetime import datetime
 import sys
+import unittest
+from datetime import datetime
 from pathlib import Path
+from unittest.mock import MagicMock, Mock, patch
 
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
+from src.modules.alert_system import AlertSystem, ThreatReport, generate_threat_report
 from src.modules.email_ingestion import EmailData
-from src.modules.spam_analyzer import SpamAnalyzer, SpamAnalysisResult
-from src.modules.nlp_analyzer import NLPThreatAnalyzer, NLPAnalysisResult
-from src.modules.media_analyzer import MediaAuthenticityAnalyzer, MediaAnalysisResult
-from src.modules.alert_system import AlertSystem, generate_threat_report, ThreatReport
-from src.utils.config import AnalysisConfig, AlertConfig
+from src.modules.media_analyzer import MediaAnalysisResult, MediaAuthenticityAnalyzer
+from src.modules.nlp_analyzer import NLPAnalysisResult, NLPThreatAnalyzer
+from src.modules.spam_analyzer import SpamAnalysisResult, SpamAnalyzer
+from src.utils.config import AlertConfig, AnalysisConfig
 
 
 class TestIntegrationWorkflow(unittest.TestCase):
-    """Test complete end-to-end email processing workflows"""
+    """Test complete end-to-end email processing workflows."""
 
     def setUp(self):
-        """Set up test fixtures"""
+        """Set up test fixtures."""
         # Create mock configurations
         self.analysis_config = MagicMock(spec=AnalysisConfig)
         self.analysis_config.spam_threshold = 0.7
@@ -54,8 +54,10 @@ class TestIntegrationWorkflow(unittest.TestCase):
         self.media_analyzer = MediaAuthenticityAnalyzer(self.analysis_config)
         self.alert_system = AlertSystem(self.alert_config)
 
-    def _create_email_data(self, subject, body, sender="test@example.com", attachments=None):
-        """Helper to create EmailData objects for testing"""
+    def _create_email_data(
+        self, subject, body, sender="test@example.com", attachments=None
+    ):
+        """Helper to create EmailData objects for testing."""
         return EmailData(
             message_id="test-123",
             subject=subject,
@@ -68,7 +70,7 @@ class TestIntegrationWorkflow(unittest.TestCase):
             attachments=attachments or [],
             raw_email=MagicMock(),
             account_email="victim@example.com",
-            folder="INBOX"
+            folder="INBOX",
         )
 
     def test_clean_email_full_pipeline(self):
@@ -81,7 +83,7 @@ class TestIntegrationWorkflow(unittest.TestCase):
         email_data = self._create_email_data(
             subject="Meeting Tomorrow at 2 PM",
             body="Hi, just confirming our meeting for tomorrow at 2 PM. See you then!",
-            sender="colleague@company.com"
+            sender="colleague@company.com",
         )
 
         # Layer 1: Spam Analysis
@@ -103,10 +105,7 @@ class TestIntegrationWorkflow(unittest.TestCase):
 
         # Generate threat report
         report = generate_threat_report(
-            email_data,
-            spam_result,
-            nlp_result,
-            media_result
+            email_data, spam_result, nlp_result, media_result
         )
 
         self.assertIsInstance(report, ThreatReport)
@@ -124,9 +123,9 @@ class TestIntegrationWorkflow(unittest.TestCase):
         email_data = self._create_email_data(
             subject="URGENT: Verify Your Account Now!!!",
             body="Your account will be SUSPENDED unless you click here immediately: "
-                 "http://evil-phishing-site.com/login?verify=now "
-                 "Act now or lose access forever! Limited time offer!",
-            sender="security@definitely-not-your-bank.com"
+            "http://evil-phishing-site.com/login?verify=now "
+            "Act now or lose access forever! Limited time offer!",
+            sender="security@definitely-not-your-bank.com",
         )
 
         # Layer 1: Spam Analysis
@@ -145,10 +144,7 @@ class TestIntegrationWorkflow(unittest.TestCase):
 
         # Generate threat report
         report = generate_threat_report(
-            email_data,
-            spam_result,
-            nlp_result,
-            media_result
+            email_data, spam_result, nlp_result, media_result
         )
 
         # Verify threat was detected
@@ -164,17 +160,19 @@ class TestIntegrationWorkflow(unittest.TestCase):
         while respecting resource limits to prevent DoS attacks.
         """
         # Create email with media attachment
-        attachments = [{
-            'filename': 'vacation.jpg',
-            'content_type': 'image/jpeg',
-            'size': 1024 * 100,  # 100KB
-            'data': b'\xff\xd8\xff\xe0\x00\x10JFIF' + b'\x00' * 100  # JPEG header
-        }]
+        attachments = [
+            {
+                "filename": "vacation.jpg",
+                "content_type": "image/jpeg",
+                "size": 1024 * 100,  # 100KB
+                "data": b"\xff\xd8\xff\xe0\x00\x10JFIF" + b"\x00" * 100,  # JPEG header
+            }
+        ]
 
         email_data = self._create_email_data(
             subject="Check out my vacation photos!",
             body="Here are some photos from my trip.",
-            attachments=attachments
+            attachments=attachments,
         )
 
         # Run through all analyzers
@@ -188,10 +186,7 @@ class TestIntegrationWorkflow(unittest.TestCase):
 
         # Generate report
         report = generate_threat_report(
-            email_data,
-            spam_result,
-            nlp_result,
-            media_result
+            email_data, spam_result, nlp_result, media_result
         )
 
         self.assertIsNotNone(report)
@@ -207,8 +202,7 @@ class TestIntegrationWorkflow(unittest.TestCase):
         We isolate failures to prevent cascade effects while maintaining partial functionality.
         """
         email_data = self._create_email_data(
-            subject="Test Email",
-            body="Test body content"
+            subject="Test Email", body="Test body content"
         )
 
         # Test that other analyzers still work even if one fails
@@ -227,15 +221,12 @@ class TestIntegrationWorkflow(unittest.TestCase):
 
         # Should be able to generate report with all analyzers working
         report = generate_threat_report(
-            email_data,
-            spam_result,
-            nlp_result,
-            media_result
+            email_data, spam_result, nlp_result, media_result
         )
 
         self.assertIsNotNone(report)
 
-    @patch('src.modules.alert_system.requests.post')
+    @patch("src.modules.alert_system.requests.post")
     def test_alert_generation_and_delivery(self, mock_post):
         """
         SECURITY STORY: This tests that high-threat emails trigger alerts correctly.
@@ -261,11 +252,11 @@ class TestIntegrationWorkflow(unittest.TestCase):
             date=datetime.now().isoformat(),
             overall_threat_score=95.0,
             risk_level="high",
-            spam_analysis={'spam_score': 90.0},
-            nlp_analysis={'threat_score': 95.0},
-            media_analysis={'attachment_count': 0},
+            spam_analysis={"spam_score": 90.0},
+            nlp_analysis={"threat_score": 95.0},
+            media_analysis={"attachment_count": 0},
             recommendations=["Do not click any links", "Delete email immediately"],
-            timestamp=datetime.now().isoformat()
+            timestamp=datetime.now().isoformat(),
         )
 
         # Send alert
@@ -282,8 +273,8 @@ class TestIntegrationWorkflow(unittest.TestCase):
         args, kwargs = call_args
         if args:
             self.assertIn("example.com", args[0])
-        elif 'url' in kwargs:
-            self.assertIn("example.com", kwargs['url'])
+        elif "url" in kwargs:
+            self.assertIn("example.com", kwargs["url"])
 
     def test_multiple_emails_batch_processing(self):
         """
@@ -296,9 +287,15 @@ class TestIntegrationWorkflow(unittest.TestCase):
         """
         # Create multiple emails with different threat levels
         emails = [
-            self._create_email_data("Meeting Invite", "Let's meet tomorrow", "bob@company.com"),
-            self._create_email_data("URGENT ACTION REQUIRED!!!", "Click now!!!", "scammer@evil.com"),
-            self._create_email_data("Weekly Newsletter", "Here's this week's news", "news@company.com"),
+            self._create_email_data(
+                "Meeting Invite", "Let's meet tomorrow", "bob@company.com"
+            ),
+            self._create_email_data(
+                "URGENT ACTION REQUIRED!!!", "Click now!!!", "scammer@evil.com"
+            ),
+            self._create_email_data(
+                "Weekly Newsletter", "Here's this week's news", "news@company.com"
+            ),
         ]
 
         results = []
@@ -309,10 +306,7 @@ class TestIntegrationWorkflow(unittest.TestCase):
             media_result = self.media_analyzer.analyze(email_data)
 
             report = generate_threat_report(
-                email_data,
-                spam_result,
-                nlp_result,
-                media_result
+                email_data, spam_result, nlp_result, media_result
             )
             results.append(report)
 
@@ -332,5 +326,5 @@ class TestIntegrationWorkflow(unittest.TestCase):
         self.assertIsNotNone(results[2])
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

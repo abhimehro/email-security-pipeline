@@ -1,5 +1,5 @@
 """
-Unit tests for src/utils/pattern_compiler.py
+Unit tests for src/utils/pattern_compiler.py.
 
 Tests cover:
 - compile_patterns: basic OR matching, case-insensitivity, custom flags,
@@ -11,6 +11,7 @@ Tests cover:
 """
 
 import re
+
 import pytest
 
 from src.utils.pattern_compiler import (
@@ -18,7 +19,6 @@ from src.utils.pattern_compiler import (
     compile_named_group_pattern,
     compile_patterns,
 )
-
 
 # ---------------------------------------------------------------------------
 # check_redos_safety
@@ -168,9 +168,7 @@ class TestCompileNamedGroupPattern:
             r"\b(viagra|cialis)\b",
             r"\b(winner|prize)\b",
         ]
-        pat, group_map = compile_named_group_pattern(
-            spam_keywords, re.I, "spam_kw"
-        )
+        pat, group_map = compile_named_group_pattern(spam_keywords, re.I, "spam_kw")
         assert "spam_kw_0" in group_map
         assert "spam_kw_1" in group_map
         m = pat.search("You are the winner")

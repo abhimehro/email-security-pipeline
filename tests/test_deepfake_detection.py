@@ -1,17 +1,19 @@
-
-import unittest
 import os
 import sys
-import numpy as np
+import unittest
 from unittest.mock import MagicMock
+
+import numpy as np
 
 # Add repo root to path
 sys.path.insert(0, os.getcwd())
 
+from src.modules.email_ingestion import EmailData
+
 # Import using src package to resolve relative imports correctly
 from src.modules.media_analyzer import MediaAuthenticityAnalyzer
-from src.modules.email_ingestion import EmailData
 from src.utils.config import AnalysisConfig
+
 
 class TestDeepfakeDetection(unittest.TestCase):
     def setUp(self):
@@ -42,13 +44,15 @@ class TestDeepfakeDetection(unittest.TestCase):
             account_email="me@example.com",
             folder="INBOX",
             raw_email=None,
-            attachments=[{
-                "filename": "vacation.mp4",
-                "content_type": "video/mp4",
-                "size": 1024 * 1024,
-                "data": b'\x00\x00\x00\x20ftypisom' + b"a" * 1024 * 200,
-                "truncated": False
-            }]
+            attachments=[
+                {
+                    "filename": "vacation.mp4",
+                    "content_type": "video/mp4",
+                    "size": 1024 * 1024,
+                    "data": b"\x00\x00\x00\x20ftypisom" + b"a" * 1024 * 200,
+                    "truncated": False,
+                }
+            ],
         )
 
         result = self.analyzer.analyze(email_data)
@@ -68,17 +72,21 @@ class TestDeepfakeDetection(unittest.TestCase):
             account_email="me@example.com",
             folder="INBOX",
             raw_email=None,
-            attachments=[{
-                "filename": "deepfake_video.mp4",
-                "content_type": "video/mp4",
-                "size": 1024 * 1024,
-                "data": b'\x00\x00\x00\x20ftypisom' + b"a" * 1024 * 200,
-                "truncated": False
-            }]
+            attachments=[
+                {
+                    "filename": "deepfake_video.mp4",
+                    "content_type": "video/mp4",
+                    "size": 1024 * 1024,
+                    "data": b"\x00\x00\x00\x20ftypisom" + b"a" * 1024 * 200,
+                    "truncated": False,
+                }
+            ],
         )
 
         # Mock frame extraction to return dummy frames
-        self.analyzer._extract_frames_from_video = MagicMock(return_value=[np.zeros((100, 100, 3), dtype=np.uint8)])
+        self.analyzer._extract_frames_from_video = MagicMock(
+            return_value=[np.zeros((100, 100, 3), dtype=np.uint8)]
+        )
         # Avoid codec/ffmpeg variability in CI by mocking the other OpenCV-heavy steps.
         self.analyzer._check_audio_visual_sync = MagicMock(return_value=(0.0, []))
         self.analyzer._check_compression_artifacts = MagicMock(return_value=(0.0, []))
@@ -103,22 +111,28 @@ class TestDeepfakeDetection(unittest.TestCase):
             account_email="me@example.com",
             folder="INBOX",
             raw_email=None,
-            attachments=[{
-                "filename": "suspicious_clip.mp4",
-                "content_type": "video/mp4",
-                "size": 1024 * 1024,
-                "data": b'\x00\x00\x00\x20ftypisom' + b"a" * 1024 * 200,
-                "truncated": False
-            }]
+            attachments=[
+                {
+                    "filename": "suspicious_clip.mp4",
+                    "content_type": "video/mp4",
+                    "size": 1024 * 1024,
+                    "data": b"\x00\x00\x00\x20ftypisom" + b"a" * 1024 * 200,
+                    "truncated": False,
+                }
+            ],
         )
 
         # Mock frame extraction to return dummy frames
-        self.analyzer._extract_frames_from_video = MagicMock(return_value=[np.zeros((100, 100, 3), dtype=np.uint8)])
+        self.analyzer._extract_frames_from_video = MagicMock(
+            return_value=[np.zeros((100, 100, 3), dtype=np.uint8)]
+        )
         # Avoid codec/ffmpeg variability in CI by mocking the other OpenCV-heavy steps.
         self.analyzer._check_audio_visual_sync = MagicMock(return_value=(0.0, []))
         self.analyzer._check_compression_artifacts = MagicMock(return_value=(0.0, []))
         # Mock some facial inconsistencies to get a score
-        self.analyzer._analyze_facial_inconsistencies = MagicMock(return_value=(1.0, ["Facial issue"]))
+        self.analyzer._analyze_facial_inconsistencies = MagicMock(
+            return_value=(1.0, ["Facial issue"])
+        )
         # Mock model score to be low
         self.analyzer._run_deepfake_model = MagicMock(return_value=0.1)
 
@@ -141,18 +155,21 @@ class TestDeepfakeDetection(unittest.TestCase):
             account_email="me@example.com",
             folder="INBOX",
             raw_email=None,
-            attachments=[{
-                "filename": "deepfake_test.mp4",
-                "content_type": "video/mp4",
-                "size": 1024 * 1024,
-                "data": b'\x00\x00\x00\x20ftypisom' + b"a" * 1024 * 200,
-                "truncated": False
-            }]
+            attachments=[
+                {
+                    "filename": "deepfake_test.mp4",
+                    "content_type": "video/mp4",
+                    "size": 1024 * 1024,
+                    "data": b"\x00\x00\x00\x20ftypisom" + b"a" * 1024 * 200,
+                    "truncated": False,
+                }
+            ],
         )
 
         result = self.analyzer.analyze(email_data)
         # Should default to 0.0 and log warning
         self.assertEqual(len(result.potential_deepfakes), 0)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

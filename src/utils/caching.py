@@ -37,14 +37,17 @@ class TTLCache:
     Args:
         max_size:    Maximum number of live entries (default 512).
         ttl_seconds: Seconds before an entry is considered stale (default 3600).
+
     """
 
     def __init__(self, max_size: int = 512, ttl_seconds: int = 3600) -> None:
         if max_size <= 0:
             raise ValueError(f"max_size must be a positive integer, got {max_size}")
         if ttl_seconds <= 0:
-            raise ValueError(f"ttl_seconds must be a positive integer, got {ttl_seconds}")
-        self._store: dict = {}          # key -> (value, datetime)
+            raise ValueError(
+                f"ttl_seconds must be a positive integer, got {ttl_seconds}"
+            )
+        self._store: dict = {}  # key -> (value, datetime)
         self._max_size = max_size
         self._ttl = timedelta(seconds=ttl_seconds)
         self._lock = threading.Lock()
@@ -102,10 +105,7 @@ class TTLCache:
         """Return non-expired keys in LRU order (oldest first, newest last)."""
         now = datetime.now()
         with self._lock:
-            return [
-                k for k, (_, ts) in self._store.items()
-                if now - ts < self._ttl
-            ]
+            return [k for k, (_, ts) in self._store.items() if now - ts < self._ttl]
 
     # ------------------------------------------------------------------
     # Private helper (must be called with _lock already held)
@@ -116,7 +116,7 @@ class TTLCache:
             return None
         value, timestamp = self._store[key]
         if datetime.now() - timestamp >= self._ttl:
-            del self._store[key]   # Lazy TTL eviction
+            del self._store[key]  # Lazy TTL eviction
             return None
         # Promote to most-recently-used by moving to the tail of the dict
         del self._store[key]

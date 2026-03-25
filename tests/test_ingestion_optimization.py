@@ -1,14 +1,15 @@
+import sys
 import unittest
-from unittest.mock import MagicMock
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-import sys
 from pathlib import Path
+from unittest.mock import MagicMock
 
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.modules.email_ingestion import IMAPClient, EmailAccountConfig
+from src.modules.email_ingestion import EmailAccountConfig, IMAPClient
+
 
 class TestIngestionOptimization(unittest.TestCase):
     def setUp(self):
@@ -21,7 +22,7 @@ class TestIngestionOptimization(unittest.TestCase):
             folders=["INBOX"],
             provider="test",
             use_ssl=True,
-            verify_ssl=True
+            verify_ssl=True,
         )
         self.client = IMAPClient(self.config)
         self.client.logger = MagicMock()
@@ -62,14 +63,14 @@ class TestIngestionOptimization(unittest.TestCase):
         self.assertTrue(found_warning, "Truncation warning was not logged")
 
     def test_multipart_body_exact_limit(self):
-        """Test exact limit boundary handling"""
+        """Test exact limit boundary handling."""
         self.client.max_body_size = 11
 
         msg = MIMEMultipart()
-        msg.attach(MIMEText("Part1:12345", "plain")) # 11 chars
-        msg.attach(MIMEText("Part2:67890", "plain")) # 11 chars
+        msg.attach(MIMEText("Part1:12345", "plain"))  # 11 chars
+        msg.attach(MIMEText("Part2:67890", "plain"))  # 11 chars
 
-        raw_email = msg.as_string().encode('utf-8')
+        raw_email = msg.as_string().encode("utf-8")
 
         email_data = self.client.parse_email("2", raw_email, "INBOX")
 
@@ -115,7 +116,10 @@ class TestIngestionOptimization(unittest.TestCase):
                 break
 
         # Based on my analysis of original code, it should NOT warn if exact match occurs before next part.
-        self.assertFalse(found_warning, "Truncation warning logged unexpectedly for exact fit")
+        self.assertFalse(
+            found_warning, "Truncation warning logged unexpectedly for exact fit"
+        )
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

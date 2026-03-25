@@ -1,26 +1,29 @@
 """
 Configuration Management Module
-Handles loading and validation of environment variables and settings
+Handles loading and validation of environment variables and settings.
 """
 
 import logging
 import os
-from typing import List, Optional
 from dataclasses import dataclass, field
-from dotenv import load_dotenv
+from typing import List, Optional
 from urllib.parse import urlparse
+
+from dotenv import load_dotenv
 
 from .security_validators import is_safe_webhook_url
 
 
 class ConfigurationError(Exception):
     """Exception raised for configuration errors. Contains a list of errors."""
+
     pass
 
 
 @dataclass
 class EmailAccountConfig:
-    """Configuration for a single email account"""
+    """Configuration for a single email account."""
+
     enabled: bool
     email: str
     imap_server: str
@@ -34,7 +37,8 @@ class EmailAccountConfig:
 
 @dataclass
 class AnalysisConfig:
-    """Configuration for analysis layers"""
+    """Configuration for analysis layers."""
+
     # Layer 1: Spam Detection
     spam_threshold: float
     spam_check_headers: bool
@@ -63,7 +67,8 @@ class AnalysisConfig:
 
 @dataclass
 class AlertConfig:
-    """Configuration for alert system"""
+    """Configuration for alert system."""
+
     console: bool
     webhook_enabled: bool
     webhook_url: Optional[str] = field(repr=False)
@@ -76,7 +81,8 @@ class AlertConfig:
 
 @dataclass
 class SystemConfig:
-    """Configuration for system settings"""
+    """Configuration for system settings."""
+
     log_level: str
     log_file: str
     log_format: str  # Options: "text" or "json"
@@ -96,14 +102,15 @@ class SystemConfig:
 
 
 class Config:
-    """Main configuration class"""
+    """Main configuration class."""
 
     def __init__(self, env_file: str = ".env"):
         """
-        Initialize configuration from environment file
+        Initialize configuration from environment file.
 
         Args:
             env_file: Path to environment file (default: .env)
+
         """
         load_dotenv(env_file)
 
@@ -113,55 +120,63 @@ class Config:
         self.system = self._load_system_config()
 
     def _load_email_accounts(self) -> List[EmailAccountConfig]:
-        """Load email account configurations"""
+        """Load email account configurations."""
         accounts = []
 
         # Gmail
         if self._get_bool("GMAIL_ENABLED", False):
-            accounts.append(EmailAccountConfig(
-                enabled=True,
-                email=os.getenv("GMAIL_EMAIL", ""),
-                imap_server=os.getenv("GMAIL_IMAP_SERVER", "imap.gmail.com"),
-                imap_port=int(os.getenv("GMAIL_IMAP_PORT", "993")),
-                app_password=os.getenv("GMAIL_APP_PASSWORD", ""),
-                folders=self._parse_folders(os.getenv("GMAIL_FOLDERS", "INBOX")),
-                provider="gmail",
-                use_ssl=self._get_bool("GMAIL_USE_SSL", True),
-                verify_ssl=self._get_bool("GMAIL_VERIFY_SSL", True)
-            ))
+            accounts.append(
+                EmailAccountConfig(
+                    enabled=True,
+                    email=os.getenv("GMAIL_EMAIL", ""),
+                    imap_server=os.getenv("GMAIL_IMAP_SERVER", "imap.gmail.com"),
+                    imap_port=int(os.getenv("GMAIL_IMAP_PORT", "993")),
+                    app_password=os.getenv("GMAIL_APP_PASSWORD", ""),
+                    folders=self._parse_folders(os.getenv("GMAIL_FOLDERS", "INBOX")),
+                    provider="gmail",
+                    use_ssl=self._get_bool("GMAIL_USE_SSL", True),
+                    verify_ssl=self._get_bool("GMAIL_VERIFY_SSL", True),
+                )
+            )
 
         # Outlook
         if self._get_bool("OUTLOOK_ENABLED", False):
-            accounts.append(EmailAccountConfig(
-                enabled=True,
-                email=os.getenv("OUTLOOK_EMAIL", ""),
-                imap_server=os.getenv("OUTLOOK_IMAP_SERVER", "outlook.office365.com"),
-                imap_port=int(os.getenv("OUTLOOK_IMAP_PORT", "993")),
-                app_password=os.getenv("OUTLOOK_APP_PASSWORD", ""),
-                folders=self._parse_folders(os.getenv("OUTLOOK_FOLDERS", "INBOX")),
-                provider="outlook",
-                use_ssl=self._get_bool("OUTLOOK_USE_SSL", True),
-                verify_ssl=self._get_bool("OUTLOOK_VERIFY_SSL", True)
-            ))
+            accounts.append(
+                EmailAccountConfig(
+                    enabled=True,
+                    email=os.getenv("OUTLOOK_EMAIL", ""),
+                    imap_server=os.getenv(
+                        "OUTLOOK_IMAP_SERVER", "outlook.office365.com"
+                    ),
+                    imap_port=int(os.getenv("OUTLOOK_IMAP_PORT", "993")),
+                    app_password=os.getenv("OUTLOOK_APP_PASSWORD", ""),
+                    folders=self._parse_folders(os.getenv("OUTLOOK_FOLDERS", "INBOX")),
+                    provider="outlook",
+                    use_ssl=self._get_bool("OUTLOOK_USE_SSL", True),
+                    verify_ssl=self._get_bool("OUTLOOK_VERIFY_SSL", True),
+                )
+            )
 
         # Proton Mail
         if self._get_bool("PROTON_ENABLED", False):
-            accounts.append(EmailAccountConfig(
-                enabled=True,
-                email=os.getenv("PROTON_EMAIL", ""),
-                imap_server=os.getenv("PROTON_IMAP_SERVER", "127.0.0.1"),
-                imap_port=int(os.getenv("PROTON_IMAP_PORT", "1143")),
-                app_password=os.getenv("PROTON_APP_PASSWORD", ""),
-                folders=self._parse_folders(os.getenv("PROTON_FOLDERS", "INBOX")),
-                provider="proton",
-                use_ssl=self._get_bool("PROTON_USE_SSL", True),
-                verify_ssl=self._get_bool("PROTON_VERIFY_SSL", True)
-            ))
+            accounts.append(
+                EmailAccountConfig(
+                    enabled=True,
+                    email=os.getenv("PROTON_EMAIL", ""),
+                    imap_server=os.getenv("PROTON_IMAP_SERVER", "127.0.0.1"),
+                    imap_port=int(os.getenv("PROTON_IMAP_PORT", "1143")),
+                    app_password=os.getenv("PROTON_APP_PASSWORD", ""),
+                    folders=self._parse_folders(os.getenv("PROTON_FOLDERS", "INBOX")),
+                    provider="proton",
+                    use_ssl=self._get_bool("PROTON_USE_SSL", True),
+                    verify_ssl=self._get_bool("PROTON_VERIFY_SSL", True),
+                )
+            )
 
         return accounts
 
     def _load_analysis_config(self) -> AnalysisConfig:
-        """Load analysis configuration"""
+        """Load analysis configuration."""
         return AnalysisConfig(
             spam_threshold=float(os.getenv("SPAM_THRESHOLD", "5.0")),
             spam_check_headers=self._get_bool("SPAM_CHECK_HEADERS", True),
@@ -172,18 +187,22 @@ class Config:
             enable_ml_model=self._get_bool("NLP_ENABLE_ML", True),
             check_social_engineering=self._get_bool("CHECK_SOCIAL_ENGINEERING", True),
             check_urgency_markers=self._get_bool("CHECK_URGENCY_MARKERS", True),
-            check_authority_impersonation=self._get_bool("CHECK_AUTHORITY_IMPERSONATION", True),
+            check_authority_impersonation=self._get_bool(
+                "CHECK_AUTHORITY_IMPERSONATION", True
+            ),
             check_media_attachments=self._get_bool("CHECK_MEDIA_ATTACHMENTS", True),
-            deepfake_detection_enabled=self._get_bool("DEEPFAKE_DETECTION_ENABLED", True),
+            deepfake_detection_enabled=self._get_bool(
+                "DEEPFAKE_DETECTION_ENABLED", True
+            ),
             media_analysis_timeout=int(os.getenv("MEDIA_ANALYSIS_TIMEOUT", "60")),
             deepfake_provider=os.getenv("DEEPFAKE_PROVIDER", "simulator"),
             deepfake_api_key=os.getenv("DEEPFAKE_API_KEY"),
             deepfake_api_url=os.getenv("DEEPFAKE_API_URL"),
-            deepfake_model_path=os.getenv("DEEPFAKE_MODEL_PATH")
+            deepfake_model_path=os.getenv("DEEPFAKE_MODEL_PATH"),
         )
 
     def _load_alert_config(self) -> AlertConfig:
-        """Load alert configuration"""
+        """Load alert configuration."""
         return AlertConfig(
             console=self._get_bool("ALERT_CONSOLE", True),
             webhook_enabled=self._get_bool("ALERT_WEBHOOK_ENABLED", False),
@@ -192,11 +211,11 @@ class Config:
             slack_webhook=os.getenv("ALERT_SLACK_WEBHOOK"),
             threat_low=float(os.getenv("THREAT_LOW", "30.0")),
             threat_medium=float(os.getenv("THREAT_MEDIUM", "60.0")),
-            threat_high=float(os.getenv("THREAT_HIGH", "80.0"))
+            threat_high=float(os.getenv("THREAT_HIGH", "80.0")),
         )
 
     def _load_system_config(self) -> SystemConfig:
-        """Load system configuration"""
+        """Load system configuration."""
         return SystemConfig(
             log_level=os.getenv("LOG_LEVEL", "INFO"),
             log_file=os.getenv("LOG_FILE", "logs/email_security.log"),
@@ -210,10 +229,14 @@ class Config:
             database_enabled=self._get_bool("DATABASE_ENABLED", False),
             database_path=os.getenv("DATABASE_PATH"),
             max_attachment_size_mb=int(os.getenv("MAX_ATTACHMENT_SIZE_MB", "25")),
-            max_total_attachment_size_mb=int(os.getenv("MAX_TOTAL_ATTACHMENT_SIZE_MB", "100")),
+            max_total_attachment_size_mb=int(
+                os.getenv("MAX_TOTAL_ATTACHMENT_SIZE_MB", "100")
+            ),
             max_attachment_count=int(os.getenv("MAX_ATTACHMENT_COUNT", "10")),
-            max_body_size_kb=int(os.getenv("MAX_BODY_SIZE_KB", "1024")),  # Default 1MB limit for body text
-            max_parallel_accounts=int(os.getenv("MAX_PARALLEL_ACCOUNTS", "3"))
+            max_body_size_kb=int(
+                os.getenv("MAX_BODY_SIZE_KB", "1024")
+            ),  # Default 1MB limit for body text
+            max_parallel_accounts=int(os.getenv("MAX_PARALLEL_ACCOUNTS", "3")),
         )
 
     @staticmethod
@@ -227,6 +250,7 @@ class Config:
 
         Returns:
             List of folder names, defaulting to ["INBOX"] if empty
+
         """
         if not value:
             return ["INBOX"]
@@ -241,9 +265,9 @@ class Config:
 
     @staticmethod
     def _get_bool(key: str, default: bool = False) -> bool:
-        """Convert environment variable to boolean"""
+        """Convert environment variable to boolean."""
         value = os.getenv(key, str(default)).lower()
-        return value in ('true', '1', 'yes', 'on')
+        return value in ("true", "1", "yes", "on")
 
     @staticmethod
     def _is_https_url(value: str) -> bool:
@@ -255,13 +279,14 @@ class Config:
 
     def validate(self) -> bool:
         """
-        Validate configuration
+        Validate configuration.
 
         Returns:
             True if configuration is valid
 
         Raises:
             ConfigurationError: If configuration is invalid, contains list of errors
+
         """
         errors = []
 
@@ -305,7 +330,9 @@ class Config:
             errors.append(f"Invalid log level: {self.system.log_level}")
 
         if self.system.log_format not in ("text", "json"):
-            errors.append(f"Invalid log format: {self.system.log_format}. Must be 'text' or 'json'")
+            errors.append(
+                f"Invalid log format: {self.system.log_format}. Must be 'text' or 'json'"
+            )
 
         if self.system.log_rotation_size_mb <= 0:
             errors.append("LOG_ROTATION_SIZE_MB must be greater than zero")
@@ -313,7 +340,9 @@ class Config:
         if self.system.log_rotation_keep_files <= 0:
             errors.append("LOG_ROTATION_KEEP_FILES must be greater than zero")
 
-        if not (self.alerts.threat_low < self.alerts.threat_medium < self.alerts.threat_high):
+        if not (
+            self.alerts.threat_low < self.alerts.threat_medium < self.alerts.threat_high
+        ):
             errors.append(
                 f"Threat thresholds must satisfy LOW < MEDIUM < HIGH. "
                 f"Got: LOW={self.alerts.threat_low}, MEDIUM={self.alerts.threat_medium}, HIGH={self.alerts.threat_high}"

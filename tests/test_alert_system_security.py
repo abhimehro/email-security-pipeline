@@ -1,7 +1,9 @@
 import unittest
 from unittest.mock import MagicMock, patch
+
 from src.modules.alert_system import AlertSystem, ThreatReport
 from src.utils.config import AlertConfig
+
 
 class TestAlertSystemSecurity(unittest.TestCase):
     def setUp(self):
@@ -74,7 +76,7 @@ class TestAlertSystemSecurity(unittest.TestCase):
         ]
 
         for input_str, expected in test_cases:
-            report = ThreatReport(
+            ThreatReport(
                 email_id="123",
                 subject=input_str if input_str is not None else "", # report.subject usually expects str
                 sender="sender",
@@ -103,7 +105,7 @@ class TestAlertSystemSecurity(unittest.TestCase):
     @patch('src.modules.alert_system.is_safe_webhook_url')
     @patch('src.modules.alert_system.requests.post')
     def test_webhook_redirect_prevention(self, mock_post, mock_is_safe):
-        """Test that webhook calls are made with allow_redirects=False to prevent SSRF bypass"""
+        """Test that webhook calls are made with allow_redirects=False to prevent SSRF bypass."""
         self.config.webhook_enabled = True
         self.config.webhook_url = "https://safe.example.com/webhook"
 
@@ -130,7 +132,7 @@ class TestAlertSystemSecurity(unittest.TestCase):
     @patch('src.modules.alert_system.is_safe_webhook_url')
     @patch('src.modules.alert_system.requests.post')
     def test_webhook_ssrf_prevention(self, mock_post, mock_is_safe):
-        """Test that webhook calls are aborted if unsafe at request time"""
+        """Test that webhook calls are aborted if unsafe at request time."""
         self.config.webhook_enabled = True
         self.config.webhook_url = "http://169.254.169.254/latest/meta-data/"
 
@@ -154,7 +156,7 @@ class TestAlertSystemSecurity(unittest.TestCase):
     @patch('src.modules.alert_system.is_safe_webhook_url')
     @patch('src.modules.alert_system.requests.post')
     def test_slack_ssrf_prevention(self, mock_post, mock_is_safe):
-        """Test Slack webhook calls abort if URL is deemed unsafe"""
+        """Test Slack webhook calls abort if URL is deemed unsafe."""
         self.config.slack_enabled = True
         self.config.slack_webhook = "https://hooks.slack.com/services/test"
 
@@ -178,7 +180,7 @@ class TestAlertSystemSecurity(unittest.TestCase):
     @patch('src.modules.alert_system.is_safe_webhook_url')
     @patch('src.modules.alert_system.requests.post')
     def test_slack_redirect_prevention(self, mock_post, mock_is_safe):
-        """Test that Slack calls are made with allow_redirects=False to prevent SSRF bypass"""
+        """Test that Slack calls are made with allow_redirects=False to prevent SSRF bypass."""
         self.config.slack_enabled = True
         self.config.slack_webhook = "https://hooks.slack.com/services/test"
 

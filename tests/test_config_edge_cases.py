@@ -1,30 +1,30 @@
 """
 Configuration Edge Cases Tests
-Tests configuration validation, error handling, and environment variable precedence
+Tests configuration validation, error handling, and environment variable precedence.
 """
 
-import unittest
-from unittest.mock import MagicMock, patch, mock_open
 import os
 import sys
-from pathlib import Path
 import tempfile
+import unittest
+from pathlib import Path
+from unittest.mock import MagicMock
 
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src.utils.config import (
+    AlertConfig,
+    AnalysisConfig,
     Config,
     ConfigurationError,
     EmailAccountConfig,
-    AnalysisConfig,
-    AlertConfig,
-    SystemConfig
+    SystemConfig,
 )
 
 
 class TestConfigurationValidation(unittest.TestCase):
-    """Test configuration validation and error handling"""
+    """Test configuration validation and error handling."""
 
     def test_missing_required_email_fields(self):
         """
@@ -44,7 +44,7 @@ class TestConfigurationValidation(unittest.TestCase):
                 folders=["INBOX"],
                 provider="generic",
                 use_ssl=True,
-                verify_ssl=True
+                verify_ssl=True,
             )
 
     def test_invalid_email_format(self):
@@ -63,7 +63,7 @@ class TestConfigurationValidation(unittest.TestCase):
             folders=["INBOX"],
             provider="generic",
             use_ssl=True,
-            verify_ssl=True
+            verify_ssl=True,
         )
         self.assertIsNotNone(valid_config)
 
@@ -87,7 +87,7 @@ class TestConfigurationValidation(unittest.TestCase):
             folders=["INBOX"],
             provider="generic",
             use_ssl=True,
-            verify_ssl=True
+            verify_ssl=True,
         )
 
         # Config is created but would fail on actual connection
@@ -110,7 +110,7 @@ class TestConfigurationValidation(unittest.TestCase):
             folders=[],  # Empty folders
             provider="generic",
             use_ssl=True,
-            verify_ssl=True
+            verify_ssl=True,
         )
 
         # Config is created but would be ineffective
@@ -153,7 +153,7 @@ class TestConfigurationValidation(unittest.TestCase):
 
 
 class TestEnvironmentVariablePrecedence(unittest.TestCase):
-    """Test environment variable loading and precedence"""
+    """Test environment variable loading and precedence."""
 
     def test_env_file_loading(self):
         """
@@ -162,7 +162,7 @@ class TestEnvironmentVariablePrecedence(unittest.TestCase):
         correctly and securely, without leaking to logs or error messages.
         """
         # Create temporary .env file
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.env', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".env", delete=False) as f:
             f.write("TEST_VAR=test_value\n")
             env_file = f.name
 
@@ -218,7 +218,7 @@ class TestEnvironmentVariablePrecedence(unittest.TestCase):
 
 
 class TestConflictingSettings(unittest.TestCase):
-    """Test handling of conflicting configuration settings"""
+    """Test handling of conflicting configuration settings."""
 
     def test_webhook_enabled_without_url(self):
         """
@@ -239,7 +239,7 @@ class TestConflictingSettings(unittest.TestCase):
         Disabling SSL while using the SSL port (993) suggests misconfiguration.
         This should trigger a warning as it might expose credentials over plaintext.
         """
-        config = EmailAccountConfig(
+        EmailAccountConfig(
             enabled=True,
             email="test@example.com",
             imap_server="imap.example.com",
@@ -248,7 +248,7 @@ class TestConflictingSettings(unittest.TestCase):
             folders=["INBOX"],
             provider="generic",
             use_ssl=False,  # But SSL disabled - conflict!
-            verify_ssl=True
+            verify_ssl=True,
         )
 
         # This configuration is suspicious but might be valid in rare cases
@@ -260,7 +260,7 @@ class TestConflictingSettings(unittest.TestCase):
         Verifying SSL certificates when SSL isn't used doesn't make sense.
         This indicates a configuration misunderstanding.
         """
-        config = EmailAccountConfig(
+        EmailAccountConfig(
             enabled=True,
             email="test@example.com",
             imap_server="imap.example.com",
@@ -269,7 +269,7 @@ class TestConflictingSettings(unittest.TestCase):
             folders=["INBOX"],
             provider="generic",
             use_ssl=False,
-            verify_ssl=True  # Conflict: verify SSL but not using SSL
+            verify_ssl=True,  # Conflict: verify SSL but not using SSL
         )
 
         # Should at least log a warning about nonsensical config
@@ -290,7 +290,7 @@ class TestConflictingSettings(unittest.TestCase):
 
 
 class TestConfigurationDefaults(unittest.TestCase):
-    """Test configuration default values and fallbacks"""
+    """Test configuration default values and fallbacks."""
 
     def test_default_system_settings(self):
         """
@@ -315,7 +315,9 @@ class TestConfigurationDefaults(unittest.TestCase):
             database_enabled=False,
             database_path=None,
             max_attachment_size_mb=int(os.getenv("MAX_ATTACHMENT_SIZE_MB", "25")),
-            max_total_attachment_size_mb=int(os.getenv("MAX_TOTAL_ATTACHMENT_SIZE_MB", "100")),
+            max_total_attachment_size_mb=int(
+                os.getenv("MAX_TOTAL_ATTACHMENT_SIZE_MB", "100")
+            ),
             max_attachment_count=int(os.getenv("MAX_ATTACHMENT_COUNT", "10")),
             max_body_size_kb=int(os.getenv("MAX_BODY_SIZE_KB", "1024")),
             max_parallel_accounts=int(os.getenv("MAX_PARALLEL_ACCOUNTS", "3")),
@@ -370,7 +372,7 @@ class TestConfigurationDefaults(unittest.TestCase):
 
 
 class TestConfigurationSerialization(unittest.TestCase):
-    """Test configuration serialization and security"""
+    """Test configuration serialization and security."""
 
     def test_password_not_in_repr(self):
         """
@@ -390,7 +392,7 @@ class TestConfigurationSerialization(unittest.TestCase):
             folders=["INBOX"],
             provider="generic",
             use_ssl=True,
-            verify_ssl=True
+            verify_ssl=True,
         )
 
         # Password should not appear in string representation
@@ -423,14 +425,14 @@ class TestConfigurationSerialization(unittest.TestCase):
 
 
 class TestValidationErrorMessages(unittest.TestCase):
-    """Test quality of validation error messages"""
+    """Test quality of validation error messages."""
 
     def test_helpful_error_for_invalid_email(self):
         """
         SECURITY STORY: This tests error message quality for invalid email.
         Good error messages help users fix configuration issues quickly.
         Poor messages lead to frustration and potential security bypasses
-        where users disable validation to "make it work."
+        where users disable validation to "make it work.".
 
         MAINTENANCE WISDOM: Future you will thank present you for clear error
         messages when helping users debug configuration issues at 2 AM.
@@ -439,7 +441,7 @@ class TestValidationErrorMessages(unittest.TestCase):
         # This test documents expected behavior
         # Actual error message format is implementation-specific
         # Key requirement: messages should be actionable
-        self.assertTrue(hasattr(Config, 'validate'))
+        self.assertTrue(hasattr(Config, "validate"))
 
     def test_error_aggregation(self):
         """
@@ -453,5 +455,5 @@ class TestValidationErrorMessages(unittest.TestCase):
         self.assertTrue(issubclass(ConfigurationError, Exception))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

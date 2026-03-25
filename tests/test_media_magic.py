@@ -1,16 +1,16 @@
-
-import unittest
-from unittest.mock import MagicMock
-from datetime import datetime
-import sys
 import os
+import sys
+import unittest
+from datetime import datetime
+from unittest.mock import MagicMock
 
 # Add root to path so we can import src
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from src.modules.media_analyzer import MediaAuthenticityAnalyzer
 from src.modules.email_ingestion import EmailData
+from src.modules.media_analyzer import MediaAuthenticityAnalyzer
 from src.utils.config import AnalysisConfig
+
 
 class TestMediaMagicBytes(unittest.TestCase):
     def setUp(self):
@@ -29,16 +29,18 @@ class TestMediaMagicBytes(unittest.TestCase):
             body_text="",
             body_html="",
             headers={},
-            attachments=[{
-                "filename": filename,
-                "content_type": content_type,
-                "size": len(content),
-                "data": content,
-                "truncated": False
-            }],
+            attachments=[
+                {
+                    "filename": filename,
+                    "content_type": content_type,
+                    "size": len(content),
+                    "data": content,
+                    "truncated": False,
+                }
+            ],
             raw_email=None,
             account_email="me",
-            folder="inbox"
+            folder="inbox",
         )
 
     def test_valid_mp4(self):
@@ -57,7 +59,9 @@ class TestMediaMagicBytes(unittest.TestCase):
         result = self.analyzer.analyze(email)
 
         # Should have mismatch warning
-        self.assertTrue(any("Invalid file signature" in s for s in result.suspicious_attachments))
+        self.assertTrue(
+            any("Invalid file signature" in s for s in result.suspicious_attachments)
+        )
         self.assertGreaterEqual(result.threat_score, 5.0)
 
     def test_valid_avi(self):
@@ -87,8 +91,11 @@ class TestMediaMagicBytes(unittest.TestCase):
         email = self._create_email("game.mp4", content, "video/mp4")
         result = self.analyzer.analyze(email)
 
-        self.assertTrue(any("Executable disguised" in s for s in result.suspicious_attachments))
+        self.assertTrue(
+            any("Executable disguised" in s for s in result.suspicious_attachments)
+        )
         self.assertGreaterEqual(result.threat_score, 5.0)
+
 
 if __name__ == "__main__":
     unittest.main()

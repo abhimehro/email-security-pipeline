@@ -1,13 +1,14 @@
 """
 Alert System Integration Tests
-Tests webhook delivery, Slack notifications, retries, and deduplication
+Tests webhook delivery, Slack notifications, retries, and deduplication.
 """
 
-import unittest
-from unittest.mock import MagicMock, patch, Mock, call
 import sys
-from pathlib import Path
+import unittest
 from datetime import datetime
+from pathlib import Path
+from unittest.mock import MagicMock, Mock, patch
+
 import requests
 
 # Add project root to path
@@ -18,10 +19,10 @@ from src.utils.config import AlertConfig
 
 
 class TestWebhookDelivery(unittest.TestCase):
-    """Test webhook alert delivery and retry logic"""
+    """Test webhook alert delivery and retry logic."""
 
     def setUp(self):
-        """Set up test fixtures"""
+        """Set up test fixtures."""
         self.config = MagicMock(spec=AlertConfig)
         self.config.console = False
         self.config.webhook_enabled = True
@@ -41,14 +42,14 @@ class TestWebhookDelivery(unittest.TestCase):
             date=datetime.now().isoformat(),
             overall_threat_score=85.0,
             risk_level="high",
-            spam_analysis={'spam_score': 80.0},
-            nlp_analysis={'threat_score': 90.0},
-            media_analysis={'attachment_count': 0},
+            spam_analysis={"spam_score": 80.0},
+            nlp_analysis={"threat_score": 90.0},
+            media_analysis={"attachment_count": 0},
             recommendations=["Do not open", "Report to IT"],
-            timestamp=datetime.now().isoformat()
+            timestamp=datetime.now().isoformat(),
         )
 
-    @patch('src.modules.alert_system.requests.post')
+    @patch("src.modules.alert_system.requests.post")
     def test_successful_webhook_delivery(self, mock_post):
         """
         SECURITY STORY: This tests successful webhook delivery for threat alerts.
@@ -72,10 +73,10 @@ class TestWebhookDelivery(unittest.TestCase):
         call_args = mock_post.call_args
         if call_args[0]:  # Positional args
             self.assertEqual(call_args[0][0], "https://example.com/webhook")
-        elif 'url' in call_args[1]:  # Keyword args
-            self.assertEqual(call_args[1]['url'], "https://example.com/webhook")
+        elif "url" in call_args[1]:  # Keyword args
+            self.assertEqual(call_args[1]["url"], "https://example.com/webhook")
 
-    @patch('src.modules.alert_system.requests.post')
+    @patch("src.modules.alert_system.requests.post")
     def test_webhook_contains_threat_data(self, mock_post):
         """
         SECURITY STORY: This tests that webhook payloads contain essential threat data.
@@ -93,15 +94,15 @@ class TestWebhookDelivery(unittest.TestCase):
         call_args = mock_post.call_args
         sent_data = None
 
-        if call_args and 'json' in call_args[1]:
-            sent_data = call_args[1]['json']
-        elif call_args and 'data' in call_args[1]:
-            sent_data = call_args[1]['data']
+        if call_args and "json" in call_args[1]:
+            sent_data = call_args[1]["json"]
+        elif call_args and "data" in call_args[1]:
+            sent_data = call_args[1]["data"]
 
         # Verify data was sent
         self.assertIsNotNone(sent_data)
 
-    @patch('src.modules.alert_system.requests.post')
+    @patch("src.modules.alert_system.requests.post")
     def test_webhook_retry_on_failure(self, mock_post):
         """
         SECURITY STORY: This tests retry logic for failed webhook deliveries.
@@ -114,15 +115,14 @@ class TestWebhookDelivery(unittest.TestCase):
         # Mock failure followed by success
         mock_response_fail = Mock()
         mock_response_fail.status_code = 500
-        mock_response_fail.raise_for_status.side_effect = requests.HTTPError("Server Error")
+        mock_response_fail.raise_for_status.side_effect = requests.HTTPError(
+            "Server Error"
+        )
 
         mock_response_success = Mock()
         mock_response_success.status_code = 200
 
-        mock_post.side_effect = [
-            mock_response_fail,
-            mock_response_success
-        ]
+        mock_post.side_effect = [mock_response_fail, mock_response_success]
 
         # Send alert - implementation may or may not include retry logic
         # This test documents expected behavior
@@ -131,7 +131,7 @@ class TestWebhookDelivery(unittest.TestCase):
         # If retry logic exists, would see multiple calls
         # If not, this documents that retry logic should be added
 
-    @patch('src.modules.alert_system.requests.post')
+    @patch("src.modules.alert_system.requests.post")
     def test_webhook_timeout_handling(self, mock_post):
         """
         SECURITY STORY: This tests timeout handling for slow webhook endpoints.
@@ -149,11 +149,13 @@ class TestWebhookDelivery(unittest.TestCase):
 
         # Verify the post was attempted
         self.assertTrue(mock_post.called)
+
+
 class TestSlackNotifications(unittest.TestCase):
-    """Test Slack webhook notifications"""
+    """Test Slack webhook notifications."""
 
     def setUp(self):
-        """Set up test fixtures"""
+        """Set up test fixtures."""
         self.config = MagicMock(spec=AlertConfig)
         self.config.console = False
         self.config.webhook_enabled = False
@@ -173,14 +175,14 @@ class TestSlackNotifications(unittest.TestCase):
             date=datetime.now().isoformat(),
             overall_threat_score=92.0,
             risk_level="high",
-            spam_analysis={'spam_score': 85.0},
-            nlp_analysis={'threat_score': 95.0},
-            media_analysis={'attachment_count': 0},
+            spam_analysis={"spam_score": 85.0},
+            nlp_analysis={"threat_score": 95.0},
+            media_analysis={"attachment_count": 0},
             recommendations=["Block sender", "Alert security team"],
-            timestamp=datetime.now().isoformat()
+            timestamp=datetime.now().isoformat(),
         )
 
-    @patch('src.modules.alert_system.requests.post')
+    @patch("src.modules.alert_system.requests.post")
     def test_slack_message_formatting(self, mock_post):
         """
         SECURITY STORY: This tests Slack message formatting for readability.
@@ -204,10 +206,10 @@ class TestSlackNotifications(unittest.TestCase):
         call_args = mock_post.call_args
         if call_args[0]:
             self.assertIn("hooks.slack.com", call_args[0][0])
-        elif 'url' in call_args[1]:
-            self.assertIn("hooks.slack.com", call_args[1]['url'])
+        elif "url" in call_args[1]:
+            self.assertIn("hooks.slack.com", call_args[1]["url"])
 
-    @patch('src.modules.alert_system.requests.post')
+    @patch("src.modules.alert_system.requests.post")
     def test_slack_threat_level_color_coding(self, mock_post):
         """
         SECURITY STORY: This tests color coding by threat level in Slack.
@@ -228,7 +230,7 @@ class TestSlackNotifications(unittest.TestCase):
         # Verify alert was sent
         self.assertTrue(mock_post.called)
 
-    @patch('src.modules.alert_system.requests.post')
+    @patch("src.modules.alert_system.requests.post")
     def test_slack_special_character_escaping(self, mock_post):
         """
         SECURITY STORY: This tests escaping of special characters in Slack messages.
@@ -252,7 +254,7 @@ class TestSlackNotifications(unittest.TestCase):
             nlp_analysis={},
             media_analysis={},
             recommendations=[],
-            timestamp=datetime.now().isoformat()
+            timestamp=datetime.now().isoformat(),
         )
 
         # Send alert - should escape special characters
@@ -263,10 +265,10 @@ class TestSlackNotifications(unittest.TestCase):
 
 
 class TestAlertDeduplication(unittest.TestCase):
-    """Test alert deduplication logic"""
+    """Test alert deduplication logic."""
 
     def setUp(self):
-        """Set up test fixtures"""
+        """Set up test fixtures."""
         self.config = MagicMock(spec=AlertConfig)
         self.config.console = False
         self.config.webhook_enabled = True
@@ -278,7 +280,7 @@ class TestAlertDeduplication(unittest.TestCase):
 
         self.alert_system = AlertSystem(self.config)
 
-    @patch('src.modules.alert_system.requests.post')
+    @patch("src.modules.alert_system.requests.post")
     def test_duplicate_alert_prevention(self, mock_post):
         """
         SECURITY STORY: This tests deduplication of identical alerts.
@@ -306,7 +308,7 @@ class TestAlertDeduplication(unittest.TestCase):
             nlp_analysis={},
             media_analysis={},
             recommendations=[],
-            timestamp=datetime.now().isoformat()
+            timestamp=datetime.now().isoformat(),
         )
 
         report2 = ThreatReport(
@@ -321,7 +323,7 @@ class TestAlertDeduplication(unittest.TestCase):
             nlp_analysis={},
             media_analysis={},
             recommendations=[],
-            timestamp=datetime.now().isoformat()
+            timestamp=datetime.now().isoformat(),
         )
 
         # Send both alerts
@@ -347,14 +349,14 @@ class TestAlertDeduplication(unittest.TestCase):
             date=datetime.now().isoformat(),
             overall_threat_score=5.0,  # Below threat_low threshold of 10
             risk_level="low",
-            spam_analysis={'spam_score': 5.0},
-            nlp_analysis={'threat_score': 5.0},
-            media_analysis={'attachment_count': 0},
+            spam_analysis={"spam_score": 5.0},
+            nlp_analysis={"threat_score": 5.0},
+            media_analysis={"attachment_count": 0},
             recommendations=[],
-            timestamp=datetime.now().isoformat()
+            timestamp=datetime.now().isoformat(),
         )
 
-        with patch('src.modules.alert_system.requests.post') as mock_post:
+        with patch("src.modules.alert_system.requests.post") as mock_post:
             mock_response = Mock()
             mock_response.status_code = 200
             mock_post.return_value = mock_response
@@ -367,10 +369,10 @@ class TestAlertDeduplication(unittest.TestCase):
 
 
 class TestAlertSystemReliability(unittest.TestCase):
-    """Test alert system reliability and error handling"""
+    """Test alert system reliability and error handling."""
 
     def setUp(self):
-        """Set up test fixtures"""
+        """Set up test fixtures."""
         self.config = MagicMock(spec=AlertConfig)
         self.config.console = True
         self.config.webhook_enabled = True
@@ -395,10 +397,10 @@ class TestAlertSystemReliability(unittest.TestCase):
             nlp_analysis={},
             media_analysis={},
             recommendations=[],
-            timestamp=datetime.now().isoformat()
+            timestamp=datetime.now().isoformat(),
         )
 
-    @patch('src.modules.alert_system.requests.post')
+    @patch("src.modules.alert_system.requests.post")
     def test_partial_delivery_success(self, mock_post):
         """
         SECURITY STORY: This tests that console alerts work even if webhooks fail.
@@ -420,7 +422,7 @@ class TestAlertSystemReliability(unittest.TestCase):
             # This documents that error handling should be improved
             pass
 
-    @patch('src.modules.alert_system.requests.post')
+    @patch("src.modules.alert_system.requests.post")
     def test_multiple_channel_delivery(self, mock_post):
         """
         SECURITY STORY: This tests delivery to multiple alert channels.
@@ -446,9 +448,9 @@ class TestAlertSystemReliability(unittest.TestCase):
             for call_item in calls:
                 if call_item[0]:  # Positional args
                     urls_called.append(call_item[0][0])
-                elif 'url' in call_item[1]:  # Keyword args
-                    urls_called.append(call_item[1]['url'])
+                elif "url" in call_item[1]:  # Keyword args
+                    urls_called.append(call_item[1]["url"])
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

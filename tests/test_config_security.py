@@ -1,10 +1,11 @@
-
 import unittest
-from src.utils.config import EmailAccountConfig, AnalysisConfig, AlertConfig
+
+from src.utils.config import AlertConfig, AnalysisConfig, EmailAccountConfig
+
 
 class TestConfigSecurity(unittest.TestCase):
     def test_alert_config_repr_security(self):
-        """Test that AlertConfig __repr__ does not leak webhooks"""
+        """Test that AlertConfig __repr__ does not leak webhooks."""
         secret_webhook = "https://hooks.slack.com/services/T000/B000/SECRET"
         secret_url = "https://example.com?token=SECRET"
 
@@ -16,7 +17,7 @@ class TestConfigSecurity(unittest.TestCase):
             slack_webhook=secret_webhook,
             threat_low=30.0,
             threat_medium=60.0,
-            threat_high=80.0
+            threat_high=80.0,
         )
 
         repr_str = str(config)
@@ -25,7 +26,7 @@ class TestConfigSecurity(unittest.TestCase):
         self.assertNotIn("slack_webhook", repr_str, "Field name should be hidden")
 
     def test_email_account_config_repr_security(self):
-        """Test that EmailAccountConfig __repr__ does not leak app_password"""
+        """Test that EmailAccountConfig __repr__ does not leak app_password."""
         secret_password = "SUPER_SECRET_PASSWORD_123"
         config = EmailAccountConfig(
             enabled=True,
@@ -36,15 +37,19 @@ class TestConfigSecurity(unittest.TestCase):
             folders=["INBOX"],
             provider="test",
             use_ssl=True,
-            verify_ssl=True
+            verify_ssl=True,
         )
 
         repr_str = str(config)
         self.assertNotIn(secret_password, repr_str, "Password leaked in __repr__")
-        self.assertNotIn("app_password", repr_str, "app_password field name shouldn't be in __repr__ if excluded")
+        self.assertNotIn(
+            "app_password",
+            repr_str,
+            "app_password field name shouldn't be in __repr__ if excluded",
+        )
 
     def test_analysis_config_repr_security(self):
-        """Test that AnalysisConfig __repr__ does not leak deepfake_api_key"""
+        """Test that AnalysisConfig __repr__ does not leak deepfake_api_key."""
         secret_key = "SECRET_API_KEY_XYZ"
         config = AnalysisConfig(
             spam_threshold=0.5,
@@ -62,12 +67,17 @@ class TestConfigSecurity(unittest.TestCase):
             deepfake_provider="test",
             deepfake_api_key=secret_key,
             deepfake_api_url="http://test",
-            deepfake_model_path=None
+            deepfake_model_path=None,
         )
 
         repr_str = str(config)
         self.assertNotIn(secret_key, repr_str, "API Key leaked in __repr__")
-        self.assertNotIn("deepfake_api_key", repr_str, "deepfake_api_key field name shouldn't be in __repr__ if excluded")
+        self.assertNotIn(
+            "deepfake_api_key",
+            repr_str,
+            "deepfake_api_key field name shouldn't be in __repr__ if excluded",
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

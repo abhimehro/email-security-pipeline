@@ -1,8 +1,11 @@
-import pytest
 import time
-from unittest.mock import MagicMock, patch
-from src.modules.media_analyzer import MediaAuthenticityAnalyzer, MediaAnalysisResult
+from unittest.mock import MagicMock
+
+import pytest
+
 from src.modules.email_ingestion import EmailData
+from src.modules.media_analyzer import MediaAuthenticityAnalyzer
+
 
 @pytest.fixture
 def analyzer():
@@ -12,16 +15,19 @@ def analyzer():
     config.media_analysis_timeout = 1  # 1 second timeout
     return MediaAuthenticityAnalyzer(config)
 
+
 def test_deepfake_analysis_timeout(analyzer):
     # Mock data
     email_data = MagicMock(spec=EmailData)
-    email_data.attachments = [{
-        'filename': 'video.mp4',
-        'content_type': 'video/mp4',
-        'size': 1024 * 1024,
-        'data': b'fake_data' * 1000,
-        'truncated': False
-    }]
+    email_data.attachments = [
+        {
+            "filename": "video.mp4",
+            "content_type": "video/mp4",
+            "size": 1024 * 1024,
+            "data": b"fake_data" * 1000,
+            "truncated": False,
+        }
+    ]
 
     # Mock _check_file_extension and others to return 0 score so deepfake check runs
     analyzer._check_file_extension = MagicMock(return_value=(0.0, []))

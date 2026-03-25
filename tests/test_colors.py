@@ -1,10 +1,10 @@
 """Tests for Colors utility class."""
 
-import unittest
-import sys
-import os
 import importlib
-from unittest.mock import patch, MagicMock
+import os
+import unittest
+from unittest.mock import MagicMock, patch
+
 from src.utils import colors
 
 
@@ -17,20 +17,20 @@ class TestColors(unittest.TestCase):
         importlib.reload(colors)
 
     def _reload_colors(self, mock_tty=True, mock_no_color=None):
-        """Helper to reload Colors module with specific environment"""
+        """Helper to reload Colors module with specific environment."""
 
         # Prepare mock stdout
         mock_stdout = MagicMock()
         mock_stdout.isatty.return_value = mock_tty
 
-        with patch('sys.stdout', mock_stdout):
+        with patch("sys.stdout", mock_stdout):
             # Manage environment variable
             # We use patch.dict to restore environment after block
             with patch.dict(os.environ):
                 if mock_no_color is not None:
-                    os.environ['NO_COLOR'] = mock_no_color
-                elif 'NO_COLOR' in os.environ:
-                    del os.environ['NO_COLOR']
+                    os.environ["NO_COLOR"] = mock_no_color
+                elif "NO_COLOR" in os.environ:
+                    del os.environ["NO_COLOR"]
 
                 # Reload module
                 importlib.reload(colors)
@@ -81,7 +81,7 @@ class TestColors(unittest.TestCase):
         self.assertEqual(result, f"{Cls.RED}test{Cls.RESET}")
 
     def test_no_color_env(self):
-        """Test that NO_COLOR disables colors"""
+        """Test that NO_COLOR disables colors."""
         Cls = self._reload_colors(mock_tty=True, mock_no_color="1")
         self.assertFalse(Cls.ENABLED)
         self.assertEqual(Cls.RED, "")
@@ -89,7 +89,7 @@ class TestColors(unittest.TestCase):
         self.assertEqual(Cls.get_risk_color("high"), "")
 
     def test_no_color_env_empty_string(self):
-        """Test that NO_COLOR='' also disables colors per spec"""
+        """Test that NO_COLOR='' also disables colors per spec."""
         # According to the NO_COLOR spec, any presence of the variable,
         # even with an empty value, must disable color output.
         Cls = self._reload_colors(mock_tty=True, mock_no_color="")
@@ -97,14 +97,14 @@ class TestColors(unittest.TestCase):
         self.assertEqual(Cls.RED, "")
         self.assertEqual(Cls.colorize("test", "\033[91m"), "test")
         self.assertEqual(Cls.get_risk_color("high"), "")
+
     def test_no_color_env_empty(self):
-        """Test that an empty NO_COLOR env var disables colors"""
+        """Test that an empty NO_COLOR env var disables colors."""
         Cls = self._reload_colors(mock_tty=True, mock_no_color="")
         self.assertFalse(Cls.ENABLED)
         self.assertEqual(Cls.RED, "")
         self.assertEqual(Cls.colorize("test", "\033[91m"), "test")
         self.assertEqual(Cls.get_risk_color("high"), "")
-
 
         """Test that non-TTY disables colors"""
         Cls = self._reload_colors(mock_tty=False)
@@ -135,15 +135,17 @@ class TestColors(unittest.TestCase):
 
         # Ensure NO_COLOR is not forcing colors off so we only test
         # the hasattr(sys.stdout, "isatty") fallback behavior.
-        with patch('sys.stdout', mock_stdout):
+        with patch("sys.stdout", mock_stdout):
             with patch.dict(os.environ):
-                if 'NO_COLOR' in os.environ:
-                    del os.environ['NO_COLOR']
+                if "NO_COLOR" in os.environ:
+                    del os.environ["NO_COLOR"]
                 importlib.reload(colors)
                 Cls = colors.Colors
 
         self.assertFalse(Cls.ENABLED)
         self.assertEqual(Cls.RED, "")
         self.assertEqual(Cls.colorize("test", "\033[91m"), "test")
+
+
 if __name__ == "__main__":
     unittest.main()

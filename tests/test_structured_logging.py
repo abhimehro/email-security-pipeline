@@ -1,12 +1,12 @@
 """
-Tests for structured logging functionality
+Tests for structured logging functionality.
 """
 
-import unittest
 import json
 import logging
-from pathlib import Path
 import sys
+import unittest
+from pathlib import Path
 
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -15,14 +15,14 @@ from src.utils.structured_logging import JSONFormatter
 
 
 class TestJSONFormatter(unittest.TestCase):
-    """Test cases for JSONFormatter"""
+    """Test cases for JSONFormatter."""
 
     def setUp(self):
-        """Set up test fixtures"""
+        """Set up test fixtures."""
         self.formatter = JSONFormatter()
 
     def test_basic_json_format(self):
-        """Test that logs are formatted as valid JSON"""
+        """Test that logs are formatted as valid JSON."""
         record = logging.LogRecord(
             name="test_logger",
             level=logging.INFO,
@@ -31,7 +31,7 @@ class TestJSONFormatter(unittest.TestCase):
             msg="Test message",
             args=(),
             exc_info=None,
-            func="test_function"
+            func="test_function",
         )
 
         result = self.formatter.format(record)
@@ -49,7 +49,7 @@ class TestJSONFormatter(unittest.TestCase):
         self.assertEqual(data["line"], 42)
 
     def test_exception_logging(self):
-        """Test that exceptions are included in JSON output"""
+        """Test that exceptions are included in JSON output."""
         try:
             raise ValueError("Test error")
         except ValueError:
@@ -62,7 +62,7 @@ class TestJSONFormatter(unittest.TestCase):
             lineno=42,
             msg="Error occurred",
             args=(),
-            exc_info=exc_info
+            exc_info=exc_info,
         )
 
         result = self.formatter.format(record)
@@ -74,7 +74,7 @@ class TestJSONFormatter(unittest.TestCase):
         self.assertIn("Traceback", data["exception"])
 
     def test_extra_fields(self):
-        """Test that extra fields are included in output"""
+        """Test that extra fields are included in output."""
         record = logging.LogRecord(
             name="test_logger",
             level=logging.INFO,
@@ -82,14 +82,14 @@ class TestJSONFormatter(unittest.TestCase):
             lineno=42,
             msg="Processing email",
             args=(),
-            exc_info=None
+            exc_info=None,
         )
 
         # Add extra fields
         record.extra_fields = {
             "email_id": "12345",
             "threat_score": 75.5,
-            "risk_level": "HIGH"
+            "risk_level": "HIGH",
         }
 
         result = self.formatter.format(record)
@@ -101,7 +101,7 @@ class TestJSONFormatter(unittest.TestCase):
         self.assertEqual(data["risk_level"], "HIGH")
 
     def test_sensitive_field_redaction(self):
-        """Test that sensitive fields are redacted"""
+        """Test that sensitive fields are redacted."""
         record = logging.LogRecord(
             name="test_logger",
             level=logging.INFO,
@@ -109,7 +109,7 @@ class TestJSONFormatter(unittest.TestCase):
             lineno=42,
             msg="Processing config",
             args=(),
-            exc_info=None
+            exc_info=None,
         )
 
         # Add fields with sensitive names
@@ -119,7 +119,7 @@ class TestJSONFormatter(unittest.TestCase):
             "app_password": "mypassword",
             "webhook_url": "https://secret.com/hook",
             "slack_webhook": "https://hooks.slack.com/123",
-            "normal_field": "safe_value"
+            "normal_field": "safe_value",
         }
 
         result = self.formatter.format(record)
@@ -136,7 +136,7 @@ class TestJSONFormatter(unittest.TestCase):
         self.assertEqual(data["normal_field"], "safe_value")
 
     def test_case_insensitive_redaction(self):
-        """Test that redaction works regardless of case"""
+        """Test that redaction works regardless of case."""
         record = logging.LogRecord(
             name="test_logger",
             level=logging.INFO,
@@ -144,13 +144,13 @@ class TestJSONFormatter(unittest.TestCase):
             lineno=42,
             msg="Test",
             args=(),
-            exc_info=None
+            exc_info=None,
         )
 
         record.extra_fields = {
             "PASSWORD": "secret",
             "Api_Key": "key123",
-            "APP_password": "pass"
+            "APP_password": "pass",
         }
 
         result = self.formatter.format(record)
@@ -162,13 +162,13 @@ class TestJSONFormatter(unittest.TestCase):
         self.assertEqual(data["APP_password"], "[REDACTED]")
 
     def test_different_log_levels(self):
-        """Test formatting for different log levels"""
+        """Test formatting for different log levels."""
         levels = [
             (logging.DEBUG, "DEBUG"),
             (logging.INFO, "INFO"),
             (logging.WARNING, "WARNING"),
             (logging.ERROR, "ERROR"),
-            (logging.CRITICAL, "CRITICAL")
+            (logging.CRITICAL, "CRITICAL"),
         ]
 
         for level_int, level_name in levels:
@@ -179,7 +179,7 @@ class TestJSONFormatter(unittest.TestCase):
                 lineno=42,
                 msg="Test message",
                 args=(),
-                exc_info=None
+                exc_info=None,
             )
 
             result = self.formatter.format(record)
@@ -188,7 +188,7 @@ class TestJSONFormatter(unittest.TestCase):
             self.assertEqual(data["level"], level_name)
 
     def test_no_extra_fields(self):
-        """Test that formatter works when no extra fields are present"""
+        """Test that formatter works when no extra fields are present."""
         record = logging.LogRecord(
             name="test_logger",
             level=logging.INFO,
@@ -196,7 +196,7 @@ class TestJSONFormatter(unittest.TestCase):
             lineno=42,
             msg="Test message",
             args=(),
-            exc_info=None
+            exc_info=None,
         )
 
         # Don't add extra_fields attribute
@@ -207,5 +207,5 @@ class TestJSONFormatter(unittest.TestCase):
         self.assertEqual(data["message"], "Test message")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

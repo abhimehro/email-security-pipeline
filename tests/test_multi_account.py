@@ -1,32 +1,31 @@
 """
 Multi-Account Processing Tests
-Tests concurrent account processing, isolation, and rate limiting
+Tests concurrent account processing, isolation, and rate limiting.
 """
 
-import unittest
-from threading import Lock
-from unittest.mock import MagicMock, patch, Mock
 import sys
-from pathlib import Path
 import time
+import unittest
 from datetime import datetime
+from pathlib import Path
+from threading import Lock
+from unittest.mock import MagicMock, patch
 
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src.modules.email_ingestion import (
-    IMAPClient,
-    EmailIngestionManager,
     EmailAccountConfig,
-    EmailData
+    EmailData,
+    EmailIngestionManager,
 )
 
 
 class TestMultiAccountProcessing(unittest.TestCase):
-    """Test processing multiple email accounts concurrently"""
+    """Test processing multiple email accounts concurrently."""
 
     def setUp(self):
-        """Set up test fixtures with multiple accounts"""
+        """Set up test fixtures with multiple accounts."""
         self.account1 = EmailAccountConfig(
             enabled=True,
             email="user1@example.com",
@@ -36,7 +35,7 @@ class TestMultiAccountProcessing(unittest.TestCase):
             folders=["INBOX", "Spam"],
             provider="generic",
             use_ssl=True,
-            verify_ssl=True
+            verify_ssl=True,
         )
 
         self.account2 = EmailAccountConfig(
@@ -48,7 +47,7 @@ class TestMultiAccountProcessing(unittest.TestCase):
             folders=["INBOX"],
             provider="generic",
             use_ssl=True,
-            verify_ssl=True
+            verify_ssl=True,
         )
 
         self.account3_disabled = EmailAccountConfig(
@@ -60,7 +59,7 @@ class TestMultiAccountProcessing(unittest.TestCase):
             folders=["INBOX"],
             provider="generic",
             use_ssl=True,
-            verify_ssl=True
+            verify_ssl=True,
         )
 
     def test_multiple_accounts_initialization(self):
@@ -75,7 +74,7 @@ class TestMultiAccountProcessing(unittest.TestCase):
         accounts = [self.account1, self.account2]
         manager = EmailIngestionManager(accounts, rate_limit_delay=0)
 
-        with patch('src.modules.email_ingestion.IMAPClient') as mock_client_class:
+        with patch("src.modules.email_ingestion.IMAPClient") as mock_client_class:
             # Create mock clients
             mock_clients = [MagicMock(), MagicMock()]
             for client in mock_clients:
@@ -83,7 +82,7 @@ class TestMultiAccountProcessing(unittest.TestCase):
             mock_client_class.side_effect = mock_clients
 
             # Initialize
-            result = manager.initialize_clients()
+            manager.initialize_clients()
 
             # Should create separate clients for each account
             self.assertEqual(mock_client_class.call_count, 2)
@@ -102,7 +101,7 @@ class TestMultiAccountProcessing(unittest.TestCase):
         accounts = [self.account1, self.account3_disabled, self.account2]
         manager = EmailIngestionManager(accounts, rate_limit_delay=0)
 
-        with patch('src.modules.email_ingestion.IMAPClient') as mock_client_class:
+        with patch("src.modules.email_ingestion.IMAPClient") as mock_client_class:
             mock_clients = []
 
             def create_mock_client(config, *args, **kwargs):
@@ -155,7 +154,7 @@ class TestMultiAccountProcessing(unittest.TestCase):
 
         manager.clients = {
             "user1@example.com": mock_client1,
-            "user2@different.com": mock_client2
+            "user2@different.com": mock_client2,
         }
 
         # Fetch from all accounts
@@ -192,7 +191,7 @@ class TestMultiAccountProcessing(unittest.TestCase):
             attachments=[],
             raw_email=MagicMock(),
             account_email="user1@example.com",  # Tagged with account1
-            folder="INBOX"
+            folder="INBOX",
         )
 
         email2 = EmailData(
@@ -207,7 +206,7 @@ class TestMultiAccountProcessing(unittest.TestCase):
             attachments=[],
             raw_email=MagicMock(),
             account_email="user2@different.com",  # Tagged with account2
-            folder="INBOX"
+            folder="INBOX",
         )
 
         # Setup mock clients
@@ -218,10 +217,13 @@ class TestMultiAccountProcessing(unittest.TestCase):
         # Return different emails for each folder call
         mock_client1.fetch_unseen_emails.side_effect = [
             [("1", b"raw1")],  # First folder (INBOX)
-            [("2", b"raw2")]   # Second folder (Spam)
+            [("2", b"raw2")],  # Second folder (Spam)
         ]
         # parse_email will be called for each fetched email
-        mock_client1.parse_email.side_effect = [email1, email1]  # Return email1 for both
+        mock_client1.parse_email.side_effect = [
+            email1,
+            email1,
+        ]  # Return email1 for both
 
         mock_client2 = MagicMock()
         mock_client2.ensure_connection.return_value = True
@@ -230,7 +232,7 @@ class TestMultiAccountProcessing(unittest.TestCase):
 
         manager.clients = {
             "user1@example.com": mock_client1,
-            "user2@different.com": mock_client2
+            "user2@different.com": mock_client2,
         }
 
         # Fetch all
@@ -250,7 +252,9 @@ class TestMultiAccountProcessing(unittest.TestCase):
         for email in all_emails:
             # All emails from account1 should have user1's email
             # All emails from account2 should have user2's email
-            self.assertIn(email.account_email, ["user1@example.com", "user2@different.com"])
+            self.assertIn(
+                email.account_email, ["user1@example.com", "user2@different.com"]
+            )
 
     def test_rate_limit_enforcement_per_account(self):
         """
@@ -275,6 +279,7 @@ class TestMultiAccountProcessing(unittest.TestCase):
         # This test verifies the configuration is set correctly.
         # Integration testing with actual IMAP connections would verify the behavior.
         self.assertGreater(rate_limit_delay, 0)  # Rate limiting is enabled
+
     def test_concurrent_account_error_isolation(self):
         """
         SECURITY STORY: This tests that errors in one account don't affect others.
@@ -303,7 +308,7 @@ class TestMultiAccountProcessing(unittest.TestCase):
                 attachments=[],
                 raw_email=MagicMock(),
                 account_email="user1@example.com",
-                folder="INBOX"
+                folder="INBOX",
             )
         ]
 
@@ -339,7 +344,7 @@ class TestMultiAccountProcessing(unittest.TestCase):
             folders=["INBOX"],
             provider="generic",
             use_ssl=True,
-            verify_ssl=True
+            verify_ssl=True,
         )
 
         low_priority = EmailAccountConfig(
@@ -351,14 +356,14 @@ class TestMultiAccountProcessing(unittest.TestCase):
             folders=["INBOX"],
             provider="generic",
             use_ssl=True,
-            verify_ssl=True
+            verify_ssl=True,
         )
 
         # List order implies priority
         accounts = [high_priority, low_priority]
         manager = EmailIngestionManager(accounts, rate_limit_delay=0)
 
-        with patch('src.modules.email_ingestion.IMAPClient') as mock_client_class:
+        with patch("src.modules.email_ingestion.IMAPClient") as mock_client_class:
             mock_clients = [MagicMock(), MagicMock()]
             for client in mock_clients:
                 client.connect.return_value = True
@@ -395,7 +400,7 @@ class TestMultiAccountProcessing(unittest.TestCase):
                 attachments=[],
                 raw_email=MagicMock(),
                 account_email="user1@example.com",
-                folder="INBOX"
+                folder="INBOX",
             )
             for i in range(100)  # 100 emails
         ]
@@ -481,7 +486,9 @@ class TestParallelAccountProcessing(unittest.TestCase):
         mock_email = MagicMock()
 
         # Patch _process_account so it returns a predictable list
-        with patch.object(manager, "_process_account", return_value=[mock_email]) as mock_proc:
+        with patch.object(
+            manager, "_process_account", return_value=[mock_email]
+        ) as mock_proc:
             mock_client = MagicMock()
             manager.clients = {"a@x.com": mock_client, "b@x.com": mock_client}
 
@@ -523,8 +530,9 @@ class TestParallelAccountProcessing(unittest.TestCase):
 
         # With parallelism: should finish in well under 3 × 0.1 = 0.3 s
         # Allow a generous 0.3 s budget for test environment overhead
-        self.assertLess(elapsed, 0.3,
-                        f"Expected parallel execution < 0.3s but took {elapsed:.3f}s")
+        self.assertLess(
+            elapsed, 0.3, f"Expected parallel execution < 0.3s but took {elapsed:.3f}s"
+        )
         # All 3 accounts were processed
         self.assertEqual(len(call_times), 3)
 
@@ -539,7 +547,9 @@ class TestParallelAccountProcessing(unittest.TestCase):
         """
         account_ok = self._make_account("ok@x.com")
         account_bad = self._make_account("bad@x.com")
-        manager = EmailIngestionManager([account_ok, account_bad], max_parallel_accounts=2)
+        manager = EmailIngestionManager(
+            [account_ok, account_bad], max_parallel_accounts=2
+        )
         manager.logger = MagicMock()
 
         good_email = MagicMock()
@@ -550,7 +560,10 @@ class TestParallelAccountProcessing(unittest.TestCase):
             return [good_email]
 
         mock_client = MagicMock()
-        manager.clients = {account_ok.email: mock_client, account_bad.email: mock_client}
+        manager.clients = {
+            account_ok.email: mock_client,
+            account_bad.email: mock_client,
+        }
 
         with patch.object(manager, "_process_account", side_effect=process_side_effect):
             results = manager.fetch_all_emails()
@@ -590,5 +603,5 @@ class TestParallelAccountProcessing(unittest.TestCase):
         self.assertEqual(result, [])
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

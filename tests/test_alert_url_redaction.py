@@ -1,12 +1,12 @@
-
 import sys
 from pathlib import Path
 
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.utils.config import AlertConfig
 from src.modules.alert_system import AlertSystem
+from src.utils.config import AlertConfig
+
 
 def test_redaction():
     # Mock config
@@ -18,7 +18,7 @@ def test_redaction():
         slack_webhook=None,
         threat_low=30.0,
         threat_medium=60.0,
-        threat_high=80.0
+        threat_high=80.0,
     )
 
     alert_system = AlertSystem(config)
@@ -27,33 +27,33 @@ def test_redaction():
         (
             "https://user:password@example.com/resource",
             "https://user:[REDACTED]@example.com/resource",
-            "Credentials in URL"
+            "Credentials in URL",
         ),
         (
             "https://example.com?token=secret123",
             "https://example.com?token=%5BREDACTED%5D",
-            "Query params (Encoded)"
+            "Query params (Encoded)",
         ),
         (
             "https://hooks.slack.com/services/T000/B000/TOKEN123",
             "https://hooks.slack.com/services/T000/B000/[REDACTED]",
-            "Slack webhook"
+            "Slack webhook",
         ),
         (
             "https://user:pass@[::1]:8080/resource",
             "https://user:[REDACTED]@[::1]:8080/resource",
-            "IPv6 with credentials"
+            "IPv6 with credentials",
         ),
         (
             "https://user%40name:pass@example.com",
             "https://user%40name:[REDACTED]@example.com",
-            "Special chars in username"
+            "Special chars in username",
         ),
         (
             "https://:password@example.com",
             "https://:[REDACTED]@example.com",
-            "Password only"
-        )
+            "Password only",
+        ),
     ]
 
     failures = []
@@ -74,9 +74,10 @@ def test_redaction():
     print()
     if failures:
         print(f"Test failed for: {', '.join(failures)}")
-        assert False, f"Test failed for: {', '.join(failures)}"
+        raise AssertionError(f"Test failed for: {', '.join(failures)}")
     else:
         print("All tests passed!")
+
 
 if __name__ == "__main__":
     test_redaction()

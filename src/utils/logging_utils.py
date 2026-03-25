@@ -1,5 +1,6 @@
-import logging
 import copy
+import logging
+
 from src.utils.colors import Colors
 
 
@@ -14,7 +15,7 @@ class ColoredFormatter(logging.Formatter):
         logging.INFO: Colors.BLUE,
         logging.WARNING: Colors.YELLOW,
         logging.ERROR: Colors.RED,
-        logging.CRITICAL: Colors.BOLD + Colors.RED
+        logging.CRITICAL: Colors.BOLD + Colors.RED,
     }
 
     def format(self, record):

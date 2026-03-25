@@ -3,10 +3,10 @@ UI utilities for the CLI.
 Provides user-friendly output components like countdown timers.
 """
 
-import sys
-import time
-import threading
 import itertools
+import sys
+import threading
+import time
 
 from .colors import Colors
 
@@ -29,7 +29,7 @@ class CountdownTimer:
         self._stop_event = threading.Event()
 
     def start(self):
-        """Start the countdown timer"""
+        """Start the countdown timer."""
         if not sys.stdout.isatty():
             # In non-interactive mode, just wait
             time.sleep(self.duration)
@@ -55,9 +55,7 @@ class CountdownTimer:
                 colored_bar = Colors.colorize(progress_bar, Colors.CYAN)
 
                 # \r moves cursor to start of line, \033[K clears the line
-                sys.stdout.write(
-                    f"\r{self.message}: {colored_bar} {time_str} \033[K"
-                )
+                sys.stdout.write(f"\r{self.message}: {colored_bar} {time_str} \033[K")
                 sys.stdout.flush()
 
                 time.sleep(self.interval)
@@ -81,12 +79,12 @@ class CountdownTimer:
             sys.stdout.flush()
 
     def stop(self):
-        """Stop the countdown"""
+        """Stop the countdown."""
         self._stop_event.set()
 
     @staticmethod
     def wait(seconds: int, message: str = "Waiting"):
-        """Static convenience method to block with a countdown"""
+        """Static convenience method to block with a countdown."""
         # Only add the interactive hint when we're actually in a TTY.
         # In non-TTY mode, `start()` will just sleep and never render the message.
         if sys.stdout.isatty():
@@ -101,8 +99,13 @@ class Spinner:
     """
     Displays a loading spinner in the terminal.
     """
-    def __init__(self, message: str = "Loading", delay: float = 0.1, persist: bool = True):
-        self.spinner = itertools.cycle(['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'])
+
+    def __init__(
+        self, message: str = "Loading", delay: float = 0.1, persist: bool = True
+    ):
+        self.spinner = itertools.cycle(
+            ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"]
+        )
         self.message = message
         self.delay = delay
         self.persist = persist
@@ -112,17 +115,21 @@ class Spinner:
         self.fail_msg = None
 
     def success(self, message: str):
-        """Set a custom success message to display on completion"""
+        """Set a custom success message to display on completion."""
         self.success_msg = message
 
     def fail(self, message: str):
-        """Set a custom failure message to display on error"""
+        """Set a custom failure message to display on error."""
         self.fail_msg = message
 
     def _spin(self):
         while self.busy:
             elapsed = time.time() - getattr(self, "start_time", time.time())
-            time_str = Colors.colorize(f" [{elapsed:.1f}s]", Colors.GREY) if elapsed >= 1.0 else ""
+            time_str = (
+                Colors.colorize(f" [{elapsed:.1f}s]", Colors.GREY)
+                if elapsed >= 1.0
+                else ""
+            )
             # \r moves cursor to start of line, \033[K clears the line
             spin_char = Colors.colorize(next(self.spinner), Colors.CYAN)
             sys.stdout.write(f"\r{spin_char} {self.message}{time_str}   \033[K")
@@ -151,7 +158,9 @@ class Spinner:
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         elapsed = time.time() - getattr(self, "start_time", time.time())
-        time_str = Colors.colorize(f" [{elapsed:.1f}s]", Colors.GREY) if elapsed >= 1.0 else ""
+        time_str = (
+            Colors.colorize(f" [{elapsed:.1f}s]", Colors.GREY) if elapsed >= 1.0 else ""
+        )
 
         if sys.stdout.isatty():
             try:

@@ -1,30 +1,35 @@
 """
 Error Recovery Tests
-Tests error handling, connection recovery, and graceful degradation scenarios
+Tests error handling, connection recovery, and graceful degradation scenarios.
 """
 
-import unittest
-from unittest.mock import MagicMock, patch, Mock
 import imaplib
 import socket
 import ssl
 import sys
-from pathlib import Path
+import unittest
 from datetime import datetime
+from pathlib import Path
+from unittest.mock import MagicMock, patch
 
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.modules.email_ingestion import IMAPClient, EmailIngestionManager, EmailAccountConfig, EmailData
+from src.modules.email_ingestion import (
+    EmailAccountConfig,
+    EmailData,
+    EmailIngestionManager,
+    IMAPClient,
+)
 from src.modules.media_analyzer import MediaAuthenticityAnalyzer
 from src.utils.config import AnalysisConfig
 
 
 class TestIMAPErrorRecovery(unittest.TestCase):
-    """Test IMAP connection error handling and recovery"""
+    """Test IMAP connection error handling and recovery."""
 
     def setUp(self):
-        """Set up test fixtures"""
+        """Set up test fixtures."""
         self.config = EmailAccountConfig(
             enabled=True,
             email="test@example.com",
@@ -34,7 +39,7 @@ class TestIMAPErrorRecovery(unittest.TestCase):
             folders=["INBOX"],
             provider="test",
             use_ssl=True,
-            verify_ssl=True
+            verify_ssl=True,
         )
         self.client = IMAPClient(self.config)
         self.client.logger = MagicMock()
@@ -48,7 +53,7 @@ class TestIMAPErrorRecovery(unittest.TestCase):
         PATTERN RECOGNITION: This is similar to circuit breaker patterns where we
         fail fast rather than waiting indefinitely for a dead service.
         """
-        with patch('src.modules.email_ingestion.imaplib.IMAP4_SSL') as mock_imap:
+        with patch("src.modules.email_ingestion.imaplib.IMAP4_SSL") as mock_imap:
             # Simulate connection timeout
             mock_imap.side_effect = socket.timeout("Connection timed out")
 
@@ -67,7 +72,7 @@ class TestIMAPErrorRecovery(unittest.TestCase):
         MITM attacks often involve invalid certificates. We must detect and reject
         these to prevent credential theft and email interception.
         """
-        with patch('src.modules.email_ingestion.imaplib.IMAP4_SSL') as mock_imap:
+        with patch("src.modules.email_ingestion.imaplib.IMAP4_SSL") as mock_imap:
             # Simulate SSL certificate error
             mock_imap.side_effect = ssl.SSLError("certificate verify failed")
 
@@ -84,12 +89,14 @@ class TestIMAPErrorRecovery(unittest.TestCase):
         Failed logins could indicate credential compromise or misconfiguration.
         We must handle this gracefully and log it for investigation.
         """
-        with patch('src.modules.email_ingestion.imaplib.IMAP4_SSL') as mock_imap:
+        with patch("src.modules.email_ingestion.imaplib.IMAP4_SSL") as mock_imap:
             mock_connection = MagicMock()
             mock_imap.return_value = mock_connection
 
             # Simulate authentication failure
-            mock_connection.login.side_effect = imaplib.IMAP4.error("Authentication failed")
+            mock_connection.login.side_effect = imaplib.IMAP4.error(
+                "Authentication failed"
+            )
 
             # Attempt to connect
             result = self.client.connect()
@@ -107,7 +114,9 @@ class TestIMAPErrorRecovery(unittest.TestCase):
         self.client.connection = MagicMock()
 
         # Simulate connection reset
-        self.client.connection.select.side_effect = imaplib.IMAP4.abort("Connection reset")
+        self.client.connection.select.side_effect = imaplib.IMAP4.abort(
+            "Connection reset"
+        )
 
         # Attempt to fetch unseen emails
         emails = self.client.fetch_unseen_emails("INBOX", limit=10)
@@ -145,14 +154,14 @@ class TestIMAPErrorRecovery(unittest.TestCase):
         self.client.connection = MagicMock()
 
         # Simulate partial fetch
-        self.client.connection.select.return_value = ('OK', [b'10'])
-        self.client.connection.search.return_value = ('OK', [b'1 2 3'])
+        self.client.connection.select.return_value = ("OK", [b"10"])
+        self.client.connection.search.return_value = ("OK", [b"1 2 3"])
 
         # First two emails succeed, third fails mid-download
         self.client.connection.fetch.side_effect = [
-            ('OK', [(b'1 (RFC822 {1000}', b'email1data')]),
-            ('OK', [(b'2 (RFC822 {1000}', b'email2data')]),
-            imaplib.IMAP4.abort("Connection lost during fetch")
+            ("OK", [(b"1 (RFC822 {1000}", b"email1data")]),
+            ("OK", [(b"2 (RFC822 {1000}", b"email2data")]),
+            imaplib.IMAP4.abort("Connection lost during fetch"),
         ]
 
         # Should recover and return the successfully fetched emails
@@ -164,10 +173,10 @@ class TestIMAPErrorRecovery(unittest.TestCase):
 
 
 class TestAnalyzerTimeoutHandling(unittest.TestCase):
-    """Test analyzer timeout and resource limit handling"""
+    """Test analyzer timeout and resource limit handling."""
 
     def setUp(self):
-        """Set up test fixtures"""
+        """Set up test fixtures."""
         self.analysis_config = MagicMock(spec=AnalysisConfig)
         self.analysis_config.check_media_attachments = True
         self.analysis_config.deepfake_detection_enabled = False
@@ -194,15 +203,17 @@ class TestAnalyzerTimeoutHandling(unittest.TestCase):
             body_text="Test",
             body_html="",
             headers={},
-            attachments=[{
-                'filename': 'test.jpg',
-                'content_type': 'image/jpeg',
-                'size': 1024,
-                'data': b'\xff\xd8\xff\xe0\x00\x10JFIF' + b'\x00' * 100
-            }],
+            attachments=[
+                {
+                    "filename": "test.jpg",
+                    "content_type": "image/jpeg",
+                    "size": 1024,
+                    "data": b"\xff\xd8\xff\xe0\x00\x10JFIF" + b"\x00" * 100,
+                }
+            ],
             raw_email=MagicMock(),
             account_email="victim@example.com",
-            folder="INBOX"
+            folder="INBOX",
         )
 
         # Analysis should complete or timeout, not hang
@@ -213,10 +224,10 @@ class TestAnalyzerTimeoutHandling(unittest.TestCase):
 
 
 class TestEmailIngestionManagerRecovery(unittest.TestCase):
-    """Test EmailIngestionManager error recovery with multiple accounts"""
+    """Test EmailIngestionManager error recovery with multiple accounts."""
 
     def setUp(self):
-        """Set up test fixtures"""
+        """Set up test fixtures."""
         self.accounts = [
             EmailAccountConfig(
                 enabled=True,
@@ -227,7 +238,7 @@ class TestEmailIngestionManagerRecovery(unittest.TestCase):
                 folders=["INBOX"],
                 provider="test",
                 use_ssl=True,
-                verify_ssl=True
+                verify_ssl=True,
             ),
             EmailAccountConfig(
                 enabled=True,
@@ -238,12 +249,11 @@ class TestEmailIngestionManagerRecovery(unittest.TestCase):
                 folders=["INBOX"],
                 provider="test",
                 use_ssl=True,
-                verify_ssl=True
-            )
+                verify_ssl=True,
+            ),
         ]
         self.manager = EmailIngestionManager(
-            self.accounts,
-            rate_limit_delay=0  # No delay for testing
+            self.accounts, rate_limit_delay=0  # No delay for testing
         )
 
     def test_partial_account_initialization_failure(self):
@@ -255,7 +265,7 @@ class TestEmailIngestionManagerRecovery(unittest.TestCase):
         PATTERN RECOGNITION: This is similar to the "fail-open" vs "fail-closed" debate.
         Here we fail-open for availability, but log failures for investigation.
         """
-        with patch('src.modules.email_ingestion.IMAPClient') as mock_client_class:
+        with patch("src.modules.email_ingestion.IMAPClient") as mock_client_class:
             # First account succeeds, second fails
             mock_client1 = MagicMock()
             mock_client1.connect.return_value = True
@@ -306,9 +316,7 @@ class TestEmailIngestionManagerRecovery(unittest.TestCase):
         mock_client.ensure_connection.return_value = True
         mock_client.fetch_unseen_emails.return_value = []
 
-        self.manager.clients = {
-            self.accounts[0].email: mock_client
-        }
+        self.manager.clients = {self.accounts[0].email: mock_client}
 
         # Simulate connection lost, then reconnected
         mock_client.connection = None
@@ -322,7 +330,7 @@ class TestEmailIngestionManagerRecovery(unittest.TestCase):
 
 
 class TestGracefulDegradation(unittest.TestCase):
-    """Test graceful degradation scenarios"""
+    """Test graceful degradation scenarios."""
 
     def test_continue_with_missing_optional_data(self):
         """
@@ -343,7 +351,7 @@ class TestGracefulDegradation(unittest.TestCase):
             attachments=[],  # No attachments
             raw_email=MagicMock(),
             account_email="victim@example.com",
-            folder="INBOX"
+            folder="INBOX",
         )
 
         # Should be valid EmailData
@@ -373,15 +381,17 @@ class TestGracefulDegradation(unittest.TestCase):
             body_text="See attachment",
             body_html="",
             headers={},
-            attachments=[{
-                'filename': 'broken.jpg',
-                'content_type': 'image/jpeg',
-                'size': 100,
-                'data': b'NOTAJPEG'  # Corrupted/invalid data
-            }],
+            attachments=[
+                {
+                    "filename": "broken.jpg",
+                    "content_type": "image/jpeg",
+                    "size": 100,
+                    "data": b"NOTAJPEG",  # Corrupted/invalid data
+                }
+            ],
             raw_email=MagicMock(),
             account_email="victim@example.com",
-            folder="INBOX"
+            folder="INBOX",
         )
 
         # Should handle gracefully and return a result
@@ -423,15 +433,17 @@ class TestGracefulDegradation(unittest.TestCase):
             body_text="Check this video",
             body_html="",
             headers={},
-            attachments=[{
-                'filename': 'video.mp4',
-                'content_type': 'video/mp4',
-                'size': 1024,
-                'data': b'\x00\x00\x00\x18ftypmp42' + b'\x00' * 100
-            }],
+            attachments=[
+                {
+                    "filename": "video.mp4",
+                    "content_type": "video/mp4",
+                    "size": 1024,
+                    "data": b"\x00\x00\x00\x18ftypmp42" + b"\x00" * 100,
+                }
+            ],
             raw_email=MagicMock(),
             account_email="victim@example.com",
-            folder="INBOX"
+            folder="INBOX",
         )
 
         # Should handle analysis gracefully
@@ -439,5 +451,5 @@ class TestGracefulDegradation(unittest.TestCase):
         self.assertIsNotNone(result)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

@@ -1,9 +1,10 @@
-
 import unittest
 from datetime import datetime
 from unittest.mock import patch
-from src.modules.nlp_analyzer import NLPThreatAnalyzer
+
 from src.modules.email_ingestion import EmailData
+from src.modules.nlp_analyzer import NLPThreatAnalyzer
+
 
 # Mock config
 class MockConfig:
@@ -13,8 +14,9 @@ class MockConfig:
         self.check_authority_impersonation = True
         self.check_psychological_triggers = True
         self.nlp_threshold = 0.5
-        self.nlp_model = 'distilbert-base-uncased'
+        self.nlp_model = "distilbert-base-uncased"
         self.enable_ml_model = True
+
 
 class TestNLPAnalyzer(unittest.TestCase):
     def setUp(self):
@@ -37,7 +39,7 @@ class TestNLPAnalyzer(unittest.TestCase):
             attachments=[],
             raw_email=None,
             account_email="user@example.com",
-            folder="Inbox"
+            folder="Inbox",
         )
 
         result = self.analyzer.analyze(email)
@@ -59,12 +61,14 @@ class TestNLPAnalyzer(unittest.TestCase):
             attachments=[],
             raw_email=None,
             account_email="user@example.com",
-            folder="Inbox"
+            folder="Inbox",
         )
 
         result = self.analyzer.analyze(email)
 
-        has_mismatch = any("domain mismatch" in ind for ind in result.authority_impersonation)
+        has_mismatch = any(
+            "domain mismatch" in ind for ind in result.authority_impersonation
+        )
         self.assertTrue(has_mismatch)
 
     def test_authority_impersonation_edge_case(self):
@@ -81,25 +85,26 @@ class TestNLPAnalyzer(unittest.TestCase):
             attachments=[],
             raw_email=None,
             account_email="user@company.com",
-            folder="Inbox"
+            folder="Inbox",
         )
 
         result = self.analyzer.analyze(email)
 
         # Check if we have domain mismatch
-        has_mismatch = any("domain mismatch" in ind for ind in result.authority_impersonation)
+        has_mismatch = any(
+            "domain mismatch" in ind for ind in result.authority_impersonation
+        )
 
         # As discussed, generic "CEO" match flags mismatch if "CEO" string not in sender domain.
         # "ceo" is not in "company.com" (substring check).
         # So mismatch is expected here with current logic.
         self.assertTrue(has_mismatch)
 
-
     def test_ml_model_disabled_skips_initialize(self):
         """When enable_ml_model=False, _initialize_model() must not be called."""
         config = MockConfig()
         config.enable_ml_model = False
-        with patch.object(NLPThreatAnalyzer, '_initialize_model') as mock_init:
+        with patch.object(NLPThreatAnalyzer, "_initialize_model") as mock_init:
             NLPThreatAnalyzer(config)
             mock_init.assert_not_called()
 
@@ -107,9 +112,10 @@ class TestNLPAnalyzer(unittest.TestCase):
         """When enable_ml_model=True (default), _initialize_model() must be called."""
         config = MockConfig()
         config.enable_ml_model = True
-        with patch.object(NLPThreatAnalyzer, '_initialize_model') as mock_init:
+        with patch.object(NLPThreatAnalyzer, "_initialize_model") as mock_init:
             NLPThreatAnalyzer(config)
             mock_init.assert_called_once()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

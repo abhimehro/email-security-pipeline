@@ -1,8 +1,9 @@
-
 import unittest
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-from src.modules.email_ingestion import IMAPClient, EmailAccountConfig, MAX_MIME_PARTS
+
+from src.modules.email_ingestion import MAX_MIME_PARTS, EmailAccountConfig, IMAPClient
+
 
 class TestMimeBombLimit(unittest.TestCase):
     def setUp(self):
@@ -15,7 +16,7 @@ class TestMimeBombLimit(unittest.TestCase):
             folders=["INBOX"],
             provider="test",
             use_ssl=True,
-            verify_ssl=True
+            verify_ssl=True,
         )
         self.client = IMAPClient(self.account_config)
         # Increase body size limit to ensure we don't hit that first
@@ -60,5 +61,6 @@ class TestMimeBombLimit(unittest.TestCase):
         self.assertNotIn(f"Part {first_skipped_idx}", email_data.body_text)
         self.assertNotIn(f"Part {num_attachments - 1}", email_data.body_text)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

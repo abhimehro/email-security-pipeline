@@ -1,9 +1,10 @@
+from datetime import datetime
 
 import pytest
-from datetime import datetime
-from src.modules.spam_analyzer import SpamAnalyzer, SpamAnalysisResult
+
 from src.modules.email_ingestion import EmailData
-from src.utils.config import AnalysisConfig
+from src.modules.spam_analyzer import SpamAnalyzer
+
 
 # Mock config
 class MockConfig:
@@ -11,10 +12,12 @@ class MockConfig:
     spam_check_headers = True
     spam_check_urls = True
 
+
 @pytest.fixture
 def spam_analyzer():
     config = MockConfig()
     return SpamAnalyzer(config)
+
 
 @pytest.fixture
 def clean_email():
@@ -33,13 +36,14 @@ def clean_email():
             "to": "me@company.com",
             "date": "...",
             "message-id": "...",
-            "received": "..."
+            "received": "...",
         },
         attachments=[],
         raw_email=None,
         account_email="me@company.com",
-        folder="INBOX"
+        folder="INBOX",
     )
+
 
 @pytest.fixture
 def spam_email():
@@ -56,19 +60,21 @@ def spam_email():
             "from": "spammer@example.com",
             "to": "victim@company.com",
             "date": "...",
-            "message-id": "..."
+            "message-id": "...",
         },
         attachments=[],
         raw_email=None,
         account_email="victim@company.com",
-        folder="INBOX"
+        folder="INBOX",
     )
+
 
 def test_clean_email_analysis(spam_analyzer, clean_email):
     result = spam_analyzer.analyze(clean_email)
     assert result.score < 2.0
     assert result.risk_level == "low"
     assert len(result.indicators) == 0
+
 
 def test_spam_email_analysis(spam_analyzer, spam_email):
     result = spam_analyzer.analyze(spam_email)
@@ -94,6 +100,7 @@ def test_spam_email_analysis(spam_analyzer, spam_email):
     assert "subject in all caps" in indicators_str
     assert "spam keyword" in indicators_str
 
+
 def test_spam_keywords_detection(spam_analyzer, clean_email):
     clean_email.body_text = "viagra pills available now"
     result = spam_analyzer.analyze(clean_email)
@@ -107,6 +114,7 @@ def test_spam_keywords_detection(spam_analyzer, clean_email):
             break
     assert found_keyword
 
+
 def test_excessive_links(spam_analyzer, clean_email):
     links = " ".join([f"http://example{i}.com" for i in range(15)])
     clean_email.body_text = links
@@ -119,6 +127,7 @@ def test_excessive_links(spam_analyzer, clean_email):
             break
     assert found_excessive
 
+
 def test_hidden_text(spam_analyzer, clean_email):
     clean_email.body_html = "<html><span style='font-size: 0px'>hidden</span></html>"
     result = spam_analyzer.analyze(clean_email)
@@ -130,12 +139,14 @@ def test_hidden_text(spam_analyzer, clean_email):
             break
     assert found_hidden
 
+
 def test_suspicious_urls(spam_analyzer, clean_email):
     clean_email.body_text = "Check this http://bit.ly/suspicious"
     result = spam_analyzer.analyze(clean_email)
 
     assert len(result.suspicious_urls) > 0
     assert "http://bit.ly/suspicious" in result.suspicious_urls
+
 
 def test_sender_freemail_detection(spam_analyzer, clean_email):
     """Test that corporate titles from freemail domains are flagged correctly."""
@@ -146,12 +157,14 @@ def test_sender_freemail_detection(spam_analyzer, clean_email):
     # Score should increase by 1.5 for this specific rule
     assert result.score >= 1.5
 
+
 def test_sender_freemail_detection_negative(spam_analyzer, clean_email):
     """Test that corporate titles from non-freemail domains are NOT flagged."""
     clean_email.sender = "CEO <ceo@notgmail.com>"
     result = spam_analyzer.analyze(clean_email)
 
     assert "Corporate title with freemail provider" not in result.indicators
+
 
 def test_sender_freemail_detection_false_positive(spam_analyzer, clean_email):
     """Test that domains merely containing freemail provider strings as a substring are NOT flagged."""
@@ -160,27 +173,36 @@ def test_sender_freemail_detection_false_positive(spam_analyzer, clean_email):
 
     assert "Corporate title with freemail provider" not in result.indicators
 
+
 def test_sender_display_name_extraction(spam_analyzer, clean_email):
     # Valid Name <email> with mismatched domains in display name
     clean_email.sender = '"CEO @ company.com" <ceo@freemail.com>'
-    score, indicators = spam_analyzer._check_sender(clean_email.sender, clean_email.headers)
+    score, indicators = spam_analyzer._check_sender(
+        clean_email.sender, clean_email.headers
+    )
     assert score >= 1.0
     assert "Suspicious display name format" in indicators
 
     # NameOnly - no < email > part, should not trigger index extraction mismatch
-    clean_email.sender = 'Just a normal name'
-    score, indicators = spam_analyzer._check_sender(clean_email.sender, clean_email.headers)
+    clean_email.sender = "Just a normal name"
+    score, indicators = spam_analyzer._check_sender(
+        clean_email.sender, clean_email.headers
+    )
     assert score == 0.0
     assert not any("Suspicious display name format" in ind for ind in indicators)
 
     # <email> only - idx is 0, should not extract a display name
-    clean_email.sender = '<ceo@company.com>'
-    score, indicators = spam_analyzer._check_sender(clean_email.sender, clean_email.headers)
+    clean_email.sender = "<ceo@company.com>"
+    score, indicators = spam_analyzer._check_sender(
+        clean_email.sender, clean_email.headers
+    )
     assert score == 0.0
     assert not any("Suspicious display name format" in ind for ind in indicators)
 
     # Match case sensitivity handling
     clean_email.sender = '"Admin.COMPANY" <admin@freemail.com>'
-    score, indicators = spam_analyzer._check_sender(clean_email.sender, clean_email.headers)
+    score, indicators = spam_analyzer._check_sender(
+        clean_email.sender, clean_email.headers
+    )
     assert score >= 1.0
     assert "Suspicious display name format" in indicators

@@ -1,9 +1,8 @@
-
 import unittest
 from email.message import EmailMessage
-from unittest.mock import MagicMock
-from src.modules.email_ingestion import IMAPClient, EmailAccountConfig
-from src.utils.config import Config
+
+from src.modules.email_ingestion import EmailAccountConfig, IMAPClient
+
 
 class TestDoSPrevention(unittest.TestCase):
     def setUp(self):
@@ -16,7 +15,7 @@ class TestDoSPrevention(unittest.TestCase):
             folders=["INBOX"],
             provider="test",
             use_ssl=True,
-            verify_ssl=True
+            verify_ssl=True,
         )
         self.client = IMAPClient(self.account_config)
         # Set limit to 1KB for testing
@@ -24,7 +23,7 @@ class TestDoSPrevention(unittest.TestCase):
 
     def test_body_truncation(self):
         # Create a large email body
-        large_body = "A" * 10000 # 10KB
+        large_body = "A" * 10000  # 10KB
 
         msg = EmailMessage()
         msg.set_content(large_body)
@@ -47,7 +46,7 @@ class TestDoSPrevention(unittest.TestCase):
         large_html = "<html><body>" + ("B" * 10000) + "</body></html>"
 
         msg = EmailMessage()
-        msg.add_alternative(large_html, subtype='html')
+        msg.add_alternative(large_html, subtype="html")
         msg["Subject"] = "Test HTML"
 
         raw_email = msg.as_bytes()
@@ -75,5 +74,6 @@ class TestDoSPrevention(unittest.TestCase):
         self.assertEqual(len(email_data.subject), 1024)
         self.assertTrue(email_data.subject.startswith("S" * 1024))
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

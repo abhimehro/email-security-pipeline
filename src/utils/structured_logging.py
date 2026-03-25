@@ -1,6 +1,6 @@
 """
 Structured Logging Module
-Provides JSON-formatted logging for better integration with log aggregation tools
+Provides JSON-formatted logging for better integration with log aggregation tools.
 """
 
 import json
@@ -28,13 +28,21 @@ class JSONFormatter(logging.Formatter):
 
     # Fields that might contain sensitive data - never log their full values
     SENSITIVE_FIELDS = {
-        'password', 'token', 'api_key', 'secret', 'credential',
-        'app_password', 'webhook_url', 'slack_webhook'
+        "password",
+        "token",
+        "api_key",
+        "secret",
+        "credential",
+        "app_password",
+        "webhook_url",
+        "slack_webhook",
     }
 
     # Pre-compiled regex pattern for faster substring matching (avoids generator loop)
     # Uses re.IGNORECASE to match case-insensitively.
-    _SENSITIVE_PATTERN = re.compile('|'.join(map(re.escape, SENSITIVE_FIELDS)) or '(?!)', re.IGNORECASE)
+    _SENSITIVE_PATTERN = re.compile(
+        "|".join(map(re.escape, SENSITIVE_FIELDS)) or "(?!)", re.IGNORECASE
+    )
 
     def format(self, record: logging.LogRecord) -> str:
         """
@@ -45,6 +53,7 @@ class JSONFormatter(logging.Formatter):
 
         Returns:
             JSON string with structured log data
+
         """
         # Base log data that's always included
         log_data = {
@@ -69,8 +78,7 @@ class JSONFormatter(logging.Formatter):
         if hasattr(record, "extra_fields"):
             # Security: Filter sensitive fields before logging
             filtered_extra = {
-                k: self._sanitize_value(k, v)
-                for k, v in record.extra_fields.items()
+                k: self._sanitize_value(k, v) for k, v in record.extra_fields.items()
             }
             log_data.update(filtered_extra)
 
@@ -91,6 +99,7 @@ class JSONFormatter(logging.Formatter):
 
         Returns:
             Original value or "[REDACTED]" for sensitive fields
+
         """
         # Check if key contains any sensitive field name
         # Optimization: compiled regex search is faster than any() generator loop for substring matching

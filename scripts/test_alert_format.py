@@ -1,6 +1,5 @@
-
-import sys
 import os
+import sys
 from datetime import datetime
 from unittest.mock import Mock
 
@@ -10,6 +9,7 @@ sys.path.append(os.getcwd())
 # Import using the full package path to avoid relative import issues
 from src.modules.alert_system import AlertSystem, ThreatReport
 from src.utils.config import AlertConfig
+
 
 def test_console_alert():
     # Mock config
@@ -31,38 +31,39 @@ def test_console_alert():
         overall_threat_score=85.5,
         risk_level="high",
         spam_analysis={
-            'score': 8.0,
-            'risk_level': 'high',
-            'indicators': ['SPF fail', 'DKIM fail', 'Blacklisted sender'],
-            'suspicious_urls': ['http://fake-google-login.com'],
-            'header_issues': []
+            "score": 8.0,
+            "risk_level": "high",
+            "indicators": ["SPF fail", "DKIM fail", "Blacklisted sender"],
+            "suspicious_urls": ["http://fake-google-login.com"],
+            "header_issues": [],
         },
         nlp_analysis={
-            'score': 0.85,
-            'risk_level': 'high',
-            'social_engineering_indicators': ['Urgency detected', 'Fear tactic'],
-            'urgency_markers': ['immediately', '24 hours'],
-            'authority_impersonation': ['Google Security Team'],
-            'psychological_triggers': []
+            "score": 0.85,
+            "risk_level": "high",
+            "social_engineering_indicators": ["Urgency detected", "Fear tactic"],
+            "urgency_markers": ["immediately", "24 hours"],
+            "authority_impersonation": ["Google Security Team"],
+            "psychological_triggers": [],
         },
         media_analysis={
-            'score': 0.0,
-            'risk_level': 'low',
-            'suspicious_attachments': [],
-            'file_type_warnings': [],
-            'size_anomalies': [],
-            'potential_deepfakes': []
+            "score": 0.0,
+            "risk_level": "low",
+            "suspicious_attachments": [],
+            "file_type_warnings": [],
+            "size_anomalies": [],
+            "potential_deepfakes": [],
         },
         recommendations=[
             "⚠️ HIGH RISK: Move to spam folder immediately",
             "🎣 Potential phishing: Do not click links or provide credentials",
-            "🔗 Suspicious URLs detected: Verify links before clicking"
+            "🔗 Suspicious URLs detected: Verify links before clicking",
         ],
-        timestamp=datetime.now().isoformat()
+        timestamp=datetime.now().isoformat(),
     )
 
     print("Testing Console Alert Format:")
     alert_system._console_alert(report)
+
 
 if __name__ == "__main__":
     test_console_alert()

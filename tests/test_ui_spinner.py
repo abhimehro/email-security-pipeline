@@ -1,12 +1,12 @@
 import unittest
-from unittest.mock import patch, MagicMock
-import sys
 from io import StringIO
+from unittest.mock import MagicMock, patch
+
 from src.utils.ui import Spinner
-from src.utils.colors import Colors
+
 
 class TestSpinner(unittest.TestCase):
-    @patch('sys.stdout', new_callable=StringIO)
+    @patch("sys.stdout", new_callable=StringIO)
     def test_spinner_success_persist(self, mock_stdout):
         # We need to mock isatty to be True for Spinner to activate
         mock_stdout.isatty = MagicMock(return_value=True)
@@ -21,7 +21,7 @@ class TestSpinner(unittest.TestCase):
         self.assertIn("✔ Testing Success", output)
         self.assertIn("Testing Success", output)
 
-    @patch('sys.stdout', new_callable=StringIO)
+    @patch("sys.stdout", new_callable=StringIO)
     def test_spinner_success_no_persist(self, mock_stdout):
         mock_stdout.isatty = MagicMock(return_value=True)
 
@@ -35,7 +35,7 @@ class TestSpinner(unittest.TestCase):
         # It should clear the line
         self.assertIn("\r\033[K", output)
 
-    @patch('sys.stdout', new_callable=StringIO)
+    @patch("sys.stdout", new_callable=StringIO)
     def test_spinner_failure(self, mock_stdout):
         mock_stdout.isatty = MagicMock(return_value=True)
 
@@ -49,7 +49,7 @@ class TestSpinner(unittest.TestCase):
         # Verify cross is present
         self.assertIn("✘ Testing Failure", output)
 
-    @patch('sys.stdout', new_callable=StringIO)
+    @patch("sys.stdout", new_callable=StringIO)
     def test_spinner_non_tty_basic_output(self, mock_stdout):
         # Simulate a non-TTY environment (e.g., CI logs, redirected output)
         mock_stdout.isatty = MagicMock(return_value=False)
@@ -64,7 +64,7 @@ class TestSpinner(unittest.TestCase):
         # In non-TTY mode we should not rely on TTY-specific clear sequences
         self.assertNotIn("\r\033[K", output)
 
-    @patch('sys.stdout', new_callable=StringIO)
+    @patch("sys.stdout", new_callable=StringIO)
     def test_spinner_success_persist_non_tty(self, mock_stdout):
         # Non-TTY with default persist=True should still print a success message
         mock_stdout.isatty = MagicMock(return_value=False)
@@ -77,7 +77,7 @@ class TestSpinner(unittest.TestCase):
         self.assertIn("✔ Testing non TTY persist", output)
         self.assertNotIn("\x1b[", output)
 
-    @patch('sys.stdout', new_callable=StringIO)
+    @patch("sys.stdout", new_callable=StringIO)
     def test_spinner_success_no_persist_non_tty(self, mock_stdout):
         # Non-TTY with persist=False should not print a success line
         mock_stdout.isatty = MagicMock(return_value=False)
@@ -89,7 +89,7 @@ class TestSpinner(unittest.TestCase):
         # Verify checkmark success line is NOT present
         self.assertNotIn("✔ Testing non TTY no persist", output)
 
-    @patch('sys.stdout', new_callable=StringIO)
+    @patch("sys.stdout", new_callable=StringIO)
     def test_spinner_failure_non_tty(self, mock_stdout):
         # Non-TTY failure should still emit a clear failure message
         mock_stdout.isatty = MagicMock(return_value=False)
@@ -106,7 +106,7 @@ class TestSpinner(unittest.TestCase):
         self.assertIn("✘ Testing non TTY failure", output)
         self.assertNotIn("\x1b[", output)
 
-    @patch('sys.stdout', new_callable=StringIO)
+    @patch("sys.stdout", new_callable=StringIO)
     def test_spinner_custom_success(self, mock_stdout):
         mock_stdout.isatty = MagicMock(return_value=True)
 
@@ -117,7 +117,7 @@ class TestSpinner(unittest.TestCase):
         # Verify custom success message overrides persist=False
         self.assertIn("✔ Done!", output)
 
-    @patch('sys.stdout', new_callable=StringIO)
+    @patch("sys.stdout", new_callable=StringIO)
     def test_spinner_custom_failure(self, mock_stdout):
         mock_stdout.isatty = MagicMock(return_value=True)
 
@@ -132,7 +132,7 @@ class TestSpinner(unittest.TestCase):
         # Verify custom failure message is used
         self.assertIn("✘ Failed!", output)
 
-    @patch('sys.stdout', new_callable=StringIO)
+    @patch("sys.stdout", new_callable=StringIO)
     def test_spinner_custom_success_non_tty(self, mock_stdout):
         mock_stdout.isatty = MagicMock(return_value=False)
 
@@ -144,7 +144,7 @@ class TestSpinner(unittest.TestCase):
         self.assertIn("✔ Custom Done!", output)
         self.assertNotIn("\x1b[", output)
 
-    @patch('sys.stdout', new_callable=StringIO)
+    @patch("sys.stdout", new_callable=StringIO)
     def test_spinner_custom_failure_non_tty(self, mock_stdout):
         mock_stdout.isatty = MagicMock(return_value=False)
 
@@ -160,26 +160,30 @@ class TestSpinner(unittest.TestCase):
         self.assertIn("✘ Custom Failed!", output)
         self.assertNotIn("\x1b[", output)
 
-    @patch('sys.stdout')
+    @patch("sys.stdout")
     def test_cursor_hide_show_in_tty(self, mock_stdout):
-        """Test cursor is hidden and restored when isatty is True"""
+        """Test cursor is hidden and restored when isatty is True."""
         mock_stdout.isatty.return_value = True
 
         with Spinner("Loading", delay=0):
             pass
 
-        writes = "".join(call.args[0] for call in mock_stdout.write.mock_calls if call.args)
+        writes = "".join(
+            call.args[0] for call in mock_stdout.write.mock_calls if call.args
+        )
         self.assertIn("\033[?25l", writes)  # CURSOR_HIDE
         self.assertIn("\033[?25h", writes)  # CURSOR_SHOW
 
-    @patch('sys.stdout')
+    @patch("sys.stdout")
     def test_cursor_hide_show_not_in_non_tty(self, mock_stdout):
-        """Test cursor escape sequences are not written when isatty is False"""
+        """Test cursor escape sequences are not written when isatty is False."""
         mock_stdout.isatty.return_value = False
 
         with Spinner("Loading", delay=0):
             pass
 
-        writes = "".join(call.args[0] for call in mock_stdout.write.mock_calls if call.args)
+        writes = "".join(
+            call.args[0] for call in mock_stdout.write.mock_calls if call.args
+        )
         self.assertNotIn("\033[?25l", writes)
         self.assertNotIn("\033[?25h", writes)

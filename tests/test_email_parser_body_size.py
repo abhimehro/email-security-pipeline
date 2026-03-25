@@ -42,16 +42,17 @@ def _make_parser(max_body_size: int = _SMALL_MAX) -> EmailParser:
 def _make_body_dict() -> dict:
     """Return a fresh body accumulator dict as used by _add_body_content."""
     return {
-        'text_parts': [],
-        'html_parts': [],
-        'text_len': 0,
-        'html_len': 0,
+        "text_parts": [],
+        "html_parts": [],
+        "text_len": 0,
+        "html_len": 0,
     }
 
 
 # ---------------------------------------------------------------------------
 # TestAppendBodyPart – direct tests for _append_body_part
 # ---------------------------------------------------------------------------
+
 
 class TestAppendBodyPart(unittest.TestCase):
     """
@@ -150,6 +151,7 @@ class TestAppendBodyPart(unittest.TestCase):
 # TestAddBodyContent – direct tests for _add_body_content
 # ---------------------------------------------------------------------------
 
+
 class TestAddBodyContent(unittest.TestCase):
     """
     Tests for EmailParser._add_body_content.
@@ -171,19 +173,19 @@ class TestAddBodyContent(unittest.TestCase):
         """content_type='text/plain' must update text_parts and text_len only."""
         body_dict = _make_body_dict()
         self.parser._add_body_content("text/plain", "hello", body_dict, "id-1")
-        self.assertEqual(body_dict['text_parts'], ["hello"])
-        self.assertEqual(body_dict['text_len'], 5)
-        self.assertEqual(body_dict['html_parts'], [])
-        self.assertEqual(body_dict['html_len'], 0)
+        self.assertEqual(body_dict["text_parts"], ["hello"])
+        self.assertEqual(body_dict["text_len"], 5)
+        self.assertEqual(body_dict["html_parts"], [])
+        self.assertEqual(body_dict["html_len"], 0)
 
     def test_html_routes_to_html_parts(self):
         """content_type='text/html' must update html_parts and html_len only."""
         body_dict = _make_body_dict()
         self.parser._add_body_content("text/html", "<b>hi</b>", body_dict, "id-2")
-        self.assertEqual(body_dict['html_parts'], ["<b>hi</b>"])
-        self.assertEqual(body_dict['html_len'], 9)
-        self.assertEqual(body_dict['text_parts'], [])
-        self.assertEqual(body_dict['text_len'], 0)
+        self.assertEqual(body_dict["html_parts"], ["<b>hi</b>"])
+        self.assertEqual(body_dict["html_len"], 9)
+        self.assertEqual(body_dict["text_parts"], [])
+        self.assertEqual(body_dict["text_len"], 0)
 
     def test_at_or_over_max_body_size_skips_append(self):
         """
@@ -193,11 +195,9 @@ class TestAddBodyContent(unittest.TestCase):
         being exceeded via repeated small appends after the limit is reached.
         """
         body_dict = _make_body_dict()
-        body_dict['text_len'] = _SMALL_MAX  # already at limit
+        body_dict["text_len"] = _SMALL_MAX  # already at limit
 
-        with patch.object(
-            self.parser, '_append_body_part'
-        ) as mock_append:
+        with patch.object(self.parser, "_append_body_part") as mock_append:
             self.parser._add_body_content(
                 "text/plain", "overflow data", body_dict, "id-3"
             )
@@ -211,9 +211,11 @@ class TestAddBodyContent(unittest.TestCase):
         fall back to text rather than HTML.
         """
         body_dict = _make_body_dict()
-        self.parser._add_body_content("text/calendar", "BEGIN:VCALENDAR", body_dict, "id-4")
-        self.assertGreater(body_dict['text_len'], 0)
-        self.assertEqual(body_dict['html_len'], 0)
+        self.parser._add_body_content(
+            "text/calendar", "BEGIN:VCALENDAR", body_dict, "id-4"
+        )
+        self.assertGreater(body_dict["text_len"], 0)
+        self.assertEqual(body_dict["html_len"], 0)
 
 
 # ---------------------------------------------------------------------------

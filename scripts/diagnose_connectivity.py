@@ -4,25 +4,30 @@ Run connection diagnostics for a specific email account configured in the enviro
 """
 
 import argparse
-import sys
-import os
-import logging
 import json
+import logging
+import os
+import sys
 
 # Add the project root directory to the Python path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from src.modules.email_ingestion import EmailIngestionManager
 from src.utils.config import Config
 
 # Set up basic logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
+
 
 def main():
     """
     Main function to run the connection diagnostics.
     """
-    parser = argparse.ArgumentParser(description="Run connection diagnostics for an email account.")
+    parser = argparse.ArgumentParser(
+        description="Run connection diagnostics for an email account."
+    )
     parser.add_argument("email", help="The email address of the account to diagnose.")
     args = parser.parse_args()
 
@@ -42,9 +47,12 @@ def main():
     if diagnostics:
         print(json.dumps(diagnostics, indent=2))
     else:
-        logging.error(f"Diagnostics could not be run for {args.email}. "
-                      f"Ensure the email address is correct and configured.")
+        logging.error(
+            f"Diagnostics could not be run for {args.email}. "
+            f"Ensure the email address is correct and configured."
+        )
         sys.exit(1)
+
 
 if __name__ == "__main__":
     main()

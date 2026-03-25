@@ -30,6 +30,7 @@ def calculate_risk_level(
     function makes the risk boundaries visible at every call site.  This
     prevents the silent drift that occurs when hardcoded magic numbers are
     scattered across multiple modules.
+
     """
     if score >= high_threshold:
         return "high"

@@ -7,7 +7,7 @@ import re
 import unicodedata
 
 # Pre-compile regex for performance
-ANSI_ESCAPE_PATTERN = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
+ANSI_ESCAPE_PATTERN = re.compile(r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])")
 
 # Unicode categories to exclude from logging
 # Cc: Control (including ASCII 0-31, 127, 0x80-0x9F)
@@ -17,7 +17,8 @@ ANSI_ESCAPE_PATTERN = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
 # Cn: Unassigned
 # Zl: Line Separator
 # Zp: Paragraph Separator
-EXCLUDED_LOGGING_CATEGORIES = {'Cc', 'Cf', 'Cs', 'Co', 'Cn', 'Zl', 'Zp'}
+EXCLUDED_LOGGING_CATEGORIES = {"Cc", "Cf", "Cs", "Co", "Cn", "Zl", "Zp"}
+
 
 def sanitize_for_logging(text: str, max_length: int = 255) -> str:
     """
@@ -30,18 +31,19 @@ def sanitize_for_logging(text: str, max_length: int = 255) -> str:
 
     Returns:
         Sanitized string safe for logging.
+
     """
     if not text:
         return ""
 
     # 1. Normalize unicode characters
-    text = unicodedata.normalize('NFKC', text)
+    text = unicodedata.normalize("NFKC", text)
 
     # 2. Replace newlines and carriage returns with escaped versions
-    text = text.replace('\n', '\\n').replace('\r', '\\r')
+    text = text.replace("\n", "\\n").replace("\r", "\\r")
 
     # 3. Remove ANSI escape sequences (for terminal colors/cursor movement)
-    text = ANSI_ESCAPE_PATTERN.sub('', text)
+    text = ANSI_ESCAPE_PATTERN.sub("", text)
 
     # 4. Remove control characters and dangerous format characters
     # We keep standard printable characters but remove controls and formatters
@@ -55,16 +57,20 @@ def sanitize_for_logging(text: str, max_length: int = 255) -> str:
     # expression because join() can pre-allocate the required memory when the length is known.
     # Optimization: ch.isprintable() is true for the vast majority of characters and evaluating
     # it first leverages short-circuit evaluation to avoid the overhead of subsequent checks.
-    text = "".join([
-        ch for ch in text
-        if ch.isprintable() or ch == '\t' or unicodedata.category(ch) == 'Zs'
-    ])
+    text = "".join(
+        [
+            ch
+            for ch in text
+            if ch.isprintable() or ch == "\t" or unicodedata.category(ch) == "Zs"
+        ]
+    )
 
     # 5. Truncate if necessary to prevent log flooding
     if len(text) > max_length:
         text = text[:max_length] + "..."
 
     return text
+
 
 def sanitize_for_csv(text: str) -> str:
     """
@@ -78,6 +84,7 @@ def sanitize_for_csv(text: str) -> str:
 
     Returns:
         Sanitized string safe for CSV usage.
+
     """
     if not text:
         return ""
@@ -86,7 +93,7 @@ def sanitize_for_csv(text: str) -> str:
     # Note: We check the original string for TAB/CR at the start,
     # as lstrip() removes them.
     # Added '%' to prevent DDE injection in older spreadsheet software
-    dangerous_chars = ('=', '+', '-', '@', '%')
+    dangerous_chars = ("=", "+", "-", "@", "%")
 
     # Check if the string starts with characters that trigger formulas
     # Note: We must check after stripping whitespace because "  =1+1" can also be dangerous.
@@ -96,32 +103,34 @@ def sanitize_for_csv(text: str) -> str:
         return "'" + text
 
     # Also check for pipe at the start, which can be problematic in some CSV delimiters
-    if stripped.startswith('|'):
+    if stripped.startswith("|"):
         return "'" + text
 
     # Check for control characters at the very start (tab, carriage return)
     # which might not be caught by stripped check if they ARE the whitespace
-    if text.startswith(('\t', '\r')):
+    if text.startswith(("\t", "\r")):
         return "'" + text
 
     return text
 
+
 def redact_email(email: str) -> str:
     """
     Redact email address for logging, keeping only the domain or partial info.
-    Example: 'user@example.com' -> 'u***@example.com'
+    Example: 'user@example.com' -> 'u***@example.com'.
 
     Args:
         email: The email address to redact.
 
     Returns:
         Redacted email string.
+
     """
-    if not email or '@' not in email:
+    if not email or "@" not in email:
         return email
 
     try:
-        user, domain = email.split('@', 1)
+        user, domain = email.split("@", 1)
         if len(user) == 0:
             redacted_user = "***"
         elif len(user) <= 1:

@@ -1,6 +1,6 @@
 """
 Email Ingestion Module
-Main orchestrator for email retrieval from multiple providers
+Main orchestrator for email retrieval from multiple providers.
 
 This module has been refactored into smaller focused modules:
 - email_data.py: EmailData dataclass
@@ -18,41 +18,41 @@ interface to a complex subsystem (IMAP + parsing + security).
 import imaplib
 import logging
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from typing import List, Dict, Any, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 from ..utils.config import EmailAccountConfig
-from ..utils.sanitization import sanitize_for_logging, redact_email
+from ..utils.sanitization import redact_email, sanitize_for_logging
+from ..utils.security_validators import (
+    DEFAULT_MAX_EMAIL_SIZE,
+    MAX_MIME_PARTS,
+    MAX_SUBJECT_LENGTH,
+    calculate_max_email_size,
+    create_secure_ssl_context,
+)
 
 # Import from refactored modules
 from .email_data import EmailData
 from .email_parser import EmailParser
 from .imap_connection import IMAPConnection, IMAPDiagnostics
-from ..utils.security_validators import (
-    MAX_SUBJECT_LENGTH,
-    MAX_MIME_PARTS,
-    DEFAULT_MAX_EMAIL_SIZE,
-    create_secure_ssl_context,
-    calculate_max_email_size
-)
 
 # Re-export public API for backward compatibility
 # MAINTENANCE WISDOM: This ensures all existing imports continue to work.
 # Future you will thank present you for maintaining backward compatibility!
 __all__ = [
     # Main classes
-    'IMAPClient',
-    'EmailIngestionManager',
-    'EmailData',
+    "IMAPClient",
+    "EmailIngestionManager",
+    "EmailData",
     # Security constants (used in tests)
-    'MAX_SUBJECT_LENGTH',
-    'MAX_MIME_PARTS',
-    'DEFAULT_MAX_EMAIL_SIZE',
+    "MAX_SUBJECT_LENGTH",
+    "MAX_MIME_PARTS",
+    "DEFAULT_MAX_EMAIL_SIZE",
 ]
 
 
 class IMAPClient:
     """
-    IMAP client for connecting to email servers
+    IMAP client for connecting to email servers.
 
     MAINTENANCE WISDOM: This is a compatibility wrapper that combines
     IMAPConnection and EmailParser to maintain the original API.
@@ -70,7 +70,7 @@ class IMAPClient:
         max_attachment_count: int = 10,
     ):
         """
-        Initialize IMAP client
+        Initialize IMAP client.
 
         Args:
             config: Email account configuration
@@ -78,6 +78,7 @@ class IMAPClient:
             max_attachment_bytes: Maximum attachment bytes retained for analysis
             max_total_attachment_bytes: Maximum total size of all attachments per email
             max_attachment_count: Maximum number of attachments per email
+
         """
         self.config = config
         self.rate_limit_delay = rate_limit_delay
@@ -93,7 +94,7 @@ class IMAPClient:
         self.connection_manager = IMAPConnection(
             config=config,
             rate_limit_delay=rate_limit_delay,
-            max_total_attachment_bytes=max_total_attachment_bytes
+            max_total_attachment_bytes=max_total_attachment_bytes,
         )
 
         self.parser = EmailParser(
@@ -101,7 +102,7 @@ class IMAPClient:
             max_body_size=self.max_body_size,
             max_attachment_bytes=max_attachment_bytes,
             max_total_attachment_bytes=max_total_attachment_bytes,
-            max_attachment_count=max_attachment_count
+            max_attachment_count=max_attachment_count,
         )
 
         # Create shared logger for backward compatibility
@@ -115,22 +116,23 @@ class IMAPClient:
 
     @property
     def logger(self):
-        """Get logger (property for backward compatibility with tests)"""
+        """Get logger (property for backward compatibility with tests)."""
         return self._logger
 
     @logger.setter
     def logger(self, value):
-        """Set logger and propagate to subcomponents"""
+        """Set logger and propagate to subcomponents."""
         self._logger = value
         self.connection_manager.logger = value
         self.parser.logger = value
 
     def connect(self) -> bool:
         """
-        Establish connection to IMAP server
+        Establish connection to IMAP server.
 
         Returns:
             True if connection successful
+
         """
         try:
             self.logger.info(
@@ -146,13 +148,13 @@ class IMAPClient:
                     self.config.imap_server,
                     self.config.imap_port,
                     ssl_context=context,
-                    timeout=30  # SECURITY: Prevent indefinite hangs
+                    timeout=30,  # SECURITY: Prevent indefinite hangs
                 )
             else:
                 self.connection = imaplib.IMAP4(
                     self.config.imap_server,
                     self.config.imap_port,
-                    timeout=30  # SECURITY: Prevent indefinite hangs
+                    timeout=30,  # SECURITY: Prevent indefinite hangs
                 )
                 self.connection.starttls(ssl_context=context)
 
@@ -162,7 +164,9 @@ class IMAPClient:
             # Sync with connection_manager for other methods
             self.connection_manager.connection = self.connection
 
-            self.logger.info(f"Successfully connected to {redact_email(self.config.email)}")
+            self.logger.info(
+                f"Successfully connected to {redact_email(self.config.email)}"
+            )
             return True
 
         except imaplib.IMAP4.error as e:
@@ -177,43 +181,47 @@ class IMAPClient:
 
     def ensure_connection(self) -> bool:
         """
-        Ensure the IMAP connection is alive, reconnecting if necessary
+        Ensure the IMAP connection is alive, reconnecting if necessary.
         """
         success = self.connection_manager.ensure_connection()
         self.connection = self.connection_manager.connection
         return success
 
     def disconnect(self):
-        """Close IMAP connection"""
+        """Close IMAP connection."""
         self.connection_manager.disconnect()
         self.connection = None
 
     def list_folders(self) -> List[str]:
         """
-        List available folders
+        List available folders.
 
         Returns:
             List of folder names
+
         """
         return self.connection_manager.list_folders()
 
     def select_folder(self, folder: str) -> bool:
         """
-        Select a folder for operations
+        Select a folder for operations.
 
         Args:
             folder: Folder name
 
         Returns:
             True if folder selected successfully
+
         """
         # Sync connection for backward compatibility with tests
         self.connection_manager.connection = self.connection
         return self.connection_manager.select_folder(folder)
 
-    def fetch_unseen_emails(self, folder: str, limit: int = 50) -> List[Tuple[str, bytes]]:
+    def fetch_unseen_emails(
+        self, folder: str, limit: int = 50
+    ) -> List[Tuple[str, bytes]]:
         """
-        Fetch unseen emails from folder
+        Fetch unseen emails from folder.
 
         Args:
             folder: Folder name
@@ -221,6 +229,7 @@ class IMAPClient:
 
         Returns:
             List of (email_id, raw_email) tuples
+
         """
         # Call select_folder first (can be mocked by tests)
         if not self.select_folder(folder):
@@ -234,9 +243,11 @@ class IMAPClient:
         # but skip its select_folder call since we already did it
         return self.connection_manager._fetch_emails_internal(folder, limit)
 
-    def parse_email(self, email_id: str, raw_email: bytes, folder: str) -> Optional[EmailData]:
+    def parse_email(
+        self, email_id: str, raw_email: bytes, folder: str
+    ) -> Optional[EmailData]:
         """
-        Parse raw email into EmailData object
+        Parse raw email into EmailData object.
 
         Args:
             email_id: Email ID
@@ -245,6 +256,7 @@ class IMAPClient:
 
         Returns:
             EmailData object or None if parsing fails
+
         """
         # Sync parser settings for backward compatibility with tests
         self.parser.max_body_size = self.max_body_size
@@ -255,13 +267,14 @@ class IMAPClient:
 
     def diagnose_connection_issues(self, account: EmailAccountConfig) -> Dict[str, Any]:
         """
-        Diagnose IMAP connection issues
+        Diagnose IMAP connection issues.
 
         Args:
             account: Account configuration to diagnose
 
         Returns:
             Dictionary with diagnostic results
+
         """
         diagnostics = IMAPDiagnostics(account)
         return diagnostics.diagnose_connection_issues()
@@ -270,11 +283,12 @@ class IMAPClient:
     @staticmethod
     def _create_secure_ssl_context(verify_ssl: bool = True):
         """
-        Create a secure SSL context (backward compatibility wrapper)
+        Create a secure SSL context (backward compatibility wrapper).
         """
         context = create_secure_ssl_context()
         if not verify_ssl:
             import ssl
+
             context.check_hostname = False
             context.verify_mode = ssl.CERT_NONE
         return context
@@ -282,21 +296,21 @@ class IMAPClient:
     @staticmethod
     def _decode_part_payload(part):
         """
-        Decode part payload (backward compatibility wrapper)
+        Decode part payload (backward compatibility wrapper).
         """
         return EmailParser._decode_part_payload(part)
 
     @staticmethod
     def _decode_bytes(data: bytes, charset: Optional[str]) -> str:
         """
-        Decode bytes (backward compatibility wrapper)
+        Decode bytes (backward compatibility wrapper).
         """
         return EmailParser._decode_bytes(data, charset)
 
 
 class EmailIngestionManager:
     """
-    Manages email ingestion from multiple accounts
+    Manages email ingestion from multiple accounts.
 
     PATTERN RECOGNITION: This is a Coordinator - it manages multiple
     IMAPClient instances and orchestrates email fetching across accounts.
@@ -313,7 +327,7 @@ class EmailIngestionManager:
         max_parallel_accounts: int = 3,
     ):
         """
-        Initialize ingestion manager
+        Initialize ingestion manager.
 
         Args:
             accounts: List of email account configurations
@@ -323,6 +337,7 @@ class EmailIngestionManager:
             max_attachment_count: Maximum number of attachments per email
             max_body_size_bytes: Maximum size of email body text/html in bytes
             max_parallel_accounts: Maximum number of accounts to process simultaneously
+
         """
         self.accounts = accounts
         self.rate_limit_delay = rate_limit_delay
@@ -336,10 +351,11 @@ class EmailIngestionManager:
 
     def initialize_clients(self) -> bool:
         """
-        Initialize IMAP clients for all accounts
+        Initialize IMAP clients for all accounts.
 
         Returns:
             True if at least one client connected successfully
+
         """
         success_count = 0
 
@@ -352,7 +368,7 @@ class EmailIngestionManager:
                 self.rate_limit_delay,
                 self.max_attachment_bytes,
                 self.max_total_attachment_bytes,
-                self.max_attachment_count
+                self.max_attachment_count,
             )
             client.max_body_size = self.max_body_size
 
@@ -369,7 +385,9 @@ class EmailIngestionManager:
         self.logger.info(f"Connected to {success_count}/{len(self.accounts)} accounts")
         return True
 
-    def _process_account(self, account: EmailAccountConfig, max_per_folder: int) -> List[EmailData]:
+    def _process_account(
+        self, account: EmailAccountConfig, max_per_folder: int
+    ) -> List[EmailData]:
         """
         Fetch and parse all emails for a single account across its configured folders.
 
@@ -382,6 +400,7 @@ class EmailIngestionManager:
 
         Returns:
             List of EmailData objects collected from all folders of this account
+
         """
         emails: List[EmailData] = []
         client = self.clients.get(account.email)
@@ -424,9 +443,11 @@ class EmailIngestionManager:
 
         Returns:
             List of EmailData objects aggregated from all accounts
+
         """
         active_accounts = [
-            account for account in self.accounts
+            account
+            for account in self.accounts
             if account.enabled and account.email in self.clients
         ]
 
@@ -462,7 +483,7 @@ class EmailIngestionManager:
         return all_emails
 
     def close_all_connections(self):
-        """Close all IMAP connections"""
+        """Close all IMAP connections."""
         for client in self.clients.values():
             try:
                 client.disconnect()
@@ -472,15 +493,18 @@ class EmailIngestionManager:
         self.clients.clear()
         self.logger.info("All connections closed")
 
-    def diagnose_account_connection(self, email_address: str) -> Optional[Dict[str, Any]]:
+    def diagnose_account_connection(
+        self, email_address: str
+    ) -> Optional[Dict[str, Any]]:
         """
-        Diagnose connection issues for a specific email account
+        Diagnose connection issues for a specific email account.
 
         Args:
             email_address: The email address of the account to diagnose
 
         Returns:
             A dictionary with diagnostic results, or None if account not found
+
         """
         account_to_diagnose = None
         for acc in self.accounts:
@@ -498,8 +522,6 @@ class EmailIngestionManager:
 
         # Create a temporary client for diagnostics
         client = IMAPClient(
-            account_to_diagnose,
-            self.rate_limit_delay,
-            self.max_attachment_bytes
+            account_to_diagnose, self.rate_limit_delay, self.max_attachment_bytes
         )
         return client.diagnose_connection_issues(account_to_diagnose)

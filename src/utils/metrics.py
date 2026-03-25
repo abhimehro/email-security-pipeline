@@ -1,12 +1,12 @@
 """
 Metrics Collection Module
-Tracks system performance and threat detection statistics
+Tracks system performance and threat detection statistics.
 """
 
 from collections import Counter, deque
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Dict, List, Deque
+from typing import Deque, Dict
 
 
 @dataclass
@@ -67,6 +67,7 @@ class Metrics:
 
         Example:
             metrics.record_threat("phishing", "high")
+
         """
         # Track both the specific threat type and severity
         self.threats_detected[threat_type] += 1
@@ -82,6 +83,7 @@ class Metrics:
         TEACHING MOMENT: We use milliseconds instead of seconds because
         email processing should be fast (< 1 second typically). Using
         milliseconds gives us better precision for performance analysis.
+
         """
         self.processing_time_ms.append(time_ms)
 
@@ -91,6 +93,7 @@ class Metrics:
 
         Args:
             error_type: Type of error (e.g., "imap_connection", "analysis_timeout")
+
         """
         self.errors_count[error_type] += 1
 
@@ -104,6 +107,7 @@ class Metrics:
         INDUSTRY CONTEXT: Professional teams export this summary to monitoring
         systems every 60 seconds. You can pipe this to a file, send it to an
         API endpoint, or display it in a dashboard.
+
         """
         # Calculate processing time statistics if we have data
         stats = {}

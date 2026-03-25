@@ -10,7 +10,7 @@ repos:
       - id: end-of-file-fixer
       - id: check-yaml
       - id: check-added-large-files
-        args: ['--maxkb=500']
+        args: ["--maxkb=500"]
       - id: check-merge-conflict
       - id: debug-statements
       - id: check-case-conflict
@@ -18,14 +18,14 @@ repos:
       - id: check-json
       - id: check-toml
       - id: mixed-line-ending
-        args: ['--fix=lf']
+        args: ["--fix=lf"]
 
   # Security checks with bandit (already used in CI)
   - repo: https://github.com/PyCQA/bandit
     rev: 1.9.4
     hooks:
       - id: bandit
-        args: ['-ll', '-c', '.bandit']
+        args: ["-ll", "-c", ".bandit"]
         files: ^src/
 
   # Python syntax validation

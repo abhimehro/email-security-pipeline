@@ -1,7 +1,8 @@
-
 import unittest
 from unittest.mock import MagicMock, patch
+
 from src.modules.nlp_analyzer import NLPThreatAnalyzer
+
 
 # Mock config
 class MockConfig:
@@ -11,7 +12,8 @@ class MockConfig:
         self.check_authority_impersonation = True
         self.check_psychological_triggers = True
         self.nlp_threshold = 0.5
-        self.nlp_model = 'distilbert-base-uncased'
+        self.nlp_model = "distilbert-base-uncased"
+
 
 class TestNLPOptimization(unittest.TestCase):
     def setUp(self):
@@ -23,9 +25,9 @@ class TestNLPOptimization(unittest.TestCase):
         self.analyzer.tokenizer = MagicMock()
 
         # Ensure device is set to avoid attribute errors if code accesses it
-        self.analyzer.device = 'cpu'
+        self.analyzer.device = "cpu"
 
-    @patch('src.modules.nlp_analyzer.torch')
+    @patch("src.modules.nlp_analyzer.torch")
     def test_truncation_optimization(self, mock_torch):
         # Setup
         # Create text much longer than 4096 chars
@@ -40,7 +42,7 @@ class TestNLPOptimization(unittest.TestCase):
 
         # We need to mock torch.softmax and torch.no_grad
         mock_torch.softmax.return_value = MagicMock()
-        mock_torch.softmax.return_value.__getitem__.return_value = [0.1] # threat prob
+        mock_torch.softmax.return_value.__getitem__.return_value = [0.1]  # threat prob
 
         # Action
         self.analyzer.analyze_with_transformer(long_text)
@@ -53,7 +55,7 @@ class TestNLPOptimization(unittest.TestCase):
         self.assertEqual(len(text_arg), 4096)
         self.assertEqual(text_arg, "A" * 4096)
 
-    @patch('src.modules.nlp_analyzer.torch')
+    @patch("src.modules.nlp_analyzer.torch")
     def test_caching_behavior(self, mock_torch):
         # Setup tokenizer to count calls
         self.analyzer.tokenizer.return_value = {"input_ids": [1]}
@@ -63,7 +65,7 @@ class TestNLPOptimization(unittest.TestCase):
         mock_torch.softmax.return_value.__getitem__.return_value = [0.1]
 
         text1 = "Short text"
-        text2 = "Short text" # Identical
+        text2 = "Short text"  # Identical
 
         # Action
         self.analyzer.analyze_with_transformer(text1)
@@ -73,7 +75,7 @@ class TestNLPOptimization(unittest.TestCase):
         # Tokenizer should be called only once due to LRU cache on _analyze_with_transformer_core
         self.assertEqual(self.analyzer.tokenizer.call_count, 1)
 
-    @patch('src.modules.nlp_analyzer.torch')
+    @patch("src.modules.nlp_analyzer.torch")
     def test_caching_with_long_text_truncation(self, mock_torch):
         # Setup
         self.analyzer.tokenizer.return_value = {"input_ids": [1]}
@@ -99,5 +101,6 @@ class TestNLPOptimization(unittest.TestCase):
         args, kwargs = self.analyzer.tokenizer.call_args
         self.assertEqual(len(args[0]), 4096)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

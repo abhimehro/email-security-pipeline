@@ -1,5 +1,5 @@
 """
-Pattern Compiler Utility
+Pattern Compiler Utility.
 
 Centralizes regex pattern compilation with consistent flags and ReDoS safety checks.
 
@@ -49,6 +49,7 @@ def check_redos_safety(patterns: List[str]) -> None:
 
     Raises:
         ValueError: If any pattern contains a known ReDoS signature.
+
     """
     for pattern in patterns:
         for unsafe in _REDOS_SIGNATURES:
@@ -79,6 +80,7 @@ def compile_patterns(
 
     Returns:
         A compiled :class:`re.Pattern` that matches any of the supplied patterns.
+
     """
     if validate_redos:
         check_redos_safety(patterns)
@@ -111,6 +113,7 @@ def compile_named_group_pattern(
     Returns:
         A tuple ``(compiled_pattern, group_map)`` where *group_map* maps each
         generated group name to its original pattern string.
+
     """
     if validate_redos:
         check_redos_safety(patterns)

@@ -8,8 +8,8 @@ Covers:
 """
 
 import unittest
-from unittest.mock import patch, MagicMock
 from io import StringIO
+from unittest.mock import MagicMock, patch
 
 from src.utils.ui import CountdownTimer
 

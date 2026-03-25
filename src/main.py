@@ -1,45 +1,43 @@
 #!/usr/bin/env python3
 """
 Email Security Analysis Pipeline
-Main orchestrator that coordinates all analysis modules
+Main orchestrator that coordinates all analysis modules.
 """
 
+import concurrent.futures
+import logging
 import sys
 import time
-import logging
 from logging.handlers import RotatingFileHandler
-import signal
-import shutil
-import concurrent.futures
 from pathlib import Path
 
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.utils.config import Config, ConfigurationError
+from src.modules.alert_system import AlertSystem, generate_threat_report
+from src.modules.email_ingestion import EmailIngestionManager
+from src.modules.media_analyzer import MediaAuthenticityAnalyzer
+from src.modules.nlp_analyzer import NLPThreatAnalyzer
+from src.modules.spam_analyzer import SpamAnalyzer
 from src.utils.colors import Colors
-from src.utils.ui import CountdownTimer, Spinner
-from src.utils.setup_wizard import run_setup_wizard
+from src.utils.config import Config, ConfigurationError
 from src.utils.logging_utils import ColoredFormatter
-from src.utils.structured_logging import JSONFormatter
 from src.utils.metrics import Metrics
 from src.utils.sanitization import sanitize_for_logging
-from src.modules.email_ingestion import EmailIngestionManager
-from src.modules.spam_analyzer import SpamAnalyzer
-from src.modules.nlp_analyzer import NLPThreatAnalyzer
-from src.modules.media_analyzer import MediaAuthenticityAnalyzer
-from src.modules.alert_system import AlertSystem, generate_threat_report
+from src.utils.structured_logging import JSONFormatter
+from src.utils.ui import CountdownTimer, Spinner
 
 
 class EmailSecurityPipeline:
-    """Main pipeline orchestrator"""
+    """Main pipeline orchestrator."""
 
     def __init__(self, config_file: str = ".env"):
         """
-        Initialize pipeline
+        Initialize pipeline.
 
         Args:
             config_file: Path to configuration file
+
         """
         # Load configuration
         self.config = Config(config_file)
@@ -59,8 +57,12 @@ class EmailSecurityPipeline:
         self.ingestion_manager = EmailIngestionManager(
             self.config.email_accounts,
             self.config.system.rate_limit_delay,
-            max_attachment_bytes=self.config.system.max_attachment_size_mb * 1024 * 1024,
-            max_total_attachment_bytes=self.config.system.max_total_attachment_size_mb * 1024 * 1024,
+            max_attachment_bytes=self.config.system.max_attachment_size_mb
+            * 1024
+            * 1024,
+            max_total_attachment_bytes=self.config.system.max_total_attachment_size_mb
+            * 1024
+            * 1024,
             max_attachment_count=self.config.system.max_attachment_count,
             max_body_size_bytes=self.config.system.max_body_size_kb * 1024,
             max_parallel_accounts=self.config.system.max_parallel_accounts,
@@ -88,7 +90,7 @@ class EmailSecurityPipeline:
 
         This is similar to how nginx can log JSON to files but show colored output to stdout.
         """
-        log_format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+        log_format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 
         # Create logs directory if needed
         log_path = Path(self.config.system.log_file)
@@ -101,7 +103,7 @@ class EmailSecurityPipeline:
         file_handler = RotatingFileHandler(
             self.config.system.log_file,
             maxBytes=self.config.system.log_rotation_size_mb * 1024 * 1024,
-            backupCount=self.config.system.log_rotation_keep_files
+            backupCount=self.config.system.log_rotation_keep_files,
         )
 
         # Choose formatter based on LOG_FORMAT configuration
@@ -119,11 +121,11 @@ class EmailSecurityPipeline:
         # Configure logging
         logging.basicConfig(
             level=getattr(logging, self.config.system.log_level.upper()),
-            handlers=[file_handler, stream_handler]
+            handlers=[file_handler, stream_handler],
         )
 
     def start(self):
-        """Start the pipeline"""
+        """Start the pipeline."""
         try:
             # Validate configuration
             self.config.validate()
@@ -164,23 +166,25 @@ class EmailSecurityPipeline:
             sys.exit(1)
 
     def stop(self):
-        """Stop the pipeline"""
+        """Stop the pipeline."""
         self.logger.info("Stopping Email Security Pipeline")
         with Spinner("Shutting down pipeline gracefully...", persist=True) as spinner:
             self.running = False
             self.ingestion_manager.close_all_connections()
             # Flush and stop the async alert worker before shutting down the executor
             # so any in-flight alerts complete gracefully.
-            if hasattr(self, 'alert_system'):
+            if hasattr(self, "alert_system"):
                 self.alert_system.stop_worker()
-            if hasattr(self, 'executor'):
+            if hasattr(self, "executor"):
                 self.executor.shutdown(wait=True)
-            if hasattr(self, 'media_analyzer'):
+            if hasattr(self, "media_analyzer"):
                 # Run media_analyzer.shutdown() in a background thread so that
                 # pipeline shutdown is not indefinitely blocked by long-running
                 # or stuck deepfake analysis tasks.
                 try:
-                    shutdown_executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
+                    shutdown_executor = concurrent.futures.ThreadPoolExecutor(
+                        max_workers=1
+                    )
                     future = shutdown_executor.submit(self.media_analyzer.shutdown)
                     try:
                         # Allow a short grace period for a clean shutdown.
@@ -204,7 +208,7 @@ class EmailSecurityPipeline:
         self.logger.info("Pipeline stopped")
 
     def _monitoring_loop(self):
-        """Main monitoring loop"""
+        """Main monitoring loop."""
         iteration = 0
 
         while self.running:
@@ -245,7 +249,7 @@ class EmailSecurityPipeline:
                     )
                     CountdownTimer.wait(
                         self.config.system.check_interval,
-                        f"{Colors.GREY}Waiting for next check{Colors.RESET}"
+                        f"{Colors.GREY}Waiting for next check{Colors.RESET}",
                     )
 
             except Exception as e:
@@ -256,10 +260,11 @@ class EmailSecurityPipeline:
 
     def _analyze_email(self, email_data):
         """
-        Analyze a single email
+        Analyze a single email.
 
         Args:
             email_data: EmailData object
+
         """
         # Track processing time for performance monitoring
         start_time = time.time()
@@ -301,10 +306,7 @@ class EmailSecurityPipeline:
 
             # Generate threat report
             threat_report = generate_threat_report(
-                email_data,
-                spam_result,
-                nlp_result,
-                media_result
+                email_data, spam_result, nlp_result, media_result
             )
 
             # Send alerts
@@ -326,7 +328,11 @@ class EmailSecurityPipeline:
                     # Priority order for tie-breaking: spam > phishing > malware
                     # (i.e., spam_result > nlp_result > media_result)
                     threat_type = "unknown"
-                    max_score = max(spam_result.score, nlp_result.threat_score, media_result.threat_score)
+                    max_score = max(
+                        spam_result.score,
+                        nlp_result.threat_score,
+                        media_result.threat_score,
+                    )
 
                     # If all scores are 0, default to "spam" for consistency
                     if max_score == 0:
@@ -338,7 +344,9 @@ class EmailSecurityPipeline:
                     elif media_result.threat_score == max_score:
                         threat_type = "malware"
 
-                    self.metrics.record_threat(threat_type, threat_report.risk_level.lower())
+                    self.metrics.record_threat(
+                        threat_type, threat_report.risk_level.lower()
+                    )
 
             self.logger.info(
                 f"Analysis complete: overall_score={threat_report.overall_threat_score:.2f}, "
@@ -379,13 +387,17 @@ class EmailSecurityPipeline:
         self.logger.debug(f"Detailed metrics: {summary}")
 
     def _print_configuration_summary(self):
-        """Print a summary of the current configuration"""
+        """Print a summary of the current configuration."""
         print(f"\n{Colors.BOLD}📊 System Configuration:{Colors.RESET}")
 
         # Accounts
         print(f"  • {Colors.CYAN}Monitored Accounts:{Colors.RESET}")
         for account in self.config.email_accounts:
-            status = f"{Colors.GREEN}Active{Colors.RESET}" if account.enabled else f"{Colors.GREY}Disabled{Colors.RESET}"
+            status = (
+                f"{Colors.GREEN}Active{Colors.RESET}"
+                if account.enabled
+                else f"{Colors.GREY}Disabled{Colors.RESET}"
+            )
             print(f"    - {account.provider.title()}: {account.email} ({status})")
 
         # Analysis
@@ -405,9 +417,7 @@ class EmailSecurityPipeline:
             else f"{Colors.GREY}Disabled{Colors.RESET}"
         )
         deepfake_status = (
-            "Enabled"
-            if self.config.analysis.deepfake_detection_enabled
-            else "Disabled"
+            "Enabled" if self.config.analysis.deepfake_detection_enabled else "Disabled"
         )
         print(f"    - Media Check:      {media_status} (Deepfake: {deepfake_status})")
 
@@ -434,15 +444,19 @@ class EmailSecurityPipeline:
         print(f"    - Interval:   {self.config.system.check_interval}s")
 
         # Documentation footer
-        print(f"\n📚 {Colors.GREY}For help, see README.md or OUTLOOK_TROUBLESHOOTING.md{Colors.RESET}\n")
+        print(
+            f"\n📚 {Colors.GREY}For help, see README.md or OUTLOOK_TROUBLESHOOTING.md{Colors.RESET}\n"
+        )
 
 
 from src.app_runner import AppRunner
 
+
 def main():
-    """Main entry point"""
+    """Main entry point."""
     runner = AppRunner()
     runner.run()
+
 
 if __name__ == "__main__":
     main()
