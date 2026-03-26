@@ -407,6 +407,18 @@ class MediaAuthenticityAnalyzer:
 
         return score, warnings
 
+    def _check_riff_container(self, data: bytes) -> Optional[str]:
+        """Check for specific media types within a RIFF container."""
+        if len(data) >= 12:
+            format_type = data[8:12]
+            if format_type == b"AVI ":
+                return "avi"
+            elif format_type == b"WAVE":
+                return "wav"
+            elif format_type == b"WEBP":
+                return "webp"
+        return None
+
     def _detect_file_type(self, data: bytes) -> Optional[str]:
         """Detect file type from magic bytes."""
         if not data or len(data) < 4:
@@ -414,14 +426,7 @@ class MediaAuthenticityAnalyzer:
 
         # Check RIFF container (AVI, WAV, WEBP)
         if data.startswith(b"RIFF"):
-            if len(data) >= 12:
-                format_type = data[8:12]
-                if format_type == b"AVI ":
-                    return "avi"
-                elif format_type == b"WAVE":
-                    return "wav"
-                elif format_type == b"WEBP":
-                    return "webp"
+            return self._check_riff_container(data)
 
         # Optimization: Fast check for all signatures with offset 0
         if data.startswith(self.MAGIC_PREFIXES_OFFSET_0):
@@ -429,7 +434,6 @@ class MediaAuthenticityAnalyzer:
                 if data.startswith(sig):
                     return name
 
-        # Format: (offset, signature, type_name)
         # Check signatures with non-zero offset
         if len(data) >= 8 and data[4:8] == b"ftyp":  # Common for MP4/MOV
             return "mp4"
