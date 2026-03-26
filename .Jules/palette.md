@@ -117,3 +117,7 @@
 ## 2026-02-15 - Interactive Spinner Timing Indicators
 **Learning:** Operations with indeterminate progress (spinners) cause user anxiety if they run longer than expected. Adding a subtle elapsed time indicator (`[1.2s]`) to the spinner after a brief delay (1s) transforms the experience from "Is it hung?" to active feedback, without cluttering fast operations.
 **Action:** Always track and display elapsed time on indeterminate loading states that might exceed 1 second. Ensure the time format is subtle (e.g., greyed out) to maintain focus on the primary message.
+
+## 2026-10-26 - Screen Reader Accessibility in CLI Loading States
+**Learning:** CLI animations like spinners and progress bars that repeatedly clear the line using carriage returns (`\r`) and ANSI escape sequences (`\033[K`) are often completely missed or garbled by screen readers. Furthermore, adding newlines (`\n`) breaks the transient UI nature of these components.
+**Action:** For interactive CLI elements that update in-place, always print an initial, static announcement of the state without a newline, flush the output, and wait briefly (e.g., `time.sleep(0.1)`) before the animation loop begins. This ensures assistive technologies can announce the context before rapid updates overwrite it, without leaving permanent text blocks in the console.

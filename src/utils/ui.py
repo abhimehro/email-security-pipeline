@@ -39,7 +39,16 @@ class CountdownTimer:
         sys.stdout.write(CURSOR_HIDE)
         sys.stdout.flush()
 
+        # Accessibility: Print an initial static line so screen readers
+        # have a chance to read the message before we start rapidly
+        # clearing and redrawing it with carriage returns.
+        sys.stdout.write(f"{self.message}...")
+        sys.stdout.flush()
+
         try:
+            # Sleep briefly to ensure the screen reader announces it before the loop
+            time.sleep(0.1)
+
             remaining = self.duration
             while remaining > 0 and not self._stop_event.is_set():
                 # Format time as MM:SS if > 60s, else just seconds
@@ -70,6 +79,7 @@ class CountdownTimer:
             # Clean up line on interrupt
             warning = Colors.colorize("⚠", Colors.YELLOW)
             clean_msg = self.message.replace(" (Press Ctrl+C to stop)", "")
+            # Ensure we print the cancellation message correctly
             sys.stdout.write(f"\r\033[K{warning} {clean_msg} (Cancelled)\n")
             sys.stdout.flush()
             raise
@@ -145,6 +155,22 @@ class Spinner:
             # Hide cursor
             sys.stdout.write(CURSOR_HIDE)
             sys.stdout.flush()
+
+            # Accessibility: Print an initial static line so screen readers
+            # have a chance to read the message before we start rapidly
+            # clearing and redrawing it with carriage returns.
+            msg = self.message
+            if not msg.endswith("..."):
+                msg += "..."
+            sys.stdout.write(f"{msg}")
+            sys.stdout.flush()
+
+            # Sleep briefly to ensure the screen reader announces it before the loop
+            # Catch and skip so we just enter the spinner loop which handles cancellation gracefully
+            try:
+                time.sleep(0.1)
+            except KeyboardInterrupt:
+                pass
 
             self.busy = True
             self.thread = threading.Thread(target=self._spin)
