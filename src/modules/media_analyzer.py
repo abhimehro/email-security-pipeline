@@ -152,6 +152,31 @@ class MediaAuthenticityAnalyzer:
     MEDIA_RISK_LOW_THRESHOLD = 2.0
     MEDIA_RISK_HIGH_THRESHOLD = 5.0
 
+    # Magic signatures with offset 0 for fast C-level `startswith` checks
+    # Optimization: Grouping signatures by offset and using a tuple allows
+    # `bytes.startswith` to execute in C, bypassing Python loop overhead.
+    MAGIC_SIGNATURES_OFFSET_0 = (
+        (b"%PDF", "pdf"),
+        (b"PK\x03\x04", "zip"),
+        (b"\xff\xd8\xff", "jpeg"),
+        (b"\x89PNG", "png"),
+        (b"GIF8", "gif"),
+        (b"MZ", "exe"),
+        (b"\xd0\xcf\x11\xe0", "doc"),
+        (b"\x1a\x45\xdf\xa3", "mkv"),
+        (b"ID3", "mp3"),
+        (b"\xff\xfb", "mp3"),
+        (b"\xff\xf3", "mp3"),
+        (b"\xff\xf2", "mp3"),
+        (b"\x30\x26\xb2\x75\x8e\x66\xcf\x11", "wmv"),
+        (b"FLV", "flv"),
+        (b"OggS", "ogg"),
+        (b"fLaC", "flac"),
+    )
+
+    # Tuple of just the byte prefixes for fast `startswith` check
+    MAGIC_PREFIXES_OFFSET_0 = tuple(sig for sig, _ in MAGIC_SIGNATURES_OFFSET_0)
+
     # Expected extensions for content type mismatch checking
     # Optimization: Moving this dictionary to the class level avoids re-creating
     # it on every file check, and using tuples allows fast C-level str.endswith()
@@ -398,33 +423,16 @@ class MediaAuthenticityAnalyzer:
                 elif format_type == b"WEBP":
                     return "webp"
 
-        # Format: (offset, signature, type_name)
-        signatures = [
-            (0, b"%PDF", "pdf"),
-            (0, b"PK\x03\x04", "zip"),
-            (0, b"\xff\xd8\xff", "jpeg"),
-            (0, b"\x89PNG", "png"),
-            (0, b"GIF8", "gif"),
-            (0, b"MZ", "exe"),
-            (0, b"\xd0\xcf\x11\xe0", "doc"),
-            (4, b"ftyp", "mp4"),  # Common for MP4/MOV
-            (0, b"\x1a\x45\xdf\xa3", "mkv"),
-            # ID3 at offset 0 indicates an ID3v2 tag at the beginning of an MP3 file
-            (0, b"ID3", "mp3"),
-            (0, b"\xff\xfb", "mp3"),
-            (0, b"\xff\xf3", "mp3"),
-            (0, b"\xff\xf2", "mp3"),
-            # Additional Media Types
-            (0, b"\x30\x26\xb2\x75\x8e\x66\xcf\x11", "wmv"),
-            (0, b"FLV", "flv"),
-            (0, b"OggS", "ogg"),
-            (0, b"fLaC", "flac"),
-        ]
-
-        for offset, sig, name in signatures:
-            if len(data) >= offset + len(sig):
-                if data[offset : offset + len(sig)] == sig:
+        # Optimization: Fast check for all signatures with offset 0
+        if data.startswith(self.MAGIC_PREFIXES_OFFSET_0):
+            for sig, name in self.MAGIC_SIGNATURES_OFFSET_0:
+                if data.startswith(sig):
                     return name
+
+        # Format: (offset, signature, type_name)
+        # Check signatures with non-zero offset
+        if len(data) >= 8 and data[4:8] == b"ftyp":  # Common for MP4/MOV
+            return "mp4"
 
         return None
 
