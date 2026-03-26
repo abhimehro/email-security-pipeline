@@ -46,6 +46,9 @@ class TestExtractSinglepartContent:
         msg = MagicMock(spec=Message)
         msg.get_content_type.return_value = "text/plain"
         msg.get_content_charset.return_value = "utf-8"
+        # Make sure it doesn't look like an attachment
+        msg.get.return_value = ""
+        msg.get_filename.return_value = None
         # Simulate UnicodeDecodeError when fetching payload
         msg.get_payload.side_effect = UnicodeDecodeError(
             "utf-8", b"\xff", 0, 1, "invalid start byte"
@@ -62,16 +65,20 @@ class TestExtractSinglepartContent:
         assert body_text == ""
         assert body_html == ""
         assert attachments == []
-        # Warning must have been logged
-        parser.logger.warning.assert_called_once()
-        warning_msg = parser.logger.warning.call_args[0][0]
-        assert "email_001" in warning_msg
+
+        # Check that warning about decode error was logged
+        warning_calls = parser.logger.warning.call_args_list
+        decode_warning = [call for call in warning_calls if "Failed to decode email payload" in call[0][0]]
+        assert len(decode_warning) == 1
+        assert "email_001" in decode_warning[0][0][0]
 
     def test_generic_exception_is_logged_as_error(self):
         parser = _make_parser()
         msg = MagicMock(spec=Message)
         msg.get_content_type.return_value = "text/plain"
         msg.get_content_charset.return_value = "utf-8"
+        msg.get.return_value = ""
+        msg.get_filename.return_value = None
         msg.get_payload.side_effect = RuntimeError("simulated parser error")
 
         body_text, body_html, attachments = parser._extract_singlepart_content(

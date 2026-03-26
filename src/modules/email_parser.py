@@ -253,17 +253,25 @@ class EmailParser:
 
             content_type = part.get_content_type()
             content_disposition = str(part.get("Content-Disposition", ""))
+            filename = part.get_filename()
+
+            # Check if this part should be treated as an attachment.
+            # Security: Always check for a filename, as attackers may omit
+            # the Content-Disposition header or use "inline" to bypass detection.
+            # Using bool(filename and filename.strip()) ensures empty strings aren't flagged.
+            is_attachment = "attachment" in content_disposition or bool(filename and filename.strip())
+
             # Extract text/HTML body
             if (
                 content_type in ("text/plain", "text/html")
-                and "attachment" not in content_disposition
+                and not is_attachment
             ):
                 decoded_part = self._decode_part_payload(part)
                 self._add_body_content(
                     content_type, decoded_part, body_dict, safe_email_id
                 )
             # Extract attachments
-            elif "attachment" in content_disposition:
+            elif is_attachment:
                 attachment = self._extract_attachment(
                     part, attachments, current_total_size, safe_email_id
                 )
@@ -289,12 +297,28 @@ class EmailParser:
             "html_len": 0,
         }
 
+        attachments = []
         content_type = msg.get_content_type()
+        content_disposition = str(msg.get("Content-Disposition", ""))
+        filename = msg.get_filename()
+
+        # Check if this single part is actually an attachment.
+        # Security: Single-part emails with malicious attachments might bypass
+        # multipart analysis. This ensures even single-part payloads are analyzed.
+        is_attachment = "attachment" in content_disposition or bool(filename and filename.strip())
+
         try:
-            payload = msg.get_payload(decode=True)
-            if payload:
-                decoded = self._decode_bytes(payload, msg.get_content_charset())
-                self._add_body_content(content_type, decoded, body_dict, safe_email_id)
+            if is_attachment:
+                attachment = self._extract_attachment(
+                    msg, attachments, 0, safe_email_id
+                )
+                if attachment:
+                    attachments.append(attachment)
+            else:
+                payload = msg.get_payload(decode=True)
+                if payload:
+                    decoded = self._decode_bytes(payload, msg.get_content_charset())
+                    self._add_body_content(content_type, decoded, body_dict, safe_email_id)
         except UnicodeDecodeError as e:
             self.logger.warning(
                 f"Failed to decode email payload for {safe_email_id}: {e}"
@@ -305,7 +329,7 @@ class EmailParser:
                 f"{type(e).__name__}: {e}"
             )
 
-        return "".join(body_dict["text_parts"]), "".join(body_dict["html_parts"]), []
+        return "".join(body_dict["text_parts"]), "".join(body_dict["html_parts"]), attachments
 
     def _append_body_part(
         self,
