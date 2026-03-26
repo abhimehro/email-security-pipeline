@@ -261,28 +261,34 @@ class EmailParser:
             # Using bool(filename and filename.strip()) ensures empty strings aren't flagged.
             is_attachment = "attachment" in content_disposition or bool(filename and filename.strip())
 
-            # Extract text/HTML body
-            if (
-                content_type in ("text/plain", "text/html")
-                and not is_attachment
-            ):
-                decoded_part = self._decode_part_payload(part)
-                self._add_body_content(
-                    content_type, decoded_part, body_dict, safe_email_id
-                )
-            # Extract attachments
+            if not is_attachment and content_type in ("text/plain", "text/html"):
+                self._process_multipart_body(part, content_type, body_dict, safe_email_id)
             elif is_attachment:
-                attachment = self._extract_attachment(
+                current_total_size = self._process_multipart_attachment(
                     part, attachments, current_total_size, safe_email_id
                 )
-                if attachment:
-                    attachments.append(attachment)
-                    current_total_size += attachment["size"]
 
         # Join accumulated parts
         body_text = "".join(body_dict["text_parts"])
         body_html = "".join(body_dict["html_parts"])
         return body_text, body_html, attachments
+
+    def _process_multipart_body(self, part: Message, content_type: str, body_dict: Dict[str, Any], safe_email_id: str) -> None:
+        """Process a text/html body part in a multipart email."""
+        decoded_part = self._decode_part_payload(part)
+        self._add_body_content(
+            content_type, decoded_part, body_dict, safe_email_id
+        )
+
+    def _process_multipart_attachment(self, part: Message, attachments: List[Dict[str, Any]], current_total_size: int, safe_email_id: str) -> int:
+        """Process an attachment part in a multipart email and return the new total size."""
+        attachment = self._extract_attachment(
+            part, attachments, current_total_size, safe_email_id
+        )
+        if attachment:
+            attachments.append(attachment)
+            return current_total_size + attachment["size"]
+        return current_total_size
 
     def _extract_singlepart_content(
         self, msg: Message, safe_email_id: str
