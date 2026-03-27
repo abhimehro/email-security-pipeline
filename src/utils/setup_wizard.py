@@ -160,8 +160,8 @@ def _get_credentials(choice: str, provider_name: str) -> tuple[str, str]:
             while True:
                 prompt = (
                     Colors.colorize("? ", Colors.CYAN)
-                    + Colors.colorize(f"Enter your {provider_name} email address", Colors.BOLD)
-                    + Colors.colorize(" *", Colors.RED)
+                    + Colors.colorize(f"Enter your {provider_name} email address ", Colors.BOLD)
+                    + Colors.colorize("*", Colors.RED)
                     + Colors.colorize(": ", Colors.BOLD)
                 )
                 email = input(prompt).strip()
