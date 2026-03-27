@@ -237,7 +237,11 @@
 
 **Merged pull requests:**
 
+- 🛡️ Sentinel: \[CRITICAL\] Fix malware bypass in attachment parsing [\#597](https://github.com/abhimehro/email-security-pipeline/pull/597) ([abhimehro](https://github.com/abhimehro))
+- 🎨 Palette: Improve CLI screen reader accessibility for loading states [\#596](https://github.com/abhimehro/email-security-pipeline/pull/596) ([abhimehro](https://github.com/abhimehro))
+- ⚡ Bolt: Optimize file signature detection in media analyzer [\#592](https://github.com/abhimehro/email-security-pipeline/pull/592) ([abhimehro](https://github.com/abhimehro))
 - 🎨 Palette: No UX enhancements identified [\#590](https://github.com/abhimehro/email-security-pipeline/pull/590) ([abhimehro](https://github.com/abhimehro))
+- Fix pre-commit configuration errors [\#587](https://github.com/abhimehro/email-security-pipeline/pull/587) ([abhimehro](https://github.com/abhimehro))
 - 🎨 Palette: Add elapsed time to long-running CLI spinners [\#584](https://github.com/abhimehro/email-security-pipeline/pull/584) ([abhimehro](https://github.com/abhimehro))
 - Daily QA Agentic Review [\#581](https://github.com/abhimehro/email-security-pipeline/pull/581) ([abhimehro](https://github.com/abhimehro))
 - chore: Daily QA Review - No issues found [\#580](https://github.com/abhimehro/email-security-pipeline/pull/580) ([abhimehro](https://github.com/abhimehro))
