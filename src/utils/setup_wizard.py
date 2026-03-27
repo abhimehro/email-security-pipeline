@@ -158,8 +158,11 @@ def _get_credentials(choice: str, provider_name: str) -> tuple[str, str]:
         while True:  # Outer loop for retry mechanism
             # Email input loop
             while True:
-                prompt = Colors.colorize("? ", Colors.CYAN) + Colors.colorize(
-                    f"Enter your {provider_name} email address: ", Colors.BOLD
+                prompt = (
+                    Colors.colorize("? ", Colors.CYAN)
+                    + Colors.colorize(f"Enter your {provider_name} email address", Colors.BOLD)
+                    + Colors.colorize(" *", Colors.RED)
+                    + Colors.colorize(": ", Colors.BOLD)
                 )
                 email = input(prompt).strip()
                 if not email:
@@ -196,8 +199,11 @@ def _get_credentials(choice: str, provider_name: str) -> tuple[str, str]:
                     f"Business accounts may require an App Password if MFA is enabled.{Colors.RESET}"
                 )
 
-            prompt = Colors.colorize("? ", Colors.CYAN) + Colors.colorize(
-                f"Enter your {provider_name} app password: ", Colors.BOLD
+            prompt = (
+                Colors.colorize("? ", Colors.CYAN)
+                + Colors.colorize(f"Enter your {provider_name} app password", Colors.BOLD)
+                + Colors.colorize(" *", Colors.RED)
+                + Colors.colorize(": ", Colors.BOLD)
             )
             app_secret = getpass.getpass(prompt).strip()
             while not app_secret:
