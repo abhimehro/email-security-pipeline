@@ -201,8 +201,8 @@ def _get_credentials(choice: str, provider_name: str) -> tuple[str, str]:
 
             prompt = (
                 Colors.colorize("? ", Colors.CYAN)
-                + Colors.colorize(f"Enter your {provider_name} app password", Colors.BOLD)
-                + Colors.colorize(" *", Colors.RED)
+                + Colors.colorize(f"Enter your {provider_name} app password ", Colors.BOLD)
+                + Colors.colorize("*", Colors.RED)
                 + Colors.colorize(": ", Colors.BOLD)
             )
             app_secret = getpass.getpass(prompt).strip()
