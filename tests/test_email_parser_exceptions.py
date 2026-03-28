@@ -165,7 +165,7 @@ class TestDecodeHeaderValue:
 
     def test_generic_exception_returns_raw_value_and_logs(self):
         """Any other exception must return raw value and log at debug."""
-        raw = "some header"
+        raw = "=?utf-8?q?some_header?="
         with patch("src.modules.email_parser.make_header") as mock_make_header:
             mock_make_header.side_effect = ValueError("unexpected")
             with patch("src.modules.email_parser.logger") as mock_logger:

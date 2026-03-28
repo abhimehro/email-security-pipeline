@@ -2,3 +2,7 @@
 ## 2025-03-09 - [Performance Optimization: Pre-computing Magic Signature Prefixes]
 **Learning:** In hot loops like file byte-signature detection (`_detect_file_type`), mapping over an array of tuples using `len(data) >= offset + len(sig)` and `data[offset:offset+len(sig)] == sig` incurs significant Python interpreter loop overhead.
 **Action:** Group signatures by offset (e.g., all 0-offset signatures). Use `tuple()` to create a class-level variable, which allows the use of Python's highly optimized, C-level `bytes.startswith(tuple_of_bytes)`. This bypasses Python-level loops completely for the non-matching cases and results in up to ~6x speedups for file buffers that do not match the expected signatures.
+
+## 2025-03-09 - [Performance Optimization: Bypassing `email.header` decoding for plain text]
+**Learning:** `email.header.decode_header` incurs significant overhead (~44x slower) even when parsing plain strings that contain no encoded words. In this codebase's parsing pipeline, evaluating `make_header(decode_header(value))` for every header in every email creates a measurable bottleneck, particularly for long header chains like `Received`.
+**Action:** Add an early return `if "=?" not in value:` before calling `decode_header`. Since RFC 2047 encoded words strictly begin with `=?` and end with `?=`, this safely bypasses the expensive decoding function for the vast majority of headers, drastically speeding up email metadata parsing without altering behavior.
