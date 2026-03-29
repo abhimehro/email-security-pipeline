@@ -21,7 +21,7 @@ class AppRunner:
         """
         self.args = args if args is not None else sys.argv
 
-        if len(self.args) > 1 and self.args[1] in ("-h", "--help"):
+        if "-h" in self.args or "--help" in self.args:
             self.print_banner()
             self.print_help()
             sys.exit(0)
