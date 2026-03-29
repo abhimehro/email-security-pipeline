@@ -37,9 +37,14 @@
 
 **Closed issues:**
 
+- \[repo-automation\] Daily Status Report - 2026-03-28 [\#605](https://github.com/abhimehro/email-security-pipeline/issues/605)
+- Daily QA Check - 2026-03-28 [\#603](https://github.com/abhimehro/email-security-pipeline/issues/603)
 - \[repo-automation\] Daily Status Report - 2026-03-27 [\#601](https://github.com/abhimehro/email-security-pipeline/issues/601)
+- Daily QA Check - 2026-03-27 [\#598](https://github.com/abhimehro/email-security-pipeline/issues/598)
 - \[repo-automation\] Daily Status Report - 2026-03-26 [\#595](https://github.com/abhimehro/email-security-pipeline/issues/595)
+- Daily QA Check - 2026-03-26 [\#591](https://github.com/abhimehro/email-security-pipeline/issues/591)
 - \[repo-automation\] Daily Status Report - 2026-03-25 [\#589](https://github.com/abhimehro/email-security-pipeline/issues/589)
+- Daily QA Check - 2026-03-25 [\#586](https://github.com/abhimehro/email-security-pipeline/issues/586)
 - \[repo-automation\] Daily Status Report - 2026-03-24 [\#583](https://github.com/abhimehro/email-security-pipeline/issues/583)
 - Daily QA Check - 2026-03-24 [\#577](https://github.com/abhimehro/email-security-pipeline/issues/577)
 - \[repo-automation\] Daily Status Report - 2026-03-23 [\#574](https://github.com/abhimehro/email-security-pipeline/issues/574)
