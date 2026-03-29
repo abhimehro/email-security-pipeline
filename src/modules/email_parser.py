@@ -522,8 +522,8 @@ class EmailParser:
             return ""
 
         # Optimization: Avoid decoding overhead for plain text headers
-        # RFC 2047 encoded words always start with =? and end with ?=
-        # This simple check avoids slow email.header processing for 95%+ of headers
+        # Since RFC 2047 encoded-words must start with "=?", we can safely
+        # bypass decoding if that token is not present.
         if "=?" not in value:
             return value
 
