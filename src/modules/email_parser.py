@@ -520,6 +520,13 @@ class EmailParser:
         """
         if not value:
             return ""
+
+        # Optimization: Avoid decoding overhead for plain text headers
+        # Since RFC 2047 encoded-words must start with "=?", we can safely
+        # bypass decoding if that token is not present.
+        if "=?" not in value:
+            return value
+
         try:
             return str(make_header(decode_header(value)))
         except UnicodeDecodeError as e:
