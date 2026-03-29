@@ -37,6 +37,7 @@
 
 **Closed issues:**
 
+- \[repo-automation\] Daily Status Report - 2026-03-25 [\#589](https://github.com/abhimehro/email-security-pipeline/issues/589)
 - \[repo-automation\] Daily Status Report - 2026-03-24 [\#583](https://github.com/abhimehro/email-security-pipeline/issues/583)
 - Daily QA Check - 2026-03-24 [\#577](https://github.com/abhimehro/email-security-pipeline/issues/577)
 - \[repo-automation\] Daily Status Report - 2026-03-23 [\#574](https://github.com/abhimehro/email-security-pipeline/issues/574)
@@ -237,6 +238,7 @@
 
 **Merged pull requests:**
 
+- 🎨 Palette: Add required field indicators to setup wizard [\#602](https://github.com/abhimehro/email-security-pipeline/pull/602) ([abhimehro](https://github.com/abhimehro))
 - 🛡️ Sentinel: \[CRITICAL\] Fix malware bypass in attachment parsing [\#597](https://github.com/abhimehro/email-security-pipeline/pull/597) ([abhimehro](https://github.com/abhimehro))
 - 🎨 Palette: Improve CLI screen reader accessibility for loading states [\#596](https://github.com/abhimehro/email-security-pipeline/pull/596) ([abhimehro](https://github.com/abhimehro))
 - ⚡ Bolt: Optimize file signature detection in media analyzer [\#592](https://github.com/abhimehro/email-security-pipeline/pull/592) ([abhimehro](https://github.com/abhimehro))
