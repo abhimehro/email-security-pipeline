@@ -21,7 +21,7 @@ class AppRunner:
         """
         self.args = args if args is not None else sys.argv
 
-        if "-h" in self.args or "--help" in self.args:
+        if len(self.args) > 1 and self.args[1] in ("-h", "--help"):
             self.print_banner()
             self.print_help()
             sys.exit(0)
@@ -175,12 +175,8 @@ class AppRunner:
                     sys.exit(1)
         except KeyboardInterrupt:
             warning = Colors.colorize("⚠", Colors.YELLOW)
-            print(
-                f"\n\n{warning} "
-                + Colors.colorize(
-                    "Setup cancelled by user. No changes were made.", Colors.YELLOW
-                )
-            )
+            message = Colors.colorize("Setup cancelled by user. No changes were made.", Colors.YELLOW)
+            print(f"\n\n{warning} {message}")
             sys.exit(0)
         except EOFError:
             self._handle_missing_config_non_interactive()
