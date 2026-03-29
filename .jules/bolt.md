@@ -5,4 +5,4 @@
 
 ## 2025-03-09 - [Performance Optimization: Bypassing `email.header` decoding for plain text]
 **Learning:** `email.header.decode_header` incurs significant overhead (~44x slower) even when parsing plain strings that contain no encoded words. In this codebase's parsing pipeline, evaluating `make_header(decode_header(value))` for every header in every email creates a measurable bottleneck, particularly for long header chains like `Received`.
-**Action:** Add an early return `if "=?" not in value:` before calling `decode_header`. Since RFC 2047 encoded words strictly begin with `=?` and end with `?=`, this safely bypasses the expensive decoding function for the vast majority of headers, drastically speeding up email metadata parsing without altering behavior.
+**Action:** Add an early return `if "=?" not in value:` before calling `decode_header`. Since the sequence `=?` is the required start of an RFC 2047 encoded word, its absence is a reliable and fast indicator that no decoding is necessary. This safely bypasses the expensive decoding function for the vast majority of headers, drastically speeding up email metadata parsing without altering behavior.
