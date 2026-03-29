@@ -121,3 +121,7 @@
 ## 2026-10-26 - Screen Reader Accessibility in CLI Loading States
 **Learning:** CLI animations like spinners and progress bars that repeatedly clear the line using carriage returns (`\r`) and ANSI escape sequences (`\033[K`) are often completely missed or garbled by screen readers. Furthermore, adding newlines (`\n`) breaks the transient UI nature of these components.
 **Action:** For interactive CLI elements that update in-place, always print an initial, static announcement of the state without a newline, flush the output, and wait briefly (e.g., `time.sleep(0.1)`) before the animation loop begins. This ensures assistive technologies can announce the context before rapid updates overwrite it, without leaving permanent text blocks in the console.
+
+## 2026-11-05 - Standard CLI Flag Support and Exploration Friction
+**Learning:** Treating all CLI arguments blindly as generic configuration file paths breaks expected exploration habits. When users run a new CLI tool with standard flags like `-h` or `--help`, returning a "file not found" error creates immediate friction and confusion.
+**Action:** Always intercept standard help flags (`-h`, `--help`) before positional argument processing to provide clear usage instructions and fail gracefully without triggering validation logic.

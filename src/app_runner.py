@@ -21,6 +21,11 @@ class AppRunner:
         """
         self.args = args if args is not None else sys.argv
 
+        if len(self.args) > 1 and self.args[1] in ("-h", "--help"):
+            self.print_banner()
+            self.print_help()
+            sys.exit(0)
+
         raw_config_file = self.args[1] if len(self.args) > 1 else ".env"
 
         import os
@@ -68,6 +73,15 @@ class AppRunner:
         """Handle shutdown signals."""
         print("\nReceived shutdown signal, stopping gracefully...")
         raise KeyboardInterrupt
+
+    def print_help(self) -> None:
+        """Print usage instructions for the CLI."""
+        print(Colors.colorize("Usage:", Colors.BOLD))
+        print("  python src/main.py [CONFIG_FILE]\n")
+        print(Colors.colorize("Arguments:", Colors.BOLD))
+        print("  CONFIG_FILE    Path to the environment configuration file (default: .env)\n")
+        print(Colors.colorize("Options:", Colors.BOLD))
+        print("  -h, --help     Show this help message and exit\n")
 
     def print_banner(self) -> None:
         """Print the application startup banner."""
@@ -160,12 +174,9 @@ class AppRunner:
                     print("Please create a .env file based on .env.example")
                     sys.exit(1)
         except KeyboardInterrupt:
-            print(
-                "\n\n"
-                + Colors.colorize(
-                    "Setup cancelled by user. No changes were made.", Colors.YELLOW
-                )
-            )
+            warning = Colors.colorize("⚠", Colors.YELLOW)
+            message = Colors.colorize("Setup cancelled by user. No changes were made.", Colors.YELLOW)
+            print(f"\n\n{warning} {message}")
             sys.exit(0)
         except EOFError:
             self._handle_missing_config_non_interactive()

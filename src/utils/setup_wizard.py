@@ -388,10 +388,7 @@ def run_setup_wizard(
         return True
 
     except KeyboardInterrupt:
-        print(
-            "\n\n"
-            + Colors.colorize(
-                "Setup cancelled by user. No changes were made.", Colors.YELLOW
-            )
-        )
+        warning = Colors.colorize("⚠", Colors.YELLOW)
+        message = Colors.colorize("Setup cancelled by user. No changes were made.", Colors.YELLOW)
+        print(f"\n\n{warning} {message}")
         return False
