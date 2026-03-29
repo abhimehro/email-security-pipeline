@@ -245,6 +245,7 @@
 
 **Merged pull requests:**
 
+- Automated Daily QA Review [\#606](https://github.com/abhimehro/email-security-pipeline/pull/606) ([abhimehro](https://github.com/abhimehro))
 - ⚡ Bolt: Optimize email header parsing by bypassing unnecessary decoding [\#604](https://github.com/abhimehro/email-security-pipeline/pull/604) ([abhimehro](https://github.com/abhimehro))
 - 🎨 Palette: Add required field indicators to setup wizard [\#602](https://github.com/abhimehro/email-security-pipeline/pull/602) ([abhimehro](https://github.com/abhimehro))
 - 🛡️ Sentinel: \[CRITICAL\] Fix malware bypass in attachment parsing [\#597](https://github.com/abhimehro/email-security-pipeline/pull/597) ([abhimehro](https://github.com/abhimehro))
