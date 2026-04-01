@@ -37,6 +37,7 @@
 
 **Closed issues:**
 
+- \[repo-automation\] Weekly Retrospective - 2026-03-29 [\#609](https://github.com/abhimehro/email-security-pipeline/issues/609)
 - \[repo-automation\] Daily Status Report - 2026-03-29 [\#608](https://github.com/abhimehro/email-security-pipeline/issues/608)
 - \[repo-automation\] Daily Status Report - 2026-03-28 [\#605](https://github.com/abhimehro/email-security-pipeline/issues/605)
 - Daily QA Check - 2026-03-28 [\#603](https://github.com/abhimehro/email-security-pipeline/issues/603)
@@ -246,6 +247,7 @@
 
 **Merged pull requests:**
 
+- ⚡ Bolt: Optimize facial blurriness detection using cv2.meanStdDev [\#617](https://github.com/abhimehro/email-security-pipeline/pull/617) ([abhimehro](https://github.com/abhimehro))
 - 🎨 Palette: Improve CLI onboarding and cancellation UX [\#610](https://github.com/abhimehro/email-security-pipeline/pull/610) ([abhimehro](https://github.com/abhimehro))
 - Automated Daily QA Review [\#606](https://github.com/abhimehro/email-security-pipeline/pull/606) ([abhimehro](https://github.com/abhimehro))
 - ⚡ Bolt: Optimize email header parsing by bypassing unnecessary decoding [\#604](https://github.com/abhimehro/email-security-pipeline/pull/604) ([abhimehro](https://github.com/abhimehro))
