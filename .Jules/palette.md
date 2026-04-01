@@ -125,3 +125,7 @@
 ## 2026-11-05 - Standard CLI Flag Support and Exploration Friction
 **Learning:** Treating all CLI arguments blindly as generic configuration file paths breaks expected exploration habits. When users run a new CLI tool with standard flags like `-h` or `--help`, returning a "file not found" error creates immediate friction and confusion.
 **Action:** Always intercept standard help flags (`-h`, `--help`) before positional argument processing to provide clear usage instructions and fail gracefully without triggering validation logic.
+
+## 2026-11-10 - Progress Indicators for CLI Wizards
+**Learning:** Users often experience anxiety or drop off from multi-step CLI wizards if they don't know how many steps are involved. Without explicit progress bounds (e.g., just "Step 1"), the process feels open-ended and the time commitment is unclear.
+**Action:** Always include the total number of steps in multi-step CLI forms (e.g., "Step 1 of 2") to set clear expectations and provide a sense of progression.

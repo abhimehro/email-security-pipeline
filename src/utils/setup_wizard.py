@@ -127,7 +127,7 @@ def _test_connection(email: str, app_password: str, provider_choice: str) -> boo
 
 def _select_provider() -> str:
     """Prompt user to select an email provider."""
-    print(f"\n{Colors.CYAN}Step 1: Choose your email provider{Colors.RESET}")
+    print(f"\n{Colors.CYAN}Step 1 of 2: Choose your email provider{Colors.RESET}")
     print("  1. Gmail (Recommended)")
     print("  2. Proton Mail (Requires Bridge)")
     print("  3. Outlook (Business Only)")
@@ -152,7 +152,7 @@ def _select_provider() -> str:
 
 def _get_credentials(choice: str, provider_name: str) -> tuple[str, str]:
     """Prompt user for email and app secret."""
-    print(f"\n{Colors.CYAN}Step 2: Configure {provider_name} Credentials{Colors.RESET}")
+    print(f"\n{Colors.CYAN}Step 2 of 2: Configure {provider_name} Credentials{Colors.RESET}")
 
     try:
         while True:  # Outer loop for retry mechanism
