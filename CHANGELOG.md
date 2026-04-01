@@ -248,6 +248,7 @@
 **Merged pull requests:**
 
 - ⚡ Bolt: Optimize facial blurriness detection using cv2.meanStdDev [\#617](https://github.com/abhimehro/email-security-pipeline/pull/617) ([abhimehro](https://github.com/abhimehro))
+- 🎨 Palette: Add progress indicator to CLI setup wizard [\#616](https://github.com/abhimehro/email-security-pipeline/pull/616) ([abhimehro](https://github.com/abhimehro))
 - 🎨 Palette: Improve CLI onboarding and cancellation UX [\#610](https://github.com/abhimehro/email-security-pipeline/pull/610) ([abhimehro](https://github.com/abhimehro))
 - Automated Daily QA Review [\#606](https://github.com/abhimehro/email-security-pipeline/pull/606) ([abhimehro](https://github.com/abhimehro))
 - ⚡ Bolt: Optimize email header parsing by bypassing unnecessary decoding [\#604](https://github.com/abhimehro/email-security-pipeline/pull/604) ([abhimehro](https://github.com/abhimehro))
