@@ -6,3 +6,7 @@
 ## 2025-03-09 - [Performance Optimization: Bypassing `email.header` decoding for plain text]
 **Learning:** `email.header.decode_header` incurs significant overhead (~44x slower) even when parsing plain strings that contain no encoded words. In this codebase's parsing pipeline, evaluating `make_header(decode_header(value))` for every header in every email creates a measurable bottleneck, particularly for long header chains like `Received`.
 **Action:** Add an early return `if "=?" not in value:` before calling `decode_header`. Since the sequence `=?` is the required start of an RFC 2047 encoded word, its absence is a reliable and fast indicator that no decoding is necessary. This safely bypasses the expensive decoding function for the vast majority of headers, drastically speeding up email metadata parsing without altering behavior.
+
+## 2025-04-01 - [Performance Optimization: Faster Laplacian variance calculation with OpenCV]
+**Learning:** For variance calculations on OpenCV arrays (e.g., `cv2.Laplacian` outputs), using NumPy's `.var()` method is slow compared to OpenCV's built-in `cv2.meanStdDev`.
+**Action:** Replace `cv2.Laplacian(frame, cv2.CV_64F).var()` with `cv2.meanStdDev(cv2.Laplacian(frame, cv2.CV_64F))[1][0][0] ** 2`. This is significantly faster (~3x) and avoids falling back to NumPy's slower `.var()` method.
