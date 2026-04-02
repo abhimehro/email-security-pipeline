@@ -129,3 +129,7 @@
 ## 2026-11-10 - Progress Indicators for CLI Wizards
 **Learning:** Users often experience anxiety or drop off from multi-step CLI wizards if they don't know how many steps are involved. Without explicit progress bounds (e.g., just "Step 1"), the process feels open-ended and the time commitment is unclear.
 **Action:** Always include the total number of steps in multi-step CLI forms (e.g., "Step 1 of 2") to set clear expectations and provide a sense of progression.
+
+## 2026-11-15 - Actionable Commands in Terminal Errors
+**Learning:** Terminal errors that suggest remediation commands often present them as plain text, causing the actionable fix to blend in with the error explanation. Users take longer to find the "fix" in a sea of plain text.
+**Action:** Always visually distinguish suggested remediation commands in terminal errors using a distinct color (like CYAN) to separate them from the error message (RED) and instructions (YELLOW), significantly reducing cognitive load.
