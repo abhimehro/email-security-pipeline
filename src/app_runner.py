@@ -79,7 +79,9 @@ class AppRunner:
         print(Colors.colorize("Usage:", Colors.BOLD))
         print("  python src/main.py [CONFIG_FILE]\n")
         print(Colors.colorize("Arguments:", Colors.BOLD))
-        print("  CONFIG_FILE    Path to the environment configuration file (default: .env)\n")
+        print(
+            "  CONFIG_FILE    Path to the environment configuration file (default: .env)\n"
+        )
         print(Colors.colorize("Options:", Colors.BOLD))
         print("  -h, --help     Show this help message and exit\n")
 
@@ -175,7 +177,9 @@ class AppRunner:
                     sys.exit(1)
         except KeyboardInterrupt:
             warning = Colors.colorize("⚠", Colors.YELLOW)
-            message = Colors.colorize("Setup cancelled by user. No changes were made.", Colors.YELLOW)
+            message = Colors.colorize(
+                "Setup cancelled by user. No changes were made.", Colors.YELLOW
+            )
             print(f"\n\n{warning} {message}")
             sys.exit(0)
         except EOFError:

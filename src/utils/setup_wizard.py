@@ -152,7 +152,9 @@ def _select_provider() -> str:
 
 def _get_credentials(choice: str, provider_name: str) -> tuple[str, str]:
     """Prompt user for email and app secret."""
-    print(f"\n{Colors.CYAN}Step 2 of 2: Configure {provider_name} Credentials{Colors.RESET}")
+    print(
+        f"\n{Colors.CYAN}Step 2 of 2: Configure {provider_name} Credentials{Colors.RESET}"
+    )
 
     try:
         while True:  # Outer loop for retry mechanism
@@ -160,7 +162,9 @@ def _get_credentials(choice: str, provider_name: str) -> tuple[str, str]:
             while True:
                 prompt = (
                     Colors.colorize("? ", Colors.CYAN)
-                    + Colors.colorize(f"Enter your {provider_name} email address ", Colors.BOLD)
+                    + Colors.colorize(
+                        f"Enter your {provider_name} email address ", Colors.BOLD
+                    )
                     + Colors.colorize("*", Colors.RED)
                     + Colors.colorize(": ", Colors.BOLD)
                 )
@@ -201,7 +205,9 @@ def _get_credentials(choice: str, provider_name: str) -> tuple[str, str]:
 
             prompt = (
                 Colors.colorize("? ", Colors.CYAN)
-                + Colors.colorize(f"Enter your {provider_name} app password ", Colors.BOLD)
+                + Colors.colorize(
+                    f"Enter your {provider_name} app password ", Colors.BOLD
+                )
                 + Colors.colorize("*", Colors.RED)
                 + Colors.colorize(": ", Colors.BOLD)
             )
@@ -389,6 +395,8 @@ def run_setup_wizard(
 
     except KeyboardInterrupt:
         warning = Colors.colorize("⚠", Colors.YELLOW)
-        message = Colors.colorize("Setup cancelled by user. No changes were made.", Colors.YELLOW)
+        message = Colors.colorize(
+            "Setup cancelled by user. No changes were made.", Colors.YELLOW
+        )
         print(f"\n\n{warning} {message}")
         return False

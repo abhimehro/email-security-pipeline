@@ -68,7 +68,11 @@ class TestExtractSinglepartContent:
 
         # Check that warning about decode error was logged
         warning_calls = parser.logger.warning.call_args_list
-        decode_warning = [call for call in warning_calls if "Failed to decode email payload" in call[0][0]]
+        decode_warning = [
+            call
+            for call in warning_calls
+            if "Failed to decode email payload" in call[0][0]
+        ]
         assert len(decode_warning) == 1
         assert "email_001" in decode_warning[0][0][0]
 

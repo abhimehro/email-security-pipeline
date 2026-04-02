@@ -1174,7 +1174,9 @@ class MediaAuthenticityAnalyzer:
                 # Check for blurriness using Laplacian variance
                 # Optimization: Using cv2.meanStdDev is significantly faster (~3x)
                 # than falling back to NumPy's .var() method for variance calculation.
-                variance = cv2.meanStdDev(cv2.Laplacian(face_roi, cv2.CV_64F))[1][0][0] ** 2
+                variance = (
+                    cv2.meanStdDev(cv2.Laplacian(face_roi, cv2.CV_64F))[1][0][0] ** 2
+                )
                 if variance < 100:  # Threshold for blurriness
                     blurry_faces += 1
 

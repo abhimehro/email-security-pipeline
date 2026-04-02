@@ -33,14 +33,33 @@ class SpamAnalyzer:
     # the regex patterns while preserving a fast, safe C-level `in` check without
     # brittle regex reverse-parsing.
     SPAM_KEYWORD_LITERALS = (
-        "viagra", "cialis", "pharmacy", "pills",
-        "winner", "congratulations", "prize", "lottery",
-        "urgent", "immediate", "action required", "act now",
-        "click here", "click now", "limited time",
-        "free money", "make money", "earn cash",
-        "nigerian prince", "inheritance", "beneficiary",
-        "enlarge", "enhancement", "weight loss",
-        "casino", "poker", "gambling"
+        "viagra",
+        "cialis",
+        "pharmacy",
+        "pills",
+        "winner",
+        "congratulations",
+        "prize",
+        "lottery",
+        "urgent",
+        "immediate",
+        "action required",
+        "act now",
+        "click here",
+        "click now",
+        "limited time",
+        "free money",
+        "make money",
+        "earn cash",
+        "nigerian prince",
+        "inheritance",
+        "beneficiary",
+        "enlarge",
+        "enhancement",
+        "weight loss",
+        "casino",
+        "poker",
+        "gambling",
     )
 
     # Generate regex patterns from literals, grouped logically as before
