@@ -13,7 +13,7 @@ services:
     # Environment configuration
     env_file:
       - .env
-    
+
     # Use host network to access Proton Mail Bridge on localhost
     # This allows container to reach 127.0.0.1:1143 on the Mac
     extra_hosts:
