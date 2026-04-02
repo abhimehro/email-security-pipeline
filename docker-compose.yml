@@ -13,11 +13,17 @@ services:
     # Environment configuration
     env_file:
       - .env
+    
+    # Use host network to access Proton Mail Bridge on localhost
+    # This allows container to reach 127.0.0.1:1143 on the Mac
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
     # Volumes for persistent data and logs
     volumes:
       - ./logs:/app/logs
       - ./data:/app/data
+      - ./.env:/app/.env:ro  # Mount .env file as read-only
 
     # Security options
     security_opt:

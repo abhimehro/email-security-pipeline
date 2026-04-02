@@ -64,6 +64,7 @@ Key environment variables:
 
 - `./logs:/app/logs` - Application logs
 - `./data:/app/data` - Persistent data (database, cache)
+- `./.env:/app/.env:ro` - Environment configuration (read-only, **required for application to read .env file**)
 - `./src:/app/src` - Application code (dev/test only)
 
 ## Networking
@@ -73,6 +74,16 @@ Container runs on `email-security-net` bridge network:
 # List network details
 docker network inspect email-security-net
 ```
+
+### Proton Mail Bridge Connection
+
+If using Proton Mail Bridge running on your host machine, the container uses `host.docker.internal` to reach services on your Mac:
+
+- Bridge runs on host: `127.0.0.1:1143`
+- Container connects via: `host.docker.internal:1143`
+- Configured in `docker-compose.yml` with `extra_hosts`
+- Set `PROTON_IMAP_SERVER=host.docker.internal` in `.env`
+- If Bridge uses STARTTLS mode, set `PROTON_USE_SSL=false`
 
 ## Health Checks
 

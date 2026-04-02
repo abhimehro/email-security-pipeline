@@ -1,29 +1,22 @@
 # Launchd Configuration
 
-This directory contains the macOS `launchd` configuration for running the Email Security Pipeline as a background service.
+This directory contains the macOS `launchd` configuration for running the Email Security Pipeline as a background service via Docker.
 
 ## Files
 
-- `com.abhimehrotra.email-security-pipeline.plist` - Launch agent configuration
+- `com.abhimehrotra.email-security-pipeline.plist` - Launch agent configuration (manages Docker container)
+- `shutdown.sh` - Graceful shutdown script for Docker Compose
 
 ## Installation
 
-Run the installation script from the project root:
+**Note**: The LaunchAgent now manages the Docker container, not the Python script directly. Ensure Docker is running before installation.
+
+### Manual Installation (Recommended for Docker Setup)
 
 ```bash
-./install_daemon.sh
-```
+# Create log directory
+mkdir -p ~/Library/Logs/email-security-pipeline
 
-This will:
-1. Validate your configuration
-2. Copy the plist to `~/Library/LaunchAgents/`
-3. Start the service automatically
-
-## Manual Installation
-
-If you prefer to install manually:
-
-```bash
 # Copy plist
 cp launchd/com.abhimehrotra.email-security-pipeline.plist ~/Library/LaunchAgents/
 
@@ -34,11 +27,15 @@ launchctl load ~/Library/LaunchAgents/com.abhimehrotra.email-security-pipeline.p
 ## Configuration
 
 The launch agent is configured to:
-- **Auto-start**: Starts on login
-- **Auto-restart**: Restarts if it crashes (with 60s throttle)
+
+- **Auto-start**: Starts on login via Docker Compose
+- **Auto-restart**: Restarts if Docker process exits (with 60s throttle)
 - **Working directory**: Project root
-- **Logs**: `~/Library/Logs/email-security-pipeline/`
+- **Logs**: `~/Library/Logs/email-security-pipeline/` (LaunchAgent logs)
+- **Container logs**: `docker compose logs -f` (application logs)
 - **Priority**: Nice level 5 (lower than normal)
+
+**Note**: The LaunchAgent manages the Docker container, not Python directly. This ensures the containerized environment is used.
 
 ## Management Commands
 

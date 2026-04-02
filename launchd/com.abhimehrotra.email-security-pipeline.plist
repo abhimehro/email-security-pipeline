@@ -15,8 +15,12 @@
 
     <key>ProgramArguments</key>
     <array>
-        <string>/Users/speedybee/dev/email-security-pipeline/venv/bin/python3</string>
-        <string>/Users/speedybee/dev/email-security-pipeline/src/main.py</string>
+        <string>/opt/homebrew/bin/docker</string>
+        <string>compose</string>
+        <string>-f</string>
+        <string>/Users/speedybee/dev/email-security-pipeline/docker-compose.yml</string>
+        <string>up</string>
+        <string>--remove-orphans</string>
     </array>
 
     <key>WorkingDirectory</key>
@@ -31,12 +35,9 @@
     <!-- Keep the pipeline running continuously -->
     <key>KeepAlive</key>
     <dict>
-        <!-- Restart if it crashes -->
+        <!-- Restart if Docker process exits (including crashes) -->
         <key>SuccessfulExit</key>
         <false/>
-        <!-- Don't restart on clean exits (manual stop) -->
-        <key>Crashed</key>
-        <true/>
     </dict>
 
     <!-- Start automatically on login -->
