@@ -71,7 +71,12 @@ class AppRunner:
     @staticmethod
     def _signal_handler(signum, frame) -> NoReturn:
         """Handle shutdown signals."""
-        print("\nReceived shutdown signal, stopping gracefully...")
+        print(
+            "\n"
+            + Colors.colorize(
+                "⚠ Received shutdown signal, stopping gracefully...", Colors.YELLOW
+            )
+        )
         raise KeyboardInterrupt
 
     def print_help(self) -> None:
@@ -190,9 +195,20 @@ class AppRunner:
         # In non-interactive mode (or when the setup wizard can't be used),
         # we cannot proceed without a configuration file. Always exit here
         # to honor the NoReturn type annotation and make the failure mode explicit.
-        print(f"Error: Configuration file '{self.config_file}' not found")
-        print("Please create a .env file based on .env.example")
-        print("You can run: cp .env.example .env")
+        print(
+            Colors.colorize(
+                f"✘ Error: Configuration file '{self.config_file}' not found",
+                Colors.RED,
+            )
+        )
+        print(
+            Colors.colorize(
+                "Please create the configuration file based on .env.example", Colors.YELLOW
+            )
+        )
+        print(
+            f"You can run: {Colors.colorize(f'cp .env.example "{self.config_file}"', Colors.CYAN)}"
+        )
         sys.exit(1)
 
     def validate_config(self) -> None:
