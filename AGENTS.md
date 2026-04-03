@@ -9,7 +9,7 @@ Email Security Analysis Pipeline — a Python-based email security system that m
 ### Running tests
 
 ```bash
-python3 -m pytest        # all 579 tests; no external services or credentials needed
+python3 -m pytest        # runs the full test suite; no external services or credentials needed
 python3 -m pytest -v     # verbose output
 ```
 
