@@ -32,6 +32,7 @@ lint:
     - yamllint@1.38.0
 actions:
   disabled:
+    - trunk-fmt-pre-commit
     - trunk-check-pre-push
     - git-lfs
     - npm-check
@@ -41,7 +42,6 @@ actions:
     - trunk-check-pre-push-always
   enabled:
     - trunk-announce
-    - trunk-fmt-pre-commit
     - trunk-upgrade-available
 plugins:
   sources:
