@@ -72,8 +72,9 @@ class AppRunner:
     def _signal_handler(signum, frame) -> NoReturn:
         """Handle shutdown signals."""
         print(
-            Colors.colorize(
-                "\n⚠️ Received shutdown signal, stopping gracefully...", Colors.YELLOW
+            "\n"
+            + Colors.colorize(
+                "⚠ Received shutdown signal, stopping gracefully...", Colors.YELLOW
             )
         )
         raise KeyboardInterrupt
