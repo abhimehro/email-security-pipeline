@@ -2,133 +2,112 @@
 #
 # Email Security Pipeline - Launchd Daemon Installer
 # Installs and configures the email security pipeline as a background service
+# backed by Docker Compose using the Colima Docker context.
 #
 
-set -e # Exit on error
+set -e
 
-# Color codes for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
-NC='\033[0m' # No Color
+NC='\033[0m'
 
-# Directories
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PIPELINE_DIR="${SCRIPT_DIR}"
 LAUNCHD_DIR="${PIPELINE_DIR}/launchd"
 PLIST_NAME="com.abhimehrotra.email-security-pipeline.plist"
 PLIST_SOURCE="${LAUNCHD_DIR}/${PLIST_NAME}"
 PLIST_DEST="${HOME}/Library/LaunchAgents/${PLIST_NAME}"
+WRAPPER_SOURCE="${LAUNCHD_DIR}/start-email-security-pipeline.sh"
 LOG_DIR="${HOME}/Library/Logs/email-security-pipeline"
 
-# Print functions
-print_header() {
-	echo -e "\n${BLUE}=== $1 ===${NC}\n"
-}
+print_header() { echo -e "\n${BLUE}=== $1 ===${NC}\n"; }
+print_success() { echo -e "${GREEN}✓${NC} $1"; }
+print_warning() { echo -e "${YELLOW}⚠${NC} $1"; }
+print_error() { echo -e "${RED}✗${NC} $1"; }
+print_info() { echo -e "${BLUE}ℹ${NC} $1"; }
 
-print_success() {
-	echo -e "${GREEN}✓${NC} $1"
-}
-
-print_warning() {
-	echo -e "${YELLOW}⚠${NC} $1"
-}
-
-print_error() {
-	echo -e "${RED}✗${NC} $1"
-}
-
-print_info() {
-	echo -e "${BLUE}ℹ${NC} $1"
-}
-
-# Check prerequisites
 print_header "Checking Prerequisites"
 
-# Check if .env exists
 if [[ ! -f "${PIPELINE_DIR}/.env" ]]; then
-	print_error ".env file not found!"
-	print_info "Run 'python3 test_config.py' first to validate your configuration"
+	print_error ".env file not found"
+	print_info "Copy .env.example to .env and update credentials first"
 	exit 1
 fi
 print_success ".env file found"
 
-# Check Python3
-if ! command -v python3 &>/dev/null; then
-	print_error "python3 not found in PATH"
+if ! command -v docker >/dev/null 2>&1; then
+	print_error "docker not found in PATH"
 	exit 1
 fi
-print_success "Python3 found: $(which python3)"
+print_success "Docker found: $(command -v docker)"
 
-# Check if pipeline runs
-print_info "Testing pipeline configuration..."
-if ! ./venv/bin/python3 src/main.py --help >/dev/null 2>&1; then
-	print_warning "Configuration test failed. Continue anyway? (y/n)"
-	read -r response
-	if [[ ! ${response} =~ ^[Yy]$ ]]; then
-		print_error "Installation cancelled"
-		exit 1
-	fi
+if ! docker compose version >/dev/null 2>&1; then
+	print_error "docker compose plugin not available"
+	print_info "Install with: brew install docker-compose"
+	exit 1
+fi
+print_success "docker compose plugin available"
+
+if command -v colima >/dev/null 2>&1; then
+	print_info "Ensuring Colima is running..."
+	colima start >/dev/null 2>&1 || true
+	print_success "Colima is available"
 else
-	print_success "Configuration test passed"
+	print_warning "colima not found; LaunchAgent will still work if another Docker backend provides the 'colima' context"
 fi
 
-# Create log directory
 print_header "Setting Up Directories"
 mkdir -p "${LOG_DIR}"
-print_success "Created log directory: ${LOG_DIR}"
+chmod +x "${WRAPPER_SOURCE}"
+print_success "Prepared log directory and wrapper script"
 
-# Install plist
 print_header "Installing Launch Agent"
-
-if [[ -f ${PLIST_DEST} ]]; then
-	print_warning "Launch agent already exists. Unloading..."
-	launchctl unload "${PLIST_DEST}" 2>/dev/null || true
-	rm "${PLIST_DEST}"
-fi
-
 cp "${PLIST_SOURCE}" "${PLIST_DEST}"
-print_success "Copied plist to: ${PLIST_DEST}"
+python3 - <<PY
+from pathlib import Path
+import plistlib
+plist_path = Path(r"${PLIST_DEST}")
+repo = Path(r"${PIPELINE_DIR}")
+wrapper = repo / 'launchd/start-email-security-pipeline.sh'
+with plist_path.open('rb') as f:
+    data = plistlib.load(f)
+data['ProgramArguments'] = ['/bin/zsh', str(wrapper)]
+data['WorkingDirectory'] = str(repo)
+data['StandardOutPath'] = str(Path.home() / 'Library/Logs/email-security-pipeline/pipeline.out')
+data['StandardErrorPath'] = str(Path.home() / 'Library/Logs/email-security-pipeline/pipeline.err')
+data.setdefault('EnvironmentVariables', {})['HOME'] = str(Path.home())
+data['EnvironmentVariables']['PATH'] = '/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin'
+with plist_path.open('wb') as f:
+    plistlib.dump(data, f)
+PY
+print_success "Installed plist to ${PLIST_DEST}"
 
-# Load the launch agent
-print_header "Starting Email Security Pipeline"
-launchctl load "${PLIST_DEST}"
+print_header "Loading Launch Agent"
+launchctl bootout gui/$(id -u) "${PLIST_DEST}" 2>/dev/null || true
+launchctl bootstrap gui/$(id -u) "${PLIST_DEST}"
+launchctl enable gui/$(id -u)/com.abhimehrotra.email-security-pipeline
+launchctl kickstart -k gui/$(id -u)/com.abhimehrotra.email-security-pipeline
 print_success "Launch agent loaded"
 
-# Give it a moment to start
-sleep 2
+print_header "Quick Reference"
+echo "View LaunchAgent logs:"
+echo "  tail -f ${LOG_DIR}/pipeline.out"
+echo "  tail -f ${LOG_DIR}/pipeline.err"
+echo
+echo "View container logs:"
+echo "  cd ${PIPELINE_DIR} && docker --context colima compose logs -f"
+echo
+echo "Restart service:"
+echo "  launchctl kickstart -k gui/$(id -u)/com.abhimehrotra.email-security-pipeline"
+echo
+echo "Disable service:"
+echo "  launchctl bootout gui/$(id -u) ${PLIST_DEST}"
+echo
+echo "Re-enable service:"
+echo "  launchctl bootstrap gui/$(id -u) ${PLIST_DEST}"
 
-# Check if it's running
-if launchctl list | grep -q "com.abhimehrotra.email-security-pipeline"; then
-	print_success "Pipeline is running!"
-
-	# Show status
-	print_header "Status"
-	launchctl list | grep email-security-pipeline
-
-	print_header "Quick Reference"
-	echo "View logs:"
-	echo "  tail -f ${LOG_DIR}/pipeline.out"
-	echo "  tail -f ${LOG_DIR}/pipeline.err"
-	echo "  tail -f ${PIPELINE_DIR}/logs/email_security.log"
-	echo ""
-	echo "Control the service:"
-	echo "  launchctl stop com.abhimehrotra.email-security-pipeline"
-	echo "  launchctl start com.abhimehrotra.email-security-pipeline"
-	echo "  launchctl unload ${PLIST_DEST}  # Disable"
-	echo "  launchctl load ${PLIST_DEST}    # Re-enable"
-	echo ""
-	echo "Check status:"
-	echo "  launchctl list | grep email-security-pipeline"
-
-else
-	print_error "Failed to start pipeline!"
-	print_info "Check logs for errors:"
-	echo "  cat ${LOG_DIR}/pipeline.err"
-	exit 1
-fi
-
-print_header "Installation Complete!"
-print_success "Email Security Pipeline is now running as a background service"
-print_info "It will automatically start on login and restart if it crashes"
+echo
+print_success "Installation complete"
+print_info "The service now starts Docker Compose in detached mode using the Colima context"

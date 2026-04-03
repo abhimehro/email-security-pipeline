@@ -1,100 +1,97 @@
 # Launchd Configuration
 
-This directory contains the macOS `launchd` configuration for running the Email Security Pipeline as a background service via Docker.
+This directory contains the macOS `launchd` configuration for running the Email Security Pipeline as a background service via Docker Compose with the `colima` Docker context.
 
 ## Files
 
-- `com.abhimehrotra.email-security-pipeline.plist` - Launch agent configuration (manages Docker container)
-- `shutdown.sh` - Graceful shutdown script for Docker Compose
+- `com.abhimehrotra.email-security-pipeline.plist` - LaunchAgent configuration
+- `start-email-security-pipeline.sh` - Wrapper that starts Colima if needed, waits for Docker, and runs Docker Compose in detached mode
+- `shutdown.sh` - Graceful shutdown helper
+
+## Prerequisites
+
+```bash
+brew install colima docker docker-compose
+brew services start colima
+docker context use colima
+```
+
+The Docker CLI must be able to run both of these successfully before installing the LaunchAgent:
+
+```bash
+docker --context colima info
+docker compose version
+```
 
 ## Installation
 
-**Note**: The LaunchAgent now manages the Docker container, not the Python script directly. Ensure Docker is running before installation.
-
-### Manual Installation (Recommended for Docker Setup)
-
 ```bash
-# Create log directory
-mkdir -p ~/Library/Logs/email-security-pipeline
-
-# Copy plist
-cp launchd/com.abhimehrotra.email-security-pipeline.plist ~/Library/LaunchAgents/
-
-# Load the launch agent
-launchctl load ~/Library/LaunchAgents/com.abhimehrotra.email-security-pipeline.plist
+chmod +x install_daemon.sh
+./install_daemon.sh
 ```
 
-## Configuration
+The installer copies the plist into `~/Library/LaunchAgents/`, patches it for your local home directory and repo path, and loads it with `launchctl bootstrap`.
 
-The launch agent is configured to:
+## Behavior
 
-- **Auto-start**: Starts on login via Docker Compose
-- **Auto-restart**: Restarts if Docker process exits (with 60s throttle)
-- **Working directory**: Project root
-- **Logs**: `~/Library/Logs/email-security-pipeline/` (LaunchAgent logs)
-- **Container logs**: `docker compose logs -f` (application logs)
-- **Priority**: Nice level 5 (lower than normal)
+The LaunchAgent:
 
-**Note**: The LaunchAgent manages the Docker container, not Python directly. This ensures the containerized environment is used.
+- starts on login
+- calls `launchd/start-email-security-pipeline.sh`
+- ensures Colima is started
+- waits until `docker --context colima info` succeeds
+- runs `docker --context colima compose -f docker-compose.yml up -d --remove-orphans`
+- writes LaunchAgent logs to `~/Library/Logs/email-security-pipeline/`
 
 ## Management Commands
 
 ```bash
-# Check status
-launchctl list | grep email-security-pipeline
+# Check LaunchAgent status
+launchctl print gui/$(id -u)/com.abhimehrotra.email-security-pipeline
 
-# Stop service
-launchctl stop com.abhimehrotra.email-security-pipeline
-
-# Start service
-launchctl start com.abhimehrotra.email-security-pipeline
-
-# Restart (reload config)
+# Restart the LaunchAgent
 launchctl kickstart -k gui/$(id -u)/com.abhimehrotra.email-security-pipeline
 
-# Disable (won't start on login)
-launchctl unload ~/Library/LaunchAgents/com.abhimehrotra.email-security-pipeline.plist
+# Disable the LaunchAgent
+launchctl bootout gui/$(id -u) ~/Library/LaunchAgents/com.abhimehrotra.email-security-pipeline.plist
 
-# Re-enable
-launchctl load ~/Library/LaunchAgents/com.abhimehrotra.email-security-pipeline.plist
-```
+# Re-enable the LaunchAgent
+launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.abhimehrotra.email-security-pipeline.plist
 
-## Logs
+# Check container state
+cd ~/dev/email-security-pipeline
+docker --context colima compose ps
 
-View logs in real-time:
-```bash
-tail -f ~/Library/Logs/email-security-pipeline/pipeline.out
-tail -f ~/Library/Logs/email-security-pipeline/pipeline.err
-```
-
-## Uninstallation
-
-Run the uninstall script:
-```bash
-./uninstall_daemon.sh
-```
-
-Or manually:
-```bash
-launchctl unload ~/Library/LaunchAgents/com.abhimehrotra.email-security-pipeline.plist
-rm ~/Library/LaunchAgents/com.abhimehrotra.email-security-pipeline.plist
+# Follow container logs
+docker --context colima compose logs -f
 ```
 
 ## Troubleshooting
 
-**Service won't start:**
-- Check error logs: `cat ~/Library/Logs/email-security-pipeline/pipeline.err`
-- Validate config: `python3 test_config.py --test-connections`
-- Check plist syntax: `plutil ~/Library/LaunchAgents/com.abhimehrotra.email-security-pipeline.plist`
+### LaunchAgent loads but the container is not running
 
-**Service keeps restarting:**
-- Check for errors: `tail -50 ~/Library/Logs/email-security-pipeline/pipeline.err`
-- Verify credentials: `python3 test_config.py --test-connections`
+```bash
+tail -f ~/Library/Logs/email-security-pipeline/pipeline.err
+docker --context colima compose ps
+docker --context colima compose logs --tail=100
+```
 
-**Config changes not applied:**
-- Restart service: `launchctl kickstart -k gui/$(id -u)/com.abhimehrotra.email-security-pipeline`
+### Docker works in terminal but not from launchd
 
-## Notes
+Make sure the plist includes Homebrew in `PATH` and that the wrapper uses the `colima` context explicitly.
 
-This follows the same pattern as your maintenance scripts at:
-`/Users/abhimehrotra/Documents/dev/personal-config/maintenance/launchd/`
+### After uninstalling Docker Desktop
+
+If `docker compose` stops working, make sure `~/.docker/config.json` includes the Homebrew plugin directory:
+
+```json
+{
+  "cliPluginsExtraDirs": ["/opt/homebrew/lib/docker/cli-plugins"]
+}
+```
+
+And verify:
+
+```bash
+docker compose version
+```

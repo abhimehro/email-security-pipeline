@@ -87,10 +87,12 @@ A self-hosted, containerized email security analysis system that monitors IMAP f
 - Python 3.11+ or Docker
 - Email account(s) with IMAP access
 - App passwords for email accounts (if 2FA enabled)
+- On macOS, Colima is supported as a lightweight Docker backend (`brew install colima docker docker-compose`)
 
 ### Option 1: Docker Deployment (Recommended)
 
 1. **Clone the repository**
+
    ```bash
    cd ~/Documents/dev
    git clone <repository-url> email-security-pipeline
@@ -98,13 +100,24 @@ A self-hosted, containerized email security analysis system that monitors IMAP f
    ```
 
 2. **Configure environment**
+
    ```bash
    cp .env.example .env
    nano .env  # Edit with your credentials
    ```
 
 3. **Build and run with Docker Compose**
+
    ```bash
+   docker compose up -d
+   ```
+
+   On macOS without Docker Desktop, you can use Colima:
+
+   ```bash
+   brew install colima docker docker-compose
+   brew services start colima
+   docker context use colima
    docker compose up -d
    ```
 
@@ -115,15 +128,17 @@ A self-hosted, containerized email security analysis system that monitors IMAP f
 
 ### Option 3: Background Execution (macOS/Darwin)
 
-If you are on macOS, you can run the pipeline as a background service (launchd daemon) that starts automatically on login.
+If you are on macOS, you can run the pipeline as a background service (launchd daemon) that starts automatically on login. The current setup supports Colima and starts the Compose stack in detached mode.
 
 1. **Install the daemon**
+
    ```bash
    chmod +x install_daemon.sh
    ./install_daemon.sh
    ```
 
 2. **Manage the service**
+
    ```bash
    # View logs
    tail -f ~/Library/Logs/email-security-pipeline/pipeline.out
@@ -142,6 +157,7 @@ If you are on macOS, you can run the pipeline as a background service (launchd d
 ### Email Account Setup
 
 #### Gmail
+
 1. Enable IMAP: Settings → Forwarding and POP/IMAP → Enable IMAP
 2. Generate App Password: Google Account → Security → 2-Step Verification → App passwords
 3. Update `.env`:
@@ -159,6 +175,7 @@ If you are on macOS, you can run the pipeline as a background service (launchd d
 - **Microsoft 365 Business**: May still work with app passwords (depends on tenant configuration).
 
 **For Microsoft 365 Business accounts only:**
+
 1. Enable IMAP: Settings → Sync email → Let devices use IMAP
 2. Generate App Password: Account security → Advanced security options → App passwords
 3. Update `.env`:
@@ -173,6 +190,7 @@ If you are on macOS, you can run the pipeline as a background service (launchd d
 See `OUTLOOK_TROUBLESHOOTING.md` for more details.
 
 #### Proton Mail
+
 1. Install Proton Mail Bridge: https://proton.me/mail/bridge
 2. Configure Bridge and get credentials
 3. Update `.env` (Bridge ports as currently configured):
@@ -187,6 +205,7 @@ See `OUTLOOK_TROUBLESHOOTING.md` for more details.
    **Note:** Proton Mail requires the Bridge application running locally; adjust the IMAP port if your Bridge uses 1143/STARTTLS instead of 143/SSL.
 
 #### Connectivity sanity checks (Bridge + Gmail)
+
 ```bash
 # Proton IMAP (adjust port if needed)
 openssl s_client -connect 127.0.0.1:143 -quiet </dev/null | head -5
@@ -196,8 +215,9 @@ openssl s_client -connect imap.gmail.com:993 -quiet </dev/null | head -5
 ```
 
 ### IMAP/SMTP quick check CLI
+
 - Script: `scripts/check_mail_connectivity.py`
-- Prereq: `.env` populated (GMAIL_* / PROTON_* vars).
+- Prereq: `.env` populated (GMAIL*\* / PROTON*\* vars).
 - Run:
   ```bash
   python scripts/check_mail_connectivity.py
@@ -263,10 +283,10 @@ and session state are never shared.
 
 **Performance impact (example with 3 accounts at 30 s each):**
 
-| Mode | Total time |
-|------|-----------|
-| Sequential (before) | ~90 s |
-| Parallel (after, `MAX_PARALLEL_ACCOUNTS=3`) | ~30 s |
+| Mode                                        | Total time |
+| ------------------------------------------- | ---------- |
+| Sequential (before)                         | ~90 s      |
+| Parallel (after, `MAX_PARALLEL_ACCOUNTS=3`) | ~30 s      |
 
 - Per-account errors are caught and logged without interrupting other accounts.
 - Rate limiting (`RATE_LIMIT_DELAY`) is applied independently per account thread.
@@ -285,19 +305,32 @@ LOG_FILE=logs/email_security.log
 ```
 
 #### Text Format (Default)
+
 Best for local development and human reading. Includes colored output for better visibility:
+
 ```
 2024-02-15 10:30:45 - EmailSecurityPipeline - INFO - Analyzing email: Important update...
 2024-02-15 10:30:45 - EmailSecurityPipeline - INFO - Analysis complete: overall_score=25.50, risk=LOW, time=150ms
 ```
 
 #### JSON Format
+
 Best for production and log aggregation tools (Splunk, ELK, CloudWatch):
+
 ```json
-{"timestamp":"2024-02-15 10:30:45","level":"INFO","logger":"EmailSecurityPipeline","message":"Analysis complete: overall_score=25.50, risk=LOW, time=150ms","module":"main","function":"_analyze_email","line":291}
+{
+  "timestamp": "2024-02-15 10:30:45",
+  "level": "INFO",
+  "logger": "EmailSecurityPipeline",
+  "message": "Analysis complete: overall_score=25.50, risk=LOW, time=150ms",
+  "module": "main",
+  "function": "_analyze_email",
+  "line": 291
+}
 ```
 
 **Querying JSON logs:**
+
 ```bash
 # Find all ERROR level logs
 grep '"level":"ERROR"' logs/email_security.log | jq .
@@ -327,6 +360,7 @@ ENABLE_METRICS=true
 ```
 
 **Metrics tracked:**
+
 - **Emails processed**: Total count since startup
 - **Threats detected**: Breakdown by type (spam, phishing, malware) and severity
 - **Processing time**: Min, max, average, p50, p95, p99 percentiles
@@ -334,11 +368,13 @@ ENABLE_METRICS=true
 
 **Viewing metrics:**
 Metrics are logged every 10 monitoring cycles:
+
 ```
 INFO - Metrics Summary: 150 emails processed, 12 threat types detected, avg processing time: 145ms
 ```
 
 **Use cases:**
+
 - **Performance monitoring**: Identify slow processing
 - **Threat patterns**: Track threat types over time
 - **Capacity planning**: Understand email volume
@@ -374,18 +410,21 @@ email-security-pipeline/
 ## Security Considerations
 
 ### Credential Management
+
 - **Never** commit `.env` file to version control
 - Use app-specific passwords (not account passwords)
 - Store credentials securely using environment variables
 - Consider using secret management tools (e.g., HashiCorp Vault)
 
 ### Docker Security
+
 - Runs as non-root user (`emailsec`)
 - Read-only root filesystem
 - Resource limits enforced
 - Security options enabled (`no-new-privileges`)
 
 ### Rate Limiting
+
 - Configurable delays between IMAP operations
 - Prevents server throttling/blocking
 - Respects email provider limits
@@ -395,11 +434,13 @@ email-security-pipeline/
 ### View Logs
 
 **Docker:**
+
 ```bash
 docker compose logs -f email-security-pipeline
 ```
 
 **Local:**
+
 ```bash
 tail -f logs/email_security.log
 ```
@@ -418,6 +459,7 @@ tail -f logs/email_security.log
 **Problem:** Can't connect to IMAP server
 
 **Solutions:**
+
 - Verify credentials in `.env`
 - Check IMAP is enabled in email account settings
 - For Gmail/Outlook: Ensure app password is correctly generated
@@ -429,6 +471,7 @@ tail -f logs/email_security.log
 **Problem:** Login failed
 
 **Solutions:**
+
 - Regenerate app password
 - Verify 2FA is properly configured
 - Check for account security alerts
@@ -439,6 +482,7 @@ tail -f logs/email_security.log
 **Problem:** Pipeline runs but finds no emails
 
 **Solutions:**
+
 - Check folder names in config (case-sensitive)
 - Verify emails exist in monitored folders
 - Check email is marked as "unread" (pipeline monitors UNSEEN)
@@ -449,16 +493,18 @@ tail -f logs/email_security.log
 ### Setting Up Development Environment
 
 1. **Clone and install dependencies**
-   ````bash
+
+   ```bash
    git clone <repository-url> email-security-pipeline
    cd email-security-pipeline
    python -m pip install -r requirements-ci.txt
-   ````
+   ```
 
 2. **Install pre-commit hooks**
-   ````bash
+
+   ```bash
    pre-commit install
-   ````
+   ```
 
    This will automatically run code quality checks before each commit, including:
    - Trailing whitespace removal
@@ -469,22 +515,23 @@ tail -f logs/email_security.log
    - Large file detection
 
 3. **Run pre-commit manually**
-   ````bash
+
+   ```bash
    # Run on all files
    pre-commit run --all-files
 
    # Run on specific files
    pre-commit run --files src/main.py
-   ````
+   ```
 
 4. **Bypass hooks (use sparingly)**
-   ````bash
+   ```bash
    git commit --no-verify -m "Emergency fix"
-   ````
+   ```
 
 ### Running Tests
 
-````bash
+```bash
 # Run all tests
 python -m pytest
 
@@ -494,7 +541,7 @@ python -m pytest --cov=src --cov-report=html
 
 # Run specific test file
 python -m pytest tests/test_config.py
-````
+```
 
 ### Code Quality Tools
 
@@ -507,17 +554,18 @@ The project uses the following tools (configured in `.pre-commit-config.yaml`):
 ### Troubleshooting Pre-commit
 
 **Hooks failing?**
+
 - Update hooks: `pre-commit autoupdate`
 - Clear cache: `pre-commit clean`
 - Reinstall: `pre-commit uninstall && pre-commit install`
 
 **Need to skip a specific hook?**
-````bash
+
+```bash
 SKIP=bandit git commit -m "Message"
-````
+```
 
 ## Advanced Features
-
 
 ### Adding Custom Analysis Rules
 
@@ -572,12 +620,14 @@ Adjust these settings in `.env` to optimize performance for your environment:
 The pipeline has undergone significant performance improvements:
 
 #### Email Parsing Efficiency (Feb 2026)
+
 - **String Concatenation**: Replaced O(N²) string concatenation with O(N) list accumulation
   - Uses `list.append()` + `"".join()` instead of `+=` for building email bodies
   - Prevents DoS vulnerabilities from large multipart emails
   - Reduces memory allocation overhead
 
 #### Media Analysis Performance (Feb 2026)
+
 - **Frequency Domain Analysis**: cv2.dft is ~2x faster than numpy FFT for deepfake detection
   - Switched from `np.fft.fft2()` to `cv2.dft()` for compression artifact analysis
 - **Frame Sampling**: Reduced from 20 to 10 frames for video analysis
@@ -585,12 +635,14 @@ The pipeline has undergone significant performance improvements:
   - **Combined impact**: Video processing reduced from ~20s to ~3.5s (5.7x speedup)
 
 #### NLP Pattern Matching (2025)
+
 - **Regex Optimization**: Combined multiple pattern searches into single-pass operations
   - Pre-compiled regex patterns at module scope
   - Hybrid approach: fast detection pass + detailed identification pass
   - Memory-efficient match counting with generators instead of `findall()`
 
 #### Input Truncation (2025)
+
 - **LRU Cache Efficiency**: Truncate large text to processing limits before caching
   - Transformer models typically process first 512 tokens only
   - Truncating before caching achieves ~300x speedup on repeated large inputs
