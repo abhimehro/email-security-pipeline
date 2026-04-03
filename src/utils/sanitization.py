@@ -43,7 +43,10 @@ def sanitize_for_logging(text: str, max_length: int = 255) -> str:
     text = text.replace("\n", "\\n").replace("\r", "\\r")
 
     # 3. Remove ANSI escape sequences (for terminal colors/cursor movement)
-    text = ANSI_ESCAPE_PATTERN.sub("", text)
+    # Optimization: Only run the regex substitution if an ANSI escape character is present.
+    # This fast-path provides significant speedups for clean strings.
+    if "\x1b" in text:
+        text = ANSI_ESCAPE_PATTERN.sub("", text)
 
     # 4. Remove control characters and dangerous format characters
     # We keep standard printable characters but remove controls and formatters

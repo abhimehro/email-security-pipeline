@@ -756,7 +756,9 @@ class AlertSystem:
         """Get the character count of text after stripping ANSI color codes."""
         if not text:
             return 0
-        return len(ANSI_PATTERN.sub("", text))
+        if "\x1b" in text:
+            return len(ANSI_PATTERN.sub("", text))
+        return len(text)
 
     def _truncate_text(self, text: str, width: int) -> str:
         """
