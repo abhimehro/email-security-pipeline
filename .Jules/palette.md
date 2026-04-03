@@ -133,3 +133,7 @@
 ## 2026-11-15 - Actionable Commands in Terminal Errors
 **Learning:** Terminal errors that suggest remediation commands often present them as plain text, causing the actionable fix to blend in with the error explanation. Users take longer to find the "fix" in a sea of plain text.
 **Action:** Always visually distinguish suggested remediation commands in terminal errors using a distinct color (like CYAN) to separate them from the error message (RED) and instructions (YELLOW), significantly reducing cognitive load.
+
+## 2026-12-05 - Visual Hierarchy in Log Output
+**Learning:** Log messages without fixed-width level indicators (like INFO vs CRITICAL) create visually jagged text that increases cognitive load and slows down the user's ability to scan for important information.
+**Action:** Always pad log level names to a fixed width (e.g., `ljust(8)`) so that the core message of every log entry begins at the exact same horizontal position.
