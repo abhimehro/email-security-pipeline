@@ -251,6 +251,7 @@
 
 **Merged pull requests:**
 
+- 🎨 Palette: Actionable Commands in Terminal Errors [\#623](https://github.com/abhimehro/email-security-pipeline/pull/623) ([abhimehro](https://github.com/abhimehro))
 - style: fix trailing whitespace in docker-compose.yml [\#620](https://github.com/abhimehro/email-security-pipeline/pull/620) ([abhimehro](https://github.com/abhimehro))
 - ⚡ Bolt: Optimize facial blurriness detection using cv2.meanStdDev [\#617](https://github.com/abhimehro/email-security-pipeline/pull/617) ([abhimehro](https://github.com/abhimehro))
 - 🎨 Palette: Add progress indicator to CLI setup wizard [\#616](https://github.com/abhimehro/email-security-pipeline/pull/616) ([abhimehro](https://github.com/abhimehro))
