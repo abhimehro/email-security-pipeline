@@ -309,7 +309,7 @@ def _write_config_file(config_file: str, new_content: str) -> bool:
         # Use fchmod to prevent TOCTOU vulnerabilities, falling back to chmod on Windows.
         try:
             os.fchmod(fd, 0o600)
-        except AttributeError:
+        except (AttributeError, OSError, NotImplementedError):
             os.chmod(str(config_path), 0o600)
 
         with os.fdopen(fd, "w") as f:

@@ -449,11 +449,10 @@ class EmailSecurityPipeline:
         )
 
 
-from src.app_runner import AppRunner
-
-
 def main():
     """Main entry point."""
+    from src.app_runner import AppRunner
+
     runner = AppRunner()
     runner.run()
 

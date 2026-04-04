@@ -163,7 +163,7 @@ class AppRunner:
                         )
                         try:
                             os.fchmod(fd, 0o600)
-                        except AttributeError:
+                        except (AttributeError, OSError, NotImplementedError):
                             os.chmod(self.config_file, 0o600)
 
                         with os.fdopen(fd, "wb") as dst:
