@@ -234,8 +234,9 @@ class EmailSecurityPipeline:
                     self.logger.info(f"Analyzing {len(emails)} emails")
 
                     # Analyze each email
-                    for email_data in emails:
-                        self._analyze_email(email_data)
+                    total_emails = len(emails)
+                    for i, email_data in enumerate(emails, 1):
+                        self._analyze_email(email_data, current_index=i, total_emails=total_emails)
 
                 # Log metrics summary periodically (every 10 iterations)
                 if self.metrics and iteration % 10 == 0:
@@ -258,20 +259,22 @@ class EmailSecurityPipeline:
                     self.metrics.record_error("monitoring_loop_error")
                 CountdownTimer.wait(30, f"{Colors.RED}Retrying in{Colors.RESET}")
 
-    def _analyze_email(self, email_data):
+    def _analyze_email(self, email_data, current_index: int = 0, total_emails: int = 0):
         """
         Analyze a single email.
 
         Args:
             email_data: EmailData object
-
+            current_index: Current index in the batch (optional)
+            total_emails: Total number of emails in the batch (optional)
         """
         # Track processing time for performance monitoring
         start_time = time.time()
 
         try:
             safe_subject = sanitize_for_logging(email_data.subject, max_length=50)
-            self.logger.info(f"Analyzing email: {safe_subject}...")
+            progress_prefix = f" [{current_index}/{total_emails}]" if total_emails > 0 else ""
+            self.logger.info(f"Analyzing email{progress_prefix}: {safe_subject}...")
 
             # Parallel Analysis Layer
             # Optimization: Run independent analyzers concurrently
@@ -394,30 +397,30 @@ class EmailSecurityPipeline:
         print(f"  • {Colors.CYAN}Monitored Accounts:{Colors.RESET}")
         for account in self.config.email_accounts:
             status = (
-                f"{Colors.GREEN}Active{Colors.RESET}"
+                f"{Colors.GREEN}✔ Active{Colors.RESET}"
                 if account.enabled
-                else f"{Colors.GREY}Disabled{Colors.RESET}"
+                else f"{Colors.GREY}✖ Disabled{Colors.RESET}"
             )
             print(f"    - {account.provider.title()}: {account.email} ({status})")
 
         # Analysis
         print(f"  • {Colors.CYAN}Analysis Layers:{Colors.RESET}")
         print(
-            f"    - Spam Detection:   {Colors.GREEN}Active{Colors.RESET} "
+            f"    - Spam Detection:   {Colors.GREEN}✔ Active{Colors.RESET} "
             f"(Threshold: {self.config.analysis.spam_threshold})"
         )
         print(
-            f"    - NLP Analysis:     {Colors.GREEN}Active{Colors.RESET} "
+            f"    - NLP Analysis:     {Colors.GREEN}✔ Active{Colors.RESET} "
             f"(Threshold: {self.config.analysis.nlp_threshold})"
         )
 
         media_status = (
-            f"{Colors.GREEN}Active{Colors.RESET}"
+            f"{Colors.GREEN}✔ Active{Colors.RESET}"
             if self.config.analysis.check_media_attachments
-            else f"{Colors.GREY}Disabled{Colors.RESET}"
+            else f"{Colors.GREY}✖ Disabled{Colors.RESET}"
         )
         deepfake_status = (
-            "Enabled" if self.config.analysis.deepfake_detection_enabled else "Disabled"
+            "✔ Enabled" if self.config.analysis.deepfake_detection_enabled else "✖ Disabled"
         )
         print(f"    - Media Check:      {media_status} (Deepfake: {deepfake_status})")
 
@@ -425,22 +428,24 @@ class EmailSecurityPipeline:
         print(f"  • {Colors.CYAN}Alert Channels:{Colors.RESET}")
         channels = []
         if self.config.alerts.console:
-            channels.append("Console")
+            channels.append("✔ Console")
         if self.config.alerts.webhook_enabled:
-            channels.append("Webhook")
+            channels.append("✔ Webhook")
         if self.config.alerts.slack_enabled:
-            channels.append("Slack")
+            channels.append("✔ Slack")
 
         if channels:
             print(f"    - Enabled: {', '.join(channels)}")
         else:
-            print(f"    - Enabled: {Colors.YELLOW}None{Colors.RESET}")
+            print(f"    - Enabled: {Colors.YELLOW}✖ None{Colors.RESET}")
 
         print(f"  • {Colors.CYAN}System:{Colors.RESET}")
         print(f"    - Log Level:  {self.config.system.log_level}")
         print(f"    - Log Format: {self.config.system.log_format}")
         if self.config.system.enable_metrics:
-            print(f"    - Metrics:    {Colors.GREEN}Enabled{Colors.RESET}")
+            print(f"    - Metrics:    {Colors.GREEN}✔ Enabled{Colors.RESET}")
+        else:
+            print(f"    - Metrics:    {Colors.GREY}✖ Disabled{Colors.RESET}")
         print(f"    - Interval:   {self.config.system.check_interval}s")
 
         # Documentation footer
