@@ -389,11 +389,8 @@ class EmailSecurityPipeline:
         # Log detailed metrics at debug level
         self.logger.debug(f"Detailed metrics: {summary}")
 
-    def _print_configuration_summary(self):
-        """Print a summary of the current configuration."""
-        print(f"\n{Colors.BOLD}📊 System Configuration:{Colors.RESET}")
-
-        # Accounts
+    def _print_accounts_summary(self):
+        """Print summary of monitored email accounts."""
         print(f"  • {Colors.CYAN}Monitored Accounts:{Colors.RESET}")
         for account in self.config.email_accounts:
             status = (
@@ -403,7 +400,8 @@ class EmailSecurityPipeline:
             )
             print(f"    - {account.provider.title()}: {account.email} ({status})")
 
-        # Analysis
+    def _print_analysis_summary(self):
+        """Print summary of analysis layers."""
         print(f"  • {Colors.CYAN}Analysis Layers:{Colors.RESET}")
         print(
             f"    - Spam Detection:   {Colors.GREEN}✔ Active{Colors.RESET} "
@@ -424,7 +422,8 @@ class EmailSecurityPipeline:
         )
         print(f"    - Media Check:      {media_status} (Deepfake: {deepfake_status})")
 
-        # Alerts
+    def _print_alerts_summary(self):
+        """Print summary of alert channels."""
         print(f"  • {Colors.CYAN}Alert Channels:{Colors.RESET}")
         channels = []
         if self.config.alerts.console:
@@ -439,6 +438,8 @@ class EmailSecurityPipeline:
         else:
             print(f"    - Enabled: {Colors.YELLOW}✖ None{Colors.RESET}")
 
+    def _print_system_summary(self):
+        """Print summary of system settings."""
         print(f"  • {Colors.CYAN}System:{Colors.RESET}")
         print(f"    - Log Level:  {self.config.system.log_level}")
         print(f"    - Log Format: {self.config.system.log_format}")
@@ -447,6 +448,15 @@ class EmailSecurityPipeline:
         else:
             print(f"    - Metrics:    {Colors.GREY}✖ Disabled{Colors.RESET}")
         print(f"    - Interval:   {self.config.system.check_interval}s")
+
+    def _print_configuration_summary(self):
+        """Print a summary of the current configuration."""
+        print(f"\n{Colors.BOLD}📊 System Configuration:{Colors.RESET}")
+
+        self._print_accounts_summary()
+        self._print_analysis_summary()
+        self._print_alerts_summary()
+        self._print_system_summary()
 
         # Documentation footer
         print(
