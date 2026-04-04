@@ -251,6 +251,7 @@
 
 **Merged pull requests:**
 
+- chore: update AGENTS.md with corrected test count and dev setup fixes [\#629](https://github.com/abhimehro/email-security-pipeline/pull/629) ([abhimehro](https://github.com/abhimehro))
 - 🎨 Palette: Pad log levels for vertical alignment [\#628](https://github.com/abhimehro/email-security-pipeline/pull/628) ([abhimehro](https://github.com/abhimehro))
 - ⚡ Bolt: \[performance improvement\] fast-path ANSI code stripping [\#624](https://github.com/abhimehro/email-security-pipeline/pull/624) ([abhimehro](https://github.com/abhimehro))
 - 🎨 Palette: Actionable Commands in Terminal Errors [\#623](https://github.com/abhimehro/email-security-pipeline/pull/623) ([abhimehro](https://github.com/abhimehro))
