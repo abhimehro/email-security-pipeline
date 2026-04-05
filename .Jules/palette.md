@@ -137,3 +137,7 @@
 ## 2026-12-05 - Visual Hierarchy in Log Output
 **Learning:** Log messages without fixed-width level indicators (like INFO vs CRITICAL) create visually jagged text that increases cognitive load and slows down the user's ability to scan for important information.
 **Action:** Always pad log level names to a fixed width (e.g., `ljust(8)`) so that the core message of every log entry begins at the exact same horizontal position.
+
+## 2027-01-15 - Visual Symbols for Status Indication
+**Learning:** Text-only statuses like "Active" vs "Disabled" require full word parsing to interpret, slowing down scanning of dense configuration summaries.
+**Action:** Prepend explicit visual symbols (like `✔` and `✖`) to textual statuses in CLI summaries to instantly communicate state without relying solely on reading text or seeing color.
