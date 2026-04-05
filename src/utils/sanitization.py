@@ -5,6 +5,7 @@ Provides functions to sanitize inputs for safe logging and display.
 
 import re
 import unicodedata
+from typing import Optional
 
 # Pre-compile regex for performance
 ANSI_ESCAPE_PATTERN = re.compile(r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])")
