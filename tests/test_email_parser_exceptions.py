@@ -28,7 +28,6 @@ def _make_parser() -> EmailParser:
         folders=["INBOX"],
         provider="test",
         use_ssl=True,
-        verify_ssl=True,
     )
     parser = EmailParser(config)
     parser.logger = MagicMock()

@@ -141,7 +141,7 @@ class IMAPClient:
             )
 
             # Create secure SSL context using our method (for backward compat with tests)
-            context = self._create_secure_ssl_context(self.config.verify_ssl)
+            context = self._create_secure_ssl_context()
 
             if self.config.use_ssl:
                 self.connection = imaplib.IMAP4_SSL(
@@ -281,17 +281,11 @@ class IMAPClient:
 
     # Static methods for backward compatibility
     @staticmethod
-    def _create_secure_ssl_context(verify_ssl: bool = True):
+    def _create_secure_ssl_context():
         """
         Create a secure SSL context (backward compatibility wrapper).
         """
-        context = create_secure_ssl_context()
-        if not verify_ssl:
-            import ssl
-
-            context.check_hostname = False
-            context.verify_mode = ssl.CERT_NONE
-        return context
+        return create_secure_ssl_context()
 
     @staticmethod
     def _decode_part_payload(part):

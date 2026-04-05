@@ -39,7 +39,6 @@ class TestIMAPErrorRecovery(unittest.TestCase):
             folders=["INBOX"],
             provider="test",
             use_ssl=True,
-            verify_ssl=True,
         )
         self.client = IMAPClient(self.config)
         self.client.logger = MagicMock()
@@ -238,7 +237,6 @@ class TestEmailIngestionManagerRecovery(unittest.TestCase):
                 folders=["INBOX"],
                 provider="test",
                 use_ssl=True,
-                verify_ssl=True,
             ),
             EmailAccountConfig(
                 enabled=True,
@@ -249,7 +247,6 @@ class TestEmailIngestionManagerRecovery(unittest.TestCase):
                 folders=["INBOX"],
                 provider="test",
                 use_ssl=True,
-                verify_ssl=True,
             ),
         ]
         self.manager = EmailIngestionManager(

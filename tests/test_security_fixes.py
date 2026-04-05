@@ -68,7 +68,6 @@ class TestSecurityFixes(unittest.TestCase):
             folders=["INBOX"],
             provider="test",
             use_ssl=True,
-            verify_ssl=True,
         )
         client = IMAPClient(config)
         client.logger = MagicMock()

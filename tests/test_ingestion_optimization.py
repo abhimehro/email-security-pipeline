@@ -22,7 +22,6 @@ class TestIngestionOptimization(unittest.TestCase):
             folders=["INBOX"],
             provider="test",
             use_ssl=True,
-            verify_ssl=True,
         )
         self.client = IMAPClient(self.config)
         self.client.logger = MagicMock()
