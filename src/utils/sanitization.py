@@ -26,7 +26,7 @@ class _UnprintableFilter(dict):
             return True
         return False
 
-    def __missing__(self, key: int) -> int | None:
+    def __missing__(self, key: int) -> Optional[int]:
         c = chr(key)
         # We keep the character if it's printable, a tab, or a Zs (separator)
         res = key if self._is_allowed(c) else None
