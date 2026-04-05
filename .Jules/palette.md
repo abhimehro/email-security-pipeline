@@ -137,3 +137,11 @@
 ## 2026-12-05 - Visual Hierarchy in Log Output
 **Learning:** Log messages without fixed-width level indicators (like INFO vs CRITICAL) create visually jagged text that increases cognitive load and slows down the user's ability to scan for important information.
 **Action:** Always pad log level names to a fixed width (e.g., `ljust(8)`) so that the core message of every log entry begins at the exact same horizontal position.
+
+## 2026-12-06 - Explicit Bounds in Batch Processing Logs
+**Learning:** When a CLI application processes a batch of items (like emails or files) sequentially, logging just the item name (e.g., "Analyzing: item...") leaves the user anxious about the total time required. Without explicit bounds, the process feels infinite.
+**Action:** Always include the current index and total count (e.g., `[1/5]`) in the log message for each item in a batch, providing a clear sense of progress and setting expectations.
+
+## 2026-12-06 - Scannability of Status Indicators
+**Learning:** Relying solely on text (e.g., "Active" vs "Disabled") and color to denote status in CLI summaries reduces scannability and accessibility for users with color vision deficiency.
+**Action:** Always pair textual statuses with distinct symbols (like `✔` for Active/Enabled and `✖` for Disabled/None) to create a stronger visual anchor and improve at-a-glance comprehension.
