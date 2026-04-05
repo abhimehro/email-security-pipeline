@@ -394,30 +394,30 @@ class EmailSecurityPipeline:
         print(f"  • {Colors.CYAN}Monitored Accounts:{Colors.RESET}")
         for account in self.config.email_accounts:
             status = (
-                f"{Colors.GREEN}Active{Colors.RESET}"
+                f"{Colors.GREEN}✔ Active{Colors.RESET}"
                 if account.enabled
-                else f"{Colors.GREY}Disabled{Colors.RESET}"
+                else f"{Colors.GREY}✖ Disabled{Colors.RESET}"
             )
             print(f"    - {account.provider.title()}: {account.email} ({status})")
 
         # Analysis
         print(f"  • {Colors.CYAN}Analysis Layers:{Colors.RESET}")
         print(
-            f"    - Spam Detection:   {Colors.GREEN}Active{Colors.RESET} "
+            f"    - Spam Detection:   {Colors.GREEN}✔ Active{Colors.RESET} "
             f"(Threshold: {self.config.analysis.spam_threshold})"
         )
         print(
-            f"    - NLP Analysis:     {Colors.GREEN}Active{Colors.RESET} "
+            f"    - NLP Analysis:     {Colors.GREEN}✔ Active{Colors.RESET} "
             f"(Threshold: {self.config.analysis.nlp_threshold})"
         )
 
         media_status = (
-            f"{Colors.GREEN}Active{Colors.RESET}"
+            f"{Colors.GREEN}✔ Active{Colors.RESET}"
             if self.config.analysis.check_media_attachments
-            else f"{Colors.GREY}Disabled{Colors.RESET}"
+            else f"{Colors.GREY}✖ Disabled{Colors.RESET}"
         )
         deepfake_status = (
-            "Enabled" if self.config.analysis.deepfake_detection_enabled else "Disabled"
+            f"✔ Enabled" if self.config.analysis.deepfake_detection_enabled else "✖ Disabled"
         )
         print(f"    - Media Check:      {media_status} (Deepfake: {deepfake_status})")
 
@@ -432,15 +432,15 @@ class EmailSecurityPipeline:
             channels.append("Slack")
 
         if channels:
-            print(f"    - Enabled: {', '.join(channels)}")
+            print(f"    - ✔ Enabled: {', '.join(channels)}")
         else:
-            print(f"    - Enabled: {Colors.YELLOW}None{Colors.RESET}")
+            print(f"    - ✖ Enabled: {Colors.YELLOW}None{Colors.RESET}")
 
         print(f"  • {Colors.CYAN}System:{Colors.RESET}")
         print(f"    - Log Level:  {self.config.system.log_level}")
         print(f"    - Log Format: {self.config.system.log_format}")
         if self.config.system.enable_metrics:
-            print(f"    - Metrics:    {Colors.GREEN}Enabled{Colors.RESET}")
+            print(f"    - Metrics:    {Colors.GREEN}✔ Enabled{Colors.RESET}")
         print(f"    - Interval:   {self.config.system.check_interval}s")
 
         # Documentation footer
