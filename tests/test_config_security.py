@@ -37,7 +37,6 @@ class TestConfigSecurity(unittest.TestCase):
             folders=["INBOX"],
             provider="test",
             use_ssl=True,
-            verify_ssl=True,
         )
 
         repr_str = str(config)

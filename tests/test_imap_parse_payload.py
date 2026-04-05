@@ -29,7 +29,6 @@ def _make_config(**overrides) -> EmailAccountConfig:
         folders=["INBOX"],
         provider="generic",
         use_ssl=True,
-        verify_ssl=True,
     )
     defaults.update(overrides)
     return EmailAccountConfig(**defaults)

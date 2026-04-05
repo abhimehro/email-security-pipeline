@@ -32,7 +32,6 @@ def _make_parser(max_body_size: int = _SMALL_MAX) -> EmailParser:
         folders=["INBOX"],
         provider="test",
         use_ssl=True,
-        verify_ssl=True,
     )
     parser = EmailParser(config, max_body_size=max_body_size)
     parser.logger = MagicMock()
