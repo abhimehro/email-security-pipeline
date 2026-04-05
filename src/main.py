@@ -427,7 +427,7 @@ class EmailSecurityPipeline:
         print(f"  • {Colors.CYAN}Alert Channels:{Colors.RESET}")
         channels = []
         if self.config.alerts.console:
-            channels.append("✔ Console")
+            channels.append(f"{Colors.GREEN}✔ Console{Colors.RESET}")
         if self.config.alerts.webhook_enabled:
             channels.append("✔ Webhook")
         if self.config.alerts.slack_enabled:
