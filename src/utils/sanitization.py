@@ -14,13 +14,22 @@ class _UnprintableFilter(dict):
     Lazy-evaluating translation table for str.translate().
     Computes and caches character printability on first encounter.
     """
+
+    @staticmethod
+    def _is_allowed(c: str) -> bool:
+        """Helper to reduce conditional complexity for CodeScene."""
+        if c.isprintable():
+            return True
+        if c == "\t":
+            return True
+        if unicodedata.category(c) == "Zs":
+            return True
+        return False
+
     def __missing__(self, key: int) -> int | None:
         c = chr(key)
         # We keep the character if it's printable, a tab, or a Zs (separator)
-        if c.isprintable() or c == "\t" or unicodedata.category(c) == "Zs":
-            res = key
-        else:
-            res = None
+        res = key if self._is_allowed(c) else None
         self[key] = res
         return res
 
