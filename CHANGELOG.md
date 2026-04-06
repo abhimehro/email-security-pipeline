@@ -37,6 +37,9 @@
 
 **Closed issues:**
 
+- \[repo-automation\] Weekly Retrospective - 2026-04-05 [\#638](https://github.com/abhimehro/email-security-pipeline/issues/638)
+- \[repo-automation\] Daily Status Report - 2026-04-05 [\#637](https://github.com/abhimehro/email-security-pipeline/issues/637)
+- \[repo-automation\] Daily Status Report - 2026-04-04 [\#633](https://github.com/abhimehro/email-security-pipeline/issues/633)
 - \[repo-automation\] Daily Status Report - 2026-04-03 [\#627](https://github.com/abhimehro/email-security-pipeline/issues/627)
 - \[repo-automation\] Daily Status Report - 2026-04-02 [\#622](https://github.com/abhimehro/email-security-pipeline/issues/622)
 - \[repo-automation\] Daily Status Report - 2026-04-01 [\#619](https://github.com/abhimehro/email-security-pipeline/issues/619)
@@ -256,6 +259,7 @@
 - 🛡️ Sentinel: \[CRITICAL\] Fix MITM Vulnerability by Enforcing SSL Verification [\#640](https://github.com/abhimehro/email-security-pipeline/pull/640) ([abhimehro](https://github.com/abhimehro))
 - 🎨 Palette: Add visual symbols to configuration statuses [\#639](https://github.com/abhimehro/email-security-pipeline/pull/639) ([abhimehro](https://github.com/abhimehro))
 - chore\(actions\): consolidate workflow automation [\#632](https://github.com/abhimehro/email-security-pipeline/pull/632) ([abhimehro](https://github.com/abhimehro))
+- 🛡️ Sentinel: \[MEDIUM\] Fix cross-platform file permission handling [\#630](https://github.com/abhimehro/email-security-pipeline/pull/630) ([abhimehro](https://github.com/abhimehro))
 - chore: update AGENTS.md with corrected test count and dev setup fixes [\#629](https://github.com/abhimehro/email-security-pipeline/pull/629) ([abhimehro](https://github.com/abhimehro))
 - 🎨 Palette: Pad log levels for vertical alignment [\#628](https://github.com/abhimehro/email-security-pipeline/pull/628) ([abhimehro](https://github.com/abhimehro))
 - ⚡ Bolt: \[performance improvement\] fast-path ANSI code stripping [\#624](https://github.com/abhimehro/email-security-pipeline/pull/624) ([abhimehro](https://github.com/abhimehro))
