@@ -15,7 +15,6 @@ class TestDoSPrevention(unittest.TestCase):
             folders=["INBOX"],
             provider="test",
             use_ssl=True,
-            verify_ssl=True,
         )
         self.client = IMAPClient(self.account_config)
         # Set limit to 1KB for testing

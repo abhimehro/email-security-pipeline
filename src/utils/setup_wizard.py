@@ -85,7 +85,6 @@ def _test_connection(email: str, app_password: str, provider_choice: str) -> boo
         folders=["INBOX"],
         provider=provider,
         use_ssl=use_ssl,
-        verify_ssl=True,
     )
 
     try:

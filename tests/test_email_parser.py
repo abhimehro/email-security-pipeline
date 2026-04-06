@@ -51,7 +51,6 @@ def _make_config() -> EmailAccountConfig:
         folders=["INBOX"],
         provider="test",
         use_ssl=True,
-        verify_ssl=True,
     )
 
 

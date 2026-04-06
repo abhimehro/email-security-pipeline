@@ -18,7 +18,7 @@ class TestAlertSystemSecurity(unittest.TestCase):
 
         self.alert_system = AlertSystem(self.config)
 
-    @patch('src.modules.alert_system.requests.post')
+    @patch("src.modules.alert_system.requests.post")
     def test_slack_injection_prevention(self, mock_post):
         # Create a threat report with malicious content in subject and sender
         report = ThreatReport(
@@ -33,7 +33,7 @@ class TestAlertSystemSecurity(unittest.TestCase):
             nlp_analysis={},
             media_analysis={},
             recommendations=["Delete"],
-            timestamp="2023-01-01T12:00:00"
+            timestamp="2023-01-01T12:00:00",
         )
 
         self.alert_system.send_alert(report)
@@ -43,13 +43,13 @@ class TestAlertSystemSecurity(unittest.TestCase):
 
         # Get the payload sent to Slack
         args, kwargs = mock_post.call_args
-        payload = kwargs.get('json', {})
-        attachments = payload.get('attachments', [])
+        payload = kwargs.get("json", {})
+        attachments = payload.get("attachments", [])
         self.assertGreater(len(attachments), 0)
-        fields = attachments[0].get('fields', [])
+        fields = attachments[0].get("fields", [])
 
-        subject_field = next((f for f in fields if f['title'] == 'Subject'), None)
-        sender_field = next((f for f in fields if f['title'] == 'From'), None)
+        subject_field = next((f for f in fields if f["title"] == "Subject"), None)
+        sender_field = next((f for f in fields if f["title"] == "From"), None)
 
         self.assertIsNotNone(subject_field)
         self.assertIsNotNone(sender_field)
@@ -58,27 +58,25 @@ class TestAlertSystemSecurity(unittest.TestCase):
         # Slack uses & < > for formatting
         # Expected: & becomes &amp;, < becomes &lt;, > becomes &gt;
 
-        self.assertNotIn("<http://malicious.com|Click Me>", subject_field['value'])
-        self.assertNotIn("<http://evil.com|Evil>", sender_field['value'])
+        self.assertNotIn("<http://malicious.com|Click Me>", subject_field["value"])
+        self.assertNotIn("<http://evil.com|Evil>", sender_field["value"])
 
         # We expect HTML entity encoding or removal of control chars
-        self.assertIn("&lt;", subject_field['value'])
-        self.assertIn("&gt;", subject_field['value'])
-        self.assertIn("&amp;", subject_field['value'])
+        self.assertIn("&lt;", subject_field["value"])
+        self.assertIn("&gt;", subject_field["value"])
+        self.assertIn("&amp;", subject_field["value"])
 
-    @patch('src.modules.alert_system.requests.post')
+    @patch("src.modules.alert_system.requests.post")
     def test_slack_sanitization_edge_cases(self, mock_post):
         # Test None, empty string, and only special chars
-        test_cases = [
-            (None, ""),
-            ("", ""),
-            ("<>&", "&lt;&gt;&amp;")
-        ]
+        test_cases = [(None, ""), ("", ""), ("<>&", "&lt;&gt;&amp;")]
 
         for input_str, expected in test_cases:
             ThreatReport(
                 email_id="123",
-                subject=input_str if input_str is not None else "", # report.subject usually expects str
+                subject=(
+                    input_str if input_str is not None else ""
+                ),  # report.subject usually expects str
                 sender="sender",
                 recipient="recipient",
                 date="2023-01-01",
@@ -88,7 +86,7 @@ class TestAlertSystemSecurity(unittest.TestCase):
                 nlp_analysis={},
                 media_analysis={},
                 recommendations=[],
-                timestamp="2023-01-01"
+                timestamp="2023-01-01",
             )
             # We are testing the _sanitize_for_slack method which is internal,
             # but we can test via send_alert or by accessing the method if we want unit test specificity.
@@ -102,8 +100,8 @@ class TestAlertSystemSecurity(unittest.TestCase):
             sanitized = self.alert_system._sanitize_for_slack(input_str)
             self.assertEqual(sanitized, expected, f"Failed for input: {input_str}")
 
-    @patch('src.modules.alert_system.is_safe_webhook_url')
-    @patch('src.modules.alert_system.requests.post')
+    @patch("src.modules.alert_system.is_safe_webhook_url")
+    @patch("src.modules.alert_system.requests.post")
     def test_webhook_redirect_prevention(self, mock_post, mock_is_safe):
         """Test that webhook calls are made with allow_redirects=False to prevent SSRF bypass."""
         self.config.webhook_enabled = True
@@ -113,11 +111,18 @@ class TestAlertSystemSecurity(unittest.TestCase):
         mock_is_safe.return_value = (True, "")
 
         report = ThreatReport(
-            email_id="123", subject="Test", sender="sender",
-            recipient="recipient", date="2023-01-01",
-            overall_threat_score=90.0, risk_level="high",
-            spam_analysis={}, nlp_analysis={}, media_analysis={},
-            recommendations=[], timestamp="2023-01-01"
+            email_id="123",
+            subject="Test",
+            sender="sender",
+            recipient="recipient",
+            date="2023-01-01",
+            overall_threat_score=90.0,
+            risk_level="high",
+            spam_analysis={},
+            nlp_analysis={},
+            media_analysis={},
+            recommendations=[],
+            timestamp="2023-01-01",
         )
 
         system = AlertSystem(self.config)
@@ -126,11 +131,11 @@ class TestAlertSystemSecurity(unittest.TestCase):
         # Verify the post was called with allow_redirects=False
         mock_post.assert_called_once()
         _, kwargs = mock_post.call_args
-        self.assertIn('allow_redirects', kwargs)
-        self.assertFalse(kwargs['allow_redirects'])
+        self.assertIn("allow_redirects", kwargs)
+        self.assertFalse(kwargs["allow_redirects"])
 
-    @patch('src.modules.alert_system.is_safe_webhook_url')
-    @patch('src.modules.alert_system.requests.post')
+    @patch("src.modules.alert_system.is_safe_webhook_url")
+    @patch("src.modules.alert_system.requests.post")
     def test_webhook_ssrf_prevention(self, mock_post, mock_is_safe):
         """Test that webhook calls are aborted if unsafe at request time."""
         self.config.webhook_enabled = True
@@ -140,11 +145,18 @@ class TestAlertSystemSecurity(unittest.TestCase):
         mock_is_safe.return_value = (False, "resolves to link-local")
 
         report = ThreatReport(
-            email_id="123", subject="Test", sender="sender",
-            recipient="recipient", date="2023-01-01",
-            overall_threat_score=90.0, risk_level="high",
-            spam_analysis={}, nlp_analysis={}, media_analysis={},
-            recommendations=[], timestamp="2023-01-01"
+            email_id="123",
+            subject="Test",
+            sender="sender",
+            recipient="recipient",
+            date="2023-01-01",
+            overall_threat_score=90.0,
+            risk_level="high",
+            spam_analysis={},
+            nlp_analysis={},
+            media_analysis={},
+            recommendations=[],
+            timestamp="2023-01-01",
         )
 
         system = AlertSystem(self.config)
@@ -153,8 +165,8 @@ class TestAlertSystemSecurity(unittest.TestCase):
         # Verify the post was NOT called due to the SSRF block
         mock_post.assert_not_called()
 
-    @patch('src.modules.alert_system.is_safe_webhook_url')
-    @patch('src.modules.alert_system.requests.post')
+    @patch("src.modules.alert_system.is_safe_webhook_url")
+    @patch("src.modules.alert_system.requests.post")
     def test_slack_ssrf_prevention(self, mock_post, mock_is_safe):
         """Test Slack webhook calls abort if URL is deemed unsafe."""
         self.config.slack_enabled = True
@@ -164,11 +176,18 @@ class TestAlertSystemSecurity(unittest.TestCase):
         mock_is_safe.return_value = (False, "resolves to loopback")
 
         report = ThreatReport(
-            email_id="123", subject="Test", sender="sender",
-            recipient="recipient", date="2023-01-01",
-            overall_threat_score=90.0, risk_level="high",
-            spam_analysis={}, nlp_analysis={}, media_analysis={},
-            recommendations=[], timestamp="2023-01-01"
+            email_id="123",
+            subject="Test",
+            sender="sender",
+            recipient="recipient",
+            date="2023-01-01",
+            overall_threat_score=90.0,
+            risk_level="high",
+            spam_analysis={},
+            nlp_analysis={},
+            media_analysis={},
+            recommendations=[],
+            timestamp="2023-01-01",
         )
 
         system = AlertSystem(self.config)
@@ -177,8 +196,8 @@ class TestAlertSystemSecurity(unittest.TestCase):
         # Verify the post was NOT called
         mock_post.assert_not_called()
 
-    @patch('src.modules.alert_system.is_safe_webhook_url')
-    @patch('src.modules.alert_system.requests.post')
+    @patch("src.modules.alert_system.is_safe_webhook_url")
+    @patch("src.modules.alert_system.requests.post")
     def test_slack_redirect_prevention(self, mock_post, mock_is_safe):
         """Test that Slack calls are made with allow_redirects=False to prevent SSRF bypass."""
         self.config.slack_enabled = True
@@ -188,11 +207,18 @@ class TestAlertSystemSecurity(unittest.TestCase):
         mock_is_safe.return_value = (True, "")
 
         report = ThreatReport(
-            email_id="123", subject="Test", sender="sender",
-            recipient="recipient", date="2023-01-01",
-            overall_threat_score=90.0, risk_level="high",
-            spam_analysis={}, nlp_analysis={}, media_analysis={},
-            recommendations=[], timestamp="2023-01-01"
+            email_id="123",
+            subject="Test",
+            sender="sender",
+            recipient="recipient",
+            date="2023-01-01",
+            overall_threat_score=90.0,
+            risk_level="high",
+            spam_analysis={},
+            nlp_analysis={},
+            media_analysis={},
+            recommendations=[],
+            timestamp="2023-01-01",
         )
 
         system = AlertSystem(self.config)
@@ -201,8 +227,8 @@ class TestAlertSystemSecurity(unittest.TestCase):
         # Verify the post was called with allow_redirects=False
         mock_post.assert_called_once()
         _, kwargs = mock_post.call_args
-        self.assertIn('allow_redirects', kwargs)
-        self.assertFalse(kwargs['allow_redirects'])
+        self.assertIn("allow_redirects", kwargs)
+        self.assertFalse(kwargs["allow_redirects"])
 
     def test_unicode_bidi_spoofing(self):
         """
@@ -225,5 +251,6 @@ class TestAlertSystemSecurity(unittest.TestCase):
                 slack_safe = self.alert_system._sanitize_for_slack(malicious_text)
                 self.assertEqual(slack_safe, expected)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

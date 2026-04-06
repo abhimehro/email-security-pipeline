@@ -44,7 +44,6 @@ class TestConfigurationValidation(unittest.TestCase):
                 folders=["INBOX"],
                 provider="generic",
                 use_ssl=True,
-                verify_ssl=True,
             )
 
     def test_invalid_email_format(self):
@@ -63,7 +62,6 @@ class TestConfigurationValidation(unittest.TestCase):
             folders=["INBOX"],
             provider="generic",
             use_ssl=True,
-            verify_ssl=True,
         )
         self.assertIsNotNone(valid_config)
 
@@ -87,7 +85,6 @@ class TestConfigurationValidation(unittest.TestCase):
             folders=["INBOX"],
             provider="generic",
             use_ssl=True,
-            verify_ssl=True,
         )
 
         # Config is created but would fail on actual connection
@@ -110,7 +107,6 @@ class TestConfigurationValidation(unittest.TestCase):
             folders=[],  # Empty folders
             provider="generic",
             use_ssl=True,
-            verify_ssl=True,
         )
 
         # Config is created but would be ineffective
@@ -239,6 +235,8 @@ class TestConflictingSettings(unittest.TestCase):
         Disabling SSL while using the SSL port (993) suggests misconfiguration.
         This should trigger a warning as it might expose credentials over plaintext.
         """
+        # Note: Even though we removed `verify_ssl`, configuring port 993 with use_ssl=False
+        # is still a valid conflict to test.
         EmailAccountConfig(
             enabled=True,
             email="test@example.com",
@@ -248,31 +246,10 @@ class TestConflictingSettings(unittest.TestCase):
             folders=["INBOX"],
             provider="generic",
             use_ssl=False,  # But SSL disabled - conflict!
-            verify_ssl=True,
         )
 
         # This configuration is suspicious but might be valid in rare cases
         # Implementation should at least log a warning
-
-    def test_verify_ssl_without_use_ssl(self):
-        """
-        SECURITY STORY: This tests SSL verification without SSL enabled.
-        Verifying SSL certificates when SSL isn't used doesn't make sense.
-        This indicates a configuration misunderstanding.
-        """
-        EmailAccountConfig(
-            enabled=True,
-            email="test@example.com",
-            imap_server="imap.example.com",
-            imap_port=143,
-            app_password="pass",
-            folders=["INBOX"],
-            provider="generic",
-            use_ssl=False,
-            verify_ssl=True,  # Conflict: verify SSL but not using SSL
-        )
-
-        # Should at least log a warning about nonsensical config
 
     def test_deepfake_detection_without_api_credentials(self):
         """
@@ -392,7 +369,6 @@ class TestConfigurationSerialization(unittest.TestCase):
             folders=["INBOX"],
             provider="generic",
             use_ssl=True,
-            verify_ssl=True,
         )
 
         # Password should not appear in string representation
