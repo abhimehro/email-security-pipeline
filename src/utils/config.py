@@ -32,7 +32,6 @@ class EmailAccountConfig:
     folders: List[str]
     provider: str
     use_ssl: bool
-    verify_ssl: bool
 
 
 @dataclass
@@ -135,7 +134,6 @@ class Config:
                     folders=self._parse_folders(os.getenv("GMAIL_FOLDERS", "INBOX")),
                     provider="gmail",
                     use_ssl=self._get_bool("GMAIL_USE_SSL", True),
-                    verify_ssl=self._get_bool("GMAIL_VERIFY_SSL", True),
                 )
             )
 
@@ -153,7 +151,6 @@ class Config:
                     folders=self._parse_folders(os.getenv("OUTLOOK_FOLDERS", "INBOX")),
                     provider="outlook",
                     use_ssl=self._get_bool("OUTLOOK_USE_SSL", True),
-                    verify_ssl=self._get_bool("OUTLOOK_VERIFY_SSL", True),
                 )
             )
 
@@ -169,7 +166,6 @@ class Config:
                     folders=self._parse_folders(os.getenv("PROTON_FOLDERS", "INBOX")),
                     provider="proton",
                     use_ssl=self._get_bool("PROTON_USE_SSL", True),
-                    verify_ssl=self._get_bool("PROTON_VERIFY_SSL", True),
                 )
             )
 

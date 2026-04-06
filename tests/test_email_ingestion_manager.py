@@ -34,7 +34,6 @@ def _make_account(email="user@example.com", enabled=True, folders=None):
         folders=folders or ["INBOX"],
         provider="test",
         use_ssl=True,
-        verify_ssl=True,
     )
 
 

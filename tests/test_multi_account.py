@@ -35,7 +35,6 @@ class TestMultiAccountProcessing(unittest.TestCase):
             folders=["INBOX", "Spam"],
             provider="generic",
             use_ssl=True,
-            verify_ssl=True,
         )
 
         self.account2 = EmailAccountConfig(
@@ -47,7 +46,6 @@ class TestMultiAccountProcessing(unittest.TestCase):
             folders=["INBOX"],
             provider="generic",
             use_ssl=True,
-            verify_ssl=True,
         )
 
         self.account3_disabled = EmailAccountConfig(
@@ -59,7 +57,6 @@ class TestMultiAccountProcessing(unittest.TestCase):
             folders=["INBOX"],
             provider="generic",
             use_ssl=True,
-            verify_ssl=True,
         )
 
     def test_multiple_accounts_initialization(self):
@@ -344,7 +341,6 @@ class TestMultiAccountProcessing(unittest.TestCase):
             folders=["INBOX"],
             provider="generic",
             use_ssl=True,
-            verify_ssl=True,
         )
 
         low_priority = EmailAccountConfig(
@@ -356,7 +352,6 @@ class TestMultiAccountProcessing(unittest.TestCase):
             folders=["INBOX"],
             provider="generic",
             use_ssl=True,
-            verify_ssl=True,
         )
 
         # List order implies priority
@@ -444,7 +439,6 @@ class TestParallelAccountProcessing(unittest.TestCase):
             folders=folders or ["INBOX"],
             provider="test",
             use_ssl=True,
-            verify_ssl=True,
         )
 
     def test_max_parallel_accounts_stored(self):
