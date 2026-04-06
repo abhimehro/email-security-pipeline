@@ -255,6 +255,7 @@
 
 **Merged pull requests:**
 
+- 🛡️ Sentinel: \[MEDIUM\] Fix cross-platform file permission handling [\#643](https://github.com/abhimehro/email-security-pipeline/pull/643) ([abhimehro](https://github.com/abhimehro))
 - ⚡ Bolt: \[performance improvement\] Optimize character filtering in sanitization [\#642](https://github.com/abhimehro/email-security-pipeline/pull/642) ([abhimehro](https://github.com/abhimehro))
 - 🛡️ Sentinel: \[CRITICAL\] Fix MITM Vulnerability by Enforcing SSL Verification [\#640](https://github.com/abhimehro/email-security-pipeline/pull/640) ([abhimehro](https://github.com/abhimehro))
 - 🎨 Palette: Add visual symbols to configuration statuses [\#639](https://github.com/abhimehro/email-security-pipeline/pull/639) ([abhimehro](https://github.com/abhimehro))
