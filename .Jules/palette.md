@@ -141,3 +141,7 @@
 ## 2027-01-15 - Visual Symbols for Status Indication
 **Learning:** Text-only statuses like "Active" vs "Disabled" require full word parsing to interpret, slowing down scanning of dense configuration summaries.
 **Action:** Prepend explicit visual symbols (like `✔` and `✖`) to textual statuses in CLI summaries to instantly communicate state without relying solely on reading text or seeing color.
+
+## 2024-05-18 - Semantic CLI Lists and Interactive Prompts
+**Learning:** Using standard bullet points (`•`) in complex, multi-category CLI lists (like configuration summaries) makes scanning difficult. Replacing them with semantic emojis (`🛡️`, `🔍`, `🔔`, `⚙️`) significantly improves visual structure and instantly communicates the domain of each section. Furthermore, in interactive CLI wizards, distinguishing required fields with a consistent visual marker (like a red `*`) reduces user hesitation and aligns terminal UX with web form expectations.
+**Action:** When designing CLI applications, use semantic emojis instead of generic bullets for top-level category headings to enhance scannability. For interactive prompts, ensure all required fields consistently display a red asterisk (`*`) immediately after the label text and before the input cursor.

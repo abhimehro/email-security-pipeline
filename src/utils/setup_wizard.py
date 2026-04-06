@@ -137,7 +137,9 @@ def _select_provider() -> str:
             prompt = (
                 "\n"
                 + Colors.colorize("? ", Colors.CYAN)
-                + Colors.colorize("Select provider [1-4]: ", Colors.BOLD)
+                + Colors.colorize("Select provider [1-4] ", Colors.BOLD)
+                + Colors.colorize("*", Colors.RED)
+                + Colors.colorize(": ", Colors.BOLD)
             )
             choice = input(prompt).strip()
             if choice in ("1", "2", "3", "4"):
