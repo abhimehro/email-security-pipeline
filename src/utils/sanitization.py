@@ -20,6 +20,17 @@ ANSI_ESCAPE_PATTERN = re.compile(r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])")
 EXCLUDED_LOGGING_CATEGORIES = {"Cc", "Cf", "Cs", "Co", "Cn", "Zl", "Zp"}
 
 
+def _is_allowed_char(ch: str) -> bool:
+    """Check if a character is allowed in sanitized output."""
+    if ch.isprintable():
+        return True
+    if ch == "\t":
+        return True
+    if unicodedata.category(ch) == "Zs":
+        return True
+    return False
+
+
 class _LazyTranslateDict(dict):
     """
     Lazy-evaluating translation dictionary for str.translate().
@@ -30,7 +41,7 @@ class _LazyTranslateDict(dict):
 
     def __missing__(self, key: int):
         ch = chr(key)
-        if ch.isprintable() or ch == "\t" or unicodedata.category(ch) == "Zs":
+        if _is_allowed_char(ch):
             self[key] = key
             return key
         self[key] = None
