@@ -1,5 +1,5 @@
 name: Development Partner
-description: The Development Partner Protocol
+# description: The Development Partner Protocol
 
 on:
   workflow_dispatch:
