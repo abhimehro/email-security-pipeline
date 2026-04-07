@@ -27,3 +27,8 @@
 
 **Learning:** When filtering out specific categories of non-printable Unicode characters from strings, using a list comprehension inside `"".join(...)` is relatively slow because it executes Python-level bytecode for every character in the string. Pre-computing a full translation table for `str.translate` is also not viable due to the massive memory and time overhead for all 1.1 million Unicode characters.
 **Action:** Use `str.translate` with a lazy-evaluating dictionary subclass (implementing `__missing__` to lazily cache properties on first encounter). This approach pushes the filtering loop down to Python's optimized C implementation while avoiding the initialization cost of a full translation table, resulting in a ~20x speedup for filtering operations.
+
+## 2025-07-20 - [Performance Optimization: Avoiding `np.mean` overhead for small arrays and native lists]
+
+**Learning:** Using `np.mean()` on plain Python lists or very small NumPy arrays incurs significant overhead due to type checking, dispatching, and conversion. For example, `np.mean(avg_scores)` on a list of floats is ~6x slower than using native Python `sum(avg_scores) / len(avg_scores)`, and `np.mean(std)` on a 3x1 OpenCV array is ~10x slower than `float(std.sum()) / std.size`.
+**Action:** For plain Python lists or small properties where native Python operations or direct NumPy sum/size are available, avoid `np.mean()`. Use `sum(lst) / len(lst)` for lists and `float(arr.sum()) / arr.size` for small NumPy arrays to bypass the function overhead entirely.
