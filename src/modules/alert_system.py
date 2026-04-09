@@ -202,42 +202,45 @@ class AlertSystem:
                 self._alert_queue.task_done()
                 break
 
-            dispatched = False
-            for attempt in range(self.MAX_DISPATCH_RETRIES):
-                try:
-                    await asyncio.wait_for(
-                        self._dispatch_alert_async(report), timeout=10.0
-                    )
-                    dispatched = True
-                    break
-                except asyncio.TimeoutError:
-                    self.logger.error(
-                        "Alert dispatch timed out for email %s (attempt %d/%d)",
-                        report.email_id,
-                        attempt + 1,
-                        self.MAX_DISPATCH_RETRIES,
-                    )
-                except Exception as exc:
-                    self.logger.error(
-                        "Alert dispatch failed for email %s (attempt %d/%d): %s",
-                        report.email_id,
-                        attempt + 1,
-                        self.MAX_DISPATCH_RETRIES,
-                        exc,
-                    )
+            await self._process_single_alert_with_retry(report)
+            self._alert_queue.task_done()
 
-                if attempt < self.MAX_DISPATCH_RETRIES - 1:
-                    # Exponential backoff: 1 s → 2 s → 4 s
-                    await asyncio.sleep(2**attempt)
-
-            if not dispatched:
+    async def _process_single_alert_with_retry(self, report: ThreatReport) -> None:
+        """Process a single alert report with exponential backoff and retries."""
+        dispatched = False
+        for attempt in range(self.MAX_DISPATCH_RETRIES):
+            try:
+                await asyncio.wait_for(
+                    self._dispatch_alert_async(report), timeout=10.0
+                )
+                dispatched = True
+                break
+            except asyncio.TimeoutError:
                 self.logger.error(
-                    "Alert permanently failed for email %s after %d attempts",
+                    "Alert dispatch timed out for email %s (attempt %d/%d)",
                     report.email_id,
+                    attempt + 1,
                     self.MAX_DISPATCH_RETRIES,
                 )
+            except Exception as exc:
+                self.logger.error(
+                    "Alert dispatch failed for email %s (attempt %d/%d): %s",
+                    report.email_id,
+                    attempt + 1,
+                    self.MAX_DISPATCH_RETRIES,
+                    exc,
+                )
 
-            self._alert_queue.task_done()
+            if attempt < self.MAX_DISPATCH_RETRIES - 1:
+                # Exponential backoff: 1 s → 2 s → 4 s
+                await asyncio.sleep(2**attempt)
+
+        if not dispatched:
+            self.logger.error(
+                "Alert permanently failed for email %s after %d attempts",
+                report.email_id,
+                self.MAX_DISPATCH_RETRIES,
+            )
 
     async def _dispatch_alert_async(self, report: ThreatReport) -> None:
         """Dispatch a single alert through all configured channels (async wrapper).
