@@ -141,3 +141,7 @@
 ## 2027-01-15 - Visual Symbols for Status Indication
 **Learning:** Text-only statuses like "Active" vs "Disabled" require full word parsing to interpret, slowing down scanning of dense configuration summaries.
 **Action:** Prepend explicit visual symbols (like `✔` and `✖`) to textual statuses in CLI summaries to instantly communicate state without relying solely on reading text or seeing color.
+
+## 2026-04-09 - Semantic Emojis for Domain Structuring
+**Learning:** In complex CLI output like configuration summaries, top-level headings without visual differentiation can merge together, making it difficult for users to parse the structure. Standard bullets don't differentiate categories well.
+**Action:** Replace standard bullet points with semantic emojis (e.g., 📧, 🔍, 🔔, ⚙️) for top-level category headings in complex CLI lists to instantly communicate the domain of each section and enhance visual structure.

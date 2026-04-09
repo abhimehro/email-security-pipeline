@@ -391,7 +391,7 @@ class EmailSecurityPipeline:
         print(f"\n{Colors.BOLD}📊 System Configuration:{Colors.RESET}")
 
         # Accounts
-        print(f"  • {Colors.CYAN}Monitored Accounts:{Colors.RESET}")
+        print(f"  📧 {Colors.CYAN}Monitored Accounts:{Colors.RESET}")
         for account in self.config.email_accounts:
             status = (
                 f"{Colors.GREEN}✔ Active{Colors.RESET}"
@@ -401,7 +401,7 @@ class EmailSecurityPipeline:
             print(f"    - {account.provider.title()}: {account.email} ({status})")
 
         # Analysis
-        print(f"  • {Colors.CYAN}Analysis Layers:{Colors.RESET}")
+        print(f"  🔍 {Colors.CYAN}Analysis Layers:{Colors.RESET}")
         print(
             f"    - Spam Detection:   {Colors.GREEN}✔ Active{Colors.RESET} "
             f"(Threshold: {self.config.analysis.spam_threshold})"
@@ -422,7 +422,7 @@ class EmailSecurityPipeline:
         print(f"    - Media Check:      {media_status} (Deepfake: {deepfake_status})")
 
         # Alerts
-        print(f"  • {Colors.CYAN}Alert Channels:{Colors.RESET}")
+        print(f"  🔔 {Colors.CYAN}Alert Channels:{Colors.RESET}")
         channels = []
         if self.config.alerts.console:
             channels.append("Console")
@@ -436,7 +436,7 @@ class EmailSecurityPipeline:
         else:
             print(f"    - ✖ Enabled: {Colors.YELLOW}None{Colors.RESET}")
 
-        print(f"  • {Colors.CYAN}System:{Colors.RESET}")
+        print(f"  ⚙️  {Colors.CYAN}System:{Colors.RESET}")
         print(f"    - Log Level:  {self.config.system.log_level}")
         print(f"    - Log Format: {self.config.system.log_format}")
         if self.config.system.enable_metrics:
