@@ -192,7 +192,8 @@ class AlertSystem:
         backoff (1 s, 2 s, 4 s …).  After all retries are exhausted the alert
         is dropped and an error is logged (preventing indefinite blocking).
         """
-        assert self._alert_queue is not None  # set before event loop starts
+        if self._alert_queue is None:
+            raise RuntimeError("self._alert_queue must be set before event loop starts")
 
         while True:
             report = await self._alert_queue.get()
