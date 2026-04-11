@@ -37,6 +37,7 @@
 
 **Closed issues:**
 
+- chore: daily qa check completed [\#654](https://github.com/abhimehro/email-security-pipeline/issues/654)
 - \[repo-automation\] Daily Status Report - 2026-04-07 [\#649](https://github.com/abhimehro/email-security-pipeline/issues/649)
 - \[repo-automation\] Daily Status Report - 2026-04-06 [\#645](https://github.com/abhimehro/email-security-pipeline/issues/645)
 - \[repo-automation\] Weekly Retrospective - 2026-04-05 [\#638](https://github.com/abhimehro/email-security-pipeline/issues/638)
@@ -139,6 +140,7 @@
 - \[Code Quality\] Fix indirect EmailData imports — import from email\_data not email\_ingestion [\#423](https://github.com/abhimehro/email-security-pipeline/issues/423)
 - \[Code Quality\] Add unit tests for IMAPConnection and ConnectionDiagnostics classes [\#422](https://github.com/abhimehro/email-security-pipeline/issues/422)
 - \[Code Quality\] Add unit tests for TTLCache in src/utils/caching.py [\#421](https://github.com/abhimehro/email-security-pipeline/issues/421)
+- \[aw\] No-Op Runs [\#410](https://github.com/abhimehro/email-security-pipeline/issues/410)
 - \[Code Quality\] Replace bare exception handlers with specific logging in email\_parser [\#364](https://github.com/abhimehro/email-security-pipeline/issues/364)
 - \[repo-status\] Daily Status Report - February 19, 2026 🌟 [\#361](https://github.com/abhimehro/email-security-pipeline/issues/361)
 - Daily QAFebruary 19, 2026 - Documentation & Dependency Issues Found [\#360](https://github.com/abhimehro/email-security-pipeline/issues/360)
@@ -210,6 +212,7 @@
 - \[Code Quality\] Add comprehensive docstring to generate\_threat\_report\(\) function [\#260](https://github.com/abhimehro/email-security-pipeline/issues/260)
 - \[Code Quality\] Fix silent exception handling in ZIP inspection [\#259](https://github.com/abhimehro/email-security-pipeline/issues/259)
 - \[Code Quality\] Add missing test coverage for IMAPConnection.list\_folders\(\) [\#258](https://github.com/abhimehro/email-security-pipeline/issues/258)
+- Daily Backlog Burner - Research, Roadmap and Plan [\#256](https://github.com/abhimehro/email-security-pipeline/issues/256)
 - \[Code Quality\] Add CI performance regression detection with pytest-benchmark [\#255](https://github.com/abhimehro/email-security-pipeline/issues/255)
 - \[Code Quality\] Add parallel account processing for 3x throughput [\#254](https://github.com/abhimehro/email-security-pipeline/issues/254)
 - \[Code Quality\] Optimize CI duration with parallel testing and incremental linting [\#253](https://github.com/abhimehro/email-security-pipeline/issues/253)
@@ -253,10 +256,15 @@
 - \[agentics\] No-Op Runs [\#188](https://github.com/abhimehro/email-security-pipeline/issues/188)
 - \[agentics\] Daily Perf Improver failed [\#186](https://github.com/abhimehro/email-security-pipeline/issues/186)
 - \[agentics\] Daily Backlog Burner failed [\#185](https://github.com/abhimehro/email-security-pipeline/issues/185)
+- \[agentics\] Failed runs [\#184](https://github.com/abhimehro/email-security-pipeline/issues/184)
 - \[repo-status\] Daily Status Report - February 13, 2026 🌟 [\#178](https://github.com/abhimehro/email-security-pipeline/issues/178)
 
 **Merged pull requests:**
 
+- 🎨 Palette: Improve CLI configuration summary with semantic emojis [\#662](https://github.com/abhimehro/email-security-pipeline/pull/662) ([abhimehro](https://github.com/abhimehro))
+- chore: fix formatting in src/main.py [\#659](https://github.com/abhimehro/email-security-pipeline/pull/659) ([abhimehro](https://github.com/abhimehro))
+- ⚡ Bolt: Optimize Unicode sanitization in alert system [\#658](https://github.com/abhimehro/email-security-pipeline/pull/658) ([abhimehro](https://github.com/abhimehro))
+- 🛡️ Sentinel: \[Low\] Fix B101 assert vulnerability [\#657](https://github.com/abhimehro/email-security-pipeline/pull/657) ([abhimehro](https://github.com/abhimehro))
 - ⚡ Bolt: \[performance improvement\] Avoid np.mean overhead for small lists and arrays [\#647](https://github.com/abhimehro/email-security-pipeline/pull/647) ([abhimehro](https://github.com/abhimehro))
 - chore\(actions\): consolidate workflow automation [\#644](https://github.com/abhimehro/email-security-pipeline/pull/644) ([abhimehro](https://github.com/abhimehro))
 - 🛡️ Sentinel: \[MEDIUM\] Fix cross-platform file permission handling [\#643](https://github.com/abhimehro/email-security-pipeline/pull/643) ([abhimehro](https://github.com/abhimehro))
