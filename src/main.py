@@ -417,7 +417,9 @@ class EmailSecurityPipeline:
             else f"{Colors.GREY}✖ Disabled{Colors.RESET}"
         )
         deepfake_status = (
-            f"✔ Enabled" if self.config.analysis.deepfake_detection_enabled else "✖ Disabled"
+            f"✔ Enabled"
+            if self.config.analysis.deepfake_detection_enabled
+            else "✖ Disabled"
         )
         print(f"    - Media Check:      {media_status} (Deepfake: {deepfake_status})")
 
