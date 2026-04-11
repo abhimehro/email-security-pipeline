@@ -38,7 +38,10 @@
 **Closed issues:**
 
 - Jules Daily QA & Agentic Review: No Issues Found [\#663](https://github.com/abhimehro/email-security-pipeline/issues/663)
+- \[repo-automation\] Daily Status Report - 2026-04-10 [\#661](https://github.com/abhimehro/email-security-pipeline/issues/661)
+- \[repo-automation\] Daily Status Report - 2026-04-09 [\#655](https://github.com/abhimehro/email-security-pipeline/issues/655)
 - chore: daily qa check completed [\#654](https://github.com/abhimehro/email-security-pipeline/issues/654)
+- \[repo-automation\] Daily Status Report - 2026-04-08 [\#653](https://github.com/abhimehro/email-security-pipeline/issues/653)
 - \[repo-automation\] Daily Status Report - 2026-04-07 [\#649](https://github.com/abhimehro/email-security-pipeline/issues/649)
 - \[repo-automation\] Daily Status Report - 2026-04-06 [\#645](https://github.com/abhimehro/email-security-pipeline/issues/645)
 - \[repo-automation\] Weekly Retrospective - 2026-04-05 [\#638](https://github.com/abhimehro/email-security-pipeline/issues/638)
