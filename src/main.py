@@ -10,6 +10,7 @@ import sys
 import time
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
+from typing import Optional
 
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -261,7 +262,10 @@ class EmailSecurityPipeline:
                 CountdownTimer.wait(30, f"{Colors.RED}Retrying in{Colors.RESET}")
 
     def _analyze_email(
-        self, email_data, current_idx: int = None, total_emails: int = None
+        self,
+        email_data,
+        current_idx: Optional[int] = None,
+        total_emails: Optional[int] = None,
     ):
         """
         Analyze a single email.
@@ -327,13 +331,37 @@ class EmailSecurityPipeline:
             processing_time_ms = (time.time() - start_time) * 1000
 
             # Record metrics if enabled
-            self._record_analysis_metrics(
-                processing_time_ms,
-                threat_report,
-                spam_result.score,
-                nlp_result.threat_score,
-                media_result.threat_score,
-            )
+            if self.metrics:
+                self.metrics.record_email_processed()
+                self.metrics.record_processing_time(processing_time_ms)
+
+                # Record threats detected with consistent classification
+                # Only treat medium/high risk emails as "threats" in metrics.
+                # Using .lower() here keeps us robust if upstream ever changes casing.
+                if threat_report.risk_level.lower() in {"medium", "high"}:
+                    # Determine threat type based on highest scoring layer
+                    # Priority order for tie-breaking: spam > phishing > malware
+                    # (i.e., spam_result > nlp_result > media_result)
+                    threat_type = "unknown"
+                    max_score = max(
+                        spam_result.score,
+                        nlp_result.threat_score,
+                        media_result.threat_score,
+                    )
+
+                    # If all scores are 0, default to "spam" for consistency
+                    if max_score == 0:
+                        threat_type = "spam"
+                    elif spam_result.score == max_score:
+                        threat_type = "spam"
+                    elif nlp_result.threat_score == max_score:
+                        threat_type = "phishing"
+                    elif media_result.threat_score == max_score:
+                        threat_type = "malware"
+
+                    self.metrics.record_threat(
+                        threat_type, threat_report.risk_level.lower()
+                    )
 
             self.logger.info(
                 f"Analysis complete: overall_score={threat_report.overall_threat_score:.2f}, "
@@ -345,42 +373,6 @@ class EmailSecurityPipeline:
             if self.metrics:
                 self.metrics.record_error("analysis_error")
             self.logger.error(f"Error analyzing email: {e}", exc_info=True)
-
-    def _record_analysis_metrics(
-        self,
-        processing_time_ms: float,
-        threat_report,
-        spam_score: float,
-        nlp_score: float,
-        media_score: float,
-    ) -> None:
-        """Record detailed metrics for email analysis to keep cyclomatic complexity low."""
-        if not self.metrics:
-            return
-
-        self.metrics.record_email_processed()
-        self.metrics.record_processing_time(processing_time_ms)
-
-        # Record threats detected with consistent classification
-        # Only treat medium/high risk emails as "threats" in metrics.
-        # Using .lower() here keeps us robust if upstream ever changes casing.
-        if threat_report.risk_level.lower() in {"medium", "high"}:
-            # Determine threat type based on highest scoring layer
-            # Priority order for tie-breaking: spam > phishing > malware
-            threat_type = "unknown"
-            max_score = max(spam_score, nlp_score, media_score)
-
-            # If all scores are 0, default to "spam" for consistency
-            if max_score == 0:
-                threat_type = "spam"
-            elif spam_score == max_score:
-                threat_type = "spam"
-            elif nlp_score == max_score:
-                threat_type = "phishing"
-            elif media_score == max_score:
-                threat_type = "malware"
-
-            self.metrics.record_threat(threat_type, threat_report.risk_level.lower())
 
     def _log_metrics_summary(self):
         """
