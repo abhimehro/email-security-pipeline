@@ -12,7 +12,6 @@ repos:
       - id: check-merge-conflict
       - id: debug-statements
       - id: check-case-conflict
-        exclude: ^(\.Jules/|\.jules/)
       - id: check-json
       - id: check-toml
       - id: mixed-line-ending
