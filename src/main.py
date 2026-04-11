@@ -10,7 +10,6 @@ import sys
 import time
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
-from typing import Optional
 
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -237,7 +236,7 @@ class EmailSecurityPipeline:
                     # Analyze each email
                     for i, email_data in enumerate(emails, 1):
                         self._analyze_email(
-                            email_data, current_idx=i, total_emails=len(emails)
+                            email_data, log_prefix=f"[{i}/{len(emails)}] "
                         )
 
                 # Log metrics summary periodically (every 10 iterations)
@@ -264,16 +263,14 @@ class EmailSecurityPipeline:
     def _analyze_email(
         self,
         email_data,
-        current_idx: Optional[int] = None,
-        total_emails: Optional[int] = None,
+        log_prefix: str = "",
     ):
         """
         Analyze a single email.
 
         Args:
             email_data: EmailData object
-            current_idx: Current index in a batch (optional)
-            total_emails: Total number of emails in a batch (optional)
+            log_prefix: Prefix to add to the log message (optional)
 
         """
         # Track processing time for performance monitoring
@@ -282,11 +279,7 @@ class EmailSecurityPipeline:
         try:
             safe_subject = sanitize_for_logging(email_data.subject, max_length=50)
 
-            prefix = ""
-            if current_idx is not None and total_emails is not None:
-                prefix = f"[{current_idx}/{total_emails}] "
-
-            self.logger.info(f"{prefix}Analyzing email: {safe_subject}...")
+            self.logger.info(f"{log_prefix}Analyzing email: {safe_subject}...")
 
             # Parallel Analysis Layer
             # Optimization: Run independent analyzers concurrently
