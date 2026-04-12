@@ -1,3 +1,0 @@
-## 2025-04-11 - Add explicit bounds to batch processing logs
-**Learning:** Sequential processing loops without explicit boundaries (e.g., just "Analyzing email") leave users in the dark about overall progress, increasing perceived wait time and user anxiety.
-**Action:** When iterating over a known batch of items in CLI apps, prepend progress indicators like `[current_idx/total_items]` to log messages to set clear expectations.
