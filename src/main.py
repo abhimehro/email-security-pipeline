@@ -417,9 +417,9 @@ class EmailSecurityPipeline:
             else f"{Colors.GREY}✖ Disabled{Colors.RESET}"
         )
         deepfake_status = (
-            f"✔ Enabled"
+            f"{Colors.GREEN}✔ Enabled{Colors.RESET}"
             if self.config.analysis.deepfake_detection_enabled
-            else "✖ Disabled"
+            else f"{Colors.GREY}✖ Disabled{Colors.RESET}"
         )
         print(f"    - Media Check:      {media_status} (Deepfake: {deepfake_status})")
 
@@ -434,15 +434,19 @@ class EmailSecurityPipeline:
             channels.append("Slack")
 
         if channels:
-            print(f"    - ✔ Enabled: {', '.join(channels)}")
+            print(f"    - {Colors.GREEN}✔ Enabled{Colors.RESET}: {', '.join(channels)}")
         else:
-            print(f"    - ✖ Enabled: {Colors.YELLOW}None{Colors.RESET}")
+            print(
+                f"    - {Colors.GREY}✖ Disabled{Colors.RESET}: {Colors.YELLOW}None{Colors.RESET}"
+            )
 
         print(f"  ⚙️ {Colors.CYAN}System:{Colors.RESET}")
         print(f"    - Log Level:  {self.config.system.log_level}")
         print(f"    - Log Format: {self.config.system.log_format}")
         if self.config.system.enable_metrics:
             print(f"    - Metrics:    {Colors.GREEN}✔ Enabled{Colors.RESET}")
+        else:
+            print(f"    - Metrics:    {Colors.GREY}✖ Disabled{Colors.RESET}")
         print(f"    - Interval:   {self.config.system.check_interval}s")
 
         # Documentation footer
