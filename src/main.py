@@ -389,8 +389,18 @@ class EmailSecurityPipeline:
     def _print_configuration_summary(self):
         """Print a summary of the current configuration."""
         print(f"\n{Colors.BOLD}📊 System Configuration:{Colors.RESET}")
+        self._print_accounts_summary()
+        self._print_analysis_summary()
+        self._print_alerts_summary()
+        self._print_system_summary()
 
-        # Accounts
+        # Documentation footer
+        print(
+            f"\n📚 {Colors.GREY}For help, see README.md or OUTLOOK_TROUBLESHOOTING.md{Colors.RESET}\n"
+        )
+
+    def _print_accounts_summary(self):
+        """Print accounts configuration summary."""
         print(f"  📧 {Colors.CYAN}Monitored Accounts:{Colors.RESET}")
         for account in self.config.email_accounts:
             status = (
@@ -400,7 +410,8 @@ class EmailSecurityPipeline:
             )
             print(f"    - {account.provider.title()}: {account.email} ({status})")
 
-        # Analysis
+    def _print_analysis_summary(self):
+        """Print analysis layers configuration summary."""
         print(f"  🔍 {Colors.CYAN}Analysis Layers:{Colors.RESET}")
         print(
             f"    - Spam Detection:   {Colors.GREEN}✔ Active{Colors.RESET} "
@@ -423,7 +434,8 @@ class EmailSecurityPipeline:
         )
         print(f"    - Media Check:      {media_status} (Deepfake: {deepfake_status})")
 
-        # Alerts
+    def _print_alerts_summary(self):
+        """Print alert channels configuration summary."""
         print(f"  🔔 {Colors.CYAN}Alert Channels:{Colors.RESET}")
         channels = []
         if self.config.alerts.console:
@@ -440,6 +452,8 @@ class EmailSecurityPipeline:
                 f"    - {Colors.GREY}✖ Disabled{Colors.RESET}: {Colors.YELLOW}None{Colors.RESET}"
             )
 
+    def _print_system_summary(self):
+        """Print system configuration summary."""
         print(f"  ⚙️ {Colors.CYAN}System:{Colors.RESET}")
         print(f"    - Log Level:  {self.config.system.log_level}")
         print(f"    - Log Format: {self.config.system.log_format}")
@@ -448,11 +462,6 @@ class EmailSecurityPipeline:
         else:
             print(f"    - Metrics:    {Colors.GREY}✖ Disabled{Colors.RESET}")
         print(f"    - Interval:   {self.config.system.check_interval}s")
-
-        # Documentation footer
-        print(
-            f"\n📚 {Colors.GREY}For help, see README.md or OUTLOOK_TROUBLESHOOTING.md{Colors.RESET}\n"
-        )
 
 
 from src.app_runner import AppRunner
