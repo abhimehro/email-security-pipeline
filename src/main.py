@@ -234,9 +234,10 @@ class EmailSecurityPipeline:
                     self.logger.info(f"Analyzing {len(emails)} emails")
 
                     # Analyze each email
+                    total_emails = len(emails)
                     for i, email_data in enumerate(emails, 1):
                         self._analyze_email(
-                            email_data, log_prefix=f"[{i}/{len(emails)}] "
+                            email_data, current_idx=i, total_emails=total_emails
                         )
 
                 # Log metrics summary periodically (every 10 iterations)
