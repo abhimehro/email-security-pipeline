@@ -191,10 +191,10 @@ class NLPThreatAnalyzer:
             # FIX: Ensure Hugging Face model download pins the revision
             revision = getattr(self.config, "nlp_model_revision", "main")
             self.tokenizer = AutoTokenizer.from_pretrained(
-                model_name, revision=revision
+                model_name, revision=revision, use_safetensors=True
             )
             self.model = AutoModelForSequenceClassification.from_pretrained(
-                model_name, revision=revision
+                model_name, revision=revision, use_safetensors=True
             )
             self.model.eval()
             self.device = next(self.model.parameters()).device

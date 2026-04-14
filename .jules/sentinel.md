@@ -8,3 +8,8 @@
 **Vulnerability:** The configuration system allowed setting `verify_ssl=False`, which entirely disabled SSL certificate verification (hostname checking and valid cert enforcement) during IMAP connections. Attackers could intercept and read/modify the emails and credentials in transit if they were on the same network or compromised routing.
 **Learning:** Adding a "developer convenience" flag like `verify_ssl=False` into core networking configuration often becomes a permanent fixture in production deployments, negating the value of TLS entirely.
 **Prevention:** SSL verification MUST be mandatory. Configuration should not provide the ability to bypass certificate checks for secure connections. Remove bypass logic from all network connection implementations.
+
+## 2025-05-18 - [Insecure Deserialization in ML Models]
+**Vulnerability:** Hugging Face models and tokenizers were being loaded via `from_pretrained` without enforcing safe serialization formats. This could allow insecure deserialization (Pickle arbitrary code execution) if malicious model weights are fetched or substituted.
+**Learning:** The default behavior of `from_pretrained` might fall back to loading unsafe Pickle files if `use_safetensors=True` is not explicitly set, exposing the application to RCE (Remote Code Execution) through supply-chain attacks or compromised model repositories.
+**Prevention:** Always set `use_safetensors=True` when loading models and tokenizers using Hugging Face `transformers` to enforce the use of the secure `safetensors` format.
