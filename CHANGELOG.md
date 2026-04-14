@@ -37,7 +37,10 @@
 
 **Closed issues:**
 
+- Jules Daily QA & Agentic Review - 2026-04-12 [\#676](https://github.com/abhimehro/email-security-pipeline/issues/676)
+- \[repo-automation\] Daily Status Report - 2026-04-12 [\#669](https://github.com/abhimehro/email-security-pipeline/issues/669)
 - Jules Daily QA & Agentic Review - All Clear [\#667](https://github.com/abhimehro/email-security-pipeline/issues/667)
+- \[repo-automation\] Daily Status Report - 2026-04-11 [\#665](https://github.com/abhimehro/email-security-pipeline/issues/665)
 - Jules Daily QA & Agentic Review: No Issues Found [\#663](https://github.com/abhimehro/email-security-pipeline/issues/663)
 - \[repo-automation\] Daily Status Report - 2026-04-10 [\#661](https://github.com/abhimehro/email-security-pipeline/issues/661)
 - \[repo-automation\] Daily Status Report - 2026-04-09 [\#655](https://github.com/abhimehro/email-security-pipeline/issues/655)
@@ -266,6 +269,8 @@
 
 **Merged pull requests:**
 
+- 🛡️ Sentinel: \[CRITICAL\] Fix insecure deserialization in Hugging Face models [\#674](https://github.com/abhimehro/email-security-pipeline/pull/674) ([abhimehro](https://github.com/abhimehro))
+- 🎨 Palette: Add explicit bounds to batch processing logs [\#666](https://github.com/abhimehro/email-security-pipeline/pull/666) ([abhimehro](https://github.com/abhimehro))
 - chore\(actions\): consolidate workflow automation [\#664](https://github.com/abhimehro/email-security-pipeline/pull/664) ([abhimehro](https://github.com/abhimehro))
 - 🎨 Palette: Improve CLI configuration summary with semantic emojis [\#662](https://github.com/abhimehro/email-security-pipeline/pull/662) ([abhimehro](https://github.com/abhimehro))
 - chore: fix formatting in src/main.py [\#659](https://github.com/abhimehro/email-security-pipeline/pull/659) ([abhimehro](https://github.com/abhimehro))
