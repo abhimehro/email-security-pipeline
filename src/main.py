@@ -234,8 +234,11 @@ class EmailSecurityPipeline:
                     self.logger.info(f"Analyzing {len(emails)} emails")
 
                     # Analyze each email
-                    for email_data in emails:
-                        self._analyze_email(email_data)
+                    total_emails = len(emails)
+                    for i, email_data in enumerate(emails, 1):
+                        self._analyze_email(
+                            email_data, current_idx=i, total_emails=total_emails
+                        )
 
                 # Log metrics summary periodically (every 10 iterations)
                 if self.metrics and iteration % 10 == 0:
@@ -258,12 +261,17 @@ class EmailSecurityPipeline:
                     self.metrics.record_error("monitoring_loop_error")
                 CountdownTimer.wait(30, f"{Colors.RED}Retrying in{Colors.RESET}")
 
-    def _analyze_email(self, email_data):
+    def _analyze_email(
+        self,
+        email_data,
+        log_prefix: str = "",
+    ):
         """
         Analyze a single email.
 
         Args:
             email_data: EmailData object
+            log_prefix: Prefix to add to the log message (optional)
 
         """
         # Track processing time for performance monitoring
@@ -271,7 +279,8 @@ class EmailSecurityPipeline:
 
         try:
             safe_subject = sanitize_for_logging(email_data.subject, max_length=50)
-            self.logger.info(f"Analyzing email: {safe_subject}...")
+
+            self.logger.info(f"{log_prefix}Analyzing email: {safe_subject}...")
 
             # Parallel Analysis Layer
             # Optimization: Run independent analyzers concurrently
