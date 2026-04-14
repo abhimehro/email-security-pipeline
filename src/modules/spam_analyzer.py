@@ -318,9 +318,12 @@ class SpamAnalyzer:
         # Check for hidden text (common spam technique)
         if html_body:
             # Look for text with very small font or matching background color
-            if self.HIDDEN_TEXT_PATTERN.search(html_body):
-                score += 2.0
-                indicators.append("Hidden text detected")
+            # Optimization: Fast substring pre-check avoids executing complex regex on clean HTML
+            html_lower = html_body.lower()
+            if "font-size:" in html_lower or "color:" in html_lower:
+                if self.HIDDEN_TEXT_PATTERN.search(html_body):
+                    score += 2.0
+                    indicators.append("Hidden text detected")
 
         return score, indicators
 
