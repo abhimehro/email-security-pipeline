@@ -32,3 +32,7 @@
 
 **Learning:** Using `np.mean()` on plain Python lists or very small NumPy arrays incurs significant overhead due to type checking, dispatching, and conversion. For example, `np.mean(avg_scores)` on a list of floats is ~6x slower than using native Python `sum(avg_scores) / len(avg_scores)`, and `np.mean(std)` on a 3x1 OpenCV array is ~10x slower than `float(std.sum()) / std.size`.
 **Action:** For plain Python lists or small properties where native Python operations or direct NumPy sum/size are available, avoid `np.mean()`. Use `sum(lst) / len(lst)` for lists and `float(arr.sum()) / arr.size` for small NumPy arrays to bypass the function overhead entirely.
+
+## 2024-05-20 - Optimize OpenCV Video Frame Extraction with Hybrid Seek/Grab
+**Learning:** In OpenCV, jumping to specific frames in a video using `cv2.VideoCapture.set(cv2.CAP_PROP_POS_FRAMES, frame_idx)` incurs significant decoding overhead, making it exceptionally slow for small jumps. However, sequentially skipping frames using `cap.grab()` without decoding them via `cap.retrieve()` or `cap.read()` is much faster for short distances.
+**Action:** Implemented a hybrid approach for sampling frames. If the frame jump distance is less than or equal to a defined threshold (e.g., 30 frames), use sequential `cap.grab()` calls. For larger jumps, fall back to `cap.set()`. This significantly reduces extraction time for videos sampled with smaller step sizes while maintaining efficiency for large gaps.

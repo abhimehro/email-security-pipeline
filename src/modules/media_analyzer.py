@@ -1090,15 +1090,42 @@ class MediaAuthenticityAnalyzer:
     def _extract_frames_sampled(
         self, cap, total_frames: int, step: int, max_frames: int, max_dim: int
     ) -> List[np.ndarray]:
-        """Extract frames using seeking for sampling."""
+        """Extract frames using a hybrid approach of seeking and grabbing for sampling."""
         frames = []
-        for i in range(0, total_frames, step):
-            cap.set(cv2.CAP_PROP_POS_FRAMES, i)
+        current_frame = 0
+
+        # Performance optimization:
+        # cv2.VideoCapture.set(CAP_PROP_POS_FRAMES) is slow for small forward jumps.
+        # cap.grab() is much faster for skipping a small number of frames sequentially.
+        # We use a hybrid approach: grab for small jumps (<= 30 frames), set for large jumps.
+        seek_threshold = 30
+
+        for target_frame in range(0, total_frames, step):
+            if len(frames) >= max_frames:
+                break
+
+            jump = target_frame - current_frame
+
+            if jump > seek_threshold:
+                cap.set(cv2.CAP_PROP_POS_FRAMES, target_frame)
+                current_frame = target_frame
+
+            # Skip frames using grab() if we are behind the target frame
+            while current_frame < target_frame:
+                if not cap.grab():
+                    break
+                current_frame += 1
+
+            if current_frame != target_frame:
+                break
+
             success, frame = cap.read()
             if success and frame is not None:
                 frames.append(self._resize_frame_if_needed(frame, max_dim))
-            if len(frames) >= max_frames:
+                current_frame += 1
+            else:
                 break
+
         return frames
 
     def _resize_frame_if_needed(
