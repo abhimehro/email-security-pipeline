@@ -1094,27 +1094,11 @@ class MediaAuthenticityAnalyzer:
         frames = []
         current_frame = 0
 
-        # Performance optimization:
-        # cv2.VideoCapture.set(CAP_PROP_POS_FRAMES) is slow for small forward jumps.
-        # cap.grab() is much faster for skipping a small number of frames sequentially.
-        # We use a hybrid approach: grab for small jumps (<= 30 frames), set for large jumps.
-        seek_threshold = 30
-
         for target_frame in range(0, total_frames, step):
             if len(frames) >= max_frames:
                 break
 
-            jump = target_frame - current_frame
-
-            if jump > seek_threshold:
-                cap.set(cv2.CAP_PROP_POS_FRAMES, target_frame)
-                current_frame = target_frame
-
-            # Skip frames using grab() if we are behind the target frame
-            while current_frame < target_frame:
-                if not cap.grab():
-                    break
-                current_frame += 1
+            current_frame = self._advance_to_frame(cap, current_frame, target_frame)
 
             if current_frame != target_frame:
                 break
@@ -1127,6 +1111,24 @@ class MediaAuthenticityAnalyzer:
                 break
 
         return frames
+
+    def _advance_to_frame(self, cap, current_frame: int, target_frame: int) -> int:
+        """Advance the video capture to the target frame using a hybrid approach."""
+        import cv2
+
+        seek_threshold = 30
+        jump = target_frame - current_frame
+
+        if jump > seek_threshold:
+            cap.set(cv2.CAP_PROP_POS_FRAMES, target_frame)
+            current_frame = target_frame
+
+        while current_frame < target_frame:
+            if not cap.grab():
+                break
+            current_frame += 1
+
+        return current_frame
 
     def _resize_frame_if_needed(
         self, frame: np.ndarray, max_dim: int = 1920
