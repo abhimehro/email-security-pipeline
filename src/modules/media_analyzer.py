@@ -1114,8 +1114,6 @@ class MediaAuthenticityAnalyzer:
 
     def _advance_to_frame(self, cap, current_frame: int, target_frame: int) -> int:
         """Advance the video capture to the target frame using a hybrid approach."""
-        import cv2
-
         seek_threshold = 30
         jump = target_frame - current_frame
 
