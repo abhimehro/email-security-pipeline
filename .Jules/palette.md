@@ -1,0 +1,3 @@
+## 2024-04-17 - Semantic colors and visual indicators for textual statuses
+**Learning:** In complex CLI configurations summaries, plain text indicating "Enabled" or "Disabled" state may lack visual distinctiveness, resulting in poor scanability. Combining semantic ANSI color codes (e.g., green for positive states, grey for negative states) with visual symbols ensures immediate visual recognition for accessibility.
+**Action:** Consistently pair textual statuses like "Active/Enabled" and "Disabled/None" with corresponding symbols (`✔`/`✖`) and colors (`Colors.GREEN`/`Colors.GREY`) in CLI outputs.
