@@ -146,3 +146,7 @@
 ## 2024-04-17 - Semantic colors and visual indicators for textual statuses
 **Learning:** In complex CLI configurations summaries, plain text indicating "Enabled" or "Disabled" state may lack visual distinctiveness, resulting in poor scanability. Combining semantic ANSI color codes (e.g., green for positive states, grey for negative states) with visual symbols ensures immediate visual recognition for accessibility.
 **Action:** Consistently pair textual statuses like "Active/Enabled" and "Disabled/None" with corresponding symbols (`✔`/`✖`) and colors (`Colors.GREEN`/`Colors.GREY`) in CLI outputs.
+
+## 2026-11-10 - Progress Bounds for Sequential Item Processing
+**Learning:** Sequential processing of a batch of items (like analyzing 10 emails) without indicating progress causes user anxiety, as they don't know how long the process will take or if it's stuck. Adding explicit bounds (e.g., "[1/10]") reduces this anxiety by setting clear expectations.
+**Action:** Always include explicit bounds (like `[current_index/total_items]`) in log messages when a CLI application processes a batch of items sequentially to set clear expectations and improve UX.
