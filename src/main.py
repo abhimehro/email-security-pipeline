@@ -437,7 +437,7 @@ class EmailSecurityPipeline:
             print(f"    - {Colors.GREEN}✔ Enabled{Colors.RESET}: {', '.join(channels)}")
         else:
             print(
-                f"    - {Colors.GREY}✖ Disabled{Colors.RESET}: {Colors.YELLOW}None{Colors.RESET}"
+                f"    - {Colors.GREY}✖ Enabled{Colors.RESET}: {Colors.YELLOW}None{Colors.RESET}"
             )
 
         print(f"  ⚙️ {Colors.CYAN}System:{Colors.RESET}")
