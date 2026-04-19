@@ -210,9 +210,7 @@ class AlertSystem:
         dispatched = False
         for attempt in range(self.MAX_DISPATCH_RETRIES):
             try:
-                await asyncio.wait_for(
-                    self._dispatch_alert_async(report), timeout=10.0
-                )
+                await asyncio.wait_for(self._dispatch_alert_async(report), timeout=10.0)
                 dispatched = True
                 break
             except asyncio.TimeoutError:

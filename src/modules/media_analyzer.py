@@ -1058,13 +1058,21 @@ class MediaAuthenticityAnalyzer:
                             frames.append(self._resize_frame_if_needed(frame, max_dim))
                         count += 1
                 else:
+                    current_pos = int(cap.get(cv2.CAP_PROP_POS_FRAMES))
                     for i in range(0, total_frames, step):
-                        cap.set(cv2.CAP_PROP_POS_FRAMES, i)
+                        jump = i - current_pos
+                        if 0 < jump <= 30:
+                            for _ in range(jump):
+                                cap.grab()
+                        elif jump > 30 or jump < 0:
+                            cap.set(cv2.CAP_PROP_POS_FRAMES, i)
+
                         success, frame = cap.read()
                         if success and frame is not None:
                             frames.append(self._resize_frame_if_needed(frame, max_dim))
                         if len(frames) >= max_frames:
                             break
+                        current_pos = i + 1
 
             cap.release()
         except Exception as e:
@@ -1092,13 +1100,21 @@ class MediaAuthenticityAnalyzer:
     ) -> List[np.ndarray]:
         """Extract frames using seeking for sampling."""
         frames = []
+        current_pos = int(cap.get(cv2.CAP_PROP_POS_FRAMES))
         for i in range(0, total_frames, step):
-            cap.set(cv2.CAP_PROP_POS_FRAMES, i)
+            jump = i - current_pos
+            if 0 < jump <= 30:
+                for _ in range(jump):
+                    cap.grab()
+            elif jump > 30 or jump < 0:
+                cap.set(cv2.CAP_PROP_POS_FRAMES, i)
+
             success, frame = cap.read()
             if success and frame is not None:
                 frames.append(self._resize_frame_if_needed(frame, max_dim))
             if len(frames) >= max_frames:
                 break
+            current_pos = i + 1
         return frames
 
     def _resize_frame_if_needed(
