@@ -1,6 +1,6 @@
 {
-  "title": "🎨 Palette: Ensure textual statuses in CLI output use consistent semantic colors and indicators",
-  "body": "💡 **What:** Added `Colors.GREEN`/`Colors.GREY` semantic coloring and `✔`/`✖` visual indicators to the remaining textual statuses in `src/main.py` (`deepfake_status` and `channels` output) to match existing CLI styling.\n🎯 **Why:** To improve the scanability of complex configuration summaries and make it easier to distinguish enabled vs. disabled features at a glance.\n♿ **Accessibility:** Combining distinct visual symbols with semantic text coloring prevents information loss for colorblind users and reduces cognitive load during fast visual scans.",
-  "head": "palette/semantic-cli-colors",
+  "title": "🎨 Palette: Add processing bounds to email analysis logs",
+  "body": "💡 **What:** Replaced `current_idx` and `total_emails` logging arguments with a single formatted string `log_prefix` (e.g., `[1/5] `) when analyzing batch emails.\n\n🎯 **Why:** To improve the CLI experience and reduce user anxiety by setting clear expectations on processing time when analyzing multiple emails. This also satisfies CodeScene cyclomatic complexity gates by moving the formatting logic to the caller.\n\n📸 **Before/After:** Before: Analyzed log messages lacked explicit progress bounds. After: Log messages now include `[current/total]` prefix.\n\n♿ **Accessibility:** Provides clear text-based progress context which is accessible to screen readers, instead of relying on a visual progress bar or leaving users guessing.",
+  "head": "palette/add-processing-bounds",
   "base": "main"
 }
