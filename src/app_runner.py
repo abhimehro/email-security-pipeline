@@ -158,7 +158,10 @@ class AppRunner:
 
                         fd = os.open(
                             self.config_file,
-                            os.O_WRONLY | os.O_CREAT | os.O_EXCL,
+                            os.O_WRONLY
+                            | os.O_CREAT
+                            | os.O_EXCL
+                            | getattr(os, "O_NOFOLLOW", 0),
                             0o600,
                         )
                         try:

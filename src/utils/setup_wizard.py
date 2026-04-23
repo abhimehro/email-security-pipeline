@@ -302,7 +302,11 @@ def _write_config_file(config_file: str, new_content: str) -> bool:
     try:
         # Create file with restrictive permissions (600)
         # Using os.open to set mode atomically if possible, or chmod after
-        fd = os.open(str(config_path), os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+        fd = os.open(
+            str(config_path),
+            os.O_WRONLY | os.O_CREAT | os.O_TRUNC | getattr(os, "O_NOFOLLOW", 0),
+            0o600,
+        )
 
         # os.open mode only applies to new files. If the file exists, we must explicitly set permissions.
         # Use fchmod to prevent TOCTOU vulnerabilities, falling back to chmod on Windows.
