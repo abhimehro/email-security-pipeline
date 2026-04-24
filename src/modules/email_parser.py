@@ -258,12 +258,15 @@ class EmailParser:
             # Check if this part should be treated as an attachment.
             # Security: Always check for a filename, as attackers may omit
             # the Content-Disposition header or use "inline" to bypass detection.
-            # Using bool(filename and filename.strip()) ensures empty strings aren't flagged.
-            is_attachment = "attachment" in content_disposition or bool(
-                filename and filename.strip()
+            # We also treat any non-body part as an attachment to prevent bypass.
+            is_body = content_type in ("text/plain", "text/html")
+            is_attachment = (
+                "attachment" in content_disposition
+                or bool(filename and filename.strip())
+                or (not is_body and not part.is_multipart())
             )
 
-            if not is_attachment and content_type in ("text/plain", "text/html"):
+            if not is_attachment and is_body:
                 self._process_multipart_body(
                     part, content_type, body_dict, safe_email_id
                 )
@@ -324,8 +327,12 @@ class EmailParser:
         # Check if this single part is actually an attachment.
         # Security: Single-part emails with malicious attachments might bypass
         # multipart analysis. This ensures even single-part payloads are analyzed.
-        is_attachment = "attachment" in content_disposition or bool(
-            filename and filename.strip()
+        # Treat non-text types as attachments even if filename/disposition is missing.
+        content_type = msg.get_content_type()
+        is_attachment = (
+            "attachment" in content_disposition
+            or bool(filename and filename.strip())
+            or (content_type not in ("text/plain", "text/html"))
         )
 
         if is_attachment:
