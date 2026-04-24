@@ -1,0 +1,6 @@
+{
+  "title": "🎨 Palette: Add explicit empty state for unconfigured accounts",
+  "body": "💡 What: Added an explicit 'No accounts configured' empty state to the CLI configuration summary.\n🎯 Why: Improves UX for new users by clarifying that the pipeline will idle when no accounts are provided, rather than leaving a confusing empty list.\n♿ Accessibility: Uses Colors.GREY and an explicit warning symbol (⚠) to clarify intent without clutter.",
+  "head": "palette-empty-state-ux",
+  "base": "main"
+}

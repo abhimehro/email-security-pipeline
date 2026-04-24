@@ -149,3 +149,6 @@
 ## 2024-10-24 - Explicit Progress Bounds in CLI Logging
 **Learning:** For command-line interfaces processing a batch of items sequentially, indicating progress visually reduces user anxiety. Adding a progress fraction like `[current_index/total_items]` dynamically provides clear boundaries on completion without overly polluting the log structure.
 **Action:** Always compute bounds string prefixes explicitly in callers where looping logic occurs and simply pass them as `log_prefix` to reusable methods that log progress context.
+## 2025-04-24 - Empty States in CLI Lists
+**Learning:** Displaying lists without an explicit empty state in the terminal can leave users confused about whether data is missing or the list is intentionally empty.
+**Action:** Always add an explicit, friendly empty state (e.g., "No accounts configured") with gray or yellow coloring for clear context.
