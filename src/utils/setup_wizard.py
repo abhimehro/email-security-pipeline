@@ -301,15 +301,27 @@ def _write_config_file(config_file: str, new_content: str) -> bool:
 
     try:
         # Create file with restrictive permissions (600)
-        # Using os.open to set mode atomically if possible, or chmod after
-        fd = os.open(str(config_path), os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+        # Using os.open to set mode atomically if possible, or chmod after.
+        # Include O_NOFOLLOW to prevent symlink attacks during creation/opening.
+        flags = os.O_WRONLY | os.O_CREAT | os.O_TRUNC
+        if hasattr(os, "O_NOFOLLOW"):
+            flags |= os.O_NOFOLLOW
+
+        fd = os.open(str(config_path), flags, 0o600)
 
         # os.open mode only applies to new files. If the file exists, we must explicitly set permissions.
-        # Use fchmod to prevent TOCTOU vulnerabilities, falling back to chmod on Windows.
+        # We prioritize using the file descriptor (fchmod or chmod with FD) to prevent TOCTOU
+        # vulnerabilities. Path-based chmod is only used as a final fallback on systems
+        # that don't support FD-based permission changes (like some older Windows versions).
         try:
             os.fchmod(fd, 0o600)
         except (AttributeError, OSError, NotImplementedError):
-            os.chmod(str(config_path), 0o600)
+            try:
+                # Some platforms support os.chmod(fd, mode)
+                os.chmod(fd, 0o600)
+            except (AttributeError, OSError, NotImplementedError, TypeError):
+                # Final fallback to path-based chmod
+                os.chmod(str(config_path), 0o600)
 
         with os.fdopen(fd, "w") as f:
             f.write(new_content)
