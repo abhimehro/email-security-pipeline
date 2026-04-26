@@ -28,8 +28,6 @@ class AppRunner:
 
         raw_config_file = self.args[1] if len(self.args) > 1 else ".env"
 
-        import os
-
         if "\0" in raw_config_file:
             print(
                 Colors.colorize(
@@ -39,10 +37,22 @@ class AppRunner:
             )
             sys.exit(1)
 
-        # CodeQL Path Injection Validation: Ensure path resolves securely to an absolute path.
-        # Using realpath() is a recognized pattern for path sanitization to mitigate path traversal
-        # and injection vulnerabilities in static analysis tools.
-        self.config_file = os.path.realpath(raw_config_file)
+        # Restrict config file paths to the current working directory tree.
+        base_dir = Path.cwd().resolve()
+        candidate = (base_dir / raw_config_file).resolve()
+
+        try:
+            candidate.relative_to(base_dir)
+        except ValueError:
+            print(
+                Colors.colorize(
+                    f"Error: Configuration file path must stay within '{base_dir}'.",
+                    Colors.RED,
+                )
+            )
+            sys.exit(1)
+
+        self.config_file = str(candidate)
 
     def run(self) -> None:
         """Execute the main application flow."""
