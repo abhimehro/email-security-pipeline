@@ -40,20 +40,9 @@ class AppRunner:
             sys.exit(1)
 
         # CodeQL Path Injection Validation: Ensure path resolves securely to an absolute path.
-        # This explicitly breaks the taint chain for static analysis while preserving CLI usability
-        # and cross-platform compatibility (e.g. Windows drive letters).
-        abs_path = os.path.abspath(raw_config_file)
-        if not os.path.isabs(abs_path):
-            print(
-                Colors.colorize(
-                    f"Error: Path '{raw_config_file}' cannot be securely resolved.",
-                    Colors.RED,
-                )
-            )
-            sys.exit(1)
-
-        config_path = Path(abs_path).resolve()
-        self.config_file = str(config_path)
+        # Using realpath() is a recognized pattern for path sanitization to mitigate path traversal
+        # and injection vulnerabilities in static analysis tools.
+        self.config_file = os.path.realpath(raw_config_file)
 
     def run(self) -> None:
         """Execute the main application flow."""
@@ -120,75 +109,11 @@ class AppRunner:
         """Handle missing configuration interactively (wizard or copy)."""
         print(f"Configuration file '{self.config_file}' not found.")
         try:
-            print(
-                "\n"
-                + Colors.colorize(
-                    "Would you like to run the interactive setup wizard?", Colors.CYAN
-                )
-            )
-            print(
-                Colors.colorize(
-                    "(This will help you configure your email provider)", Colors.GREY
-                )
-            )
-
-            prompt = Colors.colorize("? ", Colors.CYAN) + Colors.colorize(
-                "Run setup wizard? [Y/n] ", Colors.BOLD
-            )
-            response = input(prompt).strip().lower()
-            if response in ("", "y", "yes"):
-                if run_setup_wizard(self.config_file):
-                    sys.exit(0)
-                else:
-                    print(Colors.colorize("Setup skipped.", Colors.YELLOW))
+            self._prompt_run_wizard()
 
             # Fallback to copy only if wizard wasn't run or failed
             if not Path(self.config_file).exists():
-                prompt = Colors.colorize("? ", Colors.CYAN) + Colors.colorize(
-                    f"Create '{self.config_file}' from template without wizard? [Y/n] ",
-                    Colors.BOLD,
-                )
-                response = input(prompt).strip().lower()
-                if response in ("", "y", "yes"):
-                    try:
-                        import os
-
-                        with open(".env.example", "rb") as src:
-                            content = src.read()
-
-                        flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL
-                        if hasattr(os, "O_NOFOLLOW"):
-                            flags |= os.O_NOFOLLOW
-
-                        fd = os.open(
-                            self.config_file,
-                            flags,
-                            0o600,
-                        )
-                        try:
-                            os.fchmod(fd, 0o600)
-                        except (AttributeError, OSError, NotImplementedError):
-                            try:
-                                # Some platforms support os.chmod(fd, mode)
-                                os.chmod(fd, 0o600)
-                            except (AttributeError, OSError, NotImplementedError, TypeError):
-                                # Final fallback to path-based chmod
-                                os.chmod(self.config_file, 0o600)
-
-                        with os.fdopen(fd, "wb") as dst:
-                            dst.write(content)
-
-                        print(f"Created '{self.config_file}' from '.env.example'.")
-                        print(
-                            "IMPORTANT: Please edit .env with your actual credentials before proceeding."
-                        )
-                        sys.exit(0)
-                    except Exception as e:
-                        print(f"Error creating file: {e}")
-                        sys.exit(1)
-                else:
-                    print("Please create a .env file based on .env.example")
-                    sys.exit(1)
+                self._prompt_create_from_template()
         except KeyboardInterrupt:
             warning = Colors.colorize("⚠", Colors.YELLOW)
             message = Colors.colorize(
@@ -257,6 +182,93 @@ class AppRunner:
                     f"Warning: Could not validate configuration: {e}", Colors.YELLOW
                 )
             )
+
+    def _prompt_run_wizard(self) -> None:
+        """Prompt the user to run the setup wizard."""
+        print(
+            "\n"
+            + Colors.colorize(
+                "Would you like to run the interactive setup wizard?", Colors.CYAN
+            )
+        )
+        print(
+            Colors.colorize(
+                "(This will help you configure your email provider)", Colors.GREY
+            )
+        )
+
+        prompt = Colors.colorize("? ", Colors.CYAN) + Colors.colorize(
+            "Run setup wizard? [Y/n] ", Colors.BOLD
+        )
+        response = input(prompt).strip().lower()
+        if response in ("", "y", "yes"):
+            if run_setup_wizard(self.config_file):
+                sys.exit(0)
+            else:
+                print(Colors.colorize("Setup skipped.", Colors.YELLOW))
+
+    def _prompt_create_from_template(self) -> None:
+        """Prompt the user to create a configuration file from the template."""
+        prompt = Colors.colorize("? ", Colors.CYAN) + Colors.colorize(
+            f"Create '{self.config_file}' from template without wizard? [Y/n] ",
+            Colors.BOLD,
+        )
+        response = input(prompt).strip().lower()
+        if response in ("", "y", "yes"):
+            try:
+                self._create_config_from_template()
+                sys.exit(0)
+            except Exception as e:
+                print(f"Error creating file: {e}")
+                sys.exit(1)
+        else:
+            print("Please create a .env file based on .env.example")
+            sys.exit(1)
+
+    def _create_config_from_template(self) -> None:
+        """Create the configuration file from .env.example with secure permissions."""
+        import os
+
+        with open(".env.example", "rb") as src:
+            content = src.read()
+
+        flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL
+        if hasattr(os, "O_NOFOLLOW"):
+            flags |= os.O_NOFOLLOW
+
+        fd = os.open(
+            self.config_file,
+            flags,
+            0o600,
+        )
+        try:
+            self._set_secure_permissions(fd)
+
+            with os.fdopen(fd, "wb") as dst:
+                dst.write(content)
+
+            print(f"Created '{self.config_file}' from '.env.example'.")
+            print(
+                "IMPORTANT: Please edit .env with your actual credentials before proceeding."
+            )
+        except Exception:
+            os.close(fd)
+            raise
+
+    def _set_secure_permissions(self, fd: int) -> None:
+        """Set restrictive permissions (0o600) on a file descriptor with fallback."""
+        import os
+
+        # Prioritize using the file descriptor to prevent TOCTOU vulnerabilities.
+        try:
+            os.fchmod(fd, 0o600)
+        except (AttributeError, OSError, NotImplementedError):
+            try:
+                # Some platforms support os.chmod(fd, mode)
+                os.chmod(fd, 0o600)
+            except (AttributeError, OSError, NotImplementedError, TypeError):
+                # Final fallback to path-based chmod (e.g. Windows)
+                os.chmod(self.config_file, 0o600)
 
     def start_pipeline(self) -> None:
         """Instantiate and start the main pipeline."""
