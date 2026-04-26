@@ -293,6 +293,7 @@
 **Merged pull requests:**
 
 - Fix formatting issues \(Jules Daily QA\) [\#728](https://github.com/abhimehro/email-security-pipeline/pull/728) ([abhimehro](https://github.com/abhimehro))
+- autofix\(\): PR 0 \(cycle 1\) -- fix black formatting in main.py, test\_caching.py, and test\_setup\_wizard.py [\#727](https://github.com/abhimehro/email-security-pipeline/pull/727) ([abhimehro](https://github.com/abhimehro))
 - docs: record development environment setup [\#725](https://github.com/abhimehro/email-security-pipeline/pull/725) ([abhimehro](https://github.com/abhimehro))
 - Sentinel fix symlink attacks 1790347126622582166 [\#724](https://github.com/abhimehro/email-security-pipeline/pull/724) ([abhimehro](https://github.com/abhimehro))
 - fix\(media\_analyzer\): revert PR \#693 \(corrupted JSON-encoded blob\) — unblocks pytest on main [\#723](https://github.com/abhimehro/email-security-pipeline/pull/723) ([abhimehro](https://github.com/abhimehro))
