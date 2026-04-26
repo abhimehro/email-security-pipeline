@@ -2,6 +2,7 @@ import unittest
 import time
 from src.utils.caching import TTLCache
 
+
 class TestTTLCache(unittest.TestCase):
     def setUp(self):
         self.cache = TTLCache(max_size=10, ttl_seconds=3600)
@@ -14,7 +15,12 @@ class TestTTLCache(unittest.TestCase):
 
     def test_initialization_invalid(self):
         """Test TTLCache initialization with invalid parameters."""
-        for params in [{"max_size": 0}, {"max_size": -1}, {"ttl_seconds": 0}, {"ttl_seconds": -1}]:
+        for params in [
+            {"max_size": 0},
+            {"max_size": -1},
+            {"ttl_seconds": 0},
+            {"ttl_seconds": -1},
+        ]:
             with self.subTest(params=params):
                 with self.assertRaises(ValueError):
                     TTLCache(**params)
@@ -81,6 +87,7 @@ class TestTTLCache(unittest.TestCase):
         self.cache.put("a", 1)
         self.cache.clear()
         self.assertEqual(len(self.cache), 0)
+
 
 if __name__ == "__main__":
     unittest.main()

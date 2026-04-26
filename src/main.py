@@ -184,9 +184,7 @@ class EmailSecurityPipeline:
                 # pipeline shutdown is not indefinitely blocked by long-running
                 # or stuck deepfake analysis tasks.
                 try:
-                    shutdown_executor = ThreadPoolExecutor(
-                        max_workers=1
-                    )
+                    shutdown_executor = ThreadPoolExecutor(max_workers=1)
                     future = shutdown_executor.submit(self.media_analyzer.shutdown)
                     try:
                         # Allow a short grace period for a clean shutdown.
