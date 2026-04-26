@@ -408,9 +408,9 @@ class EmailSecurityPipeline:
         else:
             for account in self.config.email_accounts:
                 status = (
-                    f"{Colors.GREEN}✔ Active{Colors.RESET}"
+                    Colors.colorize("✔ Active", Colors.GREEN)
                     if account.enabled
-                    else f"{Colors.GREY}✖ Disabled{Colors.RESET}"
+                    else Colors.colorize("✖ Disabled", Colors.GREY)
                 )
                 print(f"    - {account.provider.title()}: {account.email} ({status})")
 
