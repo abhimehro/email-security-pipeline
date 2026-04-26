@@ -304,8 +304,8 @@ def _write_config_file(config_file: str, new_content: str) -> bool:
         # Using os.open to set mode atomically if possible, or chmod after
         flags = os.O_WRONLY | os.O_CREAT | os.O_TRUNC | getattr(os, "O_NOFOLLOW", 0)
         fd = os.open(
-            str(config_path),
-            flags,
+            abs_path,
+            os.O_WRONLY | os.O_CREAT | os.O_TRUNC | getattr(os, "O_NOFOLLOW", 0),
             0o600,
         )
 
