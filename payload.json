@@ -1,6 +1,0 @@
-{
-  "title": "🧹 Code health: Refactor imports and fix lint issues in src/main.py",
-  "body": "### 🎯 What:\n- Refactored `src/main.py` to use specific imports from `concurrent.futures` (`ThreadPoolExecutor`, `TimeoutError`) instead of the entire module.\n- Moved the module-level import `from src.app_runner import AppRunner` to the top of the file to comply with PEP 8 (E402).\n- Removed an unnecessary `f` prefix from a static string (F541).\n\n### 💡 Why:\n- Improves readability and follows modern Python practices by using explicit imports.\n- Resolves pre-existing lint issues identified by `ruff`.\n- Ensures the codebase adheres to standard PEP 8 import ordering.\n\n### ✅ Verification:\n- Verified that `concurrent.futures` was NOT actually unused (the original issue report was a false positive), so explicit imports were used to maintain functionality.\n- Ran `ruff check src/main.py` and confirmed all checks pass.\n- Verified that `src/main.py` remains importable and syntactically correct.\n\n### ✨ Result:\n- Cleaner, more idiomatic code in the main orchestrator with zero lint warnings.",
-  "head": "code-health-main-py-imports",
-  "base": "main"
-}
