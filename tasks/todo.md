@@ -28,3 +28,9 @@
 - [x] Split logic into `_validate_signature_match` and `_validate_missing_signature` helper methods
 - [x] Validate refactored logic with existing tests suite `PYTHONPATH=. pytest tests/`
 - [x] Commit with ELIR summary message
+
+## Phase 5: Development Environment Setup (Current Task)
+- [x] Install lightweight development dependencies from `requirements-ci.txt`
+- [x] Run `python3 -m pytest` to verify the local test environment
+- [x] Run `python3 src/main.py` to demonstrate application startup behavior
+- [x] Configure Cursor Cloud startup dependency refresh for future sessions
