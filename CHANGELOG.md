@@ -291,6 +291,7 @@
 
 **Merged pull requests:**
 
+- docs: record development environment setup [\#725](https://github.com/abhimehro/email-security-pipeline/pull/725) ([abhimehro](https://github.com/abhimehro))
 - Sentinel fix symlink attacks 1790347126622582166 [\#724](https://github.com/abhimehro/email-security-pipeline/pull/724) ([abhimehro](https://github.com/abhimehro))
 - fix\(media\_analyzer\): revert PR \#693 \(corrupted JSON-encoded blob\) — unblocks pytest on main [\#723](https://github.com/abhimehro/email-security-pipeline/pull/723) ([abhimehro](https://github.com/abhimehro))
 - 🛡️ Sentinel: \[Critical\] Handle missing filenames to prevent analysis bypass [\#721](https://github.com/abhimehro/email-security-pipeline/pull/721) ([abhimehro](https://github.com/abhimehro))
