@@ -285,38 +285,55 @@ def _write_config_file(config_file: str, new_content: str) -> bool:
         )
         return False
 
-    # CodeQL Path Injection Validation: Ensure path resolves securely to an absolute path.
-    # This explicitly breaks the taint chain for static analysis while preserving CLI usability
-    # and cross-platform compatibility (e.g. Windows drive letters).
-    abs_path = os.path.abspath(config_file)
-    if not os.path.isabs(abs_path):
+    # Restrict writes to files in the current working directory by accepting
+    # only a plain filename (no directory components).
+    candidate_name = Path(config_file).name
+    if (
+        not candidate_name
+        or candidate_name in (".", "..")
+        or candidate_name != config_file
+    ):
         print(
             Colors.colorize(
-                f"Error: Path '{config_file}' cannot be securely resolved.", Colors.RED
+                f"Error: Unsafe configuration file path '{config_file}'. Use a filename only.",
+                Colors.RED,
             )
         )
         return False
 
-    config_path = Path(abs_path).resolve()
+    config_path = (Path.cwd() / candidate_name).resolve()
 
     try:
         # Create file with restrictive permissions (600)
         # Using os.open to set mode atomically if possible, or chmod after
-        fd = os.open(str(config_path), os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+        fd = os.open(
+            str(config_path),
+            os.O_WRONLY | os.O_CREAT | os.O_TRUNC | getattr(os, "O_NOFOLLOW", 0),
+            0o600,
+        )
 
         # os.open mode only applies to new files. If the file exists, we must explicitly set permissions.
-        # Use fchmod to prevent TOCTOU vulnerabilities, falling back to chmod on Windows.
+        # We prioritize using the file descriptor (fchmod or chmod with FD) to prevent TOCTOU
+        # vulnerabilities. Path-based chmod is only used as a final fallback on systems
+        # that don't support FD-based permission changes (like some older Windows versions).
         try:
             os.fchmod(fd, 0o600)
         except (AttributeError, OSError, NotImplementedError):
-            os.chmod(str(config_path), 0o600)
+            try:
+                # Some platforms support os.chmod(fd, mode)
+                os.chmod(fd, 0o600)
+            except (AttributeError, OSError, NotImplementedError, TypeError):
+                # Final fallback to path-based chmod
+                os.chmod(str(config_path), 0o600)
 
         with os.fdopen(fd, "w") as f:
             f.write(new_content)
 
         print(
             "\n"
-            + Colors.colorize(f"✔ Configuration saved to {config_file}", Colors.GREEN)
+            + Colors.colorize(
+                f"✔ Configuration saved to {str(config_path)}", Colors.GREEN
+            )
         )
         return True
     except Exception as e:

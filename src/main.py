@@ -239,7 +239,7 @@ class EmailSecurityPipeline:
                     total_emails = len(emails)
                     for i, email_data in enumerate(emails, 1):
                         self._analyze_email(
-                            email_data, current_idx=i, total_emails=total_emails
+                            email_data, log_prefix=f"[{i}/{total_emails}] "
                         )
 
                 # Log metrics summary periodically (every 10 iterations)
@@ -403,13 +403,18 @@ class EmailSecurityPipeline:
 
         # Accounts
         print(f"  📧 {Colors.CYAN}Monitored Accounts:{Colors.RESET}")
-        for account in self.config.email_accounts:
-            status = (
-                f"{Colors.GREEN}✔ Active{Colors.RESET}"
-                if account.enabled
-                else f"{Colors.GREY}✖ Disabled{Colors.RESET}"
+        if not self.config.email_accounts:
+            print(
+                f"    - {Colors.colorize('⚠ No accounts configured (Pipeline will idle)', Colors.GREY)}"
             )
-            print(f"    - {account.provider.title()}: {account.email} ({status})")
+        else:
+            for account in self.config.email_accounts:
+                status = (
+                    Colors.colorize("✔ Active", Colors.GREEN)
+                    if account.enabled
+                    else Colors.colorize("✖ Disabled", Colors.GREY)
+                )
+                print(f"    - {account.provider.title()}: {account.email} ({status})")
 
         # Analysis
         print(f"  🔍 {Colors.CYAN}Analysis Layers:{Colors.RESET}")
@@ -428,9 +433,9 @@ class EmailSecurityPipeline:
             else f"{Colors.GREY}✖ Disabled{Colors.RESET}"
         )
         deepfake_status = (
-            "✔ Enabled"
+            f"{Colors.GREEN}✔ Enabled{Colors.RESET}"
             if self.config.analysis.deepfake_detection_enabled
-            else "✖ Disabled"
+            else f"{Colors.GREY}✖ Disabled{Colors.RESET}"
         )
         print(f"    - Media Check:      {media_status} (Deepfake: {deepfake_status})")
 
@@ -445,15 +450,21 @@ class EmailSecurityPipeline:
             channels.append("Slack")
 
         if channels:
-            print(f"    - ✔ Enabled: {', '.join(channels)}")
+            print(f"    - {Colors.GREEN}✔ Enabled{Colors.RESET}: {', '.join(channels)}")
         else:
-            print(f"    - ✖ Enabled: {Colors.YELLOW}None{Colors.RESET}")
+            print(
+                f"    - {Colors.GREY}✖ Disabled{Colors.RESET}: {Colors.YELLOW}None{Colors.RESET}"
+            )
 
         print(f"  ⚙️ {Colors.CYAN}System:{Colors.RESET}")
         print(f"    - Log Level:  {self.config.system.log_level}")
         print(f"    - Log Format: {self.config.system.log_format}")
-        if self.config.system.enable_metrics:
-            print(f"    - Metrics:    {Colors.GREEN}✔ Enabled{Colors.RESET}")
+        metrics_status = (
+            Colors.colorize("✔ Enabled", Colors.GREEN)
+            if self.config.system.enable_metrics
+            else Colors.colorize("✖ Disabled", Colors.GREY)
+        )
+        print(f"    - Metrics:    {metrics_status}")
         print(f"    - Interval:   {self.config.system.check_interval}s")
 
         # Documentation footer

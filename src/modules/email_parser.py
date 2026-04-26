@@ -251,31 +251,52 @@ class EmailParser:
                 )
                 break
 
-            content_type = part.get_content_type()
-            content_disposition = str(part.get("Content-Disposition", ""))
-            filename = part.get_filename()
-
-            # Check if this part should be treated as an attachment.
-            # Security: Always check for a filename, as attackers may omit
-            # the Content-Disposition header or use "inline" to bypass detection.
-            # Using bool(filename and filename.strip()) ensures empty strings aren't flagged.
-            is_attachment = "attachment" in content_disposition or bool(
-                filename and filename.strip()
+            current_total_size = self._process_multipart_part(
+                part, body_dict, attachments, current_total_size, safe_email_id
             )
-
-            if not is_attachment and content_type in ("text/plain", "text/html"):
-                self._process_multipart_body(
-                    part, content_type, body_dict, safe_email_id
-                )
-            elif is_attachment:
-                current_total_size = self._process_multipart_attachment(
-                    part, attachments, current_total_size, safe_email_id
-                )
 
         # Join accumulated parts
         body_text = "".join(body_dict["text_parts"])
         body_html = "".join(body_dict["html_parts"])
         return body_text, body_html, attachments
+
+    def _is_attachment(self, part: Message) -> bool:
+        """
+        Determine if a MIME part should be treated as an attachment.
+
+        SECURITY STORY: Attackers may omit Content-Disposition or filenames
+        to bypass analysis. We treat any non-body leaf part as an attachment.
+        """
+        content_type = part.get_content_type()
+        content_disposition = str(part.get("Content-Disposition", ""))
+        filename = part.get_filename()
+
+        is_body = content_type in ("text/plain", "text/html")
+        return (
+            "attachment" in content_disposition
+            or bool(filename and filename.strip())
+            or (not is_body and not part.is_multipart())
+        )
+
+    def _process_multipart_part(
+        self,
+        part: Message,
+        body_dict: Dict[str, Any],
+        attachments: List[Dict[str, Any]],
+        current_total_size: int,
+        safe_email_id: str,
+    ) -> int:
+        """Process a single MIME part in a multipart email."""
+        content_type = part.get_content_type()
+
+        if self._is_attachment(part):
+            return self._process_multipart_attachment(
+                part, attachments, current_total_size, safe_email_id
+            )
+        elif content_type in ("text/plain", "text/html"):
+            self._process_multipart_body(part, content_type, body_dict, safe_email_id)
+
+        return current_total_size
 
     def _process_multipart_body(
         self,
@@ -318,17 +339,10 @@ class EmailParser:
         }
         attachments = []
 
-        content_disposition = str(msg.get("Content-Disposition", ""))
-        filename = msg.get_filename()
-
         # Check if this single part is actually an attachment.
         # Security: Single-part emails with malicious attachments might bypass
         # multipart analysis. This ensures even single-part payloads are analyzed.
-        is_attachment = "attachment" in content_disposition or bool(
-            filename and filename.strip()
-        )
-
-        if is_attachment:
+        if self._is_attachment(msg):
             self._process_singlepart_attachment(msg, attachments, safe_email_id)
         else:
             self._process_singlepart_body(msg, body_dict, safe_email_id)
