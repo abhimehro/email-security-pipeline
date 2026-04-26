@@ -313,11 +313,18 @@ def _write_config_file(config_file: str, new_content: str) -> bool:
         )
 
         # os.open mode only applies to new files. If the file exists, we must explicitly set permissions.
-        # Use fchmod to prevent TOCTOU vulnerabilities, falling back to chmod on Windows.
+        # We prioritize using the file descriptor (fchmod or chmod with FD) to prevent TOCTOU
+        # vulnerabilities. Path-based chmod is only used as a final fallback on systems
+        # that don't support FD-based permission changes (like some older Windows versions).
         try:
             os.fchmod(fd, 0o600)
         except (AttributeError, OSError, NotImplementedError):
-            os.chmod(str(config_path), 0o600)
+            try:
+                # Some platforms support os.chmod(fd, mode)
+                os.chmod(fd, 0o600)
+            except (AttributeError, OSError, NotImplementedError, TypeError):
+                # Final fallback to path-based chmod
+                os.chmod(str(config_path), 0o600)
 
         with os.fdopen(fd, "w") as f:
             f.write(new_content)
