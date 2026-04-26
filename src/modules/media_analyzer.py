@@ -1,1 +1,1380 @@
-"""\nLayer 3: Media Authenticity Verification\nAnalyzes attachments for synthetic content and deepfakes.\n"""\n\nimport concurrent.futures\nimport io\nimport logging\nimport os\nimport tarfile\nimport tempfile\nimport zipfile\nfrom dataclasses import dataclass\nfrom typing import List, Optional, Tuple\n\nimport cv2\nimport numpy as np\n\nfrom ..utils.sanitization import sanitize_for_logging\nfrom ..utils.security_validators import sanitize_filename\nfrom ..utils.threat_scoring import calculate_risk_level\nfrom .email_data import EmailData\n\n\n@dataclass\nclass MediaAnalysisResult:\n    \"\"\"Result of media analysis.\"\"\"\n\n    threat_score: float\n    suspicious_attachments: List[str]\n    file_type_warnings: List[str]\n    size_anomalies: List[str]\n    potential_deepfakes: List[str]\n    risk_level: str\n\n\nclass MediaAuthenticityAnalyzer:\n    \"\"\"Analyzes media attachments for authenticity and threats.\"\"\"\n\n    # Dangerous file extensions\n    # Optimization: Using tuples instead of lists allows for fast C-level execution\n    # with `str.endswith()` instead of slow Python-level `for` loops.\n    DANGEROUS_EXTENSIONS = (\n        \".exe\",\n        \".bat\",\n        \".cmd\",\n        \".com\",\n        \".pif\",\n        \".scr\",\n        \".vbs\",\n        \".js\",\n        \".jar\",\n        \".msi\",\n        \".dll\",\n        \".hta\",\n        \".wsf\",\n        \".ps1\",\n        \".sh\",\n        \".bash\",\n        \".app\",\n        \".php\",\n        \".php3\",\n        \".php4\",\n        \".php5\",\n        \".phtml\",\n        \".pl\",\n        \".py\",\n        \".rb\",\n        \".asp\",\n        \".aspx\",\n        \".jsp\",\n        \".jspx\",\n        \".cgi\",\n        # Added missing dangerous extensions\n        \".vbe\",\n        \".jse\",\n        \".wsh\",\n        \".scf\",\n        \".lnk\",\n        \".inf\",\n        \".reg\",\n        \".iso\",\n        \".img\",\n        \".vhd\",\n        \".vhdx\",\n    )\n\n    # Suspicious file extensions (commonly used for disguise)\n    SUSPICIOUS_EXTENSIONS = (\n        \".pdf.exe\",\n        \".doc.exe\",\n        \".jpg.exe\",\n        \".zip.exe\",\n        \".docm\",\n        \".xlsm\",\n        \".pptm\",\n        \".dotm\",  # Macro-enabled Office files\n        \".html\",\n        \".htm\",\n        \".svg\",  # Web content (potential Phishing/XSS)\n    )\n\n    # Audio/video file extensions for deepfake detection\n    # Optimization: Using tuples instead of lists allows for fast C-level execution\n    # with `str.endswith()` instead of slow Python-level `for` loops.\n    MEDIA_EXTENSIONS = (\n        \".mp4\",\n        \".avi\",\n        \".mov\",\n        \".wmv\",\n        \".flv\",\n        \".mkv\",\n        \".mp3\",\n        \".wav\",\n        \".aac\",\n        \".flac\",\n        \".ogg\",\n        \".m4a\",\n    )\n\n    MAX_NESTED_ZIP_SIZE = 10 * 1024 * 1024  # 10MB limit for nested zips\n    HIGH_FREQ_NOISE_THRESHOLD = 150  # Arbitrary threshold for high frequency noise\n\n    # Maximum attachment size (in MB) before flagging as a size anomaly.\n    # This heuristic catches potential data-exfiltration payloads that exceed\n    # the typical email attachment ceiling.\n    MAX_ATTACHMENT_SIZE_MB = 25\n\n    # Maximum number of files allowed inside a ZIP archive before flagging it.\n    # Limits analysis work and catches zip-bomb style payloads.\n    MAX_ZIP_FILE_COUNT = 1000\n\n    # Minimum size (bytes) for media files; files smaller than this are suspicious.\n    MIN_MEDIA_FILE_SIZE_BYTES = 1024  # 1KB\n\n    # Archive extensions used for nested archive detection\n    # Optimization: Using tuples instead of sets allows for fast C-level execution\n    # with `str.endswith()` instead of slow Python-level `for` loops.\n    ARCHIVE_EXTENSIONS = (\n        \".zip\",\n        \".rar\",\n        \".7z\",\n        \".tar\",\n        \".gz\",\n        \".iso\",\n        \".img\",\n        \".vhd\",\n        \".vhdx\",\n    )\n\n    # Risk level thresholds for media threat scoring\n    MEDIA_RISK_LOW_THRESHOLD = 2.0\n    MEDIA_RISK_HIGH_THRESHOLD = 5.0\n\n    # Magic signatures with offset 0 for fast C-level `startswith` checks\n    # Optimization: Grouping signatures by offset and using a tuple allows\n    # `bytes.startswith` to execute in C, bypassing Python loop overhead.\n    MAGIC_SIGNATURES_OFFSET_0 = (\n        (b\"%PDF\", \"pdf\"),\n        (b\"PK\\x03\\x04\", \"zip\"),\n        (b\"\\xff\\xd8\\xff\", \"jpeg\"),\n        (b\"\\x89PNG\", \"png\"),\n        (b\"GIF8\", \"gif\"),\n        (b\"MZ\", \"exe\"),\n        (b\"\\xd0\\xcf\\x11\\xe0\", \"doc\"),\n        (b\"\\x1a\\x45\\xdf\\xa3\", \"mkv\"),\n        (b\"ID3\", \"mp3\"),\n        (b\"\\xff\\xfb\", \"mp3\"),\n        (b\"\\xff\\xf3\", \"mp3\"),\n        (b\"\\xff\\xf2\", \"mp3\"),\n        (b\"\\x30\\x26\\xb2\\x75\\x8e\\x66\\xcf\\x11\", \"wmv\"),\n        (b\"FLV\", \"flv\"),\n        (b\"OggS\", \"ogg\"),\n        (b\"fLaC\", \"flac\"),\n    )\n\n    # Tuple of just the byte prefixes for fast `startswith` check\n    MAGIC_PREFIXES_OFFSET_0 = tuple(sig for sig, _ in MAGIC_SIGNATURES_OFFSET_0)\n\n    # Expected extensions for content type mismatch checking\n    # Optimization: Moving this dictionary to the class level avoids re-creating\n    # it on every file check, and using tuples allows fast C-level str.endswith()\n    EXPECTED_EXTENSIONS = {\n        \"pdf\": (\".pdf\",),\n        \"zip\": (\".zip\", \".docx\", \".xlsx\", \".pptx\", \".jar\"),\n        \"jpeg\": (\".jpg\", \".jpeg\"),\n        \"png\": (\".png\",),\n        \"gif\": (\".gif\",),\n        \"doc\": (\".doc\", \".xls\", \".ppt\", \".msi\"),\n        \"exe\": (\".exe\",),\n        \"mp4\": (\".mp4\", \".mov\", \".m4a\", \".3gp\"),\n        \"avi\": (\".avi\",),\n        \"wav\": (\".wav\",),\n        \"mp3\": (\".mp3\",),\n        \"mkv\": (\".mkv\", \".webm\"),\n        \"webp\": (\".webp\",),\n        \"wmv\": (\".wmv\",),\n        \"flv\": (\".flv\",),\n        \"ogg\": (\".ogg\", \".oga\", \".ogv\", \".ogx\"),\n        \"flac\": (\".flac\",),\n    }\n\n    def __init__(self, config):\n        \"\"\"\n        Initialize media analyzer.\n\n        Args:\n            config: AnalysisConfig object\n\n        \"\"\"\n        self.config = config\n        self.logger = logging.getLogger(\"MediaAuthenticityAnalyzer\")\n        self.face_cascade = None\n        # Optimization: Reuse thread pool for deepfake detection to avoid overhead\n        self._deepfake_executor = concurrent.futures.ThreadPoolExecutor()\n\n    def analyze(self, email_data: EmailData) -> MediaAnalysisResult:\n        \"\"\"\n        Analyze email attachments for threats.\n\n        Args:\n            email_data: Email with attachments to analyze\n\n        Returns:\n            MediaAnalysisResult\n\n        \"\"\"\n        if not self.config.check_media_attachments or not email_data.attachments:\n            return MediaAnalysisResult(\n                threat_score=0.0,\n                suspicious_attachments=[],\n                file_type_warnings=[],\n                size_anomalies=[],\n                potential_deepfakes=[],\n                risk_level=\"low\",\n            )\n\n        threat_score = 0.0\n        suspicious_attachments = []\n        file_type_warnings = []\n        size_anomalies = []\n        potential_deepfakes = []\n\n        for attachment in email_data.attachments:\n            # Analyze metadata and basic file properties\n            meta_results = self._analyze_attachment_metadata(attachment)\n\n            # Aggregate results\n            threat_score += meta_results[\"score\"]\n            size_anomalies.extend(meta_results[\"size_anomalies\"])\n            file_type_warnings.extend(meta_results[\"file_type_warnings\"])\n            suspicious_attachments.extend(meta_results[\"suspicious_attachments\"])\n\n            filename = attachment.get(\"filename\", \"\")\n            data = attachment.get(\"data\", b\"\")\n            content_type = attachment.get(\"content_type\", \"\")\n\n            # Check for potential deepfakes\n            # Only proceed if the file hasn't already been flagged as dangerous/suspicious (score >= 5.0)\n            if self.config.deepfake_detection_enabled and threat_score < 5.0:\n                deepfake_results = self._analyze_deepfake_threat(\n                    filename, data, content_type\n                )\n                threat_score += deepfake_results[\"score\"]\n                potential_deepfakes.extend(deepfake_results[\"indicators\"])\n                size_anomalies.extend(deepfake_results[\"errors\"])\n\n        # Calculate risk level\n        risk_level = self._calculate_risk_level(threat_score)\n\n        self.logger.debug(\n            f\"Media analysis complete: {len(email_data.attachments)} attachments, \"\n            f\"score={threat_score:.2f}, risk={risk_level}\"\n        )\n\n        return MediaAnalysisResult(\n            threat_score=threat_score,\n            suspicious_attachments=suspicious_attachments,\n            file_type_warnings=file_type_warnings,\n            size_anomalies=size_anomalies,\n            potential_deepfakes=potential_deepfakes,\n            risk_level=risk_level,\n        )\n\n    def _analyze_attachment_metadata(self, attachment: dict) -> dict:\n        \"\"\"\n        Analyze attachment metadata and basic properties.\n        Returns a dict with scores and warnings.\n        \"\"\"\n        filename = attachment.get(\"filename\", \"\")\n        content_type = attachment.get(\"content_type\", \"\")\n        data = attachment.get(\"data\", b\"\")\n\n        score = 0.0\n        suspicious_attachments = []\n        file_type_warnings = []\n        size_anomalies = []\n\n        safe_filename = sanitize_for_logging(filename)\n        safe_filename = sanitize_filename(safe_filename)\n\n        # Check file size\n        file_size_mb = len(data) / (1024 * 1024)\n        if file_size_mb > self.MAX_ATTACHMENT_SIZE_MB:\n            score += 1.0\n            size_anomalies.append(\n                f\"Large attachment: {safe_filename} ({file_size_mb:.1f}MB)\"\n            )\n\n        # Check for dangerous extensions\n        if filename.lower().endswith(self.DANGEROUS_EXTENSIONS):\n            score += 3.0\n            suspicious_attachments.append(safe_filename)\n            file_type_warnings.append(f\"Dangerous file type: {safe_filename}\")\n\n        # Check for suspicious extensions\n        elif filename.lower().endswith(self.SUSPICIOUS_EXTENSIONS):\n            score += 1.5\n            suspicious_attachments.append(safe_filename)\n            file_type_warnings.append(f\"Suspicious file type: {safe_filename}\")\n\n        # Check for content type mismatch\n        detected_type = self._detect_file_type(data)\n        if detected_type and not filename.lower().endswith(\n            self.EXPECTED_EXTENSIONS.get(detected_type, ())\n        ):\n            score += 2.0\n            file_type_warnings.append(\n                f\"Content type mismatch: {safe_filename} (detected: {detected_type})\"\n            )\n\n        # Flag small media files\n        if filename.lower().endswith(self.MEDIA_EXTENSIONS):\n            if len(data) < self.MIN_MEDIA_FILE_SIZE_BYTES:\n                score += 0.5\n                size_anomalies.append(\n                    f\"Unusually small media file: {safe_filename} ({len(data)} bytes)\"\n                )\n\n        return {\n            \"score\": score,\n            \"suspicious_attachments\": suspicious_attachments,\n            \"file_type_warnings\": file_type_warnings,\n            \"size_anomalies\": size_anomalies,\n        }\n\n    def _detect_file_type(self, data: bytes) -> Optional[str]:\n        \"\"\"\n        Detect file type from magic bytes.\n\n        Args:\n            data: File data bytes\n\n        Returns:\n            Detected file type string or None\n\n        \"\"\"\n        if not data:\n            return None\n\n        # Optimization: Fast C-level check using bytes.startswith(tuple).\n        # Python implements startswith(tuple) in C, which is significantly faster\n        # than a Python-level for loop over each signature.\n        if data.startswith(self.MAGIC_PREFIXES_OFFSET_0):\n            for sig, file_type in self.MAGIC_SIGNATURES_OFFSET_0:\n                if data.startswith(sig):\n                    return file_type\n\n        # Check for WAV (RIFF....WAVE at offset 0 and 8)\n        if len(data) >= 12 and data[:4] == b\"RIFF\" and data[8:12] == b\"WAVE\":\n            return \"wav\"\n\n        # Check for MP4/MOV (ftyp box at offset 4)\n        if len(data) >= 8 and data[4:8] == b\"ftyp\":\n            return \"mp4\"\n\n        # Check for AVI (RIFF....AVI  at offset 0 and 8)\n        if len(data) >= 12 and data[:4] == b\"RIFF\" and data[8:12] == b\"AVI \":\n            return \"avi\"\n\n        # Check for WebP (RIFF....WEBP at offset 0 and 8)\n        if len(data) >= 12 and data[:4] == b\"RIFF\" and data[8:12] == b\"WEBP\":\n            return \"webp\"\n\n        return None\n\n    def _analyze_deepfake_threat(\n        self, filename: str, data: bytes, content_type: str\n    ) -> dict:\n        \"\"\"\n        Analyze media file for potential deepfake content.\n\n        Args:\n            filename: Attachment filename\n            data: Attachment data\n            content_type: MIME content type\n\n        Returns:\n            dict with score and indicators\n\n        \"\"\"\n        score = 0.0\n        indicators = []\n        errors = []\n\n        # Only analyze video files\n        if not filename.lower().endswith((\".mp4\", \".avi\", \".mov\", \".wmv\", \".flv\", \".mkv\")):\n            return {\"score\": score, \"indicators\": indicators, \"errors\": errors}\n\n        try:\n            # Write to temp file for OpenCV processing\n            with tempfile.NamedTemporaryFile(\n                suffix=os.path.splitext(filename)[1], delete=False\n            ) as tmp:\n                tmp.write(data)\n                tmp_path = tmp.name\n\n            try:\n                # Extract frames for analysis\n                frames = self._extract_frames_from_video(\n                    tmp_path, max_frames=self.config.media_analysis_timeout\n                )\n\n                if frames:\n                    # Convert to grayscale for analysis\n                    gray_frames = [cv2.cvtColor(f, cv2.COLOR_BGR2GRAY) for f in frames]\n\n                    # Run analysis checks\n                    facial_score, facial_issues = self._analyze_facial_inconsistencies(\n                        gray_frames\n                    )\n                    compression_score, compression_issues = (\n                        self._check_compression_artifacts(gray_frames)\n                    )\n\n                    # Run deepfake model\n                    model_score = self._run_deepfake_model(frames, gray_frames, content_type)\n\n                    # Aggregate results\n                    score += facial_score + compression_score\n                    if model_score > 0.7:\n                        score += 2.0\n                        indicators.append(\n                            f\"High deepfake probability detected in {sanitize_for_logging(filename)}\"\n                        )\n                    elif model_score > 0.4:\n                        score += 1.0\n                        indicators.append(\n                            f\"Moderate deepfake indicators in {sanitize_for_logging(filename)}\"\n                        )\n\n                    indicators.extend(facial_issues)\n                    indicators.extend(compression_issues)\n\n                    # Check audio-visual sync (only for video files that can be accessed by path)\n                    sync_score, sync_issues = self._check_audio_visual_sync(\n                        tmp_path, frames\n                    )\n                    score += sync_score\n                    indicators.extend(sync_issues)\n\n            finally:\n                os.unlink(tmp_path)\n\n        except Exception as e:\n            self.logger.warning(\n                f\"Error analyzing deepfake threat: {sanitize_for_logging(str(e))}\"\n            )\n            errors.append(f\"Analysis error: {type(e).__name__}\")\n\n        return {\"score\": score, \"indicators\": indicators, \"errors\": errors}\n\n    def _extract_frames_from_video(\n        self,\n        video_path: str,\n        max_frames: int = 10,\n        max_dim: int = 640,\n    ) -> List[np.ndarray]:\n        \"\"\"Extract frames from video file for analysis.\"\"\"\n        frames = []\n        try:\n            cap = cv2.VideoCapture(video_path)\n            if not cap.isOpened():\n                return frames\n\n            total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))\n            if total_frames <= 0:\n                cap.release()\n                return frames\n\n            step = max(1, total_frames // max_frames)\n\n            with cap:\n                # Optimization: For step=1 (sequential reading), avoid expensive seek operations\n                if step == 1:\n                    frames = self._extract_frames_sequential(cap, max_frames, max_dim)\n                else:\n                    frames = self._extract_frames_sampled(\n                        cap, total_frames, step, max_frames, max_dim\n                    )\n\n            cap.release()\n        except Exception as e:\n            self.logger.warning(\n                f\"Error extracting frames: {sanitize_for_logging(str(e))}\"\n            )\n        return frames\n\n    def _extract_frames_sequential(\n        self,\n        cap: cv2.VideoCapture,\n        max_frames: int,\n        max_dim: int,\n    ) -> List[np.ndarray]:\n        \"\"\"Extract frames sequentially without seeking.\"\"\"\n        frames = []\n        count = 0\n        while count < max_frames:\n            success, frame = cap.read()\n            if not success:\n                break\n            if frame is not None:\n                frames.append(self._resize_frame_if_needed(frame, max_dim))\n            count += 1\n        return frames\n\n    def _extract_frames_sampled(\n        self,\n        cap: cv2.VideoCapture,\n        total_frames: int,\n        step: int,\n        max_frames: int,\n        max_dim: int,\n    ) -> List[np.ndarray]:\n        \"\"\"Extract frames using seeking for sampling.\"\"\"\n        frames = []\n        current_pos = int(cap.get(cv2.CAP_PROP_POS_FRAMES))\n        for i in range(0, total_frames, step):\n            jump = i - current_pos\n            if 0 < jump <= 30:\n                for _ in range(jump):\n                    cap.grab()\n            elif jump > 30 or jump < 0:\n                cap.set(cv2.CAP_PROP_POS_FRAMES, i)\n\n            success, frame = cap.read()\n            if success and frame is not None:\n                frames.append(self._resize_frame_if_needed(frame, max_dim))\n            if len(frames) >= max_frames:\n                break\n            current_pos = i + 1\n        return frames\n\n    def _resize_frame_if_needed(\n        self, frame: np.ndarray, max_dim: int\n    ) -> np.ndarray:\n        \"\"\"\n        Resize frame if it exceeds max_dim while preserving aspect ratio.\n\n        Args:\n            frame: Input frame (numpy array)\n            max_dim: Maximum dimension (width or height)\n\n        \"\"\"\n        try:\n            h, w = frame.shape[:2]\n            if h <= 0 or w <= 0:\n                self.logger.warning(\n                    f\"Frame has non-positive dimensions (h={h}, w={w}); skipping resize.\"\n                )\n                return frame\n\n            if max(h, w) <= max_dim:\n                return frame\n\n            scale = max_dim / max(h, w)\n            # Clamp new dimensions to at least 1 pixel to avoid int() rounding to 0,\n            # which would cause cv2.resize to raise and circumvent the downscaling.\n            new_w = max(1, int(w * scale))\n            new_h = max(1, int(h * scale))\n            return cv2.resize(frame, (new_w, new_h), interpolation=cv2.INTER_AREA)\n        except Exception as e:\n            self.logger.warning(f\"Error resizing frame: {e}\")\n            return frame\n\n    def _analyze_facial_inconsistencies(\n        self, gray_frames: List[np.ndarray]\n    ) -> Tuple[float, List[str]]:\n        \"\"\"\n        Analyze frames for facial inconsistencies.\n        Uses OpenCV's Haar cascades for face detection and analyzes face regions.\n\n        Args:\n            gray_frames: List of grayscale frames (numpy arrays)\n\n        \"\"\"\n        score = 0.0\n        issues = []\n\n        # Load Haar cascade for face detection (lazy loading with caching)\n        if self.face_cascade is None:\n            # Note: In a real environment, ensure the XML file is available or bundled.\n            # We try to load from default OpenCV path or a local path.\n            cascade_path = cv2.data.haarcascades + \"haarcascade_frontalface_default.xml\"\n            self.face_cascade = cv2.CascadeClassifier(cascade_path)\n\n        if self.face_cascade.empty():\n            self.logger.warning(\"Haar cascade not found. Skipping facial analysis.\")\n            return 0.0, []\n\n        faces_found = 0\n        blurry_faces = 0\n\n        # Optimization: Check a small subset of frames to reduce CPU load.\n        # Heuristic: we sample the first 5 frames assuming persistent issues are likely\n        # to appear early in the clip. Increase this sample size for more thorough analysis.\n        step = max(1, len(gray_frames) // 5)\n        frames_to_check = gray_frames[::step][:5]\n\n        for gray in frames_to_check:\n            faces = self.face_cascade.detectMultiScale(gray, 1.1, 4)\n\n            for x, y, w, h in faces:\n                faces_found += 1\n                face_roi = gray[y : y + h, x : x + w]\n\n                # Check for blurriness using Laplacian variance\n                # Optimization: Using cv2.meanStdDev is significantly faster (~3x)\n                # than falling back to NumPy's .var() method for variance calculation.\n                variance = (\n                    cv2.meanStdDev(cv2.Laplacian(face_roi, cv2.CV_64F))[1][0][0] ** 2\n                )\n                if variance < 100:  # Threshold for blurriness\n                    blurry_faces += 1\n\n        if faces_found > 0:\n            blur_ratio = blurry_faces / faces_found\n            if blur_ratio > 0.5:\n                score += 1.0\n                issues.append(\n                    f\"Inconsistent facial clarity detected ({int(blur_ratio*100)}% blurry faces)\"\n                )\n\n        return score, issues\n\n    def _check_audio_visual_sync(\n        self, video_path: str, frames: List[np.ndarray]\n    ) -> Tuple[float, List[str]]:\n        \"\"\"\n        Check for audio-visual synchronization issues.\n        Note: Full A/V sync requires complex analysis (e.g. lip reading vs audio phonemes).\n        This is a lightweight check for stream presence and duration mismatch.\n        \"\"\"\n        score = 0.0\n        issues = []\n\n        try:\n            cap = cv2.VideoCapture(video_path)\n            if not cap.isOpened():\n                return score, issues\n\n            # Check if we can get duration info (depends on container)\n            # OpenCV doesn't handle audio well directly without ffmpeg backend support explicitly\n            # So we focus on checking if video stream is consistent\n\n            fps = cap.get(cv2.CAP_PROP_FPS)\n            frame_count = cap.get(cv2.CAP_PROP_FRAME_COUNT)\n\n            if fps > 0 and frame_count > 0:\n                duration = frame_count / fps\n                # If duration is very short but file size is large, might be suspicious\n                file_size = os.path.getsize(video_path)\n                if duration < 1.0 and file_size > 5 * 1024 * 1024:\n                    score += 0.5\n                    issues.append(\n                        \"Video duration vs file size mismatch (potential stream embedding issue)\"\n                    )\n\n            cap.release()\n        except Exception as e:\n            self.logger.warning(f\"Error in A/V sync check: {e}\")\n\n        return score, issues\n\n    def _check_compression_artifacts(\n        self, gray_frames: List[np.ndarray]\n    ) -> Tuple[float, List[str]]:\n        \"\"\"\n        Check for double compression artifacts or unusual frequency patterns.\n\n        Args:\n            gray_frames: List of grayscale frames (numpy arrays)\n\n        \"\"\"\n        score = 0.0\n        issues = []\n\n        high_freq_noise_count = 0\n\n        # Optimization: Check a subset of frames to reduce CPU load\n        # Checking 5 frames is statistically sufficient to detect persistent artifacts\n        # while reducing FFT computations by up to 75%\n        frames_to_check = gray_frames[:5]\n\n        for gray in frames_to_check:\n            # Optimization: Use OpenCV DFT instead of Numpy FFT\n            # cv2.dft is typically 2-3x faster than np.fft.fft2\n            dft = cv2.dft(np.float32(gray), flags=cv2.DFT_COMPLEX_OUTPUT)\n\n            # Optimization: Avoid fftshift by masking corners (low frequencies) directly\n            # This saves ~16MB allocation per frame (1080p) and avoids array copy\n            magnitude = cv2.magnitude(dft[:, :, 0], dft[:, :, 1])\n            magnitude_spectrum = 20 * np.log(magnitude + 1)\n\n            # Simple heuristic: Check for unusual spikes in high frequencies\n            # often seen in GAN-generated images or poor compression re-encoding\n            h, w = gray.shape\n            # Mask out low frequencies (which are at the corners in unshifted spectrum)\n            mask_size = min(h, w) // 8\n\n            magnitude_spectrum[:mask_size, :mask_size] = 0\n            magnitude_spectrum[:mask_size, -mask_size:] = 0\n            magnitude_spectrum[-mask_size:, :mask_size] = 0\n            magnitude_spectrum[-mask_size:, -mask_size:] = 0\n\n            # Optimization: Use cv2.mean instead of np.mean\n            # cv2.mean is ~2x faster than np.mean for these arrays and avoids internal numpy overhead\n            if cv2.mean(magnitude_spectrum)[0] > self.HIGH_FREQ_NOISE_THRESHOLD:\n                high_freq_noise_count += 1\n\n        if len(frames_to_check) > 0 and (\n            high_freq_noise_count / len(frames_to_check) > 0.6\n        ):\n            score += 1.0\n            issues.append(\"Unusual high-frequency noise patterns detected\")\n\n        return score, issues\n\n    def _run_deepfake_model(\n        self, frames: List[np.ndarray], gray_frames: List[np.ndarray], content_type: str\n    ) -> float:\n        \"\"\"\n        Run deepfake detection model (Simulated).\n\n        In a full implementation, this would pass frames to a loaded Torch/TensorFlow model.\n        Here we simulate a model score based on frame properties to mimic the interface.\n        \"\"\"\n        if not frames:\n            return 0.0\n\n        # Simulation of a scoring model:\n        # Generate a score that can actually span the 0.0 - 1.0 range based on image statistics.\n        # High variance + low brightness might suggest tampering in some contexts, or high saturation.\n        # This is a heuristic proxy.\n\n        avg_scores = []\n        for frame, gray in zip(frames, gray_frames, strict=False):\n            # Calculate standard deviation of color channels (saturation variance)\n            # Optimization: Use cv2.meanStdDev instead of np.std(frame.astype(float))\n            # This avoids creating a large float copy (saving ~48MB per 1080p frame)\n            # and is ~28x faster in benchmarks.\n            mean, std = cv2.meanStdDev(frame)\n            # Optimization: Use float(std.sum()) / std.size instead of np.mean(std)\n            # This avoids the ~10x slower np.mean dispatch overhead for small arrays.\n            std_dev = float(std.sum()) / std.size\n\n            # Calculate edge density using Canny\n            # Optimization: Use cv2.countNonZero instead of np.sum(edges) / edges.size\n            # This is ~12x faster as it operates on the sparse edge map.\n            # Optimization: Use pre-computed grayscale frame\n            edges = cv2.Canny(gray, 100, 200)\n            edge_count = cv2.countNonZero(edges)\n            edge_density = (edge_count * 255.0) / edges.size\n\n            # Synthetic score combination\n            # Normalize to 0-1 loosely\n            score = (std_dev / 100.0) * 0.5 + (edge_density * 5)\n            avg_scores.append(min(score, 1.0))\n\n        # Optimization: sum/len on native Python lists is ~6x faster than np.mean\n        final_score = sum(avg_scores) / len(avg_scores) if avg_scores else 0.0\n\n        # Clip to 0.0 - 1.0\n        return min(max(final_score, 0.0), 1.0)\n\n    def _calculate_risk_level(self, score: float) -> str:\n        \"\"\"Calculate risk level based on media threat score.\"\"\"\n        return calculate_risk_level(\n            score,\n            self.MEDIA_RISK_LOW_THRESHOLD,\n            self.MEDIA_RISK_HIGH_THRESHOLD,\n        )\n\n    def shutdown(self):\n        \"\"\"Shutdown the thread pool executor.\"\"\"\n        if hasattr(self, \"_deepfake_executor\"):\n            self._deepfake_executor.shutdown(wait=True)\n
+"""
+Layer 3: Media Authenticity Verification
+Analyzes attachments for synthetic content and deepfakes.
+"""
+
+import concurrent.futures
+import io
+import logging
+import os
+import tarfile
+import tempfile
+import zipfile
+from dataclasses import dataclass
+from typing import List, Optional, Tuple
+
+import cv2
+import numpy as np
+
+from ..utils.sanitization import sanitize_for_logging
+from ..utils.security_validators import sanitize_filename
+from ..utils.threat_scoring import calculate_risk_level
+from .email_data import EmailData
+
+
+@dataclass
+class MediaAnalysisResult:
+    """Result of media analysis."""
+
+    threat_score: float
+    suspicious_attachments: List[str]
+    file_type_warnings: List[str]
+    size_anomalies: List[str]
+    potential_deepfakes: List[str]
+    risk_level: str
+
+
+class MediaAuthenticityAnalyzer:
+    """Analyzes media attachments for authenticity and threats."""
+
+    # Dangerous file extensions
+    # Optimization: Using tuples instead of lists allows for fast C-level execution
+    # with `str.endswith()` instead of slow Python-level `for` loops.
+    DANGEROUS_EXTENSIONS = (
+        ".exe",
+        ".bat",
+        ".cmd",
+        ".com",
+        ".pif",
+        ".scr",
+        ".vbs",
+        ".js",
+        ".jar",
+        ".msi",
+        ".dll",
+        ".hta",
+        ".wsf",
+        ".ps1",
+        ".sh",
+        ".bash",
+        ".app",
+        ".php",
+        ".php3",
+        ".php4",
+        ".php5",
+        ".phtml",
+        ".pl",
+        ".py",
+        ".rb",
+        ".asp",
+        ".aspx",
+        ".jsp",
+        ".jspx",
+        ".cgi",
+        # Added missing dangerous extensions
+        ".vbe",
+        ".jse",
+        ".wsh",
+        ".scf",
+        ".lnk",
+        ".inf",
+        ".reg",
+        ".iso",
+        ".img",
+        ".vhd",
+        ".vhdx",
+    )
+
+    # Suspicious file extensions (commonly used for disguise)
+    SUSPICIOUS_EXTENSIONS = (
+        ".pdf.exe",
+        ".doc.exe",
+        ".jpg.exe",
+        ".zip.exe",
+        ".docm",
+        ".xlsm",
+        ".pptm",
+        ".dotm",  # Macro-enabled Office files
+        ".html",
+        ".htm",
+        ".svg",  # Web content (potential Phishing/XSS)
+    )
+
+    # Audio/video file extensions for deepfake detection
+    # Optimization: Using tuples instead of lists allows for fast C-level execution
+    # with `str.endswith()` instead of slow Python-level `for` loops.
+    MEDIA_EXTENSIONS = (
+        ".mp4",
+        ".avi",
+        ".mov",
+        ".wmv",
+        ".flv",
+        ".mkv",
+        ".mp3",
+        ".wav",
+        ".aac",
+        ".flac",
+        ".ogg",
+        ".m4a",
+    )
+
+    MAX_NESTED_ZIP_SIZE = 10 * 1024 * 1024  # 10MB limit for nested zips
+    HIGH_FREQ_NOISE_THRESHOLD = 150  # Arbitrary threshold for high frequency noise
+
+    # Maximum attachment size (in MB) before flagging as a size anomaly.
+    # This heuristic catches potential data-exfiltration payloads that exceed
+    # the typical email attachment ceiling.
+    MAX_ATTACHMENT_SIZE_MB = 25
+
+    # Maximum number of files allowed inside a ZIP archive before flagging it.
+    # Limits analysis work and catches zip-bomb style payloads.
+    MAX_ZIP_FILE_COUNT = 1000
+
+    # Minimum size (bytes) for media files; files smaller than this are suspicious.
+    MIN_MEDIA_FILE_SIZE_BYTES = 1024  # 1KB
+
+    # Archive extensions used for nested archive detection
+    # Optimization: Using tuples instead of sets allows for fast C-level execution
+    # with `str.endswith()` instead of slow Python-level `for` loops.
+    ARCHIVE_EXTENSIONS = (
+        ".zip",
+        ".rar",
+        ".7z",
+        ".tar",
+        ".gz",
+        ".iso",
+        ".img",
+        ".vhd",
+        ".vhdx",
+    )
+
+    # Risk level thresholds for media threat scoring
+    MEDIA_RISK_LOW_THRESHOLD = 2.0
+    MEDIA_RISK_HIGH_THRESHOLD = 5.0
+
+    # Magic signatures with offset 0 for fast C-level `startswith` checks
+    # Optimization: Grouping signatures by offset and using a tuple allows
+    # `bytes.startswith` to execute in C, bypassing Python loop overhead.
+    MAGIC_SIGNATURES_OFFSET_0 = (
+        (b"%PDF", "pdf"),
+        (b"PK\x03\x04", "zip"),
+        (b"\xff\xd8\xff", "jpeg"),
+        (b"\x89PNG", "png"),
+        (b"GIF8", "gif"),
+        (b"MZ", "exe"),
+        (b"\xd0\xcf\x11\xe0", "doc"),
+        (b"\x1a\x45\xdf\xa3", "mkv"),
+        (b"ID3", "mp3"),
+        (b"\xff\xfb", "mp3"),
+        (b"\xff\xf3", "mp3"),
+        (b"\xff\xf2", "mp3"),
+        (b"\x30\x26\xb2\x75\x8e\x66\xcf\x11", "wmv"),
+        (b"FLV", "flv"),
+        (b"OggS", "ogg"),
+        (b"fLaC", "flac"),
+    )
+
+    # Tuple of just the byte prefixes for fast `startswith` check
+    MAGIC_PREFIXES_OFFSET_0 = tuple(sig for sig, _ in MAGIC_SIGNATURES_OFFSET_0)
+
+    # Expected extensions for content type mismatch checking
+    # Optimization: Moving this dictionary to the class level avoids re-creating
+    # it on every file check, and using tuples allows fast C-level str.endswith()
+    EXPECTED_EXTENSIONS = {
+        "pdf": (".pdf",),
+        "zip": (".zip", ".docx", ".xlsx", ".pptx", ".jar"),
+        "jpeg": (".jpg", ".jpeg"),
+        "png": (".png",),
+        "gif": (".gif",),
+        "doc": (".doc", ".xls", ".ppt", ".msi"),
+        "exe": (".exe",),
+        "mp4": (".mp4", ".mov", ".m4a", ".3gp"),
+        "avi": (".avi",),
+        "wav": (".wav",),
+        "mp3": (".mp3",),
+        "mkv": (".mkv", ".webm"),
+        "webp": (".webp",),
+        "wmv": (".wmv",),
+        "flv": (".flv",),
+        "ogg": (".ogg", ".oga", ".ogv", ".ogx"),
+        "flac": (".flac",),
+    }
+
+    def __init__(self, config):
+        """
+        Initialize media analyzer.
+
+        Args:
+            config: AnalysisConfig object
+
+        """
+        self.config = config
+        self.logger = logging.getLogger("MediaAuthenticityAnalyzer")
+        self.face_cascade = None
+        # Optimization: Reuse thread pool for deepfake detection to avoid overhead
+        self._deepfake_executor = concurrent.futures.ThreadPoolExecutor()
+
+    def analyze(self, email_data: EmailData) -> MediaAnalysisResult:
+        """
+        Analyze email attachments for threats.
+
+        Args:
+            email_data: Email with attachments to analyze
+
+        Returns:
+            MediaAnalysisResult
+
+        """
+        if not self.config.check_media_attachments or not email_data.attachments:
+            return MediaAnalysisResult(
+                threat_score=0.0,
+                suspicious_attachments=[],
+                file_type_warnings=[],
+                size_anomalies=[],
+                potential_deepfakes=[],
+                risk_level="low",
+            )
+
+        threat_score = 0.0
+        suspicious_attachments = []
+        file_type_warnings = []
+        size_anomalies = []
+        potential_deepfakes = []
+
+        for attachment in email_data.attachments:
+            # Analyze metadata and basic file properties
+            meta_results = self._analyze_attachment_metadata(attachment)
+
+            # Aggregate results
+            threat_score += meta_results["score"]
+            size_anomalies.extend(meta_results["size_anomalies"])
+            file_type_warnings.extend(meta_results["file_type_warnings"])
+            suspicious_attachments.extend(meta_results["suspicious_attachments"])
+
+            filename = attachment.get("filename", "")
+            data = attachment.get("data", b"")
+            content_type = attachment.get("content_type", "")
+
+            # Check for potential deepfakes
+            # Only proceed if the file hasn't already been flagged as dangerous/suspicious (score >= 5.0)
+            if self.config.deepfake_detection_enabled and threat_score < 5.0:
+                deepfake_results = self._analyze_deepfake_threat(
+                    filename, data, content_type
+                )
+                threat_score += deepfake_results["score"]
+                potential_deepfakes.extend(deepfake_results["indicators"])
+                size_anomalies.extend(deepfake_results["errors"])
+
+        # Calculate risk level
+        risk_level = self._calculate_risk_level(threat_score)
+
+        self.logger.debug(
+            f"Media analysis complete: {len(email_data.attachments)} attachments, "
+            f"score={threat_score:.2f}, risk={risk_level}"
+        )
+
+        return MediaAnalysisResult(
+            threat_score=threat_score,
+            suspicious_attachments=suspicious_attachments,
+            file_type_warnings=file_type_warnings,
+            size_anomalies=size_anomalies,
+            potential_deepfakes=potential_deepfakes,
+            risk_level=risk_level,
+        )
+
+    def _analyze_attachment_metadata(self, attachment: dict) -> dict:
+        """
+        Analyze attachment metadata and basic properties.
+        Returns a dict with scores and warnings.
+        """
+        filename = attachment.get("filename", "")
+        content_type = attachment.get("content_type", "")
+        size = attachment.get("size", 0)
+        data = attachment.get("data", b"")
+        truncated = attachment.get("truncated", False)
+
+        result = {
+            "score": 0.0,
+            "size_anomalies": [],
+            "file_type_warnings": [],
+            "suspicious_attachments": [],
+        }
+
+        if truncated:
+            result["size_anomalies"].append(
+                f"Attachment truncated for scanning: {filename}"
+            )
+
+        # Check file extension
+        ext_score, ext_warnings = self._check_file_extension(filename)
+        result["score"] += ext_score
+        result["file_type_warnings"].extend(ext_warnings)
+
+        # Check content type mismatch
+        mismatch_score, mismatch_warnings = self._check_content_type_mismatch(
+            filename, content_type, data
+        )
+        result["score"] += mismatch_score
+        if mismatch_warnings:
+            result["suspicious_attachments"].append(f"{filename}: {mismatch_warnings}")
+
+        # Check file size anomalies
+        size_score, size_warning = self._check_size_anomaly(filename, size)
+        result["score"] += size_score
+        if size_warning:
+            result["size_anomalies"].append(size_warning)
+
+        # Check for dangerous contents in archives (e.g. Zip files)
+        filename_lower = filename.lower()
+        is_zip = False
+        if data and data.startswith(b"PK\x03\x04"):
+            is_zip = True
+        elif filename_lower.endswith(".zip"):
+            is_zip = True
+
+        if is_zip:
+            zip_score, zip_warnings = self._inspect_zip_contents(filename, data)
+            result["score"] += zip_score
+            if zip_warnings:
+                result["suspicious_attachments"].extend(zip_warnings)
+
+        # Check for tar archives
+        is_tar = False
+        if filename_lower.endswith((".tar", ".tar.gz", ".tgz", ".gz")):
+            is_tar = True
+
+        if is_tar:
+            tar_score, tar_warnings = self._inspect_tar_contents(filename, data)
+            result["score"] += tar_score
+            if tar_warnings:
+                result["suspicious_attachments"].extend(tar_warnings)
+
+        return result
+
+    def _analyze_deepfake_threat(
+        self, filename: str, data: bytes, content_type: str
+    ) -> dict:
+        """
+        Execute deepfake analysis logic.
+        """
+        result = {"score": 0.0, "indicators": [], "errors": []}
+
+        try:
+            future = self._deepfake_executor.submit(
+                self._check_deepfake_indicators, filename, data, content_type
+            )
+            deepfake_score, deepfake_indicators = future.result(
+                timeout=self.config.media_analysis_timeout
+            )
+            result["score"] = deepfake_score
+            result["indicators"] = deepfake_indicators
+        except concurrent.futures.TimeoutError:
+            self.logger.warning(
+                f"Deepfake analysis timed out for {filename} (>{self.config.media_analysis_timeout}s)"
+            )
+            result["errors"].append(f"Deepfake analysis timed out: {filename}")
+        except Exception as e:
+            self.logger.error(f"Deepfake analysis failed for {filename}: {e}")
+
+        return result
+
+    def _check_file_extension(self, filename: str) -> Tuple[float, List[str]]:
+        """Check if file extension is dangerous."""
+        score = 0.0
+        warnings = []
+
+        # Sanitize filename (strip whitespace and null bytes for check)
+        # Also strip trailing dots which can bypass extension checks but still be executable on Windows
+        filename_lower = filename.lower().strip().replace("\0", "").rstrip(".")
+
+        # Check for dangerous extensions
+        # Optimization: tuple-based endswith() is ~10-15x faster than looping
+        if filename_lower.endswith(self.DANGEROUS_EXTENSIONS):
+            score += 5.0  # Very high score for dangerous files
+            warnings.append(f"Dangerous file type: {filename}")
+
+        # Check for suspicious extensions
+        # Optimization: tuple-based endswith() avoids slow Python looping overhead
+        if filename_lower.endswith(self.SUSPICIOUS_EXTENSIONS):
+            score += 3.0
+            warnings.append(f"Suspicious file extension: {filename}")
+
+        # Check for double extensions
+        parts = filename_lower.split(".")
+        if len(parts) > 2:
+            score += 1.5
+            warnings.append(f"Multiple extensions detected: {filename}")
+
+        return score, warnings
+
+    def _check_riff_container(self, data: bytes) -> Optional[str]:
+        """Check for specific media types within a RIFF container."""
+        if len(data) >= 12:
+            format_type = data[8:12]
+            if format_type == b"AVI ":
+                return "avi"
+            elif format_type == b"WAVE":
+                return "wav"
+            elif format_type == b"WEBP":
+                return "webp"
+        return None
+
+    def _detect_file_type(self, data: bytes) -> Optional[str]:
+        """Detect file type from magic bytes."""
+        if not data or len(data) < 4:
+            return None
+
+        # Check RIFF container (AVI, WAV, WEBP)
+        if data.startswith(b"RIFF"):
+            return self._check_riff_container(data)
+
+        # Optimization: Fast check for all signatures with offset 0
+        if data.startswith(self.MAGIC_PREFIXES_OFFSET_0):
+            for sig, name in self.MAGIC_SIGNATURES_OFFSET_0:
+                if data.startswith(sig):
+                    return name
+
+        # Check signatures with non-zero offset
+        if len(data) >= 8 and data[4:8] == b"ftyp":  # Common for MP4/MOV
+            return "mp4"
+
+        return None
+
+    def _check_content_type_mismatch(
+        self, filename: str, content_type: str, data: bytes
+    ) -> Tuple[float, str]:
+        """Check if actual file content matches declared content type."""
+        actual_type = self._detect_file_type(data)
+
+        if actual_type:
+            return self._validate_signature_match(filename, actual_type)
+        else:
+            return self._validate_missing_signature(filename)
+
+    def _validate_signature_match(
+        self, filename: str, actual_type: str
+    ) -> Tuple[float, str]:
+        """Check if file extension matches the detected signature."""
+        filename_lower = filename.lower().strip().replace("\0", "").rstrip(".")
+
+        # Special case for executables disguised as documents
+        if actual_type == "exe" and not filename_lower.endswith(".exe"):
+            return 5.0, "Executable disguised as another file type"
+
+        # Check for general mismatches
+        expected_exts = self.EXPECTED_EXTENSIONS.get(actual_type)
+        if expected_exts and not filename_lower.endswith(expected_exts):
+            return 2.0, f"File type mismatch: {filename} (detected {actual_type})"
+
+        return 0.0, ""
+
+    def _validate_missing_signature(self, filename: str) -> Tuple[float, str]:
+        """Check if missing signature violates strict extension rules."""
+        # Type not detected. Validate that if extension claims a known type, it matches.
+        # This prevents processing invalid/corrupt media files.
+        filename_lower = filename.lower().strip().replace("\0", "").rstrip(".")
+
+        # Lazily initialize strict validation configuration on the class so we don't
+        # rebuild it on every call. This keeps the mapping centralized and efficient.
+        cls = self.__class__
+
+        if not hasattr(cls, "_STRICT_VALIDATION_EXTS"):
+            # Map extensions to their expected descriptions for error messages
+            cls._STRICT_VALIDATION_EXTS = {
+                # Note: '.exe' and '.dll' are also handled earlier when a valid PE signature
+                # is detected (actual_type == 'exe'). They are included here as a fallback
+                # for cases where signature detection fails but the extension claims an executable.
+                ".exe": "executable",
+                ".dll": "executable",
+                ".zip": "archive",
+                ".pdf": "PDF",
+                ".png": "PNG image",
+                ".jpg": "JPEG image",
+                ".jpeg": "JPEG image",
+                ".gif": "GIF image",
+                ".mp4": "MP4 video",
+                ".avi": "AVI video",
+                ".mkv": "MKV video",
+                ".wav": "WAV audio",
+                # Additional strict validation for media types processed by OpenCV
+                ".mov": "QuickTime video",
+                ".wmv": "WMV video",
+                ".flv": "FLV video",
+                ".ogg": "Ogg audio/video",
+                ".flac": "FLAC audio",
+                ".m4a": "M4A audio",
+            }
+
+        if not hasattr(cls, "_CRITICAL_MEDIA_EXTS"):
+            # Treat all known media extensions (and WAV) as critical when their signatures are invalid,
+            # to prevent them from reaching deepfake/OpenCV processing. Use getattr so we degrade
+            # safely if MEDIA_EXTENSIONS is not defined on this instance.
+            media_exts = getattr(self, "MEDIA_EXTENSIONS", [])
+            cls._CRITICAL_MEDIA_EXTS = {
+                ext
+                for ext in cls._STRICT_VALIDATION_EXTS.keys()
+                if ext in media_exts or ext == ".wav"
+            }
+
+        strict_validation_exts = cls._STRICT_VALIDATION_EXTS
+        critical_media_exts = cls._CRITICAL_MEDIA_EXTS
+        for ext, type_desc in strict_validation_exts.items():
+            if filename_lower.endswith(ext):
+                # Return 5.0 (Critical) for media files to ensure they don't reach deepfake analysis
+                # which could trigger vulnerabilities in processing libraries (e.g., OpenCV)
+                # Note: 5.0 is intentionally chosen to fail the `threat_score < 5.0` gate (see earlier check),
+                # so that invalid media never reaches the deepfake/OpenCV processing pipeline.
+                if ext in critical_media_exts:
+                    return (
+                        5.0,
+                        f"Invalid file signature for {ext}: expected {type_desc} signature but none found",
+                    )
+                return (
+                    2.0,
+                    f"Invalid file signature for {ext}: expected {type_desc} signature but none found",
+                )
+
+        return 0.0, ""
+
+    def _check_size_anomaly(self, filename: str, size: int) -> Tuple[float, str]:
+        """Check for unusual file sizes."""
+        score = 0.0
+        warning = ""
+
+        # Very large attachments (potential data exfiltration)
+        if size > self.MAX_ATTACHMENT_SIZE_MB * 1024 * 1024:
+            score += 1.5
+            warning = (
+                f"Unusually large attachment: {filename} ({size / (1024*1024):.1f}MB)"
+            )
+
+        # Suspiciously small media files
+        filename_lower = filename.lower()
+        # Optimization: O(1) loop iteration using tuple-based endswith() check
+        if filename_lower.endswith(self.MEDIA_EXTENSIONS):
+            if size < self.MIN_MEDIA_FILE_SIZE_BYTES:
+                score += 1.0
+                warning = f"Suspiciously small media file: {filename} ({size} bytes)"
+
+        return score, warning
+
+    def _is_nested_archive(self, filename: str) -> bool:
+        """Check if filename is a nested archive type."""
+        # Optimization: O(1) loop iteration using tuple-based endswith() check
+        return filename.lower().endswith(self.ARCHIVE_EXTENSIONS)
+
+    def _inspect_zip_contents(
+        self, filename: str, data: bytes, depth: int = 0
+    ) -> Tuple[float, List[str]]:
+        """Inspect contents of zip file for dangerous files, with recursion."""
+        score = 0.0
+        warnings = []
+
+        # Max recursion depth to prevent zip bombs
+        if depth > 2:
+            return score, warnings
+
+        try:
+            with zipfile.ZipFile(io.BytesIO(data)) as zf:
+                file_list = zf.namelist()
+                score, warnings = self._check_file_count(
+                    filename, file_list, score, warnings
+                )
+
+                # Always cap the number of files we inspect to MAX_ZIP_FILE_COUNT to limit processing
+                files_to_check = file_list[: self.MAX_ZIP_FILE_COUNT]
+
+                for contained_file in files_to_check:
+                    member_score, member_warnings = self._inspect_archive_member(
+                        filename,
+                        contained_file,
+                        lambda: self._handle_nested_zip_member(
+                            zf, contained_file, filename, depth
+                        ),
+                    )
+                    score += member_score
+                    warnings.extend(member_warnings)
+
+                    if score >= 5.0:
+                        return score, warnings
+
+        except zipfile.BadZipFile:
+            pass
+        except Exception as e:
+            self.logger.warning(f"Error inspecting zip {filename}: {e}")
+
+        return score, warnings
+
+    def _check_file_count(
+        self, filename: str, file_list: List[str], score: float, warnings: List[str]
+    ) -> Tuple[float, List[str]]:
+        """Check if archive contains too many files."""
+        if len(file_list) > self.MAX_ZIP_FILE_COUNT:
+            score += 1.0
+            warnings.append(
+                f"Archive {filename} contains too many files ({len(file_list)})"
+            )
+        return score, warnings
+
+    def _inspect_archive_member(
+        self, parent_filename: str, member_name: str, nested_handler_fn
+    ) -> Tuple[float, List[str]]:
+        """
+        Inspect a single member of an archive.
+
+        Args:
+            parent_filename: Name of the parent archive
+            member_name: Name of the member file
+            nested_handler_fn: Function to call if member is a nested archive
+
+        Returns:
+            Tuple of (score, warnings)
+
+        """
+        score = 0.0
+        warnings = []
+
+        # SECURITY: Sanitize member name to prevent path traversal and log injection
+        safe_member_name = sanitize_for_logging(sanitize_filename(member_name))
+        member_lower = safe_member_name.lower()
+
+        # Check for dangerous extensions
+        # Optimization: O(1) loop iteration using tuple-based endswith() check
+        if member_lower.endswith(self.DANGEROUS_EXTENSIONS):
+            score += 5.0
+            warnings.append(
+                f"Archive {parent_filename} contains dangerous file: {safe_member_name}"
+            )
+            return score, warnings
+
+        # Check for nested archives
+        is_nested = self._is_nested_archive(member_lower)
+        if is_nested:
+            score += 2.0
+            warnings.append(
+                f"Archive {parent_filename} contains nested archive: {safe_member_name}"
+            )
+
+            # Recurse
+            nested_score, nested_warnings = nested_handler_fn()
+            score += nested_score
+            warnings.extend(nested_warnings)
+
+            if score >= 5.0:
+                return score, warnings
+
+        # Check for suspicious extensions
+        # Optimization: O(1) loop iteration using tuple-based endswith() check
+        if member_lower.endswith(self.SUSPICIOUS_EXTENSIONS):
+            score += 3.0
+            warnings.append(
+                f"Archive {parent_filename} contains suspicious file: {safe_member_name}"
+            )
+
+        return score, warnings
+
+    def _handle_nested_zip_member(
+        self, zf: zipfile.ZipFile, member_name: str, parent_filename: str, depth: int
+    ) -> Tuple[float, List[str]]:
+        """Handle nested archive found inside a zip file."""
+        score = 0.0
+        warnings = []
+
+        # SECURITY: Sanitize member name for logging and recursive path building
+        safe_member_name = sanitize_for_logging(sanitize_filename(member_name))
+        member_lower = safe_member_name.lower()
+
+        # Only recurse into supported formats
+        if (
+            not (
+                member_lower.endswith(".zip")
+                or member_lower.endswith((".tar", ".tar.gz", ".tgz", ".gz"))
+            )
+            or depth >= 2
+        ):
+            return score, warnings
+
+        try:
+            # Check declared size
+            info = zf.getinfo(member_name)
+            if info.file_size >= self.MAX_NESTED_ZIP_SIZE:
+                self.logger.warning(
+                    f"Skipping nested archive {safe_member_name} (declared size {info.file_size} > limit)"
+                )
+                return score, warnings
+
+            # Extract securely
+            nested_data = self._read_zip_member_securely(
+                zf, member_name, self.MAX_NESTED_ZIP_SIZE
+            )
+
+            # Recurse based on type
+            if member_lower.endswith(".zip"):
+                return self._inspect_zip_contents(
+                    f"{parent_filename}/{safe_member_name}", nested_data, depth + 1
+                )
+            else:
+                return self._inspect_tar_contents(
+                    f"{parent_filename}/{safe_member_name}", nested_data, depth + 1
+                )
+
+        except ValueError as e:
+            score += 5.0
+            warnings.append(
+                f"Zip bomb detected: {parent_filename}/{safe_member_name} ({str(e)})"
+            )
+        except Exception as e:
+            self.logger.warning(
+                f"Error inspecting nested archive {safe_member_name}: {e}"
+            )
+            score += 3.0
+            warnings.append(
+                f"Failed to inspect nested archive {safe_member_name}: {str(e)}"
+            )
+
+        return score, warnings
+
+    def _inspect_tar_contents(
+        self, filename: str, data: bytes, depth: int = 0
+    ) -> Tuple[float, List[str]]:
+        """Inspect contents of tar file for dangerous files, with recursion."""
+        score = 0.0
+        warnings = []
+
+        if depth > 2:
+            return score, warnings
+
+        try:
+            with tarfile.open(fileobj=io.BytesIO(data), mode="r:*") as tf:
+                file_count = 0
+                max_files = self.MAX_ZIP_FILE_COUNT
+
+                for member in tf:
+                    file_count += 1
+                    if file_count > max_files:
+                        score += 1.0
+                        warnings.append(
+                            f"Tar file {filename} contains too many files (> {max_files})"
+                        )
+                        break
+
+                    member_score, member_warnings = self._inspect_archive_member(
+                        filename,
+                        member.name,
+                        lambda: self._handle_nested_tar_member(
+                            tf, member, filename, depth
+                        ),
+                    )
+                    score += member_score
+                    warnings.extend(member_warnings)
+
+                    if score >= 5.0:
+                        return score, warnings
+
+        except tarfile.TarError:
+            pass
+        except Exception as e:
+            self.logger.warning(f"Error inspecting tar {filename}: {e}")
+
+        return score, warnings
+
+    def _handle_nested_tar_member(
+        self,
+        tf: tarfile.TarFile,
+        member: tarfile.TarInfo,
+        parent_filename: str,
+        depth: int,
+    ) -> Tuple[float, List[str]]:
+        """Handle nested archive found inside a tar file."""
+        score = 0.0
+        warnings = []
+        member_name = member.name
+
+        # SECURITY: Sanitize member name for logging and recursive path building
+        safe_member_name = sanitize_for_logging(sanitize_filename(member_name))
+        member_lower = safe_member_name.lower()
+
+        if (
+            not (
+                member_lower.endswith(".zip")
+                or member_lower.endswith((".tar", ".tar.gz", ".tgz", ".gz"))
+            )
+            or depth >= 2
+        ):
+            return score, warnings
+
+        # Skip if declared size is too large
+        if member.size >= self.MAX_NESTED_ZIP_SIZE:
+            self.logger.warning(
+                f"Skipping nested archive {safe_member_name} (declared size {member.size} > limit)"
+            )
+            return score, warnings
+
+        try:
+            f = tf.extractfile(member)
+            if f:
+                nested_data = self._read_file_securely(
+                    f, member_name, self.MAX_NESTED_ZIP_SIZE
+                )
+
+                if member_lower.endswith(".zip"):
+                    return self._inspect_zip_contents(
+                        f"{parent_filename}/{safe_member_name}", nested_data, depth + 1
+                    )
+                else:
+                    return self._inspect_tar_contents(
+                        f"{parent_filename}/{safe_member_name}", nested_data, depth + 1
+                    )
+
+        except Exception as e:
+            self.logger.warning(
+                f"Error inspecting nested archive {safe_member_name} inside tar: {e}"
+            )
+            score += 3.0
+            warnings.append(
+                f"Failed to inspect nested archive {safe_member_name}: {str(e)}"
+            )
+
+        return score, warnings
+
+    def _read_file_securely(self, f, filename: str, max_size: int) -> bytes:
+        """
+        Read a file-like object securely with a size limit.
+        """
+        content = io.BytesIO()
+        total_read = 0
+        chunk_size = 8192
+
+        while True:
+            chunk = f.read(chunk_size)
+            if not chunk:
+                break
+            total_read += len(chunk)
+            if total_read > max_size:
+                raise ValueError(
+                    f"File {filename} exceeds maximum size of {max_size} bytes"
+                )
+            content.write(chunk)
+
+        return content.getvalue()
+
+    def _read_zip_member_securely(
+        self, zf: zipfile.ZipFile, filename: str, max_size: int
+    ) -> bytes:
+        """
+        Read a zip member securely with a size limit to prevent zip bombs.
+
+        Args:
+            zf: ZipFile object
+            filename: Name of the file to read
+            max_size: Maximum allowed size in bytes
+
+        Returns:
+            Decompressed bytes
+
+        Raises:
+            ValueError: If decompressed size exceeds max_size
+
+        """
+        content = io.BytesIO()
+        total_read = 0
+        chunk_size = 8192
+
+        # Don't use 'with' to avoid implicit close() which might trigger CRC check on partial read
+        # causing the ValueError to be masked by BadZipFile exception
+        f = zf.open(filename)
+        try:
+            while True:
+                chunk = f.read(chunk_size)
+                if not chunk:
+                    break
+                total_read += len(chunk)
+                if total_read > max_size:
+                    raise ValueError(
+                        f"Zip member {filename} exceeds maximum size of {max_size} bytes"
+                    )
+                content.write(chunk)
+        finally:
+            try:
+                f.close()
+            except zipfile.BadZipFile as e:
+                # Ignore errors on close (like CRC mismatch due to partial read)
+                self.logger.debug(
+                    f"Ignored error closing zip stream for {filename}: {e}"
+                )
+
+        return content.getvalue()
+
+    def _check_deepfake_indicators(
+        self, filename: str, data: bytes, content_type: str
+    ) -> Tuple[float, List[str]]:
+        """
+        Check for potential deepfake indicators using advanced analysis.
+        """
+        score = 0.0
+        indicators = []
+
+        filename_lower = filename.lower()
+
+        # Check if file is audio/video
+        # Optimization: O(1) loop iteration using tuple-based endswith() check
+        is_media = filename_lower.endswith(self.MEDIA_EXTENSIONS)
+
+        if not is_media:
+            return score, indicators
+
+        # Basic heuristics
+        if filename_lower.endswith((".mp4", ".avi", ".mov")):
+            size = len(data)
+            if size < 100 * 1024:  # Less than 100KB
+                score += 0.5
+                indicators.append(f"Suspicious video size: {filename}")
+
+        if not self.config.deepfake_detection_enabled:
+            return score, indicators
+
+        # Advanced ML-based detection
+        temp_file_path = None
+        try:
+            # Create a temporary file to work with OpenCV
+            with tempfile.NamedTemporaryFile(
+                delete=False, suffix=os.path.splitext(filename)[1]
+            ) as temp_file:
+                temp_file_path = temp_file.name
+                temp_file.write(data)
+
+            # 1. Extract frames
+            # Optimization: 10 frames is sufficient for statistical analysis and reduces processing time by 50%
+            frames = self._extract_frames_from_video(
+                temp_file_path, max_frames=10, max_dim=1280
+            )
+
+            if not frames:
+                self.logger.warning(f"Could not extract frames from {filename}")
+            else:
+                # Optimization: Convert frames to grayscale once to avoid repeated conversions
+                # This saves CPU time in subsequent analysis steps
+                gray_frames = [cv2.cvtColor(f, cv2.COLOR_BGR2GRAY) for f in frames]
+
+                # 2. Analyze for facial inconsistencies
+                facial_score, facial_issues = self._analyze_facial_inconsistencies(
+                    gray_frames
+                )
+                if facial_score > 0:
+                    score += facial_score
+                    indicators.extend(
+                        [f"{filename}: {issue}" for issue in facial_issues]
+                    )
+
+                # 3. Check audio-visual synchronization
+                sync_score, sync_issues = self._check_audio_visual_sync(
+                    temp_file_path, frames
+                )
+                if sync_score > 0:
+                    score += sync_score
+                    indicators.extend([f"{filename}: {issue}" for issue in sync_issues])
+
+                # 4. Look for compression artifacts typical of deepfakes
+                compression_score, compression_issues = (
+                    self._check_compression_artifacts(gray_frames)
+                )
+                if compression_score > 0:
+                    score += compression_score
+                    indicators.extend(
+                        [f"{filename}: {issue}" for issue in compression_issues]
+                    )
+
+                # 5. Use specialized deepfake detection models (Simulated)
+                model_score = self._run_deepfake_model(
+                    frames, gray_frames, content_type
+                )
+                if model_score > 0.7:
+                    score += 3.0
+                    indicators.append(
+                        f"High probability of deepfake detected by model: {filename}"
+                    )
+
+        except Exception as e:
+            self.logger.error(
+                f"Error during deepfake analysis for {filename}: {str(e)}"
+            )
+
+        finally:
+            # Cleanup temp file
+            if temp_file_path and os.path.exists(temp_file_path):
+                try:
+                    os.unlink(temp_file_path)
+                except OSError as e:
+                    self.logger.warning(
+                        f"Failed to delete temp file {temp_file_path}: {e}"
+                    )
+
+        return score, indicators
+
+    def _extract_frames_from_video(
+        self, video_path: str, max_frames: int = 10, max_dim: int = 1920
+    ) -> List[np.ndarray]:
+        """
+        Extract a sample of frames from the video.
+
+        Frames are sampled up to ``max_frames`` times, distributed across the video
+        when the total frame count is known, or sequentially from the start if it is not.
+
+        Each extracted frame is optionally resized via ``_resize_frame_if_needed`` so
+        that its longest side does not exceed ``max_dim`` pixels, while preserving
+        aspect ratio. Frames smaller than ``max_dim`` are left at their original size.
+
+        Args:
+            video_path: Path to the video file to sample.
+            max_frames: Maximum number of frames to extract from the video.
+            max_dim: Maximum allowed dimension (in pixels) for the width or height
+                of each returned frame. The frame is downscaled if necessary so its
+                longest side is at most this value, preserving aspect ratio.
+
+        """
+        frames = []
+        try:
+            cap = cv2.VideoCapture(video_path)
+            if not cap.isOpened():
+                return frames
+
+            total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+
+            if total_frames <= 0:
+                # Fallback if frame count is unknown
+                frames = self._extract_frames_sequential(cap, max_frames, max_dim)
+            else:
+                # Sample evenly distributed frames
+                step = max(1, total_frames // max_frames)
+
+                # Optimization: For step=1 (sequential reading), avoid expensive seek operations
+                if step == 1:
+                    count = 0
+                    while count < max_frames:
+                        success, frame = cap.read()
+                        if not success:
+                            break
+                        if frame is not None:
+                            frames.append(self._resize_frame_if_needed(frame, max_dim))
+                        count += 1
+                else:
+                    for i in range(0, total_frames, step):
+                        cap.set(cv2.CAP_PROP_POS_FRAMES, i)
+                        success, frame = cap.read()
+                        if success and frame is not None:
+                            frames.append(self._resize_frame_if_needed(frame, max_dim))
+                        if len(frames) >= max_frames:
+                            break
+
+            cap.release()
+        except Exception as e:
+            self.logger.error(f"Error extracting frames: {e}")
+
+        return frames
+
+    def _extract_frames_sequential(
+        self, cap, max_frames: int, max_dim: int
+    ) -> List[np.ndarray]:
+        """Extract frames sequentially without seeking."""
+        frames = []
+        count = 0
+        while count < max_frames:
+            success, frame = cap.read()
+            if not success:
+                break
+            if frame is not None:
+                frames.append(self._resize_frame_if_needed(frame, max_dim))
+            count += 1
+        return frames
+
+    def _extract_frames_sampled(
+        self, cap, total_frames: int, step: int, max_frames: int, max_dim: int
+    ) -> List[np.ndarray]:
+        """Extract frames using a hybrid approach of seeking and grabbing for sampling."""
+        frames = []
+        current_frame = 0
+
+        for target_frame in range(0, total_frames, step):
+            if len(frames) >= max_frames:
+                break
+
+            current_frame = self._advance_to_frame(cap, current_frame, target_frame)
+
+            if current_frame != target_frame:
+                break
+
+            success, frame = cap.read()
+            if success and frame is not None:
+                frames.append(self._resize_frame_if_needed(frame, max_dim))
+                current_frame += 1
+            else:
+                break
+
+        return frames
+
+    def _advance_to_frame(self, cap, current_frame: int, target_frame: int) -> int:
+        """Advance the video capture to the target frame using a hybrid approach."""
+        try:
+            import cv2
+
+            cap_prop_pos_frames = cv2.CAP_PROP_POS_FRAMES
+        except ImportError:
+            cap_prop_pos_frames = (
+                1  # Fallback to the known integer value for CAP_PROP_POS_FRAMES
+            )
+
+        seek_threshold = 30
+        jump = target_frame - current_frame
+
+        if jump > seek_threshold:
+            cap.set(cap_prop_pos_frames, target_frame)
+            current_frame = target_frame
+
+        while current_frame < target_frame:
+            if not cap.grab():
+                break
+            current_frame += 1
+
+        return current_frame
+
+    def _resize_frame_if_needed(
+        self, frame: np.ndarray, max_dim: int = 1920
+    ) -> np.ndarray:
+        """Resize frame if it exceeds maximum dimension while maintaining aspect ratio."""
+        try:
+            h, w = frame.shape[:2]
+
+            # Defensive check: guard against malformed/empty frames with non-positive dimensions.
+            # OpenCV's resize requires strictly positive width/height; if we get bad input here,
+            # we log and return the frame unchanged rather than raising and bypassing DoS controls.
+            if h <= 0 or w <= 0:
+                self.logger.warning(
+                    f"Received frame with non-positive dimensions (h={h}, w={w}); skipping resize."
+                )
+                return frame
+
+            if max(h, w) <= max_dim:
+                return frame
+
+            scale = max_dim / max(h, w)
+            # Clamp new dimensions to at least 1 pixel to avoid int() rounding to 0,
+            # which would cause cv2.resize to raise and circumvent the downscaling.
+            new_w = max(1, int(w * scale))
+            new_h = max(1, int(h * scale))
+            return cv2.resize(frame, (new_w, new_h), interpolation=cv2.INTER_AREA)
+        except Exception as e:
+            self.logger.warning(f"Error resizing frame: {e}")
+            return frame
+
+    def _analyze_facial_inconsistencies(
+        self, gray_frames: List[np.ndarray]
+    ) -> Tuple[float, List[str]]:
+        """
+        Analyze frames for facial inconsistencies.
+        Uses OpenCV's Haar cascades for face detection and analyzes face regions.
+
+        Args:
+            gray_frames: List of grayscale frames (numpy arrays)
+
+        """
+        score = 0.0
+        issues = []
+
+        # Load Haar cascade for face detection (lazy loading with caching)
+        if self.face_cascade is None:
+            # Note: In a real environment, ensure the XML file is available or bundled.
+            # We try to load from default OpenCV path or a local path.
+            cascade_path = cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
+            self.face_cascade = cv2.CascadeClassifier(cascade_path)
+
+        if self.face_cascade.empty():
+            self.logger.warning("Haar cascade not found. Skipping facial analysis.")
+            return 0.0, []
+
+        faces_found = 0
+        blurry_faces = 0
+
+        # Optimization: Check a small subset of frames to reduce CPU load.
+        # Heuristic: we sample the first 5 frames assuming persistent issues are likely
+        # to appear early in the clip. Increase this sample size for more thorough analysis.
+        step = max(1, len(gray_frames) // 5)
+        frames_to_check = gray_frames[::step][:5]
+
+        for gray in frames_to_check:
+            faces = self.face_cascade.detectMultiScale(gray, 1.1, 4)
+
+            for x, y, w, h in faces:
+                faces_found += 1
+                face_roi = gray[y : y + h, x : x + w]
+
+                # Check for blurriness using Laplacian variance
+                # Optimization: Using cv2.meanStdDev is significantly faster (~3x)
+                # than falling back to NumPy's .var() method for variance calculation.
+                variance = (
+                    cv2.meanStdDev(cv2.Laplacian(face_roi, cv2.CV_64F))[1][0][0] ** 2
+                )
+                if variance < 100:  # Threshold for blurriness
+                    blurry_faces += 1
+
+        if faces_found > 0:
+            blur_ratio = blurry_faces / faces_found
+            if blur_ratio > 0.5:
+                score += 1.0
+                issues.append(
+                    f"Inconsistent facial clarity detected ({int(blur_ratio*100)}% blurry faces)"
+                )
+
+        return score, issues
+
+    def _check_audio_visual_sync(
+        self, video_path: str, frames: List[np.ndarray]
+    ) -> Tuple[float, List[str]]:
+        """
+        Check for audio-visual synchronization issues.
+        Note: Full A/V sync requires complex analysis (e.g. lip reading vs audio phonemes).
+        This is a lightweight check for stream presence and duration mismatch.
+        """
+        score = 0.0
+        issues = []
+
+        try:
+            cap = cv2.VideoCapture(video_path)
+            if not cap.isOpened():
+                return score, issues
+
+            # Check if we can get duration info (depends on container)
+            # OpenCV doesn't handle audio well directly without ffmpeg backend support explicitly
+            # So we focus on checking if video stream is consistent
+
+            fps = cap.get(cv2.CAP_PROP_FPS)
+            frame_count = cap.get(cv2.CAP_PROP_FRAME_COUNT)
+
+            if fps > 0 and frame_count > 0:
+                duration = frame_count / fps
+                # If duration is very short but file size is large, might be suspicious
+                file_size = os.path.getsize(video_path)
+                if duration < 1.0 and file_size > 5 * 1024 * 1024:
+                    score += 0.5
+                    issues.append(
+                        "Video duration vs file size mismatch (potential stream embedding issue)"
+                    )
+
+            cap.release()
+        except Exception as e:
+            self.logger.warning(f"Error in A/V sync check: {e}")
+
+        return score, issues
+
+    def _check_compression_artifacts(
+        self, gray_frames: List[np.ndarray]
+    ) -> Tuple[float, List[str]]:
+        """
+        Check for double compression artifacts or unusual frequency patterns.
+
+        Args:
+            gray_frames: List of grayscale frames (numpy arrays)
+
+        """
+        score = 0.0
+        issues = []
+
+        high_freq_noise_count = 0
+
+        # Optimization: Check a subset of frames to reduce CPU load
+        # Checking 5 frames is statistically sufficient to detect persistent artifacts
+        # while reducing FFT computations by up to 75%
+        frames_to_check = gray_frames[:5]
+
+        for gray in frames_to_check:
+            # Optimization: Use OpenCV DFT instead of Numpy FFT
+            # cv2.dft is typically 2-3x faster than np.fft.fft2
+            dft = cv2.dft(np.float32(gray), flags=cv2.DFT_COMPLEX_OUTPUT)
+
+            # Optimization: Avoid fftshift by masking corners (low frequencies) directly
+            # This saves ~16MB allocation per frame (1080p) and avoids array copy
+            magnitude = cv2.magnitude(dft[:, :, 0], dft[:, :, 1])
+            magnitude_spectrum = 20 * np.log(magnitude + 1)
+
+            # Simple heuristic: Check for unusual spikes in high frequencies
+            # often seen in GAN-generated images or poor compression re-encoding
+            h, w = gray.shape
+            # Mask out low frequencies (which are at the corners in unshifted spectrum)
+            mask_size = min(h, w) // 8
+
+            magnitude_spectrum[:mask_size, :mask_size] = 0
+            magnitude_spectrum[:mask_size, -mask_size:] = 0
+            magnitude_spectrum[-mask_size:, :mask_size] = 0
+            magnitude_spectrum[-mask_size:, -mask_size:] = 0
+
+            # Optimization: Use cv2.mean instead of np.mean
+            # cv2.mean is ~2x faster than np.mean for these arrays and avoids internal numpy overhead
+            if cv2.mean(magnitude_spectrum)[0] > self.HIGH_FREQ_NOISE_THRESHOLD:
+                high_freq_noise_count += 1
+
+        if len(frames_to_check) > 0 and (
+            high_freq_noise_count / len(frames_to_check) > 0.6
+        ):
+            score += 1.0
+            issues.append("Unusual high-frequency noise patterns detected")
+
+        return score, issues
+
+    def _run_deepfake_model(
+        self, frames: List[np.ndarray], gray_frames: List[np.ndarray], content_type: str
+    ) -> float:
+        """
+        Run deepfake detection model (Simulated).
+
+        In a full implementation, this would pass frames to a loaded Torch/TensorFlow model.
+        Here we simulate a model score based on frame properties to mimic the interface.
+        """
+        if not frames:
+            return 0.0
+
+        # Simulation of a scoring model:
+        # Generate a score that can actually span the 0.0 - 1.0 range based on image statistics.
+        # High variance + low brightness might suggest tampering in some contexts, or high saturation.
+        # This is a heuristic proxy.
+
+        avg_scores = []
+        for frame, gray in zip(frames, gray_frames, strict=False):
+            # Calculate standard deviation of color channels (saturation variance)
+            # Optimization: Use cv2.meanStdDev instead of np.std(frame.astype(float))
+            # This avoids creating a large float copy (saving ~48MB per 1080p frame)
+            # and is ~28x faster in benchmarks.
+            mean, std = cv2.meanStdDev(frame)
+            # Optimization: Use float(std.sum()) / std.size instead of np.mean(std)
+            # This avoids the ~10x slower np.mean dispatch overhead for small arrays.
+            std_dev = float(std.sum()) / std.size
+
+            # Calculate edge density using Canny
+            # Optimization: Use cv2.countNonZero instead of np.sum(edges) / edges.size
+            # This is ~12x faster as it operates on the sparse edge map.
+            # Optimization: Use pre-computed grayscale frame
+            edges = cv2.Canny(gray, 100, 200)
+            edge_count = cv2.countNonZero(edges)
+            edge_density = (edge_count * 255.0) / edges.size
+
+            # Synthetic score combination
+            # Normalize to 0-1 loosely
+            score = (std_dev / 100.0) * 0.5 + (edge_density * 5)
+            avg_scores.append(min(score, 1.0))
+
+        # Optimization: sum/len on native Python lists is ~6x faster than np.mean
+        final_score = sum(avg_scores) / len(avg_scores) if avg_scores else 0.0
+
+        # Clip to 0.0 - 1.0
+        return min(max(final_score, 0.0), 1.0)
+
+    def _calculate_risk_level(self, score: float) -> str:
+        """Calculate risk level based on media threat score."""
+        return calculate_risk_level(
+            score,
+            self.MEDIA_RISK_LOW_THRESHOLD,
+            self.MEDIA_RISK_HIGH_THRESHOLD,
+        )
+
+    def shutdown(self):
+        """Shutdown the thread pool executor."""
+        if hasattr(self, "_deepfake_executor"):
+            self._deepfake_executor.shutdown(wait=True)

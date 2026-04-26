@@ -37,7 +37,14 @@
 
 **Closed issues:**
 
+- \[repo-automation\] Daily Status Report - 2026-04-25 [\#722](https://github.com/abhimehro/email-security-pipeline/issues/722)
+- \[repo-automation\] Daily Status Report - 2026-04-24 [\#716](https://github.com/abhimehro/email-security-pipeline/issues/716)
+- \[repo-automation\] Daily Status Report - 2026-04-23 [\#714](https://github.com/abhimehro/email-security-pipeline/issues/714)
+- \[repo-automation\] Daily Status Report - 2026-04-22 [\#711](https://github.com/abhimehro/email-security-pipeline/issues/711)
+- \[repo-automation\] Daily Status Report - 2026-04-21 [\#706](https://github.com/abhimehro/email-security-pipeline/issues/706)
+- \[repo-automation\] Daily Status Report - 2026-04-20 [\#702](https://github.com/abhimehro/email-security-pipeline/issues/702)
 - Jules Daily QA & Agentic Review - 2025-03-09 [\#700](https://github.com/abhimehro/email-security-pipeline/issues/700)
+- Jules Daily QA & Agentic Review - 2025-03-09 [\#699](https://github.com/abhimehro/email-security-pipeline/issues/699)
 - \[repo-automation\] Weekly Retrospective - 2026-04-19 [\#697](https://github.com/abhimehro/email-security-pipeline/issues/697)
 - \[repo-automation\] Daily Status Report - 2026-04-19 [\#696](https://github.com/abhimehro/email-security-pipeline/issues/696)
 - Jules Daily QA & Agentic Review [\#694](https://github.com/abhimehro/email-security-pipeline/issues/694)
@@ -284,6 +291,11 @@
 
 **Merged pull requests:**
 
+- fix\(media\_analyzer\): revert PR \#693 \(corrupted JSON-encoded blob\) — unblocks pytest on main [\#723](https://github.com/abhimehro/email-security-pipeline/pull/723) ([abhimehro](https://github.com/abhimehro))
+- 🛡️ Sentinel: \[Critical\] Handle missing filenames to prevent analysis bypass [\#721](https://github.com/abhimehro/email-security-pipeline/pull/721) ([abhimehro](https://github.com/abhimehro))
+- 🧪 Test cache eviction logic in caching.py [\#718](https://github.com/abhimehro/email-security-pipeline/pull/718) ([abhimehro](https://github.com/abhimehro))
+- 🎨 Palette: Add explicit empty state for unconfigured accounts [\#717](https://github.com/abhimehro/email-security-pipeline/pull/717) ([abhimehro](https://github.com/abhimehro))
+- 🛡️ Sentinel: \[MEDIUM\] Add O\_NOFOLLOW to prevent symlink attacks [\#715](https://github.com/abhimehro/email-security-pipeline/pull/715) ([abhimehro](https://github.com/abhimehro))
 - 🎨 Palette: Add explicit progress bounds to email processing logs [\#713](https://github.com/abhimehro/email-security-pipeline/pull/713) ([abhimehro](https://github.com/abhimehro))
 - style: fix formatting in alert\_system.py \(Daily QA\) [\#710](https://github.com/abhimehro/email-security-pipeline/pull/710) ([abhimehro](https://github.com/abhimehro))
 - ⚡ Bolt: Replace Counter with defaultdict\(int\) for faster metric tracking [\#708](https://github.com/abhimehro/email-security-pipeline/pull/708) ([abhimehro](https://github.com/abhimehro))
