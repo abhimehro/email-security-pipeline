@@ -96,6 +96,8 @@ class SpamAnalyzer:
         r"font-size:\s*[0-2]px|color:\s*#fff.{0,100}background.{0,100}#fff",
         re.IGNORECASE,
     )
+    # Fast path pattern to avoid complex regex execution on clean strings
+    FAST_HIDDEN_PATTERN = re.compile(r"font-size:|color:", re.IGNORECASE)
     EMAIL_ADDRESS_PATTERN = re.compile(r"[\w\.-]+@[\w\.-]+")
     SENDER_DOMAIN_PATTERN = re.compile(r"[\w\.-]+@([\w\.-]+)", re.IGNORECASE)
 
@@ -269,13 +271,9 @@ class SpamAnalyzer:
 
     def _count_spam_keywords(self, text: str) -> int:
         """Helper to count spam keywords with a fast substring pre-check."""
-        if not text:
+        if not any(kw in text for kw in self.SPAM_KEYWORD_LITERALS):
             return 0
-        text_lower = text.lower()
-        # Optimization: Fast substring pre-check avoids executing complex regex on clean text
-        if any(kw in text_lower for kw in self.SPAM_KEYWORD_LITERALS):
-            return len(self.COMBINED_SPAM_PATTERN.findall(text))
-        return 0
+        return len(self.COMBINED_SPAM_PATTERN.findall(text))
 
     def _analyze_body(
         self, text_body: str, html_body: str, link_count: int
@@ -283,10 +281,6 @@ class SpamAnalyzer:
         """Analyze email body for spam indicators."""
         score = 0.0
         indicators = []
-
-        # Optimization: Avoid large string concatenation and lowercasing
-        # Instead, scan text and html separately with compiled regex
-
         keyword_matches = 0
 
         # Check spam keywords in text body
@@ -317,11 +311,23 @@ class SpamAnalyzer:
 
         # Check for hidden text (common spam technique)
         if html_body:
-            # Look for text with very small font or matching background color
+            hidden_score, hidden_indicators = self._check_hidden_text(html_body)
+            score += hidden_score
+            indicators.extend(hidden_indicators)
+
+        return score, indicators
+
+    def _check_hidden_text(self, html_body: str) -> Tuple[float, List[str]]:
+        """Helper to check for hidden text in HTML body."""
+        score = 0.0
+        indicators = []
+        # Look for text with very small font or matching background color
+        # Optimization: Fast substring pre-check avoids executing complex regex on clean HTML
+        # Using a simple non-backtracking regex avoids allocating a new lowercased string in memory.
+        if self.FAST_HIDDEN_PATTERN.search(html_body):
             if self.HIDDEN_TEXT_PATTERN.search(html_body):
                 score += 2.0
                 indicators.append("Hidden text detected")
-
         return score, indicators
 
     def _check_urls(self, urls: List[str]) -> Tuple[float, List[str]]:

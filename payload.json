@@ -1,4 +1,1 @@
-{
-  "title": "🛡️ Sentinel: [CRITICAL] Fix insecure deserialization in Hugging Face models",
-  "body": "🚨 **Severity:** CRITICAL\n💡 **Vulnerability:** Hugging Face models and tokenizers in `nlp_analyzer.py` were loaded without enforcing the `safetensors` format, making them susceptible to arbitrary code execution via malicious Pickle files.\n🎯 **Impact:** If malicious weights are provided or a supply-chain attack occurs, loading unsafe models could result in Remote Code Execution (RCE) on the host running the pipeline.\n🔧 **Fix:** Added `use_safetensors=True` to the `AutoTokenizer.from_pretrained` and `AutoModelForSequenceClassification.from_pretrained` calls.\n✅ **Verification:** Verified by running `pytest tests/test_nlp_analyzer.py` which passes correctly without regressions."
-}
+{}

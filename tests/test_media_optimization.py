@@ -69,13 +69,16 @@ class TestMediaOptimization(unittest.TestCase):
         cap_instance = mock_capture.return_value
         cap_instance.isOpened.return_value = True
 
-        # Scenario: 100 frames total, max_frames=10 -> step = 100 // 10 = 10
-        total_frames = 100
+        # Scenario: 400 frames total, max_frames=10 -> step = 400 // 10 = 40
+        # Step > 30 triggers cap.set() under the hybrid seek optimization
+        total_frames = 400
         max_frames = 10
 
         def get_prop(prop):
             if prop == cv2.CAP_PROP_FRAME_COUNT:
                 return total_frames
+            if prop == cv2.CAP_PROP_POS_FRAMES:
+                return 0
             return 0
 
         cap_instance.get.side_effect = get_prop

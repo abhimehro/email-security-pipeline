@@ -106,6 +106,7 @@
 ## 2025-03-06 - Visual Feedback for Graceful Shutdown
 **Learning:** Graceful shutdown sequences that take several seconds (e.g., draining thread pools, closing network connections) can make the CLI feel frozen or unresponsive after the user hits Ctrl+C.
 **Action:** Wrap the shutdown sequence in a visual loading state (like a spinner) to provide immediate feedback that cleanup is actively progressing, reducing user anxiety.
+
 ## 2025-02-15 - Cancellation Warning UX
 **Learning:** For user-initiated interruptions (like pressing Ctrl+C/KeyboardInterrupt), it's a better UX to use a warning indicator (e.g., ⚠️) and explicit "(Cancelled)" text instead of a failure indicator (e.g., ✘). This clearly differentiates cancellations from actual system errors, reducing user confusion.
 **Action:** Implemented this distinction in `src/utils/ui.py`'s `Spinner.__exit__`.
@@ -141,3 +142,13 @@
 ## 2027-01-15 - Visual Symbols for Status Indication
 **Learning:** Text-only statuses like "Active" vs "Disabled" require full word parsing to interpret, slowing down scanning of dense configuration summaries.
 **Action:** Prepend explicit visual symbols (like `✔` and `✖`) to textual statuses in CLI summaries to instantly communicate state without relying solely on reading text or seeing color.
+
+## 2024-04-17 - Semantic colors and visual indicators for textual statuses
+**Learning:** In complex CLI configurations summaries, plain text indicating "Enabled" or "Disabled" state may lack visual distinctiveness, resulting in poor scanability. Combining semantic ANSI color codes (e.g., green for positive states, grey for negative states) with visual symbols ensures immediate visual recognition for accessibility.
+**Action:** Consistently pair textual statuses like "Active/Enabled" and "Disabled/None" with corresponding symbols (`✔`/`✖`) and colors (`Colors.GREEN`/`Colors.GREY`) in CLI outputs.
+## 2024-10-24 - Explicit Progress Bounds in CLI Logging
+**Learning:** For command-line interfaces processing a batch of items sequentially, indicating progress visually reduces user anxiety. Adding a progress fraction like `[current_index/total_items]` dynamically provides clear boundaries on completion without overly polluting the log structure.
+**Action:** Always compute bounds string prefixes explicitly in callers where looping logic occurs and simply pass them as `log_prefix` to reusable methods that log progress context.
+## 2025-04-24 - Empty States in CLI Lists
+**Learning:** Displaying lists without an explicit empty state in the terminal can leave users confused about whether data is missing or the list is intentionally empty. This is still a good CLI pattern in general, but it only applies when the user can actually reach the list-rendering path.
+**Action:** Add an explicit, friendly empty state with gray or yellow coloring only for lists that are reachable at runtime. For account configuration specifically, the current application validates and exits before rendering a "No accounts configured" summary, so avoid documenting that message as current behavior unless validation changes.
