@@ -4,8 +4,8 @@ Email Security Analysis Pipeline
 Main orchestrator that coordinates all analysis modules.
 """
 
-import concurrent.futures
 import logging
+from concurrent.futures import ThreadPoolExecutor, TimeoutError
 import sys
 import time
 from logging.handlers import RotatingFileHandler
@@ -26,6 +26,8 @@ from src.utils.metrics import Metrics
 from src.utils.sanitization import sanitize_for_logging
 from src.utils.structured_logging import JSONFormatter
 from src.utils.ui import CountdownTimer, Spinner
+
+from src.app_runner import AppRunner
 
 
 class EmailSecurityPipeline:
@@ -74,7 +76,7 @@ class EmailSecurityPipeline:
         self.alert_system = AlertSystem(self.config.alerts)
 
         # Optimization: ThreadPool for parallel analysis
-        self.executor = concurrent.futures.ThreadPoolExecutor(max_workers=3)
+        self.executor = ThreadPoolExecutor(max_workers=3)
 
         self.running = False
 
@@ -182,14 +184,14 @@ class EmailSecurityPipeline:
                 # pipeline shutdown is not indefinitely blocked by long-running
                 # or stuck deepfake analysis tasks.
                 try:
-                    shutdown_executor = concurrent.futures.ThreadPoolExecutor(
+                    shutdown_executor = ThreadPoolExecutor(
                         max_workers=1
                     )
                     future = shutdown_executor.submit(self.media_analyzer.shutdown)
                     try:
                         # Allow a short grace period for a clean shutdown.
                         future.result(timeout=5)
-                    except concurrent.futures.TimeoutError:
+                    except TimeoutError:
                         # If shutdown takes too long, log and continue shutting down
                         # the pipeline while media analyzer finishes in the background.
                         self.logger.warning(
@@ -469,9 +471,6 @@ class EmailSecurityPipeline:
         print(
             f"\n📚 {Colors.GREY}For help, see README.md or OUTLOOK_TROUBLESHOOTING.md{Colors.RESET}\n"
         )
-
-
-from src.app_runner import AppRunner
 
 
 def main():
