@@ -123,7 +123,45 @@ class AppRunner:
 
             # Fallback to copy only if wizard wasn't run or failed
             if not Path(self.config_file).exists():
-                self._prompt_create_from_template()
+                prompt = Colors.colorize("? ", Colors.CYAN) + Colors.colorize(
+                    f"Create '{self.config_file}' from template without wizard? [Y/n] ",
+                    Colors.BOLD,
+                )
+                response = input(prompt).strip().lower()
+                if response in ("", "y", "yes"):
+                    try:
+                        import os
+
+                        with open(".env.example", "rb") as src:
+                            content = src.read()
+
+                        fd = os.open(
+                            self.config_file,
+                            os.O_WRONLY
+                            | os.O_CREAT
+                            | os.O_EXCL
+                            | getattr(os, "O_NOFOLLOW", 0),
+                            0o600,
+                        )
+                        try:
+                            os.fchmod(fd, 0o600)
+                        except (AttributeError, OSError, NotImplementedError):
+                            os.chmod(self.config_file, 0o600)
+
+                        with os.fdopen(fd, "wb") as dst:
+                            dst.write(content)
+
+                        print(f"Created '{self.config_file}' from '.env.example'.")
+                        print(
+                            "IMPORTANT: Please edit .env with your actual credentials before proceeding."
+                        )
+                        sys.exit(0)
+                    except Exception as e:
+                        print(f"Error creating file: {e}")
+                        sys.exit(1)
+                else:
+                    print("Please create a .env file based on .env.example")
+                    sys.exit(1)
         except KeyboardInterrupt:
             warning = Colors.colorize("⚠", Colors.YELLOW)
             message = Colors.colorize(

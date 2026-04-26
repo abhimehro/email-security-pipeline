@@ -285,30 +285,32 @@ def _write_config_file(config_file: str, new_content: str) -> bool:
         )
         return False
 
-    # Resolve and constrain to a safe root to prevent path traversal / arbitrary file overwrite.
-    safe_root = Path.cwd().resolve()
-    config_path = Path(config_file).expanduser().resolve()
-
-    try:
-        config_path.relative_to(safe_root)
-    except ValueError:
+    # Restrict writes to files in the current working directory by accepting
+    # only a plain filename (no directory components).
+    candidate_name = Path(config_file).name
+    if (
+        not candidate_name
+        or candidate_name in (".", "..")
+        or candidate_name != config_file
+    ):
         print(
             Colors.colorize(
-                f"Error: Configuration file path must be inside '{safe_root}'.",
+                f"Error: Unsafe configuration file path '{config_file}'. Use a filename only.",
                 Colors.RED,
             )
         )
         return False
 
+    config_path = (Path.cwd() / candidate_name).resolve()
+
     try:
         # Create file with restrictive permissions (600)
-        # Using os.open to set mode atomically if possible, or chmod after.
-        # Include O_NOFOLLOW to prevent symlink attacks during creation/opening.
-        flags = os.O_WRONLY | os.O_CREAT | os.O_TRUNC
-        if hasattr(os, "O_NOFOLLOW"):
-            flags |= os.O_NOFOLLOW
-
-        fd = os.open(abs_path, flags, 0o600)
+        # Using os.open to set mode atomically if possible, or chmod after
+        fd = os.open(
+            str(config_path),
+            os.O_WRONLY | os.O_CREAT | os.O_TRUNC | getattr(os, "O_NOFOLLOW", 0),
+            0o600,
+        )
 
         # os.open mode only applies to new files. If the file exists, we must explicitly set permissions.
         # We prioritize using the file descriptor (fchmod or chmod with FD) to prevent TOCTOU
@@ -329,7 +331,9 @@ def _write_config_file(config_file: str, new_content: str) -> bool:
 
         print(
             "\n"
-            + Colors.colorize(f"✔ Configuration saved to {config_file}", Colors.GREEN)
+            + Colors.colorize(
+                f"✔ Configuration saved to {str(config_path)}", Colors.GREEN
+            )
         )
         return True
     except Exception as e:

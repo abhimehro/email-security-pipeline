@@ -85,7 +85,7 @@ OUTLOOK_APP_PASSWORD=password
             expected_flags |= os.O_NOFOLLOW
 
         mock_os_open.assert_called_with(
-            str(Path(".env").resolve()), expected_flags, 0o600
+            os.path.abspath(".env"), os.O_WRONLY | os.O_CREAT | os.O_TRUNC | getattr(os, "O_NOFOLLOW", 0), 0o600
         )
 
         # Verify file write
