@@ -13,3 +13,7 @@
 **Vulnerability:** Hugging Face models and tokenizers were being loaded via `from_pretrained` without enforcing safe serialization formats. This could allow insecure deserialization (Pickle arbitrary code execution) if malicious model weights are fetched or substituted.
 **Learning:** The default behavior of `from_pretrained` might fall back to loading unsafe Pickle files if `use_safetensors=True` is not explicitly set, exposing the application to RCE (Remote Code Execution) through supply-chain attacks or compromised model repositories.
 **Prevention:** Always set `use_safetensors=True` when loading models and tokenizers using Hugging Face `transformers` to enforce the use of the secure `safetensors` format.
+## 2026-04-23 - Prevent symlink attacks with O_NOFOLLOW in os.open
+**Vulnerability:** os.open calls used to create config files lacked the O_NOFOLLOW flag, potentially allowing an attacker to overwrite sensitive files by creating a symlink.
+**Learning:** Always use os.O_NOFOLLOW (or its cross-platform equivalent getattr(os, "O_NOFOLLOW", 0)) when opening or creating sensitive files to mitigate TOCTOU symlink vulnerabilities.
+**Prevention:** Apply O_NOFOLLOW in os.open flags for any file creation/open operations that might be targeted by symlink attacks.
