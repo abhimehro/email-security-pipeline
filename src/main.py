@@ -403,7 +403,7 @@ class EmailSecurityPipeline:
         print(f"  📧 {Colors.CYAN}Monitored Accounts:{Colors.RESET}")
         if not self.config.email_accounts:
             print(
-                f"    - {Colors.GREY}⚠ No accounts configured (Pipeline will idle){Colors.RESET}"
+                f"    - {Colors.colorize('⚠ No accounts configured (Pipeline will idle)', Colors.GREY)}"
             )
         else:
             for account in self.config.email_accounts:
