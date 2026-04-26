@@ -1,3 +1,4 @@
+import os
 import signal
 from unittest.mock import MagicMock, patch
 

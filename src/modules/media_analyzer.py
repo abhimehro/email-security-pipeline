@@ -157,18 +157,18 @@ class MediaAuthenticityAnalyzer:
     # `bytes.startswith` to execute in C, bypassing Python loop overhead.
     MAGIC_SIGNATURES_OFFSET_0 = (
         (b"%PDF", "pdf"),
-        (b"PK\\x03\\x04", "zip"),
-        (b"\\xff\\xd8\\xff", "jpeg"),
-        (b"\\x89PNG", "png"),
+        (b"PK\x03\x04", "zip"),
+        (b"\xff\xd8\xff", "jpeg"),
+        (b"\x89PNG", "png"),
         (b"GIF8", "gif"),
         (b"MZ", "exe"),
-        (b"\\xd0\\xcf\\x11\\xe0", "doc"),
-        (b"\\x1a\\x45\\xdf\\xa3", "mkv"),
+        (b"\xd0\xcf\x11\xe0", "doc"),
+        (b"\x1a\x45\xdf\xa3", "mkv"),
         (b"ID3", "mp3"),
-        (b"\\xff\\xfb", "mp3"),
-        (b"\\xff\\xf3", "mp3"),
-        (b"\\xff\\xf2", "mp3"),
-        (b"\\x30\\x26\\xb2\\x75\\x8e\\x66\\xcf\\x11", "wmv"),
+        (b"\xff\xfb", "mp3"),
+        (b"\xff\xf3", "mp3"),
+        (b"\xff\xf2", "mp3"),
+        (b"\x30\x26\xb2\x75\x8e\x66\xcf\x11", "wmv"),
         (b"FLV", "flv"),
         (b"OggS", "ogg"),
         (b"fLaC", "flac"),
@@ -404,7 +404,9 @@ class MediaAuthenticityAnalyzer:
         errors = []
 
         # Only analyze video files
-        if not filename.lower().endswith((".mp4", ".avi", ".mov", ".wmv", ".flv", ".mkv")):
+        if not filename.lower().endswith(
+            (".mp4", ".avi", ".mov", ".wmv", ".flv", ".mkv")
+        ):
             return {"score": score, "indicators": indicators, "errors": errors}
 
         try:
@@ -434,7 +436,9 @@ class MediaAuthenticityAnalyzer:
                     )
 
                     # Run deepfake model
-                    model_score = self._run_deepfake_model(frames, gray_frames, content_type)
+                    model_score = self._run_deepfake_model(
+                        frames, gray_frames, content_type
+                    )
 
                     # Aggregate results
                     score += facial_score + compression_score
@@ -551,9 +555,7 @@ class MediaAuthenticityAnalyzer:
             current_pos = i + 1
         return frames
 
-    def _resize_frame_if_needed(
-        self, frame: np.ndarray, max_dim: int
-    ) -> np.ndarray:
+    def _resize_frame_if_needed(self, frame: np.ndarray, max_dim: int) -> np.ndarray:
         """
         Resize frame if it exceeds max_dim while preserving aspect ratio.
 

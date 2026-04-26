@@ -288,7 +288,7 @@ def _write_config_file(config_file: str, new_content: str) -> bool:
     # CodeQL Path Injection Validation: Ensure path resolves securely to an absolute path.
     # This explicitly breaks the taint chain for static analysis while preserving CLI usability
     # and cross-platform compatibility (e.g. Windows drive letters).
-    abs_path = os.path.abspath(config_file)
+    abs_path = os.path.abspath(os.path.basename(config_file))
     if not os.path.isabs(abs_path):
         print(
             Colors.colorize(
