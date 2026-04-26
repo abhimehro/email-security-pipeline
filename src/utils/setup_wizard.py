@@ -303,7 +303,7 @@ def _write_config_file(config_file: str, new_content: str) -> bool:
         # Create file with restrictive permissions (600)
         # Using os.open to set mode atomically if possible, or chmod after
         fd = os.open(
-            str(config_path),
+            abs_path,
             os.O_WRONLY | os.O_CREAT | os.O_TRUNC | getattr(os, "O_NOFOLLOW", 0),
             0o600,
         )
