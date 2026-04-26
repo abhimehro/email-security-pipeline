@@ -295,6 +295,7 @@
 - Sentinel fix symlink attacks 1790347126622582166 [\#724](https://github.com/abhimehro/email-security-pipeline/pull/724) ([abhimehro](https://github.com/abhimehro))
 - fix\(media\_analyzer\): revert PR \#693 \(corrupted JSON-encoded blob\) — unblocks pytest on main [\#723](https://github.com/abhimehro/email-security-pipeline/pull/723) ([abhimehro](https://github.com/abhimehro))
 - 🛡️ Sentinel: \[Critical\] Handle missing filenames to prevent analysis bypass [\#721](https://github.com/abhimehro/email-security-pipeline/pull/721) ([abhimehro](https://github.com/abhimehro))
+- 🧹 Code health: Refactor imports and fix lint issues in src/main.py [\#720](https://github.com/abhimehro/email-security-pipeline/pull/720) ([abhimehro](https://github.com/abhimehro))
 - 🔒 \[security fix\] Hardened configuration file permissions and TOCTOU protection [\#719](https://github.com/abhimehro/email-security-pipeline/pull/719) ([abhimehro](https://github.com/abhimehro))
 - 🧪 Test cache eviction logic in caching.py [\#718](https://github.com/abhimehro/email-security-pipeline/pull/718) ([abhimehro](https://github.com/abhimehro))
 - 🎨 Palette: Add explicit empty state for unconfigured accounts [\#717](https://github.com/abhimehro/email-security-pipeline/pull/717) ([abhimehro](https://github.com/abhimehro))
