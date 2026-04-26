@@ -37,6 +37,7 @@
 
 **Closed issues:**
 
+- Jules Daily QA & Agentic Review - Formatting Fixes [\#726](https://github.com/abhimehro/email-security-pipeline/issues/726)
 - \[repo-automation\] Daily Status Report - 2026-04-25 [\#722](https://github.com/abhimehro/email-security-pipeline/issues/722)
 - \[repo-automation\] Daily Status Report - 2026-04-24 [\#716](https://github.com/abhimehro/email-security-pipeline/issues/716)
 - \[repo-automation\] Daily Status Report - 2026-04-23 [\#714](https://github.com/abhimehro/email-security-pipeline/issues/714)
@@ -291,6 +292,7 @@
 
 **Merged pull requests:**
 
+- Fix formatting issues \(Jules Daily QA\) [\#728](https://github.com/abhimehro/email-security-pipeline/pull/728) ([abhimehro](https://github.com/abhimehro))
 - docs: record development environment setup [\#725](https://github.com/abhimehro/email-security-pipeline/pull/725) ([abhimehro](https://github.com/abhimehro))
 - Sentinel fix symlink attacks 1790347126622582166 [\#724](https://github.com/abhimehro/email-security-pipeline/pull/724) ([abhimehro](https://github.com/abhimehro))
 - fix\(media\_analyzer\): revert PR \#693 \(corrupted JSON-encoded blob\) — unblocks pytest on main [\#723](https://github.com/abhimehro/email-security-pipeline/pull/723) ([abhimehro](https://github.com/abhimehro))
