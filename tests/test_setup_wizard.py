@@ -86,6 +86,7 @@ OUTLOOK_APP_PASSWORD=password
 
         mock_os_open.assert_called_with(
             os.path.abspath(".env"),
+            os.O_WRONLY | os.O_CREAT | os.O_TRUNC | getattr(os, "O_NOFOLLOW", 0),
             expected_flags,
             0o600,
         )
