@@ -292,6 +292,7 @@
 **Merged pull requests:**
 
 - fix\(media\_analyzer\): revert PR \#693 \(corrupted JSON-encoded blob\) — unblocks pytest on main [\#723](https://github.com/abhimehro/email-security-pipeline/pull/723) ([abhimehro](https://github.com/abhimehro))
+- 🎨 Palette: Add explicit empty state for unconfigured accounts [\#717](https://github.com/abhimehro/email-security-pipeline/pull/717) ([abhimehro](https://github.com/abhimehro))
 - 🛡️ Sentinel: \[MEDIUM\] Add O\_NOFOLLOW to prevent symlink attacks [\#715](https://github.com/abhimehro/email-security-pipeline/pull/715) ([abhimehro](https://github.com/abhimehro))
 - 🎨 Palette: Add explicit progress bounds to email processing logs [\#713](https://github.com/abhimehro/email-security-pipeline/pull/713) ([abhimehro](https://github.com/abhimehro))
 - style: fix formatting in alert\_system.py \(Daily QA\) [\#710](https://github.com/abhimehro/email-security-pipeline/pull/710) ([abhimehro](https://github.com/abhimehro))
