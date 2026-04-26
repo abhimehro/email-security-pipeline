@@ -285,11 +285,20 @@ def _write_config_file(config_file: str, new_content: str) -> bool:
         )
         return False
 
-    # CodeQL Path Injection Validation: Ensure path resolves securely to an absolute path.
-    # Using realpath() is a recognized pattern for path sanitization to mitigate path traversal
-    # and injection vulnerabilities in static analysis tools.
-    config_path_str = os.path.realpath(config_file)
-    config_path = Path(config_path_str)
+    # Resolve and constrain to a safe root to prevent path traversal / arbitrary file overwrite.
+    safe_root = Path.cwd().resolve()
+    config_path = Path(config_file).expanduser().resolve()
+
+    try:
+        config_path.relative_to(safe_root)
+    except ValueError:
+        print(
+            Colors.colorize(
+                f"Error: Configuration file path must be inside '{safe_root}'.",
+                Colors.RED,
+            )
+        )
+        return False
 
     try:
         # Create file with restrictive permissions (600)
