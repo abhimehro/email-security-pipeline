@@ -1090,16 +1090,52 @@ class MediaAuthenticityAnalyzer:
     def _extract_frames_sampled(
         self, cap, total_frames: int, step: int, max_frames: int, max_dim: int
     ) -> List[np.ndarray]:
-        """Extract frames using seeking for sampling."""
+        """Extract frames using a hybrid approach of seeking and grabbing for sampling."""
         frames = []
-        for i in range(0, total_frames, step):
-            cap.set(cv2.CAP_PROP_POS_FRAMES, i)
+        current_frame = 0
+
+        for target_frame in range(0, total_frames, step):
+            if len(frames) >= max_frames:
+                break
+
+            current_frame = self._advance_to_frame(cap, current_frame, target_frame)
+
+            if current_frame != target_frame:
+                break
+
             success, frame = cap.read()
             if success and frame is not None:
                 frames.append(self._resize_frame_if_needed(frame, max_dim))
-            if len(frames) >= max_frames:
+                current_frame += 1
+            else:
                 break
+
         return frames
+
+    def _advance_to_frame(self, cap, current_frame: int, target_frame: int) -> int:
+        """Advance the video capture to the target frame using a hybrid approach."""
+        try:
+            import cv2
+
+            cap_prop_pos_frames = cv2.CAP_PROP_POS_FRAMES
+        except ImportError:
+            cap_prop_pos_frames = (
+                1  # Fallback to the known integer value for CAP_PROP_POS_FRAMES
+            )
+
+        seek_threshold = 30
+        jump = target_frame - current_frame
+
+        if jump > seek_threshold:
+            cap.set(cap_prop_pos_frames, target_frame)
+            current_frame = target_frame
+
+        while current_frame < target_frame:
+            if not cap.grab():
+                break
+            current_frame += 1
+
+        return current_frame
 
     def _resize_frame_if_needed(
         self, frame: np.ndarray, max_dim: int = 1920
