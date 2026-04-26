@@ -458,9 +458,9 @@ class EmailSecurityPipeline:
         print(f"    - Log Level:  {self.config.system.log_level}")
         print(f"    - Log Format: {self.config.system.log_format}")
         metrics_status = (
-            f"{Colors.GREEN}✔ Enabled{Colors.RESET}"
+            Colors.colorize("✔ Enabled", Colors.GREEN)
             if self.config.system.enable_metrics
-            else f"{Colors.GREY}✖ Disabled{Colors.RESET}"
+            else Colors.colorize("✖ Disabled", Colors.GREY)
         )
         print(f"    - Metrics:    {metrics_status}")
         print(f"    - Interval:   {self.config.system.check_interval}s")
