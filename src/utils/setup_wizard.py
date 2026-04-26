@@ -308,7 +308,7 @@ def _write_config_file(config_file: str, new_content: str) -> bool:
         if hasattr(os, "O_NOFOLLOW"):
             flags |= os.O_NOFOLLOW
 
-        fd = os.open(str(config_path), flags, 0o600)
+        fd = os.open(abs_path, flags, 0o600)
 
         # os.open mode only applies to new files. If the file exists, we must explicitly set permissions.
         # We prioritize using the file descriptor (fchmod or chmod with FD) to prevent TOCTOU
