@@ -1047,32 +1047,12 @@ class MediaAuthenticityAnalyzer:
                 # Sample evenly distributed frames
                 step = max(1, total_frames // max_frames)
 
-                # Optimization: For step=1 (sequential reading), avoid expensive seek operations
                 if step == 1:
-                    count = 0
-                    while count < max_frames:
-                        success, frame = cap.read()
-                        if not success:
-                            break
-                        if frame is not None:
-                            frames.append(self._resize_frame_if_needed(frame, max_dim))
-                        count += 1
+                    frames = self._extract_frames_sequential(cap, max_frames, max_dim)
                 else:
-                    current_pos = 0
-                    for i in range(0, total_frames, step):
-                        jump = i - current_pos
-                        if 0 < jump <= 30:
-                            for _ in range(jump):
-                                cap.grab()
-                        elif jump > 30 or jump < 0:
-                            cap.set(cv2.CAP_PROP_POS_FRAMES, i)
-
-                        success, frame = cap.read()
-                        current_pos = i + 1
-                        if success and frame is not None:
-                            frames.append(self._resize_frame_if_needed(frame, max_dim))
-                        if len(frames) >= max_frames:
-                            break
+                    frames = self._extract_frames_sampled(
+                        cap, total_frames, step, max_frames, max_dim
+                    )
 
             cap.release()
         except Exception as e:
