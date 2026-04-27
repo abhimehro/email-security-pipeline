@@ -50,3 +50,6 @@
 
 **Learning:** In `src/modules/media_analyzer.py`, seeking to specific video frames via `cap.set(cv2.CAP_PROP_POS_FRAMES, i)` incurs significant decoding overhead and is slow for small forward jumps. However, for large jumps, `cap.grab()` becomes slower than `cap.set()`.
 **Action:** Implement a hybrid approach: use sequential `cap.grab()` for small intervals (e.g., <= 30 frames) to avoid redundant decoding, and fall back to `cap.set()` for larger intervals.
+## 2024-05-18 - Optimize OpenCV video frame extraction for small intervals
+**Learning:** In `src/modules/media_analyzer.py`, using `cap.set(cv2.CAP_PROP_POS_FRAMES, i)` to seek specific video frames incurs significant decoding overhead and is slow for small forward jumps. However, for large jumps, `cap.grab()` becomes slower than `cap.set()`.
+**Action:** Implemented a hybrid approach: used sequential `cap.grab()` for small intervals (e.g., <= 30 frames) to avoid redundant decoding, and fell back to `cap.set()` for larger intervals.
