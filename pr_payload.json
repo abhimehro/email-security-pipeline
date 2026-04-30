@@ -1,0 +1,6 @@
+{
+  "title": "🎨 Palette: Add missing suspicious URLs display to CLI alerts",
+  "body": "💡 What: Added missing CLI display for suspicious_urls in spam alerts.\n🎯 Why: Suspicious URLs were being processed and sent to Slack but were hidden in the local console, leading to reduced threat visibility.\n📸 Before/After: Visual change in the console report for spam.\n♿ Accessibility: N/A",
+  "head": "jules-ux-alert-urls",
+  "base": "main"
+}
