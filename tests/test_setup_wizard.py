@@ -82,11 +82,10 @@ OUTLOOK_APP_PASSWORD=password
         # Verify permissions were set (0o600 = 384 in decimal)
         expected_flags = os.O_WRONLY | os.O_CREAT | os.O_TRUNC
         if hasattr(os, "O_NOFOLLOW"):
-            expected_flags |= os.O_NOFOLLOW
+            expected_flags |= getattr(os, "O_NOFOLLOW", 0)
 
         mock_os_open.assert_called_with(
             os.path.abspath(".env"),
-            os.O_WRONLY | os.O_CREAT | os.O_TRUNC | getattr(os, "O_NOFOLLOW", 0),
             expected_flags,
             0o600,
         )
