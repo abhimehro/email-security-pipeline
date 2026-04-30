@@ -490,6 +490,7 @@ class AlertSystem:
 
         # Spam
         print_section_header("📧 SPAM", report.spam_analysis)
+        has_spam = False
         if report.spam_analysis.get("indicators"):
             for indicator in report.spam_analysis["indicators"][
                 : self.MAX_SPAM_INDICATORS_DISPLAY
@@ -499,7 +500,19 @@ class AlertSystem:
                     risk_color,
                     indent=3,
                 )
-        else:
+            has_spam = True
+
+        if report.spam_analysis.get("suspicious_urls"):
+            self._print_alert_row(
+                f"{Colors.BOLD}Suspicious URLs:{Colors.RESET}", risk_color, indent=3
+            )
+            for url in report.spam_analysis["suspicious_urls"][:3]:
+                self._print_alert_row(
+                    f"{Colors.colorize('•', Colors.RED)} {url}", risk_color, indent=5
+                )
+            has_spam = True
+
+        if not has_spam:
             self._print_alert_row(
                 f"{Colors.colorize('✓', Colors.GREEN)} No suspicious patterns",
                 risk_color,
