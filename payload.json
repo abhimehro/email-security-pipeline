@@ -1,6 +1,0 @@
-{
-  "title": "⚡ Bolt: Faster Video Frame Extraction using Hybrid Seeking",
-  "body": "💡 What: Replace standard loop with `self._extract_frames_sampled` call.\n🎯 Why: Using `cap.set()` incurs significant decoding overhead for small jumps, while `cap.grab()` is faster.\n📊 Impact: Faster processing for sampled video frame extractions.\n🔬 Measurement: Tested via unit tests and local benchmarks.",
-  "head": "jules-5855862047043928786-4a59fdd2",
-  "base": "main"
-}
