@@ -1,6 +1,0 @@
-{
-  "title": "⚡ Bolt: Faster Video Frame Extraction using Hybrid Seeking",
-  "body": "💡 What: Replaced the sequential `cap.set()` loop in video frame extraction with a call to the pre-existing hybrid method `_extract_frames_sampled`.\n\n🎯 Why: Using `cap.set()` for seeking to specific frames incurs significant decoding overhead, making it slow for small frame jumps during extraction.\n\n📊 Impact: Considerably faster frame extraction for sampling videos, particularly where jump step size is small.\n\n🔬 Measurement: Run the performance tests `pytest tests/test_media_video_extraction_perf.py` to confirm the speed improvement is measured correctly against regressions.\n\n══════════ ELIR ══════════\nPURPOSE: Delegate frame extraction to a hybrid method that combines sequential grabbing for small frame jumps and seeking for large ones.\nSECURITY: No security implications as it doesn't change the bounds of parsing, just the performance of traversal.\nFAILS IF: OpenCV cap instance breaks on mixed grab/set, which is already handled inside the sampled method.\nVERIFY: Ran the media optimization tests which passed.\nMAINTAIN: Keep this behavior as manual tracking inside `_extract_frames_from_video` bypasses the already existing optimization inside `_extract_frames_sampled`.",
-  "head": "jules-13252476722681144672-ccbfb3c9",
-  "base": "main"
-}
