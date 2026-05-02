@@ -50,3 +50,7 @@
 
 **Learning:** In `src/modules/media_analyzer.py`, seeking to specific video frames via `cap.set(cv2.CAP_PROP_POS_FRAMES, i)` incurs significant decoding overhead and is slow for small forward jumps. However, for large jumps, `cap.grab()` becomes slower than `cap.set()`.
 **Action:** Implement a hybrid approach: use sequential `cap.grab()` for small intervals (e.g., <= 30 frames) to avoid redundant decoding, and fall back to `cap.set()` for larger intervals.
+
+## 2025-08-01 - [Performance Optimization: Cross-email URL caching]
+**Learning:** The URL analysis in the SpamAnalyzer can be a bottleneck. The previous local cache only worked for identical URLs within a single email. Re-parsing the same suspicious domains across thousands of emails incurs heavy regex/parsing overhead.
+**Action:** Introduced an instance-level `TTLCache` to memoize the URL parsing/scoring across multiple emails. Local caching was retained for intra-email fast paths.

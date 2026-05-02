@@ -11,6 +11,7 @@ from urllib.parse import urlparse
 
 from ..utils.pattern_compiler import compile_named_group_pattern, compile_patterns
 from ..utils.threat_scoring import calculate_risk_level
+from ..utils.caching import TTLCache
 from .email_data import EmailData
 
 
@@ -158,6 +159,7 @@ class SpamAnalyzer:
         """
         self.config = config
         self.logger = logging.getLogger("SpamAnalyzer")
+        self._url_cache = TTLCache(max_size=2048, ttl_seconds=3600)
 
     def analyze(self, email_data: EmailData) -> SpamAnalysisResult:
         """
@@ -335,17 +337,26 @@ class SpamAnalyzer:
         score = 0.0
         suspicious = []
 
-        # Cache results for unique URLs to avoid re-parsing
-        checked_urls = {}
+        # Local cache for the current email to avoid duplicate work if the same URL appears multiple times
+        local_checked_urls = {}
 
         for url in urls:
-            if url in checked_urls:
+            if url in local_checked_urls:
                 # Retrieve cached results
-                url_score, append_count = checked_urls[url]
+                url_score, append_count = local_checked_urls[url]
                 score += url_score
                 # Replicate the exact number of appends
                 if append_count > 0:
                     suspicious.extend([url] * append_count)
+                continue
+
+            cached_result = self._url_cache.get(url)
+            if cached_result is not None:
+                url_score, append_count = cached_result
+                score += url_score
+                if append_count > 0:
+                    suspicious.extend([url] * append_count)
+                local_checked_urls[url] = cached_result
                 continue
 
             try:
@@ -366,10 +377,12 @@ class SpamAnalyzer:
                 if append_count > 0:
                     suspicious.extend([url] * append_count)
 
-                checked_urls[url] = (current_url_score, append_count)
+                local_checked_urls[url] = (current_url_score, append_count)
+                self._url_cache.put(url, (current_url_score, append_count))
 
             except Exception:
-                checked_urls[url] = (0.0, 0)
+                local_checked_urls[url] = (0.0, 0)
+                self._url_cache.put(url, (0.0, 0))
 
         return score, suspicious
 
