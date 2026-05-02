@@ -361,32 +361,18 @@ class SpamAnalyzer:
 
         for url in urls:
             if url in local_checked_urls:
-                # Retrieve cached results
-                url_score, append_count = local_checked_urls[url]
-                score += url_score
-                # Replicate the exact number of appends
-                if append_count > 0:
-                    suspicious.extend([url] * append_count)
-                continue
+                result = local_checked_urls[url]
+            else:
+                result = self._url_cache.get(url)
+                if result is None:
+                    result = self._evaluate_url(url)
+                    self._url_cache.put(url, result)
+                local_checked_urls[url] = result
 
-            cached_result = self._url_cache.get(url)
-            if cached_result is not None:
-                url_score, append_count = cached_result
-                score += url_score
-                if append_count > 0:
-                    suspicious.extend([url] * append_count)
-                local_checked_urls[url] = cached_result
-                continue
-
-            current_url_score, append_count = self._evaluate_url(url)
-
-            score += current_url_score
+            url_score, append_count = result
+            score += url_score
             if append_count > 0:
                 suspicious.extend([url] * append_count)
-
-            result_tuple = (current_url_score, append_count)
-            local_checked_urls[url] = result_tuple
-            self._url_cache.put(url, result_tuple)
 
         return score, suspicious
 
