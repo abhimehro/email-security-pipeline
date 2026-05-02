@@ -814,6 +814,7 @@ class AlertSystem:
                 headers={"Content-Type": "application/json"},
                 timeout=10,
                 allow_redirects=False,
+                verify=True,
             )
 
             if response.status_code == 200:
@@ -1133,6 +1134,7 @@ class AlertSystem:
                 headers={"Content-Type": "application/json"},
                 timeout=10,
                 allow_redirects=False,
+                verify=True,
             )
 
             if response.status_code == 200:
