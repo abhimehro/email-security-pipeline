@@ -351,6 +351,19 @@ class SpamAnalyzer:
         except Exception:
             return 0.0, 0
 
+    def _get_cached_url_result(self, url: str, local_checked_urls: dict) -> Tuple[float, int]:
+        """Retrieve URL evaluation from local cache, instance cache, or compute it."""
+        if url in local_checked_urls:
+            return local_checked_urls[url]
+            
+        result = self._url_cache.get(url)
+        if result is None:
+            result = self._evaluate_url(url)
+            self._url_cache.put(url, result)
+            
+        local_checked_urls[url] = result
+        return result
+
     def _check_urls(self, urls: List[str]) -> Tuple[float, List[str]]:
         """Check for suspicious URLs."""
         score = 0.0
@@ -360,16 +373,7 @@ class SpamAnalyzer:
         local_checked_urls = {}
 
         for url in urls:
-            if url in local_checked_urls:
-                result = local_checked_urls[url]
-            else:
-                result = self._url_cache.get(url)
-                if result is None:
-                    result = self._evaluate_url(url)
-                    self._url_cache.put(url, result)
-                local_checked_urls[url] = result
-
-            url_score, append_count = result
+            url_score, append_count = self._get_cached_url_result(url, local_checked_urls)
             score += url_score
             if append_count > 0:
                 suspicious.extend([url] * append_count)
