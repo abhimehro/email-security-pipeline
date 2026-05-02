@@ -332,6 +332,25 @@ class SpamAnalyzer:
                 indicators.append("Hidden text detected")
         return score, indicators
 
+    def _evaluate_url(self, url: str) -> Tuple[float, int]:
+        """Evaluate a single URL for suspicious characteristics and return its score and match count."""
+        try:
+            parsed = urlparse(url)
+            domain = parsed.netloc
+
+            current_url_score = 0.0
+            append_count = 0
+
+            # Check against combined suspicious patterns first
+            if self.COMBINED_URL_PATTERN.search(domain):
+                current_url_score += 0.5
+                append_count += 1
+
+            return current_url_score, append_count
+
+        except Exception:
+            return 0.0, 0
+
     def _check_urls(self, urls: List[str]) -> Tuple[float, List[str]]:
         """Check for suspicious URLs."""
         score = 0.0
@@ -359,30 +378,15 @@ class SpamAnalyzer:
                 local_checked_urls[url] = cached_result
                 continue
 
-            try:
-                parsed = urlparse(url)
-                domain = parsed.netloc
+            current_url_score, append_count = self._evaluate_url(url)
 
-                current_url_score = 0.0
-                append_count = 0
+            score += current_url_score
+            if append_count > 0:
+                suspicious.extend([url] * append_count)
 
-                # Check against combined suspicious patterns first
-                if self.COMBINED_URL_PATTERN.search(domain):
-                    # If matched, we just mark it. The original code broke after first match
-                    # in the loop, effectively counting only one match per URL from this list.
-                    current_url_score += 0.5
-                    append_count += 1
-
-                score += current_url_score
-                if append_count > 0:
-                    suspicious.extend([url] * append_count)
-
-                local_checked_urls[url] = (current_url_score, append_count)
-                self._url_cache.put(url, (current_url_score, append_count))
-
-            except Exception:
-                local_checked_urls[url] = (0.0, 0)
-                self._url_cache.put(url, (0.0, 0))
+            result_tuple = (current_url_score, append_count)
+            local_checked_urls[url] = result_tuple
+            self._url_cache.put(url, result_tuple)
 
         return score, suspicious
 
