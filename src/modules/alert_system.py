@@ -26,7 +26,7 @@ from .nlp_analyzer import NLPAnalysisResult
 from .spam_analyzer import SpamAnalysisResult
 
 # Regex pattern for stripping ANSI codes (compiled once for performance)
-ANSI_PATTERN = re.compile(r"\x1b\[[0-9;]*m")
+ANSI_PATTERN = re.compile(r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])")
 
 # Regex pattern for extracting URLs from error messages (compiled once for performance)
 # Expanded to catch bare paths/hosts for complete redaction when scheme is missing.
@@ -603,9 +603,10 @@ class AlertSystem:
         return rows
 
     def _safe_console_url(self, url: str) -> str:
-        return self._sanitize_text(
-            self._redact_sensitive_url_params(url), csv_safe=True
+        redacted_url = self._redact_sensitive_url_params(url).replace(
+            "%5BREDACTED%5D", "[REDACTED]"
         )
+        return self._sanitize_text(redacted_url, csv_safe=True)
 
     def _print_recommendations(
         self, recommendations: List[str], width: int, risk_color: str
@@ -1022,6 +1023,9 @@ class AlertSystem:
 
         # Replace newlines and tabs with spaces
         sanitized = text.translate(str.maketrans("\n\r\t", "   "))
+
+        if "\x1b" in sanitized:
+            sanitized = ANSI_PATTERN.sub("", sanitized)
 
         # Remove non-printable characters (including BiDi overrides, control chars, etc.)
         # Only keep characters that are printable or separators (Zs)
