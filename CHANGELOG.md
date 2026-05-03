@@ -300,8 +300,11 @@
 
 **Merged pull requests:**
 
+- Add GitHub Actions workflow testing skill [\#762](https://github.com/abhimehro/email-security-pipeline/pull/762) ([abhimehro](https://github.com/abhimehro))
+- ci: pass changelog token via environment [\#761](https://github.com/abhimehro/email-security-pipeline/pull/761) ([abhimehro](https://github.com/abhimehro))
 - ⚡ Bolt: Add global URL cache to SpamAnalyzer [\#759](https://github.com/abhimehro/email-security-pipeline/pull/759) ([abhimehro](https://github.com/abhimehro))
 - 🛡️ Sentinel: \[MEDIUM\] Enforce explicit TLS verification in webhook alerts [\#758](https://github.com/abhimehro/email-security-pipeline/pull/758) ([abhimehro](https://github.com/abhimehro))
+- Fix O\_NOFOLLOW in app\_runner [\#751](https://github.com/abhimehro/email-security-pipeline/pull/751) ([abhimehro](https://github.com/abhimehro))
 - 🧪 Jules Daily QA: Fix test\_setup\_wizard mock\_os\_open assertion [\#749](https://github.com/abhimehro/email-security-pipeline/pull/749) ([abhimehro](https://github.com/abhimehro))
 - Fix formatting issues \(Jules Daily QA\) [\#728](https://github.com/abhimehro/email-security-pipeline/pull/728) ([abhimehro](https://github.com/abhimehro))
 - autofix\(\): PR 0 \(cycle 1\) -- fix black formatting in main.py, test\_caching.py, and test\_setup\_wizard.py [\#727](https://github.com/abhimehro/email-security-pipeline/pull/727) ([abhimehro](https://github.com/abhimehro))
