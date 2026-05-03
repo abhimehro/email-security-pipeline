@@ -200,7 +200,7 @@ class TestConsoleAlert(unittest.TestCase):
             spam_analysis={
                 "risk_level": "medium",
                 "suspicious_urls": ["https://evil.example/\x1b[2J?token=abc123"],
-            }
+            },
         )
         captured = StringIO()
         with patch("sys.stdout", captured):
@@ -222,7 +222,7 @@ class TestConsoleAlert(unittest.TestCase):
             spam_analysis={
                 "risk_level": "medium",
                 "header_issues": ["SPF check failed"],
-            }
+            },
         )
         captured = StringIO()
         with patch("sys.stdout", captured):

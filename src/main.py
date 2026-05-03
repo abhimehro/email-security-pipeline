@@ -159,7 +159,9 @@ class EmailSecurityPipeline:
             print(f"\n{Colors.RED}❌ Configuration Error:{Colors.RESET}")
             for error in e.args[0]:
                 print(f"  • {Colors.YELLOW}{error}{Colors.RESET}")
-            print("\nPlease check your configuration file.")
+            print(
+                "\nPlease check your configuration file (e.g., .env) and ensure at least one account is enabled."
+            )
             self.stop()
             sys.exit(1)
         except Exception as e:
@@ -402,9 +404,7 @@ class EmailSecurityPipeline:
         # Accounts
         print(f"  📧 {Colors.CYAN}Monitored Accounts:{Colors.RESET}")
         if not self.config.email_accounts:
-            print(
-                f"    - {Colors.colorize('⚠ No accounts configured (Pipeline will idle)', Colors.GREY)}"
-            )
+            print(f"    - {Colors.colorize('⚠ No accounts configured', Colors.YELLOW)}")
         else:
             for account in self.config.email_accounts:
                 status = (
@@ -451,7 +451,7 @@ class EmailSecurityPipeline:
             print(f"    - {Colors.GREEN}✔ Enabled{Colors.RESET}: {', '.join(channels)}")
         else:
             print(
-                f"    - {Colors.GREY}✖ Disabled{Colors.RESET}: {Colors.YELLOW}None{Colors.RESET}"
+                f"    - {Colors.colorize('⚠ No alert channels configured', Colors.YELLOW)}"
             )
 
         print(f"  ⚙️ {Colors.CYAN}System:{Colors.RESET}")
