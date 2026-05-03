@@ -70,6 +70,7 @@ class AlertSystem:
     MAX_SPAM_INDICATORS_DISPLAY = 5
     MAX_NLP_INDICATORS_DISPLAY = 3
     MAX_MEDIA_WARNINGS_DISPLAY = 3
+    MAX_URLS_DISPLAY = 3
 
     # Maximum dispatch attempts per alert before giving up (worker mode).
     MAX_DISPATCH_RETRIES = 3
@@ -478,50 +479,13 @@ class AlertSystem:
         )
         self._print_alert_row("", risk_color)
 
-        # Helper for analysis sections
-        def print_section_header(title, analysis_data):
-            level = analysis_data.get("risk_level", "unknown")
-            color = Colors.get_risk_color(level)
-            symbol = Colors.get_risk_symbol(level)
-            self._print_alert_row(
-                f"{Colors.BOLD}{title}:{Colors.RESET} {Colors.colorize(level.upper(), color)} {symbol}",
-                risk_color,
-            )
-
         # Spam
-        print_section_header("📧 SPAM", report.spam_analysis)
-        has_spam = False
-        if report.spam_analysis.get("indicators"):
-            for indicator in report.spam_analysis["indicators"][
-                : self.MAX_SPAM_INDICATORS_DISPLAY
-            ]:
-                self._print_alert_row(
-                    f"{Colors.colorize('•', Colors.GREY)} {indicator}",
-                    risk_color,
-                    indent=3,
-                )
-            has_spam = True
-
-        if report.spam_analysis.get("suspicious_urls"):
-            self._print_alert_row(
-                f"{Colors.BOLD}Suspicious URLs:{Colors.RESET}", risk_color, indent=3
-            )
-            for url in report.spam_analysis["suspicious_urls"][:3]:
-                self._print_alert_row(
-                    f"{Colors.colorize('•', Colors.RED)} {url}", risk_color, indent=5
-                )
-            has_spam = True
-
-        if not has_spam:
-            self._print_alert_row(
-                f"{Colors.colorize('✓', Colors.GREEN)} No suspicious patterns",
-                risk_color,
-                indent=3,
-            )
+        self._print_analysis_section_header("📧 SPAM", report.spam_analysis, risk_color)
+        self._print_spam_details(report.spam_analysis, risk_color)
         self._print_alert_row("", risk_color)
 
         # NLP
-        print_section_header("🧠 NLP", report.nlp_analysis)
+        self._print_analysis_section_header("🧠 NLP", report.nlp_analysis, risk_color)
         nlp = report.nlp_analysis
         has_nlp = False
         if nlp.get("social_engineering_indicators"):
@@ -559,7 +523,7 @@ class AlertSystem:
         self._print_alert_row("", risk_color)
 
         # Media
-        print_section_header("📎 MEDIA", report.media_analysis)
+        self._print_analysis_section_header("📎 MEDIA", report.media_analysis, risk_color)
         media = report.media_analysis
         if media.get("file_type_warnings"):
             self._print_alert_row(
@@ -576,6 +540,66 @@ class AlertSystem:
         else:
             self._print_alert_row(
                 f"{Colors.colorize('✓', Colors.GREEN)} Attachments appear safe",
+                risk_color,
+                indent=3,
+            )
+
+    def _print_analysis_section_header(
+        self, title: str, analysis_data: Dict, risk_color: str
+    ) -> None:
+        level = analysis_data.get("risk_level", "unknown")
+        color = Colors.get_risk_color(level)
+        symbol = Colors.get_risk_symbol(level)
+        self._print_alert_row(
+            f"{Colors.BOLD}{title}:{Colors.RESET} {Colors.colorize(level.upper(), color)} {symbol}",
+            risk_color,
+        )
+
+    def _print_spam_details(self, spam_analysis: Dict, risk_color: str) -> None:
+        has_spam = False
+        if spam_analysis.get("indicators"):
+            for indicator in spam_analysis["indicators"][
+                : self.MAX_SPAM_INDICATORS_DISPLAY
+            ]:
+                self._print_alert_row(
+                    f"{Colors.colorize('•', Colors.GREY)} {indicator}",
+                    risk_color,
+                    indent=3,
+                )
+            has_spam = True
+
+        if spam_analysis.get("header_issues"):
+            self._print_alert_row(
+                f"{Colors.BOLD}Header Issues:{Colors.RESET}", risk_color, indent=3
+            )
+            for issue in spam_analysis["header_issues"][
+                : self.MAX_SPAM_INDICATORS_DISPLAY
+            ]:
+                self._print_alert_row(
+                    f"{Colors.colorize('•', Colors.YELLOW)} {issue}",
+                    risk_color,
+                    indent=5,
+                )
+            has_spam = True
+
+        if spam_analysis.get("suspicious_urls"):
+            self._print_alert_row(
+                f"{Colors.BOLD}Suspicious URLs:{Colors.RESET}", risk_color, indent=3
+            )
+            for url in spam_analysis["suspicious_urls"][: self.MAX_URLS_DISPLAY]:
+                safe_url = self._sanitize_text(
+                    self._redact_sensitive_url_params(url), csv_safe=True
+                )
+                self._print_alert_row(
+                    f"{Colors.colorize('•', Colors.RED)} {safe_url}",
+                    risk_color,
+                    indent=5,
+                )
+            has_spam = True
+
+        if not has_spam:
+            self._print_alert_row(
+                f"{Colors.colorize('✓', Colors.GREEN)} No suspicious patterns",
                 risk_color,
                 indent=3,
             )
