@@ -1094,22 +1094,16 @@ class MediaAuthenticityAnalyzer:
             success, frame = cap.read()
             if success and frame is not None:
                 frames.append(self._resize_frame_if_needed(frame, max_dim))
-                current_frame += 1
-            else:
-                break
+            # Advance position regardless of success so a single failed read
+            # (e.g. a corrupt frame mid-stream) doesn't abort the entire
+            # extraction. The next iteration will seek/grab to the next target.
+            current_frame += 1
 
         return frames
 
     def _advance_to_frame(self, cap, current_frame: int, target_frame: int) -> int:
         """Advance the video capture to the target frame using a hybrid approach."""
-        try:
-            import cv2
-
-            cap_prop_pos_frames = cv2.CAP_PROP_POS_FRAMES
-        except ImportError:
-            cap_prop_pos_frames = (
-                1  # Fallback to the known integer value for CAP_PROP_POS_FRAMES
-            )
+        cap_prop_pos_frames = cv2.CAP_PROP_POS_FRAMES
 
         seek_threshold = 30
         jump = target_frame - current_frame
