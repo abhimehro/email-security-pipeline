@@ -17,3 +17,8 @@
 **Vulnerability:** os.open calls used to create config files lacked the O_NOFOLLOW flag, potentially allowing an attacker to overwrite sensitive files by creating a symlink.
 **Learning:** Always use os.O_NOFOLLOW (or its cross-platform equivalent getattr(os, "O_NOFOLLOW", 0)) when opening or creating sensitive files to mitigate TOCTOU symlink vulnerabilities.
 **Prevention:** Apply O_NOFOLLOW in os.open flags for any file creation/open operations that might be targeted by symlink attacks.
+
+## 2026-05-02 - Explicit TLS Verification Required for `requests`
+**Vulnerability:** Default `requests.post()` calls without explicit `verify=True`, which is flagged by linters and security policies despite `requests` verifying TLS by default.
+**Learning:** Security policies in this codebase mandate explicit `verify=True` for all `requests` network calls to ensure TLS verification cannot be accidentally bypassed by environment configurations.
+**Prevention:** Always include `verify=True` when adding new network requests using the `requests` library.

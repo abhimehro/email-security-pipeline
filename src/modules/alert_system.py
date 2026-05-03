@@ -814,6 +814,7 @@ class AlertSystem:
                 headers={"Content-Type": "application/json"},
                 timeout=10,
                 allow_redirects=False,
+                verify=True,
             )
 
             if response.status_code == 200:
@@ -1025,6 +1026,73 @@ class AlertSystem:
 
         return {"title": title, "value": value, "short": True}
 
+    def _generate_slack_fields(self, report: ThreatReport) -> List[Dict]:
+        """Generate the fields array for the Slack payload."""
+        fields = [
+            {
+                "title": "Subject",
+                "value": self._sanitize_for_slack(report.subject),
+                "short": False,
+            },
+            {
+                "title": "From",
+                "value": self._sanitize_for_slack(report.sender),
+                "short": True,
+            },
+            {
+                "title": "Overall Threat Score",
+                "value": f"{report.overall_threat_score:.2f}",
+                "short": True,
+            },
+        ]
+
+        # Add analysis breakdown using helper method
+        # Spam
+        spam_data = report.spam_analysis or {}
+        spam_ind = ""
+        if spam_data.get("indicators"):
+            spam_ind = f" - {spam_data['indicators'][0]}"
+        elif spam_data.get("suspicious_urls"):
+            spam_ind = " - Suspicious URLs"
+
+        fields.append(self._create_slack_field("📧 Spam Analysis", spam_data, spam_ind))
+
+        # NLP
+        nlp_data = report.nlp_analysis or {}
+        nlp_ind = ""
+        if nlp_data.get("social_engineering_indicators"):
+            nlp_ind = f" - {nlp_data['social_engineering_indicators'][0]}"
+        elif nlp_data.get("authority_impersonation"):
+            nlp_ind = f" - {nlp_data['authority_impersonation'][0]}"
+
+        fields.append(self._create_slack_field("🧠 NLP Analysis", nlp_data, nlp_ind))
+
+        # Media
+        media_data = report.media_analysis or {}
+        media_ind = ""
+        if media_data.get("file_type_warnings"):
+            media_ind = f" - {media_data['file_type_warnings'][0]}"
+        elif media_data.get("potential_deepfakes"):
+            media_ind = " - Deepfake Detected"
+
+        fields.append(
+            self._create_slack_field("📎 Media Analysis", media_data, media_ind)
+        )
+
+        # Top Recommendation
+        fields.append(
+            {
+                "title": "Top Recommendation",
+                "value": (
+                    report.recommendations[0]
+                    if report.recommendations
+                    else "Review email"
+                ),
+                "short": False,
+            }
+        )
+        return fields
+
     def _slack_alert(self, report: ThreatReport) -> bool:
         """Send alert to Slack.
 
@@ -1044,73 +1112,8 @@ class AlertSystem:
             color = {"low": "#36a64f", "medium": "#ff9900", "high": "#ff0000"}.get(
                 report.risk_level, "#808080"
             )
-            fields = [
-                {
-                    "title": "Subject",
-                    "value": self._sanitize_for_slack(report.subject),
-                    "short": False,
-                },
-                {
-                    "title": "From",
-                    "value": self._sanitize_for_slack(report.sender),
-                    "short": True,
-                },
-                {
-                    "title": "Overall Threat Score",
-                    "value": f"{report.overall_threat_score:.2f}",
-                    "short": True,
-                },
-            ]
 
-            # Add analysis breakdown using helper method
-            # Spam
-            spam_data = report.spam_analysis or {}
-            spam_ind = ""
-            if spam_data.get("indicators"):
-                spam_ind = f" - {spam_data['indicators'][0]}"
-            elif spam_data.get("suspicious_urls"):
-                spam_ind = " - Suspicious URLs"
-
-            fields.append(
-                self._create_slack_field("📧 Spam Analysis", spam_data, spam_ind)
-            )
-
-            # NLP
-            nlp_data = report.nlp_analysis or {}
-            nlp_ind = ""
-            if nlp_data.get("social_engineering_indicators"):
-                nlp_ind = f" - {nlp_data['social_engineering_indicators'][0]}"
-            elif nlp_data.get("authority_impersonation"):
-                nlp_ind = f" - {nlp_data['authority_impersonation'][0]}"
-
-            fields.append(
-                self._create_slack_field("🧠 NLP Analysis", nlp_data, nlp_ind)
-            )
-
-            # Media
-            media_data = report.media_analysis or {}
-            media_ind = ""
-            if media_data.get("file_type_warnings"):
-                media_ind = f" - {media_data['file_type_warnings'][0]}"
-            elif media_data.get("potential_deepfakes"):
-                media_ind = " - Deepfake Detected"
-
-            fields.append(
-                self._create_slack_field("📎 Media Analysis", media_data, media_ind)
-            )
-
-            # Top Recommendation
-            fields.append(
-                {
-                    "title": "Top Recommendation",
-                    "value": (
-                        report.recommendations[0]
-                        if report.recommendations
-                        else "Review email"
-                    ),
-                    "short": False,
-                }
-            )
+            fields = self._generate_slack_fields(report)
 
             attachments = [
                 {
@@ -1133,6 +1136,7 @@ class AlertSystem:
                 headers={"Content-Type": "application/json"},
                 timeout=10,
                 allow_redirects=False,
+                verify=True,
             )
 
             if response.status_code == 200:
