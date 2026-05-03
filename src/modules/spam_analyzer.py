@@ -9,6 +9,7 @@ from dataclasses import dataclass
 from typing import Dict, List, Tuple, Union
 from urllib.parse import urlparse
 
+from ..utils.caching import TTLCache
 from ..utils.pattern_compiler import compile_named_group_pattern, compile_patterns
 from ..utils.threat_scoring import calculate_risk_level
 from .email_data import EmailData
@@ -158,6 +159,7 @@ class SpamAnalyzer:
         """
         self.config = config
         self.logger = logging.getLogger("SpamAnalyzer")
+        self.url_cache = TTLCache(max_size=2048, ttl_seconds=3600)
 
     def analyze(self, email_data: EmailData) -> SpamAnalysisResult:
         """
@@ -335,13 +337,11 @@ class SpamAnalyzer:
         score = 0.0
         suspicious = []
 
-        # Cache results for unique URLs to avoid re-parsing
-        checked_urls = {}
-
         for url in urls:
-            if url in checked_urls:
+            cached = self.url_cache.get(url)
+            if cached is not None:
                 # Retrieve cached results
-                url_score, append_count = checked_urls[url]
+                url_score, append_count = cached
                 score += url_score
                 # Replicate the exact number of appends
                 if append_count > 0:
@@ -366,10 +366,10 @@ class SpamAnalyzer:
                 if append_count > 0:
                     suspicious.extend([url] * append_count)
 
-                checked_urls[url] = (current_url_score, append_count)
+                self.url_cache.put(url, (current_url_score, append_count))
 
             except Exception:
-                checked_urls[url] = (0.0, 0)
+                self.url_cache.put(url, (0.0, 0))
 
         return score, suspicious
 
