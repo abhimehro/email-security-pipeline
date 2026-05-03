@@ -505,9 +505,21 @@ class AlertSystem:
             self._print_alert_row(
                 f"{Colors.BOLD}Suspicious URLs:{Colors.RESET}", risk_color, indent=3
             )
-            for url in report.spam_analysis["suspicious_urls"][:3]:
+            for url in report.spam_analysis["suspicious_urls"][
+                : self.MAX_SPAM_INDICATORS_DISPLAY
+            ]:
+                # URLs originate from untrusted email content. Redact any
+                # sensitive query params/credentials to avoid leaking secrets
+                # to console logs, then sanitize to strip terminal control
+                # sequences (ANSI codes, BiDi overrides, etc.) that could be
+                # used to spoof or hide alert output from a security operator.
+                safe_url = self._sanitize_text(
+                    self._redact_url_secrets(url), csv_safe=True
+                )
                 self._print_alert_row(
-                    f"{Colors.colorize('•', Colors.RED)} {url}", risk_color, indent=5
+                    f"{Colors.colorize('•', Colors.RED)} {safe_url}",
+                    risk_color,
+                    indent=5,
                 )
             has_spam = True
 
