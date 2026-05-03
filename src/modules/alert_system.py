@@ -70,6 +70,7 @@ class AlertSystem:
     MAX_SPAM_INDICATORS_DISPLAY = 5
     MAX_NLP_INDICATORS_DISPLAY = 3
     MAX_MEDIA_WARNINGS_DISPLAY = 3
+    MAX_SUSPICIOUS_URLS_DISPLAY = 3
 
     # Maximum dispatch attempts per alert before giving up (worker mode).
     MAX_DISPATCH_RETRIES = 3
@@ -505,9 +506,16 @@ class AlertSystem:
             self._print_alert_row(
                 f"{Colors.BOLD}Suspicious URLs:{Colors.RESET}", risk_color, indent=3
             )
-            for url in report.spam_analysis["suspicious_urls"][:3]:
+            for url in report.spam_analysis["suspicious_urls"][
+                : self.MAX_SUSPICIOUS_URLS_DISPLAY
+            ]:
+                # Sanitize URLs to prevent terminal escape sequence injection;
+                # these values originate from attacker-controlled email bodies.
+                sanitized_url = self._sanitize_text(url, csv_safe=True)
                 self._print_alert_row(
-                    f"{Colors.colorize('•', Colors.RED)} {url}", risk_color, indent=5
+                    f"{Colors.colorize('•', Colors.RED)} {sanitized_url}",
+                    risk_color,
+                    indent=5,
                 )
             has_spam = True
 
