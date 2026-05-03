@@ -556,53 +556,55 @@ class AlertSystem:
         )
 
     def _print_spam_details(self, spam_analysis: Dict, risk_color: str) -> None:
-        has_spam = False
-        if spam_analysis.get("indicators"):
-            for indicator in spam_analysis["indicators"][
-                : self.MAX_SPAM_INDICATORS_DISPLAY
-            ]:
-                self._print_alert_row(
-                    f"{Colors.colorize('•', Colors.GREY)} {indicator}",
-                    risk_color,
-                    indent=3,
-                )
-            has_spam = True
-
-        if spam_analysis.get("header_issues"):
-            self._print_alert_row(
-                f"{Colors.BOLD}Header Issues:{Colors.RESET}", risk_color, indent=3
-            )
-            for issue in spam_analysis["header_issues"][
-                : self.MAX_SPAM_INDICATORS_DISPLAY
-            ]:
-                self._print_alert_row(
-                    f"{Colors.colorize('•', Colors.YELLOW)} {issue}",
-                    risk_color,
-                    indent=5,
-                )
-            has_spam = True
-
-        if spam_analysis.get("suspicious_urls"):
-            self._print_alert_row(
-                f"{Colors.BOLD}Suspicious URLs:{Colors.RESET}", risk_color, indent=3
-            )
-            for url in spam_analysis["suspicious_urls"][: self.MAX_URLS_DISPLAY]:
-                safe_url = self._sanitize_text(
-                    self._redact_sensitive_url_params(url), csv_safe=True
-                )
-                self._print_alert_row(
-                    f"{Colors.colorize('•', Colors.RED)} {safe_url}",
-                    risk_color,
-                    indent=5,
-                )
-            has_spam = True
-
-        if not has_spam:
+        spam_rows = self._spam_detail_rows(spam_analysis)
+        if not spam_rows:
             self._print_alert_row(
                 f"{Colors.colorize('✓', Colors.GREEN)} No suspicious patterns",
                 risk_color,
                 indent=3,
             )
+            return
+
+        for text, indent in spam_rows:
+            self._print_alert_row(text, risk_color, indent=indent)
+
+    def _spam_detail_rows(self, spam_analysis: Dict) -> List[tuple[str, int]]:
+        rows: List[tuple[str, int]] = []
+        rows.extend(self._spam_indicator_rows(spam_analysis.get("indicators") or []))
+        rows.extend(self._spam_header_issue_rows(spam_analysis.get("header_issues") or []))
+        rows.extend(self._spam_url_rows(spam_analysis.get("suspicious_urls") or []))
+        return rows
+
+    def _spam_indicator_rows(self, indicators: List[str]) -> List[tuple[str, int]]:
+        return [
+            (f"{Colors.colorize('•', Colors.GREY)} {indicator}", 3)
+            for indicator in indicators[: self.MAX_SPAM_INDICATORS_DISPLAY]
+        ]
+
+    def _spam_header_issue_rows(self, header_issues: List[str]) -> List[tuple[str, int]]:
+        rows: List[tuple[str, int]] = []
+        if header_issues:
+            rows.append((f"{Colors.BOLD}Header Issues:{Colors.RESET}", 3))
+        rows.extend(
+            (f"{Colors.colorize('•', Colors.YELLOW)} {issue}", 5)
+            for issue in header_issues[: self.MAX_SPAM_INDICATORS_DISPLAY]
+        )
+        return rows
+
+    def _spam_url_rows(self, suspicious_urls: List[str]) -> List[tuple[str, int]]:
+        rows: List[tuple[str, int]] = []
+        if suspicious_urls:
+            rows.append((f"{Colors.BOLD}Suspicious URLs:{Colors.RESET}", 3))
+        rows.extend(
+            (f"{Colors.colorize('•', Colors.RED)} {self._safe_console_url(url)}", 5)
+            for url in suspicious_urls[: self.MAX_URLS_DISPLAY]
+        )
+        return rows
+
+    def _safe_console_url(self, url: str) -> str:
+        return self._sanitize_text(
+            self._redact_sensitive_url_params(url), csv_safe=True
+        )
 
     def _print_recommendations(
         self, recommendations: List[str], width: int, risk_color: str
