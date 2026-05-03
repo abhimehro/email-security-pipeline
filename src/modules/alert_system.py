@@ -68,6 +68,7 @@ class AlertSystem:
     # Maximum number of items shown per section in the console threat report.
     # Helps keep the output readable; lists may be truncated in the console view.
     MAX_SPAM_INDICATORS_DISPLAY = 5
+    MAX_HEADER_ISSUES_DISPLAY = 5
     MAX_NLP_INDICATORS_DISPLAY = 3
     MAX_MEDIA_WARNINGS_DISPLAY = 3
     MAX_URLS_DISPLAY = 3
@@ -587,7 +588,7 @@ class AlertSystem:
             rows.append((f"{Colors.BOLD}Header Issues:{Colors.RESET}", 3))
         rows.extend(
             (f"{Colors.colorize('•', Colors.YELLOW)} {issue}", 5)
-            for issue in header_issues[: self.MAX_SPAM_INDICATORS_DISPLAY]
+            for issue in header_issues[: self.MAX_HEADER_ISSUES_DISPLAY]
         )
         return rows
 

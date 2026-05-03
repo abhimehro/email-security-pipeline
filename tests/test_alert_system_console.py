@@ -186,6 +186,13 @@ class TestConsoleCleanReport(unittest.TestCase):
         output = captured.getvalue()
         self.assertIn("No Subject", output)
 
+
+class TestConsoleAlert(unittest.TestCase):
+    """Integration tests for AlertSystem._console_alert."""
+
+    def setUp(self):
+        self.alert = _make_alert_system()
+
     def test_suspicious_urls_are_rendered_safely(self):
         """Suspicious URLs should be visible without leaking terminal escapes or secrets."""
         report = _make_clean_report(
