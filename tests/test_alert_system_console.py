@@ -187,5 +187,51 @@ class TestConsoleCleanReport(unittest.TestCase):
         self.assertIn("No Subject", output)
 
 
+class TestConsoleAlert(unittest.TestCase):
+    """Integration tests for AlertSystem._console_alert."""
+
+    def setUp(self):
+        self.alert = _make_alert_system()
+
+    def test_suspicious_urls_are_rendered_safely(self):
+        """Suspicious URLs should be visible without leaking terminal escapes or secrets."""
+        report = _make_clean_report(
+            overall_threat_score=35.0,
+            spam_analysis={
+                "risk_level": "medium",
+                "suspicious_urls": ["https://evil.example/\x1b[2J?token=abc123"],
+            }
+        )
+        captured = StringIO()
+        with patch("sys.stdout", captured):
+            self.alert._console_alert(report)
+        output = captured.getvalue()
+        self.assertIn("Suspicious URLs", output)
+        self.assertIn("evil.example", output)
+        self.assertNotIn("\x1b[2J", output)
+        self.assertNotIn("[2J", output)
+        self.assertIn("token=[REDACTED]", output)
+        self.assertNotIn("%5BREDACTED%5D", output)
+        self.assertNotIn("%5bREDACTED%5d", output)
+        self.assertNotIn("abc123", output)
+
+    def test_header_issues_count_as_spam_findings(self):
+        """Header-only spam findings should not render as a clean spam section."""
+        report = _make_clean_report(
+            overall_threat_score=35.0,
+            spam_analysis={
+                "risk_level": "medium",
+                "header_issues": ["SPF check failed"],
+            }
+        )
+        captured = StringIO()
+        with patch("sys.stdout", captured):
+            self.alert._console_alert(report)
+        output = captured.getvalue()
+        self.assertIn("Header Issues", output)
+        self.assertIn("SPF check failed", output)
+        self.assertNotIn("No suspicious patterns", output)
+
+
 if __name__ == "__main__":
     unittest.main()

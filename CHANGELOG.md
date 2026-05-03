@@ -37,6 +37,14 @@
 
 **Closed issues:**
 
+- Jules Daily QA & Agentic Review [\#754](https://github.com/abhimehro/email-security-pipeline/issues/754)
+- \[repo-automation\] Daily Status Report - 2026-05-01 [\#750](https://github.com/abhimehro/email-security-pipeline/issues/750)
+- \[repo-automation\] Daily Status Report - 2026-04-30 [\#745](https://github.com/abhimehro/email-security-pipeline/issues/745)
+- Jules Daily QA & Agentic Review - Test Fix [\#741](https://github.com/abhimehro/email-security-pipeline/issues/741)
+- Jules Daily QA & Agentic Review - Fixed test\_setup\_wizard [\#737](https://github.com/abhimehro/email-security-pipeline/issues/737)
+- Jules Daily QA & Agentic Review - Automated Run [\#734](https://github.com/abhimehro/email-security-pipeline/issues/734)
+- \[repo-automation\] Weekly Retrospective - 2026-04-26 [\#730](https://github.com/abhimehro/email-security-pipeline/issues/730)
+- \[repo-automation\] Daily Status Report - 2026-04-26 [\#729](https://github.com/abhimehro/email-security-pipeline/issues/729)
 - Jules Daily QA & Agentic Review - Formatting Fixes [\#726](https://github.com/abhimehro/email-security-pipeline/issues/726)
 - \[repo-automation\] Daily Status Report - 2026-04-25 [\#722](https://github.com/abhimehro/email-security-pipeline/issues/722)
 - \[repo-automation\] Daily Status Report - 2026-04-24 [\#716](https://github.com/abhimehro/email-security-pipeline/issues/716)
@@ -292,6 +300,12 @@
 
 **Merged pull requests:**
 
+- Add GitHub Actions workflow testing skill [\#762](https://github.com/abhimehro/email-security-pipeline/pull/762) ([abhimehro](https://github.com/abhimehro))
+- ci: pass changelog token via environment [\#761](https://github.com/abhimehro/email-security-pipeline/pull/761) ([abhimehro](https://github.com/abhimehro))
+- ⚡ Bolt: Add global URL cache to SpamAnalyzer [\#759](https://github.com/abhimehro/email-security-pipeline/pull/759) ([abhimehro](https://github.com/abhimehro))
+- 🛡️ Sentinel: \[MEDIUM\] Enforce explicit TLS verification in webhook alerts [\#758](https://github.com/abhimehro/email-security-pipeline/pull/758) ([abhimehro](https://github.com/abhimehro))
+- Fix O\_NOFOLLOW in app\_runner [\#751](https://github.com/abhimehro/email-security-pipeline/pull/751) ([abhimehro](https://github.com/abhimehro))
+- 🧪 Jules Daily QA: Fix test\_setup\_wizard mock\_os\_open assertion [\#749](https://github.com/abhimehro/email-security-pipeline/pull/749) ([abhimehro](https://github.com/abhimehro))
 - Fix formatting issues \(Jules Daily QA\) [\#728](https://github.com/abhimehro/email-security-pipeline/pull/728) ([abhimehro](https://github.com/abhimehro))
 - autofix\(\): PR 0 \(cycle 1\) -- fix black formatting in main.py, test\_caching.py, and test\_setup\_wizard.py [\#727](https://github.com/abhimehro/email-security-pipeline/pull/727) ([abhimehro](https://github.com/abhimehro))
 - docs: record development environment setup [\#725](https://github.com/abhimehro/email-security-pipeline/pull/725) ([abhimehro](https://github.com/abhimehro))

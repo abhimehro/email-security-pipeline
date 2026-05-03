@@ -18,15 +18,12 @@ from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 import requests
 
 from ..utils.colors import Colors
-from ..utils.sanitization import _TRANSLATOR, sanitize_for_csv
+from ..utils.sanitization import ANSI_ESCAPE_PATTERN, _TRANSLATOR, sanitize_for_csv
 from ..utils.security_validators import is_safe_webhook_url
 from .email_data import EmailData
 from .media_analyzer import MediaAnalysisResult
 from .nlp_analyzer import NLPAnalysisResult
 from .spam_analyzer import SpamAnalysisResult
-
-# Regex pattern for stripping ANSI codes (compiled once for performance)
-ANSI_PATTERN = re.compile(r"\x1b\[[0-9;]*m")
 
 # Regex pattern for extracting URLs from error messages (compiled once for performance)
 # Expanded to catch bare paths/hosts for complete redaction when scheme is missing.
@@ -68,8 +65,10 @@ class AlertSystem:
     # Maximum number of items shown per section in the console threat report.
     # Helps keep the output readable; lists may be truncated in the console view.
     MAX_SPAM_INDICATORS_DISPLAY = 5
+    MAX_HEADER_ISSUES_DISPLAY = 5
     MAX_NLP_INDICATORS_DISPLAY = 3
     MAX_MEDIA_WARNINGS_DISPLAY = 3
+    MAX_URLS_DISPLAY = 3
 
     # Maximum dispatch attempts per alert before giving up (worker mode).
     MAX_DISPATCH_RETRIES = 3
@@ -478,37 +477,13 @@ class AlertSystem:
         )
         self._print_alert_row("", risk_color)
 
-        # Helper for analysis sections
-        def print_section_header(title, analysis_data):
-            level = analysis_data.get("risk_level", "unknown")
-            color = Colors.get_risk_color(level)
-            symbol = Colors.get_risk_symbol(level)
-            self._print_alert_row(
-                f"{Colors.BOLD}{title}:{Colors.RESET} {Colors.colorize(level.upper(), color)} {symbol}",
-                risk_color,
-            )
-
         # Spam
-        print_section_header("📧 SPAM", report.spam_analysis)
-        if report.spam_analysis.get("indicators"):
-            for indicator in report.spam_analysis["indicators"][
-                : self.MAX_SPAM_INDICATORS_DISPLAY
-            ]:
-                self._print_alert_row(
-                    f"{Colors.colorize('•', Colors.GREY)} {indicator}",
-                    risk_color,
-                    indent=3,
-                )
-        else:
-            self._print_alert_row(
-                f"{Colors.colorize('✓', Colors.GREEN)} No suspicious patterns",
-                risk_color,
-                indent=3,
-            )
+        self._print_analysis_section_header("📧 SPAM", report.spam_analysis, risk_color)
+        self._print_spam_details(report.spam_analysis, risk_color)
         self._print_alert_row("", risk_color)
 
         # NLP
-        print_section_header("🧠 NLP", report.nlp_analysis)
+        self._print_analysis_section_header("🧠 NLP", report.nlp_analysis, risk_color)
         nlp = report.nlp_analysis
         has_nlp = False
         if nlp.get("social_engineering_indicators"):
@@ -546,7 +521,7 @@ class AlertSystem:
         self._print_alert_row("", risk_color)
 
         # Media
-        print_section_header("📎 MEDIA", report.media_analysis)
+        self._print_analysis_section_header("📎 MEDIA", report.media_analysis, risk_color)
         media = report.media_analysis
         if media.get("file_type_warnings"):
             self._print_alert_row(
@@ -566,6 +541,72 @@ class AlertSystem:
                 risk_color,
                 indent=3,
             )
+
+    def _print_analysis_section_header(
+        self, title: str, analysis_data: Dict, risk_color: str
+    ) -> None:
+        level = analysis_data.get("risk_level", "unknown")
+        color = Colors.get_risk_color(level)
+        symbol = Colors.get_risk_symbol(level)
+        self._print_alert_row(
+            f"{Colors.BOLD}{title}:{Colors.RESET} {Colors.colorize(level.upper(), color)} {symbol}",
+            risk_color,
+        )
+
+    def _print_spam_details(self, spam_analysis: Dict, risk_color: str) -> None:
+        spam_rows = self._spam_detail_rows(spam_analysis)
+        if not spam_rows:
+            self._print_alert_row(
+                f"{Colors.colorize('✓', Colors.GREEN)} No suspicious patterns",
+                risk_color,
+                indent=3,
+            )
+            return
+
+        for text, indent in spam_rows:
+            self._print_alert_row(text, risk_color, indent=indent)
+
+    def _spam_detail_rows(self, spam_analysis: Dict) -> List[tuple[str, int]]:
+        rows: List[tuple[str, int]] = []
+        rows.extend(self._spam_indicator_rows(spam_analysis.get("indicators") or []))
+        rows.extend(self._spam_header_issue_rows(spam_analysis.get("header_issues") or []))
+        rows.extend(self._spam_url_rows(spam_analysis.get("suspicious_urls") or []))
+        return rows
+
+    def _spam_indicator_rows(self, indicators: List[str]) -> List[tuple[str, int]]:
+        return [
+            (f"{Colors.colorize('•', Colors.GREY)} {indicator}", 3)
+            for indicator in indicators[: self.MAX_SPAM_INDICATORS_DISPLAY]
+        ]
+
+    def _spam_header_issue_rows(self, header_issues: List[str]) -> List[tuple[str, int]]:
+        rows: List[tuple[str, int]] = []
+        if header_issues:
+            rows.append((f"{Colors.BOLD}Header Issues:{Colors.RESET}", 3))
+        rows.extend(
+            (f"{Colors.colorize('•', Colors.YELLOW)} {issue}", 5)
+            for issue in header_issues[: self.MAX_HEADER_ISSUES_DISPLAY]
+        )
+        return rows
+
+    def _spam_url_rows(self, suspicious_urls: List[str]) -> List[tuple[str, int]]:
+        rows: List[tuple[str, int]] = []
+        if suspicious_urls:
+            rows.append((f"{Colors.BOLD}Suspicious URLs:{Colors.RESET}", 3))
+        rows.extend(
+            (f"{Colors.colorize('•', Colors.RED)} {self._safe_console_url(url)}", 5)
+            for url in suspicious_urls[: self.MAX_URLS_DISPLAY]
+        )
+        return rows
+
+    def _safe_console_url(self, url: str) -> str:
+        redacted_url = re.sub(
+            r"%5bREDACTED%5d",
+            "[REDACTED]",
+            self._redact_sensitive_url_params(url),
+            flags=re.IGNORECASE,
+        )
+        return self._sanitize_text(redacted_url, csv_safe=True)
 
     def _print_recommendations(
         self, recommendations: List[str], width: int, risk_color: str
@@ -759,7 +800,7 @@ class AlertSystem:
         if not text:
             return 0
         if "\x1b" in text:
-            return len(ANSI_PATTERN.sub("", text))
+            return len(ANSI_ESCAPE_PATTERN.sub("", text))
         return len(text)
 
     def _truncate_text(self, text: str, width: int) -> str:
@@ -814,6 +855,7 @@ class AlertSystem:
                 headers={"Content-Type": "application/json"},
                 timeout=10,
                 allow_redirects=False,
+                verify=True,
             )
 
             if response.status_code == 200:
@@ -983,6 +1025,9 @@ class AlertSystem:
         # Replace newlines and tabs with spaces
         sanitized = text.translate(str.maketrans("\n\r\t", "   "))
 
+        if "\x1b" in sanitized:
+            sanitized = ANSI_ESCAPE_PATTERN.sub("", sanitized)
+
         # Remove non-printable characters (including BiDi overrides, control chars, etc.)
         # Only keep characters that are printable or separators (Zs)
         # Optimization: Use str.translate with a lazy-evaluating dictionary
@@ -1025,6 +1070,73 @@ class AlertSystem:
 
         return {"title": title, "value": value, "short": True}
 
+    def _generate_slack_fields(self, report: ThreatReport) -> List[Dict]:
+        """Generate the fields array for the Slack payload."""
+        fields = [
+            {
+                "title": "Subject",
+                "value": self._sanitize_for_slack(report.subject),
+                "short": False,
+            },
+            {
+                "title": "From",
+                "value": self._sanitize_for_slack(report.sender),
+                "short": True,
+            },
+            {
+                "title": "Overall Threat Score",
+                "value": f"{report.overall_threat_score:.2f}",
+                "short": True,
+            },
+        ]
+
+        # Add analysis breakdown using helper method
+        # Spam
+        spam_data = report.spam_analysis or {}
+        spam_ind = ""
+        if spam_data.get("indicators"):
+            spam_ind = f" - {spam_data['indicators'][0]}"
+        elif spam_data.get("suspicious_urls"):
+            spam_ind = " - Suspicious URLs"
+
+        fields.append(self._create_slack_field("📧 Spam Analysis", spam_data, spam_ind))
+
+        # NLP
+        nlp_data = report.nlp_analysis or {}
+        nlp_ind = ""
+        if nlp_data.get("social_engineering_indicators"):
+            nlp_ind = f" - {nlp_data['social_engineering_indicators'][0]}"
+        elif nlp_data.get("authority_impersonation"):
+            nlp_ind = f" - {nlp_data['authority_impersonation'][0]}"
+
+        fields.append(self._create_slack_field("🧠 NLP Analysis", nlp_data, nlp_ind))
+
+        # Media
+        media_data = report.media_analysis or {}
+        media_ind = ""
+        if media_data.get("file_type_warnings"):
+            media_ind = f" - {media_data['file_type_warnings'][0]}"
+        elif media_data.get("potential_deepfakes"):
+            media_ind = " - Deepfake Detected"
+
+        fields.append(
+            self._create_slack_field("📎 Media Analysis", media_data, media_ind)
+        )
+
+        # Top Recommendation
+        fields.append(
+            {
+                "title": "Top Recommendation",
+                "value": (
+                    report.recommendations[0]
+                    if report.recommendations
+                    else "Review email"
+                ),
+                "short": False,
+            }
+        )
+        return fields
+
     def _slack_alert(self, report: ThreatReport) -> bool:
         """Send alert to Slack.
 
@@ -1044,73 +1156,8 @@ class AlertSystem:
             color = {"low": "#36a64f", "medium": "#ff9900", "high": "#ff0000"}.get(
                 report.risk_level, "#808080"
             )
-            fields = [
-                {
-                    "title": "Subject",
-                    "value": self._sanitize_for_slack(report.subject),
-                    "short": False,
-                },
-                {
-                    "title": "From",
-                    "value": self._sanitize_for_slack(report.sender),
-                    "short": True,
-                },
-                {
-                    "title": "Overall Threat Score",
-                    "value": f"{report.overall_threat_score:.2f}",
-                    "short": True,
-                },
-            ]
 
-            # Add analysis breakdown using helper method
-            # Spam
-            spam_data = report.spam_analysis or {}
-            spam_ind = ""
-            if spam_data.get("indicators"):
-                spam_ind = f" - {spam_data['indicators'][0]}"
-            elif spam_data.get("suspicious_urls"):
-                spam_ind = " - Suspicious URLs"
-
-            fields.append(
-                self._create_slack_field("📧 Spam Analysis", spam_data, spam_ind)
-            )
-
-            # NLP
-            nlp_data = report.nlp_analysis or {}
-            nlp_ind = ""
-            if nlp_data.get("social_engineering_indicators"):
-                nlp_ind = f" - {nlp_data['social_engineering_indicators'][0]}"
-            elif nlp_data.get("authority_impersonation"):
-                nlp_ind = f" - {nlp_data['authority_impersonation'][0]}"
-
-            fields.append(
-                self._create_slack_field("🧠 NLP Analysis", nlp_data, nlp_ind)
-            )
-
-            # Media
-            media_data = report.media_analysis or {}
-            media_ind = ""
-            if media_data.get("file_type_warnings"):
-                media_ind = f" - {media_data['file_type_warnings'][0]}"
-            elif media_data.get("potential_deepfakes"):
-                media_ind = " - Deepfake Detected"
-
-            fields.append(
-                self._create_slack_field("📎 Media Analysis", media_data, media_ind)
-            )
-
-            # Top Recommendation
-            fields.append(
-                {
-                    "title": "Top Recommendation",
-                    "value": (
-                        report.recommendations[0]
-                        if report.recommendations
-                        else "Review email"
-                    ),
-                    "short": False,
-                }
-            )
+            fields = self._generate_slack_fields(report)
 
             attachments = [
                 {
@@ -1133,6 +1180,7 @@ class AlertSystem:
                 headers={"Content-Type": "application/json"},
                 timeout=10,
                 allow_redirects=False,
+                verify=True,
             )
 
             if response.status_code == 200:

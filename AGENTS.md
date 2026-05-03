@@ -37,7 +37,7 @@ Without valid IMAP credentials the pipeline will fail at the connection step. Fo
 ### Key gotchas
 
 - **`_get_terminal_width` bug**: The `AlertSystem._console_clean_report` method calls `self._get_terminal_width()` which does not exist. This causes an `AttributeError` when the pipeline tries to display console alerts. This is a pre-existing bug.
-- **ML dependencies not installed by default**: `torch`, `transformers`, `sentencepiece` are in `requirements.txt` but excluded from `requirements-ci.txt`. The NLP analyzer falls back to regex-based pattern matching when these are absent.
-- **Dependencies**: Use `requirements-ci.txt` for development to avoid installing multi-GB ML libraries (`torch`, `transformers`, etc.). The application will fall back to simpler regex-based analysis if these are absent. The full dependency list is in `requirements.txt`.
+- **ML dependencies not installed by default**: `torch`, `transformers`, `sentencepiece` are commented out in `requirements.txt` and excluded from `requirements-ci.txt`. The NLP analyzer falls back to regex-based pattern matching when these are absent.
+- **Dependencies**: Use `requirements-ci.txt` for development to avoid installing multi-GB ML libraries (`torch`, `transformers`, etc.). Uncomment the optional ML dependencies in `requirements.txt` only when full model-backed analysis is needed.
 - **PATH for pip-installed scripts**: User-installed pip scripts land in `~/.local/bin`. Ensure this directory is in your `PATH`.
 - **`core.hooksPath` conflict**: If `pre-commit install` fails with a `core.hooksPath` error, first check where it is set with `git config --show-origin --get-all core.hooksPath`. If it is set in the local repo, run `git config --unset-all core.hooksPath`; if it is set globally or system-wide, unset it with `git config --global --unset-all core.hooksPath` or `git config --system --unset-all core.hooksPath` as appropriate.
