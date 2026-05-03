@@ -212,6 +212,7 @@ class TestConsoleAlert(unittest.TestCase):
         self.assertNotIn("[2J", output)
         self.assertIn("token=[REDACTED]", output)
         self.assertNotIn("%5BREDACTED%5D", output)
+        self.assertNotIn("%5bREDACTED%5d", output)
         self.assertNotIn("abc123", output)
 
     def test_header_issues_count_as_spam_findings(self):

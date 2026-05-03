@@ -18,15 +18,12 @@ from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 import requests
 
 from ..utils.colors import Colors
-from ..utils.sanitization import _TRANSLATOR, sanitize_for_csv
+from ..utils.sanitization import ANSI_ESCAPE_PATTERN, _TRANSLATOR, sanitize_for_csv
 from ..utils.security_validators import is_safe_webhook_url
 from .email_data import EmailData
 from .media_analyzer import MediaAnalysisResult
 from .nlp_analyzer import NLPAnalysisResult
 from .spam_analyzer import SpamAnalysisResult
-
-# Regex pattern for stripping ANSI codes (compiled once for performance)
-ANSI_PATTERN = re.compile(r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])")
 
 # Regex pattern for extracting URLs from error messages (compiled once for performance)
 # Expanded to catch bare paths/hosts for complete redaction when scheme is missing.
@@ -603,8 +600,11 @@ class AlertSystem:
         return rows
 
     def _safe_console_url(self, url: str) -> str:
-        redacted_url = self._redact_sensitive_url_params(url).replace(
-            "%5BREDACTED%5D", "[REDACTED]"
+        redacted_url = re.sub(
+            r"%5bREDACTED%5d",
+            "[REDACTED]",
+            self._redact_sensitive_url_params(url),
+            flags=re.IGNORECASE,
         )
         return self._sanitize_text(redacted_url, csv_safe=True)
 
@@ -800,7 +800,7 @@ class AlertSystem:
         if not text:
             return 0
         if "\x1b" in text:
-            return len(ANSI_PATTERN.sub("", text))
+            return len(ANSI_ESCAPE_PATTERN.sub("", text))
         return len(text)
 
     def _truncate_text(self, text: str, width: int) -> str:
@@ -1025,7 +1025,7 @@ class AlertSystem:
         sanitized = text.translate(str.maketrans("\n\r\t", "   "))
 
         if "\x1b" in sanitized:
-            sanitized = ANSI_PATTERN.sub("", sanitized)
+            sanitized = ANSI_ESCAPE_PATTERN.sub("", sanitized)
 
         # Remove non-printable characters (including BiDi overrides, control chars, etc.)
         # Only keep characters that are printable or separators (Zs)
