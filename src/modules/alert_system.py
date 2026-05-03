@@ -467,6 +467,15 @@ class AlertSystem:
         )
         self._print_alert_row(f"{Colors.colorize(bar, meter_color)}", risk_color)
 
+    def _print_section_header(self, title: str, analysis_data: dict, risk_color: str):
+        level = analysis_data.get("risk_level", "unknown")
+        color = Colors.get_risk_color(level)
+        symbol = Colors.get_risk_symbol(level)
+        self._print_alert_row(
+            f"{Colors.BOLD}{title}:{Colors.RESET} {Colors.colorize(level.upper(), color)} {symbol}",
+            risk_color,
+        )
+
     def _print_analysis_details(
         self, report: ThreatReport, width: int, risk_color: str
     ):
@@ -478,18 +487,8 @@ class AlertSystem:
         )
         self._print_alert_row("", risk_color)
 
-        # Helper for analysis sections
-        def print_section_header(title, analysis_data):
-            level = analysis_data.get("risk_level", "unknown")
-            color = Colors.get_risk_color(level)
-            symbol = Colors.get_risk_symbol(level)
-            self._print_alert_row(
-                f"{Colors.BOLD}{title}:{Colors.RESET} {Colors.colorize(level.upper(), color)} {symbol}",
-                risk_color,
-            )
-
         # Spam
-        print_section_header("📧 SPAM", report.spam_analysis)
+        self._print_section_header("📧 SPAM", report.spam_analysis, risk_color)
         has_spam = False
         if report.spam_analysis.get("indicators"):
             for indicator in report.spam_analysis["indicators"][
@@ -521,7 +520,7 @@ class AlertSystem:
         self._print_alert_row("", risk_color)
 
         # NLP
-        print_section_header("🧠 NLP", report.nlp_analysis)
+        self._print_section_header("🧠 NLP", report.nlp_analysis, risk_color)
         nlp = report.nlp_analysis
         has_nlp = False
         if nlp.get("social_engineering_indicators"):
@@ -559,7 +558,7 @@ class AlertSystem:
         self._print_alert_row("", risk_color)
 
         # Media
-        print_section_header("📎 MEDIA", report.media_analysis)
+        self._print_section_header("📎 MEDIA", report.media_analysis, risk_color)
         media = report.media_analysis
         if media.get("file_type_warnings"):
             self._print_alert_row(
