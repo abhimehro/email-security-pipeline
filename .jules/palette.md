@@ -152,3 +152,6 @@
 ## 2025-04-24 - Empty States in CLI Lists
 **Learning:** Displaying lists without an explicit empty state in the terminal can leave users confused about whether data is missing or the list is intentionally empty. This is still a good CLI pattern in general, but it only applies when the user can actually reach the list-rendering path.
 **Action:** Add an explicit, friendly empty state with gray or yellow coloring only for lists that are reachable at runtime. For account configuration specifically, the current application validates and exits before rendering a "No accounts configured" summary, so avoid documenting that message as current behavior unless validation changes.
+## 2025-04-30 - Omitted Threat Indicators in CLI
+**Learning:** Omission of nested list values (like suspicious_urls) in CLI views creates a disconnect where underlying threats are detected but visually hidden.
+**Action:** Ensure all list-based threats outputted in external webhooks (like Slack) also have an explicit rendering path in local console alerts.
