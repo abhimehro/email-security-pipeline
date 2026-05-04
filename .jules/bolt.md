@@ -53,3 +53,6 @@
 ## 2025-05-15 - Global URL Caching in SpamAnalyzer
 **Learning:** Recreating a URL cache on every email analysis call misses the opportunity to optimize for common URLs (social media, footers) across a batch. Using a class-level TTLCache provides thread-safe, bounded persistence that survives across method calls.
 **Action:** Implemented instance-level TTLCache in SpamAnalyzer and refactored _check_urls to leverage it, resulting in a ~2.7x speedup for typical batches with repeated URLs.
+## 2024-05-24 - Avoid cap.set() for small jumps in OpenCV
+**Learning:** In OpenCV, `cap.set(cv2.CAP_PROP_POS_FRAMES, i)` incurs heavy decoding overhead for small frame jumps.
+**Action:** Always use a hybrid approach (like `_extract_frames_sampled`) that uses sequential `cap.grab()` for small intervals and `cap.set()` for large ones instead of manual `cap.set()` loops.
