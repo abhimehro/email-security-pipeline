@@ -54,6 +54,3 @@
 **Learning:** Recreating a URL cache on every email analysis call misses the opportunity to optimize for common URLs (social media, footers) across a batch. Using a class-level TTLCache provides thread-safe, bounded persistence that survives across method calls.
 **Action:** Implemented instance-level TTLCache in SpamAnalyzer and refactored _check_urls to leverage it, resulting in a ~2.7x speedup for typical batches with repeated URLs.
 
-## 2024-05-18 - Optimize OpenCV video frame extraction for small intervals
-**Learning:** In `src/modules/media_analyzer.py`, using `cap.set(cv2.CAP_PROP_POS_FRAMES, i)` to seek specific video frames incurs significant decoding overhead and is slow for small forward jumps. However, for large jumps, `cap.grab()` becomes slower than `cap.set()`.
-**Action:** Implemented a hybrid approach: used sequential `cap.grab()` for small intervals (e.g., <= 30 frames) to avoid redundant decoding, and fell back to `cap.set()` for larger intervals.
