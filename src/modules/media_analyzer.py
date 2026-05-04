@@ -1058,13 +1058,9 @@ class MediaAuthenticityAnalyzer:
                             frames.append(self._resize_frame_if_needed(frame, max_dim))
                         count += 1
                 else:
-                    for i in range(0, total_frames, step):
-                        cap.set(cv2.CAP_PROP_POS_FRAMES, i)
-                        success, frame = cap.read()
-                        if success and frame is not None:
-                            frames.append(self._resize_frame_if_needed(frame, max_dim))
-                        if len(frames) >= max_frames:
-                            break
+                    frames = self._extract_frames_sampled(
+                        cap, total_frames, step, max_frames, max_dim
+                    )
 
             cap.release()
         except Exception as e:
