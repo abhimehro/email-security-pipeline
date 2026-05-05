@@ -521,7 +521,9 @@ class AlertSystem:
         self._print_alert_row("", risk_color)
 
         # Media
-        self._print_analysis_section_header("📎 MEDIA", report.media_analysis, risk_color)
+        self._print_analysis_section_header(
+            "📎 MEDIA", report.media_analysis, risk_color
+        )
         media = report.media_analysis
         if media.get("file_type_warnings"):
             self._print_alert_row(
@@ -569,7 +571,9 @@ class AlertSystem:
     def _spam_detail_rows(self, spam_analysis: Dict) -> List[tuple[str, int]]:
         rows: List[tuple[str, int]] = []
         rows.extend(self._spam_indicator_rows(spam_analysis.get("indicators") or []))
-        rows.extend(self._spam_header_issue_rows(spam_analysis.get("header_issues") or []))
+        rows.extend(
+            self._spam_header_issue_rows(spam_analysis.get("header_issues") or [])
+        )
         rows.extend(self._spam_url_rows(spam_analysis.get("suspicious_urls") or []))
         return rows
 
@@ -579,7 +583,9 @@ class AlertSystem:
             for indicator in indicators[: self.MAX_SPAM_INDICATORS_DISPLAY]
         ]
 
-    def _spam_header_issue_rows(self, header_issues: List[str]) -> List[tuple[str, int]]:
+    def _spam_header_issue_rows(
+        self, header_issues: List[str]
+    ) -> List[tuple[str, int]]:
         rows: List[tuple[str, int]] = []
         if header_issues:
             rows.append((f"{Colors.BOLD}Header Issues:{Colors.RESET}", 3))
