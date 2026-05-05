@@ -402,9 +402,7 @@ class EmailSecurityPipeline:
         # Accounts
         print(f"  📧 {Colors.CYAN}Monitored Accounts:{Colors.RESET}")
         if not self.config.email_accounts:
-            print(
-                f"    - {Colors.colorize('⚠ No accounts configured (Pipeline will idle)', Colors.GREY)}"
-            )
+            print(f"    - {Colors.colorize('⚠ No accounts configured', Colors.YELLOW)}")
         else:
             for account in self.config.email_accounts:
                 status = (
@@ -451,7 +449,7 @@ class EmailSecurityPipeline:
             print(f"    - {Colors.GREEN}✔ Enabled{Colors.RESET}: {', '.join(channels)}")
         else:
             print(
-                f"    - {Colors.GREY}✖ Disabled{Colors.RESET}: {Colors.YELLOW}None{Colors.RESET}"
+                f"    - {Colors.colorize('⚠ No alert channels configured', Colors.YELLOW)}"
             )
 
         print(f"  ⚙️ {Colors.CYAN}System:{Colors.RESET}")

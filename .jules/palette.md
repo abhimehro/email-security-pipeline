@@ -155,3 +155,6 @@
 ## 2025-04-30 - Omitted Threat Indicators in CLI
 **Learning:** Omission of nested list values (like suspicious_urls) in CLI views creates a disconnect where underlying threats are detected but visually hidden.
 **Action:** Ensure all list-based threats outputted in external webhooks (like Slack) also have an explicit rendering path in local console alerts.
+## 2025-05-05 - Avoid Double Negative Empty States
+**Learning:** Displaying empty states like "Disabled: None" is confusing because it's a double negative that requires cognitive parsing to understand that "no channels are configured".
+**Action:** Use explicit, clear language like "No alert channels configured" for empty states, paired with a distinct color (e.g., YELLOW) and a warning symbol (⚠) to draw attention to missing configuration.
