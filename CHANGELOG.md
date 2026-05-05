@@ -37,6 +37,9 @@
 
 **Closed issues:**
 
+- Jules Daily QA & Agentic Review - 2026-04-17 [\#775](https://github.com/abhimehro/email-security-pipeline/issues/775)
+- Jules Daily QA & Agentic Review - All Checks Passed [\#771](https://github.com/abhimehro/email-security-pipeline/issues/771)
+- Jules Daily QA & Agentic Review - All Clear [\#765](https://github.com/abhimehro/email-security-pipeline/issues/765)
 - \[repo-automation\] Daily Status Report - 2026-05-02 [\#756](https://github.com/abhimehro/email-security-pipeline/issues/756)
 - Jules Daily QA & Agentic Review [\#754](https://github.com/abhimehro/email-security-pipeline/issues/754)
 - \[repo-automation\] Daily Status Report - 2026-05-01 [\#750](https://github.com/abhimehro/email-security-pipeline/issues/750)
@@ -301,6 +304,8 @@
 
 **Merged pull requests:**
 
+- ⚡ Bolt: optimize video frame extraction with hybrid sampling [\#770](https://github.com/abhimehro/email-security-pipeline/pull/770) ([abhimehro](https://github.com/abhimehro))
+- 🎨 Palette: Improve clarity of configuration empty states [\#768](https://github.com/abhimehro/email-security-pipeline/pull/768) ([abhimehro](https://github.com/abhimehro))
 - Add GitHub Actions workflow testing skill [\#762](https://github.com/abhimehro/email-security-pipeline/pull/762) ([abhimehro](https://github.com/abhimehro))
 - ci: pass changelog token via environment [\#761](https://github.com/abhimehro/email-security-pipeline/pull/761) ([abhimehro](https://github.com/abhimehro))
 - ⚡ Bolt: Add global URL cache to SpamAnalyzer [\#759](https://github.com/abhimehro/email-security-pipeline/pull/759) ([abhimehro](https://github.com/abhimehro))
