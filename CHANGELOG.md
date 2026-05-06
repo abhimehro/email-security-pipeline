@@ -304,6 +304,7 @@
 
 **Merged pull requests:**
 
+- Fix CodeScene hotspot in `_print_analysis_details` [\#779](https://github.com/abhimehro/email-security-pipeline/pull/779) ([abhimehro](https://github.com/abhimehro))
 - ⚡ Bolt: optimize video frame extraction with hybrid sampling [\#770](https://github.com/abhimehro/email-security-pipeline/pull/770) ([abhimehro](https://github.com/abhimehro))
 - 🎨 Palette: Improve clarity of configuration empty states [\#768](https://github.com/abhimehro/email-security-pipeline/pull/768) ([abhimehro](https://github.com/abhimehro))
 - Add GitHub Actions workflow testing skill [\#762](https://github.com/abhimehro/email-security-pipeline/pull/762) ([abhimehro](https://github.com/abhimehro))
