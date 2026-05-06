@@ -417,23 +417,23 @@ class EmailSecurityPipeline:
         # Analysis
         print(f"  🔍 {Colors.CYAN}Analysis Layers:{Colors.RESET}")
         print(
-            f"    - Spam Detection:   {Colors.GREEN}✔ Active{Colors.RESET} "
+            f"    - Spam Detection:   {Colors.colorize('✔ Active', Colors.GREEN)} "
             f"(Threshold: {self.config.analysis.spam_threshold})"
         )
         print(
-            f"    - NLP Analysis:     {Colors.GREEN}✔ Active{Colors.RESET} "
+            f"    - NLP Analysis:     {Colors.colorize('✔ Active', Colors.GREEN)} "
             f"(Threshold: {self.config.analysis.nlp_threshold})"
         )
 
         media_status = (
-            f"{Colors.GREEN}✔ Active{Colors.RESET}"
+            Colors.colorize("✔ Active", Colors.GREEN)
             if self.config.analysis.check_media_attachments
-            else f"{Colors.GREY}✖ Disabled{Colors.RESET}"
+            else Colors.colorize("✖ Disabled", Colors.GREY)
         )
         deepfake_status = (
-            f"{Colors.GREEN}✔ Enabled{Colors.RESET}"
+            Colors.colorize("✔ Enabled", Colors.GREEN)
             if self.config.analysis.deepfake_detection_enabled
-            else f"{Colors.GREY}✖ Disabled{Colors.RESET}"
+            else Colors.colorize("✖ Disabled", Colors.GREY)
         )
         print(f"    - Media Check:      {media_status} (Deepfake: {deepfake_status})")
 
