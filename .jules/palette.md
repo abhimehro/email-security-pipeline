@@ -158,3 +158,6 @@
 ## 2026-05-03 - Avoid Double Negatives in Empty States
 **Learning:** Using "Disabled: None" to indicate an empty list of features is highly confusing (it reads as a double negative). Also, empty states should accurately reflect the system's response (e.g., don't say "Pipeline will idle" if the pipeline actually crashes on missing config).
 **Action:** Always use explicit, friendly phrasing like "⚠ No [item] configured" colored in YELLOW for empty states, ensuring the text aligns with actual system behavior.
+## 2026-05-08 - Use Colors.colorize for graceful NO_COLOR degradation
+**Learning:** Hardcoded ANSI escape codes in f-strings (e.g. `f"{Colors.GREEN}Text{Colors.RESET}"`) fail to degrade gracefully if terminal environment dynamically removes color support after import. Screen readers and log viewers will be cluttered with unparsed escape codes.
+**Action:** Always use the centralized `Colors.colorize()` helper method instead of direct string concatenation to ensure non-TTY/NO_COLOR fallback mechanisms function correctly.
