@@ -435,18 +435,18 @@ class AlertSystem:
             return s
 
         self._print_alert_row(
-            f"{Colors.BOLD}Timestamp:{Colors.RESET} {formatted_time}", risk_color
+            f"{Colors.colorize('Timestamp:', Colors.BOLD)} {formatted_time}", risk_color
         )
         self._print_alert_row(
-            f"{Colors.BOLD}Subject:{Colors.RESET}   {safe_field(report.subject)}",
+            f"{Colors.colorize('Subject:', Colors.BOLD)}   {safe_field(report.subject)}",
             risk_color,
         )
         self._print_alert_row(
-            f"{Colors.BOLD}From:{Colors.RESET}      {safe_field(report.sender)}",
+            f"{Colors.colorize('From:', Colors.BOLD)}      {safe_field(report.sender)}",
             risk_color,
         )
         self._print_alert_row(
-            f"{Colors.BOLD}To:{Colors.RESET}        {safe_field(report.recipient)}",
+            f"{Colors.colorize('To:', Colors.BOLD)}        {safe_field(report.recipient)}",
             risk_color,
         )
         self._print_alert_row("", risk_color)
@@ -462,7 +462,8 @@ class AlertSystem:
         meter_color = Colors.get_risk_color(risk_level)
 
         self._print_alert_row(
-            f"{Colors.BOLD}THREAT SCORE:{Colors.RESET} {score:.2f}/100", risk_color
+            f"{Colors.colorize('THREAT SCORE:', Colors.BOLD)} {score:.2f}/100",
+            risk_color,
         )
         self._print_alert_row(f"{Colors.colorize(bar, meter_color)}", risk_color)
 
@@ -497,7 +498,9 @@ class AlertSystem:
         has_nlp = False
         if nlp_analysis.get("social_engineering_indicators"):
             self._print_alert_row(
-                f"{Colors.BOLD}Social Engineering:{Colors.RESET}", risk_color, indent=3
+                Colors.colorize("Social Engineering:", Colors.BOLD),
+                risk_color,
+                indent=3,
             )
             for ind in nlp_analysis["social_engineering_indicators"][
                 : self.MAX_NLP_INDICATORS_DISPLAY
@@ -509,7 +512,7 @@ class AlertSystem:
 
         if nlp_analysis.get("authority_impersonation"):
             self._print_alert_row(
-                f"{Colors.BOLD}Authority Impersonation:{Colors.RESET}",
+                Colors.colorize("Authority Impersonation:", Colors.BOLD),
                 risk_color,
                 indent=3,
             )
@@ -531,7 +534,7 @@ class AlertSystem:
     def _print_media_details(self, media_analysis: Dict, risk_color: str) -> None:
         if media_analysis.get("file_type_warnings"):
             self._print_alert_row(
-                f"{Colors.BOLD}File Warnings:{Colors.RESET}", risk_color, indent=3
+                Colors.colorize("File Warnings:", Colors.BOLD), risk_color, indent=3
             )
             for warning in media_analysis["file_type_warnings"][
                 : self.MAX_MEDIA_WARNINGS_DISPLAY
@@ -555,7 +558,7 @@ class AlertSystem:
         color = Colors.get_risk_color(level)
         symbol = Colors.get_risk_symbol(level)
         self._print_alert_row(
-            f"{Colors.BOLD}{title}:{Colors.RESET} {Colors.colorize(level.upper(), color)} {symbol}",
+            f"{Colors.colorize(title + ':', Colors.BOLD)} {Colors.colorize(level.upper(), color)} {symbol}",
             risk_color,
         )
 
@@ -592,7 +595,7 @@ class AlertSystem:
     ) -> List[tuple[str, int]]:
         rows: List[tuple[str, int]] = []
         if header_issues:
-            rows.append((f"{Colors.BOLD}Header Issues:{Colors.RESET}", 3))
+            rows.append((Colors.colorize("Header Issues:", Colors.BOLD), 3))
         rows.extend(
             (f"{Colors.colorize('•', Colors.YELLOW)} {issue}", 5)
             for issue in header_issues[: self.MAX_HEADER_ISSUES_DISPLAY]
@@ -602,7 +605,7 @@ class AlertSystem:
     def _spam_url_rows(self, suspicious_urls: List[str]) -> List[tuple[str, int]]:
         rows: List[tuple[str, int]] = []
         if suspicious_urls:
-            rows.append((f"{Colors.BOLD}Suspicious URLs:{Colors.RESET}", 3))
+            rows.append((Colors.colorize("Suspicious URLs:", Colors.BOLD), 3))
         rows.extend(
             (f"{Colors.colorize('•', Colors.RED)} {self._safe_console_url(url)}", 5)
             for url in suspicious_urls[: self.MAX_URLS_DISPLAY]
@@ -749,7 +752,8 @@ class AlertSystem:
 
         sep = Colors.colorize("│", Colors.GREY)
 
-        prefix = f"{Colors.GREEN}✓ CLEAN{Colors.RESET} {sep} {time_str} {sep} Score: {score_val:4.1f} {visual_bar} {sep} From: "
+        clean_str = Colors.colorize("✓ CLEAN", Colors.GREEN)
+        prefix = f"{clean_str} {sep} {time_str} {sep} Score: {score_val:4.1f} {visual_bar} {sep} From: "
         prefix_len = self._get_visual_length(prefix)
 
         suffix_sep = f" {sep} "
@@ -783,8 +787,9 @@ class AlertSystem:
 
         # Format:
         # ✓ CLEAN | HH:MM:SS | Score: XX.X [■■···] | From: Sender                       | Subject
+        clean_str = Colors.colorize("✓ CLEAN", Colors.GREEN)
         print(
-            f"{Colors.GREEN}✓ CLEAN{Colors.RESET} "
+            f"{clean_str} "
             f"{sep} {time_str} "
             f"{sep} Score: {score_val:4.1f} {visual_bar} "
             f"{sep} From: {sender:<{sender_width}} "

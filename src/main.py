@@ -254,14 +254,14 @@ class EmailSecurityPipeline:
                     )
                     CountdownTimer.wait(
                         self.config.system.check_interval,
-                        f"{Colors.GREY}Waiting for next check{Colors.RESET}",
+                        Colors.colorize("Waiting for next check", Colors.GREY),
                     )
 
             except Exception as e:
                 self.logger.error(f"Error in monitoring loop: {e}", exc_info=True)
                 if self.metrics:
                     self.metrics.record_error("monitoring_loop_error")
-                CountdownTimer.wait(30, f"{Colors.RED}Retrying in{Colors.RESET}")
+                CountdownTimer.wait(30, Colors.colorize("Retrying in", Colors.RED))
 
     def _analyze_email(
         self,
@@ -426,14 +426,14 @@ class EmailSecurityPipeline:
         )
 
         media_status = (
-            f"{Colors.GREEN}✔ Active{Colors.RESET}"
+            Colors.colorize("✔ Active", Colors.GREEN)
             if self.config.analysis.check_media_attachments
-            else f"{Colors.GREY}✖ Disabled{Colors.RESET}"
+            else Colors.colorize("✖ Disabled", Colors.GREY)
         )
         deepfake_status = (
-            f"{Colors.GREEN}✔ Enabled{Colors.RESET}"
+            Colors.colorize("✔ Enabled", Colors.GREEN)
             if self.config.analysis.deepfake_detection_enabled
-            else f"{Colors.GREY}✖ Disabled{Colors.RESET}"
+            else Colors.colorize("✖ Disabled", Colors.GREY)
         )
         print(f"    - Media Check:      {media_status} (Deepfake: {deepfake_status})")
 

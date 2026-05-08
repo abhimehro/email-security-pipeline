@@ -34,7 +34,9 @@ except ImportError:
     Spinner = None
 
 # Centralized Outlook troubleshooting tip to avoid duplication/drift
-OUTLOOK_APP_PASSWORD_TIP = f"{Colors.YELLOW}Tip: Personal Outlook accounts NO LONGER support App Passwords.{Colors.RESET}"
+OUTLOOK_APP_PASSWORD_TIP = Colors.colorize(
+    "Tip: Personal Outlook accounts NO LONGER support App Passwords.", Colors.YELLOW
+)
 
 
 def _is_valid_email(email: str) -> bool:
@@ -118,7 +120,7 @@ def _test_connection(email: str, app_password: str, provider_choice: str) -> boo
         # We don't have access to the spinner here easily if the exception is outside,
         # but in most cases errors happen inside the context manager. If it happens
         # outside, we just print as before.
-        print(f"{Colors.RED}✘ Error during connection test: {e}{Colors.RESET}")
+        print(Colors.colorize(f"✘ Error during connection test: {e}", Colors.RED))
         if provider_choice == "3":
             print(OUTLOOK_APP_PASSWORD_TIP)
         return False
@@ -143,7 +145,9 @@ def _select_provider() -> str:
             if choice in ("1", "2", "3", "4"):
                 return choice
             print(
-                f"{Colors.YELLOW}Invalid choice. Please enter 1, 2, 3, or 4.{Colors.RESET}"
+                Colors.colorize(
+                    "Invalid choice. Please enter 1, 2, 3, or 4.", Colors.YELLOW
+                )
             )
         except EOFError:
             return "4"
@@ -169,14 +173,17 @@ def _get_credentials(choice: str, provider_name: str) -> tuple[str, str]:
                 )
                 email = input(prompt).strip()
                 if not email:
-                    print(f"{Colors.YELLOW}Email is required.{Colors.RESET}")
+                    print(Colors.colorize("Email is required.", Colors.YELLOW))
                     continue
 
                 if _is_valid_email(email):
                     break
 
                 print(
-                    f"{Colors.YELLOW}Invalid email format. Please enter a valid email address (e.g., user@example.com).{Colors.RESET}"
+                    Colors.colorize(
+                        "Invalid email format. Please enter a valid email address (e.g., user@example.com).",
+                        Colors.YELLOW,
+                    )
                 )
 
             # Context-specific help
@@ -212,7 +219,7 @@ def _get_credentials(choice: str, provider_name: str) -> tuple[str, str]:
             )
             app_secret = getpass.getpass(prompt).strip()
             while not app_secret:
-                print(f"{Colors.YELLOW}Password is required.{Colors.RESET}")
+                print(Colors.colorize("Password is required.", Colors.YELLOW))
                 app_secret = getpass.getpass(prompt).strip()
 
             # Test the connection immediately
@@ -232,7 +239,9 @@ def _get_credentials(choice: str, provider_name: str) -> tuple[str, str]:
             retry = input(prompt).strip().lower()
             if retry not in ("", "y", "yes"):
                 print(
-                    f"{Colors.GREY}Proceeding with entered credentials (unverified).{Colors.RESET}"
+                    Colors.colorize(
+                        "Proceeding with entered credentials (unverified).", Colors.GREY
+                    )
                 )
                 return email, app_secret
 
