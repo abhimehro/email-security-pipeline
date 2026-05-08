@@ -56,3 +56,6 @@
 ## 2024-05-24 - Avoid cap.set() for small jumps in OpenCV
 **Learning:** In OpenCV, `cap.set(cv2.CAP_PROP_POS_FRAMES, i)` incurs heavy decoding overhead for small frame jumps.
 **Action:** Always use a hybrid approach (like `_extract_frames_sampled`) that uses sequential `cap.grab()` for small intervals and `cap.set()` for large ones instead of manual `cap.set()` loops.
+## 2025-05-08 - Fast Caching Optimization
+**Learning:** Python's `datetime.now()` with `timedelta` objects incur high instantiation and garbage collection overhead, which compounds in hot cache eviction loops like `TTLCache`.
+**Action:** Replace `datetime.now()` and `timedelta` with `time.monotonic()` and float arithmetic. This avoids the object creation overhead and is more resilient to system clock adjustments.
