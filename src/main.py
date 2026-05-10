@@ -399,10 +399,10 @@ class EmailSecurityPipeline:
 
     def _print_configuration_summary(self):
         """Print a summary of the current configuration."""
-        print(f"\n{Colors.BOLD}📊 System Configuration:{Colors.RESET}")
+        print(f"\n{Colors.colorize('📊 System Configuration:', Colors.BOLD)}")
 
         # Accounts
-        print(f"  📧 {Colors.CYAN}Monitored Accounts:{Colors.RESET}")
+        print(f"  📧 {Colors.colorize('Monitored Accounts:', Colors.CYAN)}")
         if not self.config.email_accounts:
             print(f"    - {Colors.colorize('⚠ No accounts configured', Colors.YELLOW)}")
         else:
@@ -415,13 +415,13 @@ class EmailSecurityPipeline:
                 print(f"    - {account.provider.title()}: {account.email} ({status})")
 
         # Analysis
-        print(f"  🔍 {Colors.CYAN}Analysis Layers:{Colors.RESET}")
+        print(f"  🔍 {Colors.colorize('Analysis Layers:', Colors.CYAN)}")
         print(
-            f"    - Spam Detection:   {Colors.GREEN}✔ Active{Colors.RESET} "
+            f"    - Spam Detection:   {Colors.colorize('✔ Active', Colors.GREEN)} "
             f"(Threshold: {self.config.analysis.spam_threshold})"
         )
         print(
-            f"    - NLP Analysis:     {Colors.GREEN}✔ Active{Colors.RESET} "
+            f"    - NLP Analysis:     {Colors.colorize('✔ Active', Colors.GREEN)} "
             f"(Threshold: {self.config.analysis.nlp_threshold})"
         )
 
@@ -438,7 +438,7 @@ class EmailSecurityPipeline:
         print(f"    - Media Check:      {media_status} (Deepfake: {deepfake_status})")
 
         # Alerts
-        print(f"  🔔 {Colors.CYAN}Alert Channels:{Colors.RESET}")
+        print(f"  🔔 {Colors.colorize('Alert Channels:', Colors.CYAN)}")
         channels = []
         if self.config.alerts.console:
             channels.append("Console")
@@ -448,13 +448,13 @@ class EmailSecurityPipeline:
             channels.append("Slack")
 
         if channels:
-            print(f"    - {Colors.GREEN}✔ Enabled{Colors.RESET}: {', '.join(channels)}")
+            print(f"    - {Colors.colorize('✔ Enabled', Colors.GREEN)}: {', '.join(channels)}")
         else:
             print(
                 f"    - {Colors.colorize('⚠ No alert channels configured', Colors.YELLOW)}"
             )
 
-        print(f"  ⚙️ {Colors.CYAN}System:{Colors.RESET}")
+        print(f"  ⚙️ {Colors.colorize('System:', Colors.CYAN)}")
         print(f"    - Log Level:  {self.config.system.log_level}")
         print(f"    - Log Format: {self.config.system.log_format}")
         metrics_status = (
@@ -467,7 +467,7 @@ class EmailSecurityPipeline:
 
         # Documentation footer
         print(
-            f"\n📚 {Colors.GREY}For help, see README.md or OUTLOOK_TROUBLESHOOTING.md{Colors.RESET}\n"
+            f"\n📚 {Colors.colorize('For help, see README.md or OUTLOOK_TROUBLESHOOTING.md', Colors.GREY)}\n"
         )
 
 

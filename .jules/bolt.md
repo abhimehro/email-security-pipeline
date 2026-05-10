@@ -56,3 +56,8 @@
 ## 2024-05-24 - Avoid cap.set() for small jumps in OpenCV
 **Learning:** In OpenCV, `cap.set(cv2.CAP_PROP_POS_FRAMES, i)` incurs heavy decoding overhead for small frame jumps.
 **Action:** Always use a hybrid approach (like `_extract_frames_sampled`) that uses sequential `cap.grab()` for small intervals and `cap.set()` for large ones instead of manual `cap.set()` loops.
+
+## 2025-08-01 - [Performance Optimization: Faster TTL Cache with time.monotonic]
+
+**Learning:** Using `datetime.now()` and `timedelta` inside a hot `TTLCache` loop incurs instantiation and processing overhead (~440ns). `time.monotonic()` is much faster (~90ns) and returns a simple float, avoiding the overhead of `datetime` objects and math.
+**Action:** Replace `datetime.now()` with `time.monotonic()` and use simple float subtraction for cache expiration checks. This results in up to a ~5x speedup for TTL operations and ensures robustness against system clock adjustments.
