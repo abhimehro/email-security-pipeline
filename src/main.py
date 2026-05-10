@@ -156,9 +156,9 @@ class EmailSecurityPipeline:
             self.logger.info("Received shutdown signal")
             self.stop()
         except ConfigurationError as e:
-            print(f"\n{Colors.RED}❌ Configuration Error:{Colors.RESET}")
+            print("\n" + Colors.colorize("❌ Configuration Error:", Colors.RED))
             for error in e.args[0]:
-                print(f"  • {Colors.YELLOW}{error}{Colors.RESET}")
+                print(f"  • {Colors.colorize(error, Colors.YELLOW)}")
             print(
                 "\nPlease check your configuration file (e.g., .env) and ensure at least one account is enabled."
             )
@@ -426,14 +426,14 @@ class EmailSecurityPipeline:
         )
 
         media_status = (
-            Colors.colorize("✔ Active", Colors.GREEN)
+            f"{Colors.GREEN}✔ Active{Colors.RESET}"
             if self.config.analysis.check_media_attachments
-            else Colors.colorize("✖ Disabled", Colors.GREY)
+            else f"{Colors.GREY}✖ Disabled{Colors.RESET}"
         )
         deepfake_status = (
-            Colors.colorize("✔ Enabled", Colors.GREEN)
+            f"{Colors.GREEN}✔ Enabled{Colors.RESET}"
             if self.config.analysis.deepfake_detection_enabled
-            else Colors.colorize("✖ Disabled", Colors.GREY)
+            else f"{Colors.GREY}✖ Disabled{Colors.RESET}"
         )
         print(f"    - Media Check:      {media_status} (Deepfake: {deepfake_status})")
 
