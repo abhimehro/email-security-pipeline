@@ -438,7 +438,7 @@ class EmailSecurityPipeline:
         print(f"    - Media Check:      {media_status} (Deepfake: {deepfake_status})")
 
         # Alerts
-        print("  🔔 " + Colors.colorize("Alert Channels:", Colors.CYAN))
+        print(f"  🔔 {Colors.colorize('Alert Channels:', Colors.CYAN)}")
         channels = []
         if self.config.alerts.console:
             channels.append("Console")
