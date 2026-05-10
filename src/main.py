@@ -402,7 +402,7 @@ class EmailSecurityPipeline:
         print(f"\n{Colors.colorize('📊 System Configuration:', Colors.BOLD)}")
 
         # Accounts
-        print("  📧 " + Colors.colorize("Monitored Accounts:", Colors.CYAN))
+        print(f"  📧 {Colors.colorize('Monitored Accounts:', Colors.CYAN)}")
         if not self.config.email_accounts:
             print(f"    - {Colors.colorize('⚠ No accounts configured', Colors.YELLOW)}")
         else:
