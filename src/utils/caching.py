@@ -47,7 +47,7 @@ class TTLCache:
             raise ValueError(
                 f"ttl_seconds must be a positive integer, got {ttl_seconds}"
             )
-        self._store: dict = {}  # key -> (value, datetime)
+        self._store: dict = {}  # key -> (value, float)
         self._max_size = max_size
         self._ttl = timedelta(seconds=ttl_seconds)
         self._lock = threading.Lock()

@@ -34,8 +34,10 @@
 **Action:** For plain Python lists or small properties where native Python operations or direct NumPy sum/size are available, avoid `np.mean()`. Use `sum(lst) / len(lst)` for lists and `float(arr.sum()) / arr.size` for small NumPy arrays to bypass the function overhead entirely.
 
 ## 2024-05-20 - Optimize OpenCV Video Frame Extraction with Hybrid Seek/Grab
+
 **Learning:** In OpenCV, jumping to specific frames in a video using `cv2.VideoCapture.set(cv2.CAP_PROP_POS_FRAMES, frame_idx)` incurs significant decoding overhead, making it exceptionally slow for small jumps. However, sequentially skipping frames using `cap.grab()` without decoding them via `cap.retrieve()` or `cap.read()` is much faster for short distances.
 **Action:** Implemented a hybrid approach for sampling frames. If the frame jump distance is less than or equal to a defined threshold (e.g., 30 frames), use sequential `cap.grab()` calls. For larger jumps, fall back to `cap.set()`. This significantly reduces extraction time for videos sampled with smaller step sizes while maintaining efficiency for large gaps.
+
 ## 2025-08-01 - [Performance Optimization: Faster metric tracking with defaultdict]
 
 **Learning:** For high-throughput tracking loops that perform simple increments (e.g., `dict[key] += 1`), using `collections.Counter` incurs unnecessary overhead. Benchmark results show that `collections.defaultdict(int)` is ~2.5x faster.
@@ -50,9 +52,18 @@
 
 **Learning:** In `src/modules/media_analyzer.py`, seeking to specific video frames via `cap.set(cv2.CAP_PROP_POS_FRAMES, i)` incurs significant decoding overhead and is slow for small forward jumps. However, for large jumps, `cap.grab()` becomes slower than `cap.set()`.
 **Action:** Implement a hybrid approach: use sequential `cap.grab()` for small intervals (e.g., <= 30 frames) to avoid redundant decoding, and fall back to `cap.set()` for larger intervals.
+
 ## 2025-05-15 - Global URL Caching in SpamAnalyzer
+
 **Learning:** Recreating a URL cache on every email analysis call misses the opportunity to optimize for common URLs (social media, footers) across a batch. Using a class-level TTLCache provides thread-safe, bounded persistence that survives across method calls.
-**Action:** Implemented instance-level TTLCache in SpamAnalyzer and refactored _check_urls to leverage it, resulting in a ~2.7x speedup for typical batches with repeated URLs.
+**Action:** Implemented instance-level TTLCache in SpamAnalyzer and refactored \_check_urls to leverage it, resulting in a ~2.7x speedup for typical batches with repeated URLs.
+
 ## 2024-05-24 - Avoid cap.set() for small jumps in OpenCV
+
 **Learning:** In OpenCV, `cap.set(cv2.CAP_PROP_POS_FRAMES, i)` incurs heavy decoding overhead for small frame jumps.
 **Action:** Always use a hybrid approach (like `_extract_frames_sampled`) that uses sequential `cap.grab()` for small intervals and `cap.set()` for large ones instead of manual `cap.set()` loops.
+
+## 2025-05-08 - Fast Caching Optimization
+
+**Learning:** Python's `datetime.now()` with `timedelta` objects incur high instantiation and garbage collection overhead, which compounds in hot cache eviction loops like `TTLCache`.
+**Action:** Replace `datetime.now()` and `timedelta` with `time.monotonic()` and float arithmetic. This avoids the object creation overhead and is more resilient to system clock adjustments.
