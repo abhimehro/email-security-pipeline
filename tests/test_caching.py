@@ -1,5 +1,6 @@
-import unittest
 import time
+import unittest
+
 from src.utils.caching import TTLCache
 
 
@@ -11,7 +12,7 @@ class TestTTLCache(unittest.TestCase):
         """Test TTLCache initialization with valid parameters."""
         cache = TTLCache(max_size=100, ttl_seconds=60)
         self.assertEqual(cache._max_size, 100)
-        self.assertEqual(cache._ttl, 60.0)
+        self.assertEqual(cache._ttl.total_seconds(), 60)
 
     def test_initialization_invalid(self):
         """Test TTLCache initialization with invalid parameters."""

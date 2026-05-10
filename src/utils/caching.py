@@ -17,7 +17,7 @@ importing the full project dependency tree.
 """
 
 import threading
-import time
+from datetime import datetime, timedelta
 from typing import Any, List, Optional
 
 
@@ -47,9 +47,9 @@ class TTLCache:
             raise ValueError(
                 f"ttl_seconds must be a positive integer, got {ttl_seconds}"
             )
-        self._store: dict = {}  # key -> (value, datetime)
+        self._store: dict = {}  # key -> (value, float)
         self._max_size = max_size
-        self._ttl = float(ttl_seconds)
+        self._ttl = timedelta(seconds=ttl_seconds)
         self._lock = threading.Lock()
 
     # ------------------------------------------------------------------
@@ -76,7 +76,7 @@ class TTLCache:
         with self._lock:
             # Remove first so re-insertion places the key at the tail (newest)
             self._store.pop(key, None)
-            self._store[key] = (value, time.monotonic())
+            self._store[key] = (value, datetime.now())
             # Evict oldest entries until we are within the size budget
             while len(self._store) > self._max_size:
                 try:
@@ -103,7 +103,7 @@ class TTLCache:
 
     def keys(self) -> List[str]:
         """Return non-expired keys in LRU order (oldest first, newest last)."""
-        now = time.monotonic()
+        now = datetime.now()
         with self._lock:
             return [k for k, (_, ts) in self._store.items() if now - ts < self._ttl]
 
@@ -115,7 +115,7 @@ class TTLCache:
         if key not in self._store:
             return None
         value, timestamp = self._store[key]
-        if time.monotonic() - timestamp >= self._ttl:
+        if datetime.now() - timestamp >= self._ttl:
             del self._store[key]  # Lazy TTL eviction
             return None
         # Promote to most-recently-used by moving to the tail of the dict
