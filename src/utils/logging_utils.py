@@ -32,12 +32,14 @@ class ColoredFormatter(logging.Formatter):
         if isinstance(record.msg, str):
             if "Monitoring Cycle" in record.msg:
                 # Highlight the cycle start
-                record.msg = f"{Colors.MAGENTA}{Colors.BOLD}{record.msg}{Colors.RESET}"
+                record.msg = Colors.colorize(
+                    str(record.msg), Colors.MAGENTA + Colors.BOLD
+                )
             elif "Waiting" in record.msg and "seconds until next check" in record.msg:
                 # Dim the waiting message to reduce visual noise
-                record.msg = f"{Colors.GREY}{record.msg}{Colors.RESET}"
+                record.msg = Colors.colorize(str(record.msg), Colors.GREY)
             elif "Analysis complete" in record.msg:
                 # Highlight success
-                record.msg = f"{Colors.GREEN}{record.msg}{Colors.RESET}"
+                record.msg = Colors.colorize(str(record.msg), Colors.GREEN)
 
         return super().format(record)
