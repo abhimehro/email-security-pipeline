@@ -158,6 +158,6 @@
 ## 2026-05-03 - Avoid Double Negatives in Empty States
 **Learning:** Using "Disabled: None" to indicate an empty list of features is highly confusing (it reads as a double negative). Also, empty states should accurately reflect the system's response (e.g., don't say "Pipeline will idle" if the pipeline actually crashes on missing config).
 **Action:** Always use explicit, friendly phrasing like "⚠ No [item] configured" colored in YELLOW for empty states, ensuring the text aligns with actual system behavior.
-## 2026-05-07 - Consistent CLI Output Formatting
+## 2026-05-10 - Consistent CLI Output Formatting
 **Learning:** Directly concatenating ANSI escape codes (e.g., `f"{Colors.GREEN}Text{Colors.RESET}"`) in print statements breaks accessibility and output formatting in non-TTY environments (like CI/CD logs or files), because it bypasses the central color detection logic.
 **Action:** Always use the centralized helper `Colors.colorize("Text", Colors.GREEN)` when formatting strings for the CLI. This ensures fallback mechanisms work as expected, maintaining readable outputs across all environments.

@@ -282,7 +282,7 @@ class AppRunner:
 
         flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL
         if hasattr(os, "O_NOFOLLOW"):
-            flags |= getattr(os, "O_NOFOLLOW", 0)
+            flags |= os.O_NOFOLLOW
 
         fd = os.open(
             self.config_file,
