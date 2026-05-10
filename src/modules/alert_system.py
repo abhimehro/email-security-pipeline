@@ -484,13 +484,22 @@ class AlertSystem:
 
         # NLP
         self._print_analysis_section_header("🧠 NLP", report.nlp_analysis, risk_color)
-        nlp = report.nlp_analysis
+        self._print_nlp_details(report.nlp_analysis, risk_color)
+        self._print_alert_row("", risk_color)
+
+        # Media
+        self._print_analysis_section_header(
+            "📎 MEDIA", report.media_analysis, risk_color
+        )
+        self._print_media_details(report.media_analysis, risk_color)
+
+    def _print_nlp_details(self, nlp_analysis: Dict, risk_color: str) -> None:
         has_nlp = False
-        if nlp.get("social_engineering_indicators"):
+        if nlp_analysis.get("social_engineering_indicators"):
             self._print_alert_row(
                 f"{Colors.BOLD}Social Engineering:{Colors.RESET}", risk_color, indent=3
             )
-            for ind in nlp["social_engineering_indicators"][
+            for ind in nlp_analysis["social_engineering_indicators"][
                 : self.MAX_NLP_INDICATORS_DISPLAY
             ]:
                 self._print_alert_row(
@@ -498,13 +507,13 @@ class AlertSystem:
                 )
             has_nlp = True
 
-        if nlp.get("authority_impersonation"):
+        if nlp_analysis.get("authority_impersonation"):
             self._print_alert_row(
                 f"{Colors.BOLD}Authority Impersonation:{Colors.RESET}",
                 risk_color,
                 indent=3,
             )
-            for ind in nlp["authority_impersonation"][
+            for ind in nlp_analysis["authority_impersonation"][
                 : self.MAX_NLP_INDICATORS_DISPLAY
             ]:
                 self._print_alert_row(
@@ -518,18 +527,13 @@ class AlertSystem:
                 risk_color,
                 indent=3,
             )
-        self._print_alert_row("", risk_color)
 
-        # Media
-        self._print_analysis_section_header(
-            "📎 MEDIA", report.media_analysis, risk_color
-        )
-        media = report.media_analysis
-        if media.get("file_type_warnings"):
+    def _print_media_details(self, media_analysis: Dict, risk_color: str) -> None:
+        if media_analysis.get("file_type_warnings"):
             self._print_alert_row(
                 f"{Colors.BOLD}File Warnings:{Colors.RESET}", risk_color, indent=3
             )
-            for warning in media["file_type_warnings"][
+            for warning in media_analysis["file_type_warnings"][
                 : self.MAX_MEDIA_WARNINGS_DISPLAY
             ]:
                 self._print_alert_row(
