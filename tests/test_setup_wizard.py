@@ -308,7 +308,10 @@ OUTLOOK_APP_PASSWORD=password
         # Ensure the tip was printed during the first failure
         from src.utils.colors import Colors
 
-        expected_tip = Colors.colorize("Tip: Personal Outlook accounts NO LONGER support App Passwords.", Colors.YELLOW)
+        expected_tip = Colors.colorize(
+            "Tip: Personal Outlook accounts NO LONGER support App Passwords.",
+            Colors.YELLOW,
+        )
 
         # Check if the tip string is in any of the print calls
         found_tip = any(
