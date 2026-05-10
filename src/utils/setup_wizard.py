@@ -34,7 +34,7 @@ except ImportError:
     Spinner = None
 
 # Centralized Outlook troubleshooting tip to avoid duplication/drift
-OUTLOOK_APP_PASSWORD_TIP = Colors.colorize(
+OUTLOOK_AUTH_ERROR_TIP = Colors.colorize(
     "Tip: Personal Outlook accounts NO LONGER support App Passwords.", Colors.YELLOW
 )
 
@@ -111,7 +111,7 @@ def _test_connection(email: str, app_password: str, provider_choice: str) -> boo
 
         if not success:
             if provider_choice == "3":
-                print(OUTLOOK_APP_PASSWORD_TIP)
+                print(OUTLOOK_AUTH_ERROR_TIP)
             return False
 
         return True
@@ -125,7 +125,7 @@ def _test_connection(email: str, app_password: str, provider_choice: str) -> boo
             Colors.colorize(f"✘ Error during connection test: {error_msg}", Colors.RED)
         )
         if provider_choice == "3":
-            print(OUTLOOK_APP_PASSWORD_TIP)
+            print(OUTLOOK_AUTH_ERROR_TIP)
         return False
 
 

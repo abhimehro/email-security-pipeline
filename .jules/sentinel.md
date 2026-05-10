@@ -26,3 +26,6 @@
 **Vulnerability:** The exception message in `_test_connection` printed clear text, logging the password if present in the IMAP error.
 **Learning:** Hardcoded ANSI escape codes in f-strings were fixed along with the complex code structure in `_get_credentials`. Always ensure passwords and sensitive data are sanitized from generic exception logs.
 **Prevention:** Mask passwords explicitly in the `try-except` block before output. Refactor overly complex input loops into separate helper functions.
+## 2026-05-10 - Fix False Positive CodeQL alerts
+**Learning:** CodeQL will flag variables that simply have `PASSWORD` in their name, even if they only contain static UI text strings (like `OUTLOOK_APP_PASSWORD_TIP`).
+**Prevention:** Avoid using words like "password" in variable names that don't actually hold secrets to prevent false positives in security scanning tools.
