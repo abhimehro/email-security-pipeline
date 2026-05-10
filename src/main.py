@@ -399,7 +399,7 @@ class EmailSecurityPipeline:
 
     def _print_configuration_summary(self):
         """Print a summary of the current configuration."""
-        print("\n" + Colors.colorize("📊 System Configuration:", Colors.BOLD))
+        print(f"\n{Colors.colorize('📊 System Configuration:', Colors.BOLD)}")
 
         # Accounts
         print("  📧 " + Colors.colorize("Monitored Accounts:", Colors.CYAN))
