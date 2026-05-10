@@ -308,6 +308,8 @@
 
 **Merged pull requests:**
 
+- ⚡ Bolt: Use time.monotonic\(\) for TTLCache [\#800](https://github.com/abhimehro/email-security-pipeline/pull/800) ([abhimehro](https://github.com/abhimehro))
+- 🛡️ Sentinel: Fix password logging in setup wizard and refactor complex method [\#799](https://github.com/abhimehro/email-security-pipeline/pull/799) ([abhimehro](https://github.com/abhimehro))
 - 🎨 Palette: Improve NO\_COLOR fallback by using Colors.colorize consistently [\#796](https://github.com/abhimehro/email-security-pipeline/pull/796) ([abhimehro](https://github.com/abhimehro))
 - ⚡ Bolt: Use time.monotonic\(\) for TTLCache [\#793](https://github.com/abhimehro/email-security-pipeline/pull/793) ([abhimehro](https://github.com/abhimehro))
 - 🎨 Palette: Improve CLI output accessibility for non-TTY environments [\#791](https://github.com/abhimehro/email-security-pipeline/pull/791) ([abhimehro](https://github.com/abhimehro))
