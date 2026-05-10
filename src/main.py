@@ -156,9 +156,9 @@ class EmailSecurityPipeline:
             self.logger.info("Received shutdown signal")
             self.stop()
         except ConfigurationError as e:
-            print(f"\n{Colors.RED}❌ Configuration Error:{Colors.RESET}")
+            print("\n" + Colors.colorize("❌ Configuration Error:", Colors.RED))
             for error in e.args[0]:
-                print(f"  • {Colors.YELLOW}{error}{Colors.RESET}")
+                print(f"  • {Colors.colorize(error, Colors.YELLOW)}")
             print(
                 "\nPlease check your configuration file (e.g., .env) and ensure at least one account is enabled."
             )
@@ -254,14 +254,14 @@ class EmailSecurityPipeline:
                     )
                     CountdownTimer.wait(
                         self.config.system.check_interval,
-                        f"{Colors.GREY}Waiting for next check{Colors.RESET}",
+                        Colors.colorize("Waiting for next check", Colors.GREY),
                     )
 
             except Exception as e:
                 self.logger.error(f"Error in monitoring loop: {e}", exc_info=True)
                 if self.metrics:
                     self.metrics.record_error("monitoring_loop_error")
-                CountdownTimer.wait(30, f"{Colors.RED}Retrying in{Colors.RESET}")
+                CountdownTimer.wait(30, Colors.colorize("Retrying in", Colors.RED))
 
     def _analyze_email(
         self,
