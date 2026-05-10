@@ -37,6 +37,10 @@
 
 **Closed issues:**
 
+- Jules Daily QA & Agentic Review - Healthy [\#797](https://github.com/abhimehro/email-security-pipeline/issues/797)
+- \[repo-automation\] Daily Status Report - 2026-05-08 [\#794](https://github.com/abhimehro/email-security-pipeline/issues/794)
+- Jules Daily QA & Agentic Review - Healthy [\#787](https://github.com/abhimehro/email-security-pipeline/issues/787)
+- Jules Daily QA & Agentic Review [\#781](https://github.com/abhimehro/email-security-pipeline/issues/781)
 - Jules Daily QA & Agentic Review - 2026-04-17 [\#775](https://github.com/abhimehro/email-security-pipeline/issues/775)
 - Jules Daily QA & Agentic Review - All Checks Passed [\#771](https://github.com/abhimehro/email-security-pipeline/issues/771)
 - Jules Daily QA & Agentic Review - All Clear [\#765](https://github.com/abhimehro/email-security-pipeline/issues/765)
@@ -304,12 +308,14 @@
 
 **Merged pull requests:**
 
+- 🎨 Palette: Improve NO\_COLOR fallback by using Colors.colorize consistently [\#796](https://github.com/abhimehro/email-security-pipeline/pull/796) ([abhimehro](https://github.com/abhimehro))
 - ⚡ Bolt: Use time.monotonic\(\) for TTLCache [\#793](https://github.com/abhimehro/email-security-pipeline/pull/793) ([abhimehro](https://github.com/abhimehro))
 - 🎨 Palette: Improve CLI output accessibility for non-TTY environments [\#791](https://github.com/abhimehro/email-security-pipeline/pull/791) ([abhimehro](https://github.com/abhimehro))
 - ⚡ Bolt: Use time.monotonic for faster TTLCache eviction [\#785](https://github.com/abhimehro/email-security-pipeline/pull/785) ([abhimehro](https://github.com/abhimehro))
 - 🎨 Palette: Refactor ANSI color codes in configuration summary [\#784](https://github.com/abhimehro/email-security-pipeline/pull/784) ([abhimehro](https://github.com/abhimehro))
 - fix\(ci\): prevent shell injection in summary.yml \(salvages \#777\) [\#780](https://github.com/abhimehro/email-security-pipeline/pull/780) ([abhimehro](https://github.com/abhimehro))
 - Fix CodeScene hotspot in `_print_analysis_details` [\#779](https://github.com/abhimehro/email-security-pipeline/pull/779) ([abhimehro](https://github.com/abhimehro))
+- 🎨 Palette: Add missing suspicious URLs display to CLI alerts [\#778](https://github.com/abhimehro/email-security-pipeline/pull/778) ([abhimehro](https://github.com/abhimehro))
 - ⚡ Bolt: optimize video frame extraction with hybrid sampling [\#770](https://github.com/abhimehro/email-security-pipeline/pull/770) ([abhimehro](https://github.com/abhimehro))
 - 🎨 Palette: Improve clarity of configuration empty states [\#768](https://github.com/abhimehro/email-security-pipeline/pull/768) ([abhimehro](https://github.com/abhimehro))
 - Add GitHub Actions workflow testing skill [\#762](https://github.com/abhimehro/email-security-pipeline/pull/762) ([abhimehro](https://github.com/abhimehro))
