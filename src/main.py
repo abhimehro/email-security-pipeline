@@ -415,7 +415,7 @@ class EmailSecurityPipeline:
                 print(f"    - {account.provider.title()}: {account.email} ({status})")
 
         # Analysis
-        print("  🔍 " + Colors.colorize("Analysis Layers:", Colors.CYAN))
+        print(f"  🔍 {Colors.colorize('Analysis Layers:', Colors.CYAN)}")
         print(
             f"    - Spam Detection:   {Colors.colorize('✔ Active', Colors.GREEN)} "
             f"(Threshold: {self.config.analysis.spam_threshold})"
