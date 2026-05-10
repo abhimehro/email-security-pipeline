@@ -22,3 +22,7 @@
 **Vulnerability:** Default `requests.post()` calls without explicit `verify=True`, which is flagged by linters and security policies despite `requests` verifying TLS by default.
 **Learning:** Security policies in this codebase mandate explicit `verify=True` for all `requests` network calls to ensure TLS verification cannot be accidentally bypassed by environment configurations.
 **Prevention:** Always include `verify=True` when adding new network requests using the `requests` library.
+## 2026-05-10 - Fix password logging in setup wizard and refactor complex method
+**Vulnerability:** The exception message in `_test_connection` printed clear text, logging the password if present in the IMAP error.
+**Learning:** Hardcoded ANSI escape codes in f-strings were fixed along with the complex code structure in `_get_credentials`. Always ensure passwords and sensitive data are sanitized from generic exception logs.
+**Prevention:** Mask passwords explicitly in the `try-except` block before output. Refactor overly complex input loops into separate helper functions.

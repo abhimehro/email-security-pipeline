@@ -120,7 +120,10 @@ def _test_connection(email: str, app_password: str, provider_choice: str) -> boo
         # We don't have access to the spinner here easily if the exception is outside,
         # but in most cases errors happen inside the context manager. If it happens
         # outside, we just print as before.
-        print(Colors.colorize(f"✘ Error during connection test: {e}", Colors.RED))
+        error_msg = str(e).replace(app_password, "***") if app_password else str(e)
+        print(
+            Colors.colorize(f"✘ Error during connection test: {error_msg}", Colors.RED)
+        )
         if provider_choice == "3":
             print(OUTLOOK_APP_PASSWORD_TIP)
         return False
@@ -153,6 +156,31 @@ def _select_provider() -> str:
             return "4"
 
 
+def _prompt_for_email(provider_name: str) -> str:
+    """Prompt for a valid email address."""
+    while True:
+        prompt = (
+            Colors.colorize("? ", Colors.CYAN)
+            + Colors.colorize(f"Enter your {provider_name} email address ", Colors.BOLD)
+            + Colors.colorize("*", Colors.RED)
+            + Colors.colorize(": ", Colors.BOLD)
+        )
+        email = input(prompt).strip()
+        if not email:
+            print(Colors.colorize("Email is required.", Colors.YELLOW))
+            continue
+
+        if _is_valid_email(email):
+            return email
+
+        print(
+            Colors.colorize(
+                "Invalid email format. Please enter a valid email address (e.g., user@example.com).",
+                Colors.YELLOW,
+            )
+        )
+
+
 def _get_credentials(choice: str, provider_name: str) -> tuple[str, str]:
     """Prompt user for email and app secret."""
     print(
@@ -161,30 +189,7 @@ def _get_credentials(choice: str, provider_name: str) -> tuple[str, str]:
 
     try:
         while True:  # Outer loop for retry mechanism
-            # Email input loop
-            while True:
-                prompt = (
-                    Colors.colorize("? ", Colors.CYAN)
-                    + Colors.colorize(
-                        f"Enter your {provider_name} email address ", Colors.BOLD
-                    )
-                    + Colors.colorize("*", Colors.RED)
-                    + Colors.colorize(": ", Colors.BOLD)
-                )
-                email = input(prompt).strip()
-                if not email:
-                    print(Colors.colorize("Email is required.", Colors.YELLOW))
-                    continue
-
-                if _is_valid_email(email):
-                    break
-
-                print(
-                    Colors.colorize(
-                        "Invalid email format. Please enter a valid email address (e.g., user@example.com).",
-                        Colors.YELLOW,
-                    )
-                )
+            email = _prompt_for_email(provider_name)
 
             # Context-specific help
             if choice == "1":  # Gmail
