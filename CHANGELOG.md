@@ -304,6 +304,10 @@
 
 **Merged pull requests:**
 
+- 🎨 Palette: Improve CLI output accessibility for non-TTY environments [\#791](https://github.com/abhimehro/email-security-pipeline/pull/791) ([abhimehro](https://github.com/abhimehro))
+- ⚡ Bolt: Use time.monotonic for faster TTLCache eviction [\#785](https://github.com/abhimehro/email-security-pipeline/pull/785) ([abhimehro](https://github.com/abhimehro))
+- 🎨 Palette: Refactor ANSI color codes in configuration summary [\#784](https://github.com/abhimehro/email-security-pipeline/pull/784) ([abhimehro](https://github.com/abhimehro))
+- fix\(ci\): prevent shell injection in summary.yml \(salvages \#777\) [\#780](https://github.com/abhimehro/email-security-pipeline/pull/780) ([abhimehro](https://github.com/abhimehro))
 - Fix CodeScene hotspot in `_print_analysis_details` [\#779](https://github.com/abhimehro/email-security-pipeline/pull/779) ([abhimehro](https://github.com/abhimehro))
 - ⚡ Bolt: optimize video frame extraction with hybrid sampling [\#770](https://github.com/abhimehro/email-security-pipeline/pull/770) ([abhimehro](https://github.com/abhimehro))
 - 🎨 Palette: Improve clarity of configuration empty states [\#768](https://github.com/abhimehro/email-security-pipeline/pull/768) ([abhimehro](https://github.com/abhimehro))
