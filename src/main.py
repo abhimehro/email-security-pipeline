@@ -448,9 +448,7 @@ class EmailSecurityPipeline:
             channels.append("Slack")
 
         if channels:
-            print(
-                f"    - {Colors.colorize('✔ Enabled', Colors.GREEN)}: {', '.join(channels)}"
-            )
+            print(f"    - {Colors.colorize('✔ Enabled', Colors.GREEN)}: {', '.join(channels)}")
         else:
             print(
                 f"    - {Colors.colorize('⚠ No alert channels configured', Colors.YELLOW)}"
@@ -469,11 +467,7 @@ class EmailSecurityPipeline:
 
         # Documentation footer
         print(
-            "\n📚 "
-            + Colors.colorize(
-                "For help, see README.md or OUTLOOK_TROUBLESHOOTING.md", Colors.GREY
-            )
-            + "\n"
+            f"\n📚 {Colors.colorize('For help, see README.md or OUTLOOK_TROUBLESHOOTING.md', Colors.GREY)}\n"
         )
 
 
