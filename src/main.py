@@ -456,7 +456,7 @@ class EmailSecurityPipeline:
                 f"    - {Colors.colorize('⚠ No alert channels configured', Colors.YELLOW)}"
             )
 
-        print("  ⚙️ " + Colors.colorize("System:", Colors.CYAN))
+        print(f"  ⚙️ {Colors.colorize('System:', Colors.CYAN)}")
         print(f"    - Log Level:  {self.config.system.log_level}")
         print(f"    - Log Format: {self.config.system.log_format}")
         metrics_status = (
