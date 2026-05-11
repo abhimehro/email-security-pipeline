@@ -161,6 +161,3 @@
 ## 2026-05-10 - Consistent CLI Output Formatting
 **Learning:** Directly concatenating ANSI escape codes (e.g., `f"{Colors.GREEN}Text{Colors.RESET}"`) in print statements breaks accessibility and output formatting in non-TTY environments (like CI/CD logs or files), because it bypasses the central color detection logic.
 **Action:** Always use the centralized helper `Colors.colorize("Text", Colors.GREEN)` when formatting strings for the CLI. This ensures fallback mechanisms work as expected, maintaining readable outputs across all environments.
-## 2025-05-15 - Missing Threat Indicators in CLI Output
-**Learning:** In the `AlertSystem` CLI rendering logic, the `_print_media_details` function only checked for `file_type_warnings`. If an email contained deepfakes (`potential_deepfakes`) or malicious scripts (`suspicious_attachments`) but no generic file type warnings, the CLI would falsely output "✓ Attachments appear safe". This omission created a dangerous disconnect where the underlying security engine detected a threat, but the UI hid it from the user.
-**Action:** When rendering summary views of complex objects (like `media_analysis`), always ensure all relevant state indicators are explicitly checked before falling back to a "safe/empty" state to maintain accurate user feedback and prevent false positives.
