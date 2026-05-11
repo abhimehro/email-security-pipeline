@@ -532,6 +532,8 @@ class AlertSystem:
             )
 
     def _print_media_details(self, media_analysis: Dict, risk_color: str) -> None:
+        has_media_warnings = False
+
         if media_analysis.get("file_type_warnings"):
             self._print_alert_row(
                 Colors.colorize("File Warnings:", Colors.BOLD), risk_color, indent=3
@@ -544,7 +546,37 @@ class AlertSystem:
                     risk_color,
                     indent=5,
                 )
-        else:
+            has_media_warnings = True
+
+        if media_analysis.get("potential_deepfakes"):
+            self._print_alert_row(
+                Colors.colorize("Deepfake Warnings:", Colors.BOLD), risk_color, indent=3
+            )
+            for warning in media_analysis["potential_deepfakes"][
+                : self.MAX_MEDIA_WARNINGS_DISPLAY
+            ]:
+                self._print_alert_row(
+                    f"{Colors.colorize('•', Colors.RED)} {warning}",
+                    risk_color,
+                    indent=5,
+                )
+            has_media_warnings = True
+
+        if media_analysis.get("suspicious_attachments"):
+            self._print_alert_row(
+                Colors.colorize("Suspicious Attachments:", Colors.BOLD), risk_color, indent=3
+            )
+            for warning in media_analysis["suspicious_attachments"][
+                : self.MAX_MEDIA_WARNINGS_DISPLAY
+            ]:
+                self._print_alert_row(
+                    f"{Colors.colorize('•', Colors.RED)} {warning}",
+                    risk_color,
+                    indent=5,
+                )
+            has_media_warnings = True
+
+        if not has_media_warnings:
             self._print_alert_row(
                 f"{Colors.colorize('✓', Colors.GREEN)} Attachments appear safe",
                 risk_color,
