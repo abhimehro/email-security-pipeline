@@ -261,8 +261,11 @@ class IMAPConnection:
             self.logger.info(f"Found {len(email_ids)} unseen emails in {safe_folder}")
 
             # Process in batches for rate limiting
+            # Performance Optimization: Use a larger batch size (50) to minimize
+            # redundant network round-trips and repeated rate-limit sleeps while
+            # remaining within safe IMAP protocol command length limits.
             emails = []
-            batch_size = 10
+            batch_size = 50
 
             for i in range(0, len(email_ids), batch_size):
                 if i > 0:
