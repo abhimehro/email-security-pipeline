@@ -531,58 +531,35 @@ class AlertSystem:
                 indent=3,
             )
 
+    def _print_media_indicator_list(self, title: str, items: List[str], item_color: str, risk_color: str) -> None:
+        """Helper to print a list of media threat indicators."""
+        if not items:
+            return
+        self._print_alert_row(
+            Colors.colorize(title, Colors.BOLD), risk_color, indent=3
+        )
+        for item in items[: self.MAX_MEDIA_WARNINGS_DISPLAY]:
+            self._print_alert_row(
+                f"{Colors.colorize('•', item_color)} {item}",
+                risk_color,
+                indent=5,
+            )
+
     def _print_media_details(self, media_analysis: Dict, risk_color: str) -> None:
         has_media_warnings = False
 
-        if media_analysis.get("suspicious_attachments"):
-            self._print_alert_row(
-                Colors.colorize("Suspicious Attachments:", Colors.BOLD), risk_color, indent=3
-            )
-            for att in media_analysis["suspicious_attachments"][: self.MAX_MEDIA_WARNINGS_DISPLAY]:
-                self._print_alert_row(
-                    f"{Colors.colorize('•', Colors.RED)} {att}",
-                    risk_color,
-                    indent=5,
-                )
-            has_media_warnings = True
+        indicators = [
+            ("Suspicious Attachments:", "suspicious_attachments", Colors.RED),
+            ("File Warnings:", "file_type_warnings", Colors.YELLOW),
+            ("Size Anomalies:", "size_anomalies", Colors.YELLOW),
+            ("Deepfake Warnings:", "potential_deepfakes", Colors.RED)
+        ]
 
-        if media_analysis.get("file_type_warnings"):
-            self._print_alert_row(
-                Colors.colorize("File Warnings:", Colors.BOLD), risk_color, indent=3
-            )
-            for warning in media_analysis["file_type_warnings"][
-                : self.MAX_MEDIA_WARNINGS_DISPLAY
-            ]:
-                self._print_alert_row(
-                    f"{Colors.colorize('•', Colors.YELLOW)} {warning}",
-                    risk_color,
-                    indent=5,
-                )
-            has_media_warnings = True
-
-        if media_analysis.get("size_anomalies"):
-            self._print_alert_row(
-                Colors.colorize("Size Anomalies:", Colors.BOLD), risk_color, indent=3
-            )
-            for anomaly in media_analysis["size_anomalies"][: self.MAX_MEDIA_WARNINGS_DISPLAY]:
-                self._print_alert_row(
-                    f"{Colors.colorize('•', Colors.YELLOW)} {anomaly}",
-                    risk_color,
-                    indent=5,
-                )
-            has_media_warnings = True
-
-        if media_analysis.get("potential_deepfakes"):
-            self._print_alert_row(
-                Colors.colorize("Deepfake Warnings:", Colors.BOLD), risk_color, indent=3
-            )
-            for deepfake in media_analysis["potential_deepfakes"][: self.MAX_MEDIA_WARNINGS_DISPLAY]:
-                self._print_alert_row(
-                    f"{Colors.colorize('•', Colors.RED)} {deepfake}",
-                    risk_color,
-                    indent=5,
-                )
-            has_media_warnings = True
+        for title, key, color in indicators:
+            items = media_analysis.get(key)
+            if items:
+                self._print_media_indicator_list(title, items, color, risk_color)
+                has_media_warnings = True
 
         if not has_media_warnings:
             self._print_alert_row(
