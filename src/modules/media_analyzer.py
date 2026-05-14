@@ -251,13 +251,13 @@ class MediaAuthenticityAnalyzer:
             file_type_warnings.extend(meta_results["file_type_warnings"])
             suspicious_attachments.extend(meta_results["suspicious_attachments"])
 
-            filename = attachment.get("filename", "")
-            data = attachment.get("data", b"")
-            content_type = attachment.get("content_type", "")
-
             # Check for potential deepfakes
             # Only proceed if the file hasn't already been flagged as dangerous/suspicious (score >= 5.0)
             if self.config.deepfake_detection_enabled and threat_score < 5.0:
+                filename = attachment.get("filename", "")
+                data = attachment.get("data", b"")
+                content_type = attachment.get("content_type", "")
+
                 deepfake_results = self._analyze_deepfake_threat(
                     filename, data, content_type
                 )
