@@ -56,3 +56,6 @@
 ## 2024-05-24 - Avoid cap.set() for small jumps in OpenCV
 **Learning:** In OpenCV, `cap.set(cv2.CAP_PROP_POS_FRAMES, i)` incurs heavy decoding overhead for small frame jumps.
 **Action:** Always use a hybrid approach (like `_extract_frames_sampled`) that uses sequential `cap.grab()` for small intervals and `cap.set()` for large ones instead of manual `cap.set()` loops.
+## 2025-11-12 - Optimized IMAP Batch Processing
+**Learning:** Performing per-batch metadata checks (like RFC822.SIZE) within a loop creates O(N/batch_size) extra round-trips and forced sleeps. Bulk metadata checks before the loop significantly reduce total latency.
+**Action:** Refactored `src/modules/imap_connection.py` to perform a single bulk size check for all email IDs before fetching content in batches. Increased default batch size to 50.
