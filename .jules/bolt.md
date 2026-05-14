@@ -67,3 +67,6 @@
 
 **Learning:** Python's `datetime.now()` with `timedelta` objects incur high instantiation and garbage collection overhead, which compounds in hot cache eviction loops like `TTLCache`.
 **Action:** Replace `datetime.now()` and `timedelta` with `time.monotonic()` and float arithmetic. This avoids the object creation overhead and is more resilient to system clock adjustments.
+## 2026-05-14 - Optimize dict.get in loop
+**Learning:** Checking nested structures or dict getters (`attachment.get(...)`) unconditionally outside of a branch or guard logic results in unnecessary CPU usage when that branch won't execute.
+**Action:** Relocated data retrieval steps into the active conditional block when analyzing deepfakes in `media_analyzer.py`.
