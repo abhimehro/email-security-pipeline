@@ -89,10 +89,6 @@ class TestTTLCache(unittest.TestCase):
         self.cache.clear()
         self.assertEqual(len(self.cache), 0)
 
-
-if __name__ == "__main__":
-    unittest.main()
-
     def test_get_many(self):
         self.cache.put("a", 1)
         self.cache.put("b", 2)
@@ -107,3 +103,7 @@ if __name__ == "__main__":
 
         result2 = self.cache.get_many([])
         self.assertEqual(result2, {})
+
+
+if __name__ == "__main__":
+    unittest.main()
