@@ -337,11 +337,8 @@ class SpamAnalyzer:
         score = 0.0
         suspicious = []
 
-        # Bulk retrieve cached results. We use set(urls) to minimize the lookup overhead
-        cached_results = self.url_cache.get_many(list(set(urls)))
-
         for url in urls:
-            cached = cached_results.get(url)
+            cached = self.url_cache.get(url)
             if cached is not None:
                 # Retrieve cached results
                 url_score, append_count = cached
@@ -369,14 +366,10 @@ class SpamAnalyzer:
                 if append_count > 0:
                     suspicious.extend([url] * append_count)
 
-                cache_val = (current_url_score, append_count)
-                self.url_cache.put(url, cache_val)
-                cached_results[url] = cache_val
+                self.url_cache.put(url, (current_url_score, append_count))
 
             except Exception:
-                cache_val = (0.0, 0)
-                self.url_cache.put(url, cache_val)
-                cached_results[url] = cache_val
+                self.url_cache.put(url, (0.0, 0))
 
         return score, suspicious
 

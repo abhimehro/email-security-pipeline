@@ -89,21 +89,6 @@ class TestTTLCache(unittest.TestCase):
         self.cache.clear()
         self.assertEqual(len(self.cache), 0)
 
-    def test_get_many(self):
-        self.cache.put("a", 1)
-        self.cache.put("b", 2)
-        self.cache.put("c", 3)
-
-        result = self.cache.get_many(["a", "b", "d"])
-        self.assertEqual(result, {"a": 1, "b": 2})
-
-    def test_get_many_empty(self):
-        result = self.cache.get_many(["a", "b"])
-        self.assertEqual(result, {})
-
-        result2 = self.cache.get_many([])
-        self.assertEqual(result2, {})
-
 
 if __name__ == "__main__":
     unittest.main()

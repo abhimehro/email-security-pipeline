@@ -67,20 +67,6 @@ class TTLCache:
         with self._lock:
             return self._get_locked(key)
 
-    def get_many(self, keys: List[str]) -> dict:
-        """
-        Return a dict of cached values for the given *keys*.
-        If a key is absent or expired, it is omitted from the result.
-        This reduces lock acquisition overhead compared to multiple get() calls.
-        """
-        result = {}
-        with self._lock:
-            for key in keys:
-                val = self._get_locked(key)
-                if val is not None:
-                    result[key] = val
-        return result
-
     def put(self, key: str, value: Any) -> None:
         """
         Store *value* under *key*, evicting the oldest entry when over capacity.
