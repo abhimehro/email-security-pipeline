@@ -1,6 +1,0 @@
-{
-  "title": "feat: pin Hugging Face model revision for NLP analysis",
-  "body": "This PR pins the Hugging Face model and tokenizer to a specific revision (commit hash) to avoid unexpected breakages from remote updates.\n\n### Changes:\n- Added `nlp_model_revision` field to `AnalysisConfig` in `src/utils/config.py`.\n- Updated `_load_analysis_config` to load `NLP_MODEL_REVISION` from env vars, defaulting to a stable hash for `distilbert-base-uncased`.\n- Updated `NLPThreatAnalyzer._initialize_model` to use the pinned revision.\n- Added `NLP_MODEL_REVISION` to `.env.example`.\n- Updated test suite to support the new config field.\n\nVerified with custom test scripts and existing test suite.",
-  "head": "pin-nlp-revision",
-  "base": "main"
-}
