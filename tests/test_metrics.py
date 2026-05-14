@@ -11,7 +11,7 @@ from pathlib import Path
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.utils.metrics import Metrics
+from src.utils.metrics import Metrics  # noqa: E402
 
 
 class TestMetrics(unittest.TestCase):

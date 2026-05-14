@@ -13,8 +13,8 @@ from unittest.mock import MagicMock, patch
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.modules.alert_system import AlertSystem, ThreatReport
-from src.utils.config import AlertConfig
+from src.modules.alert_system import AlertSystem, ThreatReport  # noqa: E402
+from src.utils.config import AlertConfig  # noqa: E402
 
 
 def _make_alert_system() -> AlertSystem:

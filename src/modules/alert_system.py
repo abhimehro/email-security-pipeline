@@ -9,7 +9,7 @@ import re
 import shutil
 import textwrap
 import threading
-import unicodedata
+
 from dataclasses import asdict, dataclass
 from datetime import datetime
 from typing import Dict, List, Optional

@@ -7,9 +7,9 @@ from unittest.mock import MagicMock
 # Add root to path so we can import src
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from src.modules.email_ingestion import EmailData
-from src.modules.media_analyzer import MediaAuthenticityAnalyzer
-from src.utils.config import AnalysisConfig
+from src.modules.email_ingestion import EmailData  # noqa: E402
+from src.modules.media_analyzer import MediaAuthenticityAnalyzer  # noqa: E402
+from src.utils.config import AnalysisConfig  # noqa: E402
 
 
 class TestMediaMagicBytes(unittest.TestCase):

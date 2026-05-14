@@ -9,7 +9,7 @@ import numpy as np
 # Add src to path
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
-from src.modules.media_analyzer import MediaAuthenticityAnalyzer
+from src.modules.media_analyzer import MediaAuthenticityAnalyzer  # noqa: E402
 
 
 class TestMediaOptimization(unittest.TestCase):

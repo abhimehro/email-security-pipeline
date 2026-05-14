@@ -13,7 +13,7 @@ from unittest.mock import MagicMock
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.utils.config import (
+from src.utils.config import (  # noqa: E402
     AlertConfig,
     AnalysisConfig,
     Config,

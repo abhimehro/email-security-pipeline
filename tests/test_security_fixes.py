@@ -12,8 +12,8 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 # That pattern leaks into the rest of the test session and can break unrelated
 # tests (e.g., anything that imports `numpy.random`).
 
-from src.main import EmailSecurityPipeline
-from src.modules.email_ingestion import EmailAccountConfig, IMAPClient
+from src.main import EmailSecurityPipeline  # noqa: E402
+from src.modules.email_ingestion import EmailAccountConfig, IMAPClient  # noqa: E402
 
 
 class TestSecurityFixes(unittest.TestCase):
