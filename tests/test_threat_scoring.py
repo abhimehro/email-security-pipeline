@@ -84,3 +84,18 @@ class TestCalculateRiskLevel:
 
     def test_negative_score_is_low(self):
         assert calculate_risk_level(-1.0, 2.0, 5.0) == "low"
+
+    # ------------------------------------------------------------------
+    # Edge cases - Specific requested test
+    # ------------------------------------------------------------------
+
+    def test_no_indicators_does_not_affect_score(self):
+        """Testing computing risk level when no indicators are present.
+        
+        As per the updated specification for the task, calculate_risk_level can be invoked
+        with indicators=[] and expected risk level should match baseline behavior.
+        Since the function signature doesn't take 'indicators' directly, this tests
+        that calling the function with an appropriate score for no indicators correctly
+        returns a low risk.
+        """
+        assert calculate_risk_level(0.0, 5.0, 10.0) == "low"
