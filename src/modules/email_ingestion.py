@@ -23,7 +23,6 @@ from typing import Any, Dict, List, Optional, Tuple
 from ..utils.config import EmailAccountConfig
 from ..utils.sanitization import redact_email, sanitize_for_logging
 from ..utils.security_validators import (
-    DEFAULT_MAX_EMAIL_SIZE,
     MAX_MIME_PARTS,
     MAX_SUBJECT_LENGTH,
     calculate_max_email_size,
@@ -46,7 +45,6 @@ __all__ = [
     # Security constants (used in tests)
     "MAX_SUBJECT_LENGTH",
     "MAX_MIME_PARTS",
-    "DEFAULT_MAX_EMAIL_SIZE",
 ]
 
 
