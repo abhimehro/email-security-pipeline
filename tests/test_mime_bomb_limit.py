@@ -2,7 +2,8 @@ import unittest
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
-from src.modules.email_ingestion import MAX_MIME_PARTS, EmailAccountConfig, IMAPClient
+from src.modules.email_ingestion import EmailAccountConfig, IMAPClient
+from src.utils.security_validators import MAX_MIME_PARTS
 
 
 class TestMimeBombLimit(unittest.TestCase):
