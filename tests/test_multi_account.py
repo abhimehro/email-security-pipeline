@@ -3,18 +3,18 @@ Multi-Account Processing Tests
 Tests concurrent account processing, isolation, and rate limiting.
 """
 
-import sys
-import time
-import unittest
-from datetime import datetime
-from pathlib import Path
-from threading import Lock
-from unittest.mock import MagicMock, patch
+import sys  # noqa: E402
+import time  # noqa: E402
+import unittest  # noqa: E402
+from datetime import datetime  # noqa: E402
+from pathlib import Path  # noqa: E402
+from threading import Lock  # noqa: E402
+from unittest.mock import MagicMock, patch  # noqa: E402
 
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.modules.email_ingestion import (
+from src.modules.email_ingestion import (  # noqa: E402
     EmailAccountConfig,
     EmailData,
     EmailIngestionManager,

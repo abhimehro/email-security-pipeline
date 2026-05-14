@@ -1,15 +1,15 @@
-import os
-import sys
-import unittest
-from unittest.mock import MagicMock, patch
+import os  # noqa: E402
+import sys  # noqa: E402
+import unittest  # noqa: E402
+from unittest.mock import MagicMock, patch  # noqa: E402
 
-import cv2
-import numpy as np
+import cv2  # noqa: E402
+import numpy as np  # noqa: E402
 
 # Add src to path
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
-from src.modules.media_analyzer import MediaAuthenticityAnalyzer
+from src.modules.media_analyzer import MediaAuthenticityAnalyzer  # noqa: E402
 
 
 class TestMediaOptimization(unittest.TestCase):

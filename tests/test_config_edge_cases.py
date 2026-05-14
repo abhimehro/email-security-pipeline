@@ -3,17 +3,17 @@ Configuration Edge Cases Tests
 Tests configuration validation, error handling, and environment variable precedence.
 """
 
-import os
-import sys
-import tempfile
-import unittest
-from pathlib import Path
-from unittest.mock import MagicMock
+import os  # noqa: E402
+import sys  # noqa: E402
+import tempfile  # noqa: E402
+import unittest  # noqa: E402
+from pathlib import Path  # noqa: E402
+from unittest.mock import MagicMock  # noqa: E402
 
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.utils.config import (
+from src.utils.config import (  # noqa: E402
     AlertConfig,
     AnalysisConfig,
     Config,

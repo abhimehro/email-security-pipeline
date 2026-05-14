@@ -1,14 +1,14 @@
-import sys
-import unittest
-from pathlib import Path
-from unittest.mock import MagicMock
+import sys  # noqa: E402
+import unittest  # noqa: E402
+from pathlib import Path  # noqa: E402
+from unittest.mock import MagicMock  # noqa: E402
 
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.modules.media_analyzer import MediaAuthenticityAnalyzer
-from src.utils.config import AnalysisConfig
-from src.utils.security_validators import sanitize_filename
+from src.modules.media_analyzer import MediaAuthenticityAnalyzer  # noqa: E402
+from src.utils.config import AnalysisConfig  # noqa: E402
+from src.utils.security_validators import sanitize_filename  # noqa: E402
 
 
 class TestFilenameBypass(unittest.TestCase):

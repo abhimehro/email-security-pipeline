@@ -2,16 +2,16 @@
 Tests for metrics collection functionality.
 """
 
-import sys
-import time
-import unittest
-from datetime import datetime, timedelta
-from pathlib import Path
+import sys  # noqa: E402
+import time  # noqa: E402
+import unittest  # noqa: E402
+from datetime import datetime, timedelta  # noqa: E402
+from pathlib import Path  # noqa: E402
 
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.utils.metrics import Metrics
+from src.utils.metrics import Metrics  # noqa: E402
 
 
 class TestMetrics(unittest.TestCase):

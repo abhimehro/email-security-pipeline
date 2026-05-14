@@ -4,30 +4,30 @@ Email Security Analysis Pipeline
 Main orchestrator that coordinates all analysis modules.
 """
 
-import logging
-from concurrent.futures import ThreadPoolExecutor, TimeoutError
-import sys
-import time
-from logging.handlers import RotatingFileHandler
-from pathlib import Path
+import logging  # noqa: E402
+from concurrent.futures import ThreadPoolExecutor, TimeoutError  # noqa: E402
+import sys  # noqa: E402
+import time  # noqa: E402
+from logging.handlers import RotatingFileHandler  # noqa: E402
+from pathlib import Path  # noqa: E402
 
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.modules.alert_system import AlertSystem, generate_threat_report
-from src.modules.email_ingestion import EmailIngestionManager
-from src.modules.media_analyzer import MediaAuthenticityAnalyzer
-from src.modules.nlp_analyzer import NLPThreatAnalyzer
-from src.modules.spam_analyzer import SpamAnalyzer
-from src.utils.colors import Colors
-from src.utils.config import Config, ConfigurationError
-from src.utils.logging_utils import ColoredFormatter
-from src.utils.metrics import Metrics
-from src.utils.sanitization import sanitize_for_logging
-from src.utils.structured_logging import JSONFormatter
-from src.utils.ui import CountdownTimer, Spinner
+from src.modules.alert_system import AlertSystem, generate_threat_report  # noqa: E402
+from src.modules.email_ingestion import EmailIngestionManager  # noqa: E402
+from src.modules.media_analyzer import MediaAuthenticityAnalyzer  # noqa: E402
+from src.modules.nlp_analyzer import NLPThreatAnalyzer  # noqa: E402
+from src.modules.spam_analyzer import SpamAnalyzer  # noqa: E402
+from src.utils.colors import Colors  # noqa: E402
+from src.utils.config import Config, ConfigurationError  # noqa: E402
+from src.utils.logging_utils import ColoredFormatter  # noqa: E402
+from src.utils.metrics import Metrics  # noqa: E402
+from src.utils.sanitization import sanitize_for_logging  # noqa: E402
+from src.utils.structured_logging import JSONFormatter  # noqa: E402
+from src.utils.ui import CountdownTimer, Spinner  # noqa: E402
 
-from src.app_runner import AppRunner
+from src.app_runner import AppRunner  # noqa: E402
 
 
 class EmailSecurityPipeline:

@@ -2,16 +2,16 @@
 Tests for structured logging functionality.
 """
 
-import json
-import logging
-import sys
-import unittest
-from pathlib import Path
+import json  # noqa: E402
+import logging  # noqa: E402
+import sys  # noqa: E402
+import unittest  # noqa: E402
+from pathlib import Path  # noqa: E402
 
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.utils.structured_logging import JSONFormatter
+from src.utils.structured_logging import JSONFormatter  # noqa: E402
 
 
 class TestJSONFormatter(unittest.TestCase):

@@ -3,21 +3,28 @@ Integration Workflow Tests
 Tests end-to-end email processing flow through the pipeline.
 """
 
-import sys
-import unittest
-from datetime import datetime
-from pathlib import Path
-from unittest.mock import MagicMock, Mock, patch
+import sys  # noqa: E402
+import unittest  # noqa: E402
+from datetime import datetime  # noqa: E402
+from pathlib import Path  # noqa: E402
+from unittest.mock import MagicMock, Mock, patch  # noqa: E402
 
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.modules.alert_system import AlertSystem, ThreatReport, generate_threat_report
-from src.modules.email_ingestion import EmailData
-from src.modules.media_analyzer import MediaAnalysisResult, MediaAuthenticityAnalyzer
-from src.modules.nlp_analyzer import NLPAnalysisResult, NLPThreatAnalyzer
-from src.modules.spam_analyzer import SpamAnalysisResult, SpamAnalyzer
-from src.utils.config import AlertConfig, AnalysisConfig
+from src.modules.alert_system import (  # noqa: E402
+    AlertSystem,
+    ThreatReport,
+    generate_threat_report,
+)  # noqa: E402
+from src.modules.email_ingestion import EmailData  # noqa: E402
+from src.modules.media_analyzer import (  # noqa: E402
+    MediaAnalysisResult,
+    MediaAuthenticityAnalyzer,
+)  # noqa: E402
+from src.modules.nlp_analyzer import NLPAnalysisResult, NLPThreatAnalyzer  # noqa: E402
+from src.modules.spam_analyzer import SpamAnalysisResult, SpamAnalyzer  # noqa: E402
+from src.utils.config import AlertConfig, AnalysisConfig  # noqa: E402
 
 
 class TestIntegrationWorkflow(unittest.TestCase):

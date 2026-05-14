@@ -12,15 +12,15 @@ locks it out, the pipeline keeps running on the remaining healthy accounts
 rather than going completely blind.
 """
 
-import sys
-import unittest
-from pathlib import Path
-from unittest.mock import MagicMock, patch
+import sys  # noqa: E402
+import unittest  # noqa: E402
+from pathlib import Path  # noqa: E402
+from unittest.mock import MagicMock, patch  # noqa: E402
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.modules.email_ingestion import EmailIngestionManager
-from src.utils.config import EmailAccountConfig
+from src.modules.email_ingestion import EmailIngestionManager  # noqa: E402
+from src.utils.config import EmailAccountConfig  # noqa: E402
 
 
 def _make_account(email="user@example.com", enabled=True, folders=None):

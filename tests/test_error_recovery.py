@@ -3,26 +3,26 @@ Error Recovery Tests
 Tests error handling, connection recovery, and graceful degradation scenarios.
 """
 
-import imaplib
-import socket
-import ssl
-import sys
-import unittest
-from datetime import datetime
-from pathlib import Path
-from unittest.mock import MagicMock, patch
+import imaplib  # noqa: E402
+import socket  # noqa: E402
+import ssl  # noqa: E402
+import sys  # noqa: E402
+import unittest  # noqa: E402
+from datetime import datetime  # noqa: E402
+from pathlib import Path  # noqa: E402
+from unittest.mock import MagicMock, patch  # noqa: E402
 
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.modules.email_ingestion import (
+from src.modules.email_ingestion import (  # noqa: E402
     EmailAccountConfig,
     EmailData,
     EmailIngestionManager,
     IMAPClient,
 )
-from src.modules.media_analyzer import MediaAuthenticityAnalyzer
-from src.utils.config import AnalysisConfig
+from src.modules.media_analyzer import MediaAuthenticityAnalyzer  # noqa: E402
+from src.utils.config import AnalysisConfig  # noqa: E402
 
 
 class TestIMAPErrorRecovery(unittest.TestCase):

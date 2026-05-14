@@ -4,17 +4,17 @@ Tests _console_clean_report and its helper methods:
 _get_visual_length, _truncate_text, _get_terminal_width.
 """
 
-import sys
-import unittest
-from datetime import datetime
-from io import StringIO
-from pathlib import Path
-from unittest.mock import MagicMock, patch
+import sys  # noqa: E402
+import unittest  # noqa: E402
+from datetime import datetime  # noqa: E402
+from io import StringIO  # noqa: E402
+from pathlib import Path  # noqa: E402
+from unittest.mock import MagicMock, patch  # noqa: E402
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.modules.alert_system import AlertSystem, ThreatReport
-from src.utils.config import AlertConfig
+from src.modules.alert_system import AlertSystem, ThreatReport  # noqa: E402
+from src.utils.config import AlertConfig  # noqa: E402
 
 
 def _make_alert_system() -> AlertSystem:

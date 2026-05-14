@@ -1,6 +1,6 @@
 import os
 import unittest
-from pathlib import Path
+
 from unittest.mock import MagicMock, mock_open, patch
 
 from src.utils.setup_wizard import _is_valid_email, run_setup_wizard

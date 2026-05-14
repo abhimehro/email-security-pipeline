@@ -1,14 +1,14 @@
-import sys
-import unittest
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
-from pathlib import Path
-from unittest.mock import MagicMock
+import sys  # noqa: E402
+import unittest  # noqa: E402
+from email.mime.multipart import MIMEMultipart  # noqa: E402
+from email.mime.text import MIMEText  # noqa: E402
+from pathlib import Path  # noqa: E402
+from unittest.mock import MagicMock  # noqa: E402
 
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.modules.email_ingestion import EmailAccountConfig, IMAPClient
+from src.modules.email_ingestion import EmailAccountConfig, IMAPClient  # noqa: E402
 
 
 class TestIngestionOptimization(unittest.TestCase):

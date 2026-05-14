@@ -3,19 +3,19 @@ Alert System Integration Tests
 Tests webhook delivery, Slack notifications, retries, and deduplication.
 """
 
-import sys
-import unittest
-from datetime import datetime
-from pathlib import Path
-from unittest.mock import MagicMock, Mock, patch
+import sys  # noqa: E402
+import unittest  # noqa: E402
+from datetime import datetime  # noqa: E402
+from pathlib import Path  # noqa: E402
+from unittest.mock import MagicMock, Mock, patch  # noqa: E402
 
-import requests
+import requests  # noqa: E402
 
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.modules.alert_system import AlertSystem, ThreatReport
-from src.utils.config import AlertConfig
+from src.modules.alert_system import AlertSystem, ThreatReport  # noqa: E402
+from src.utils.config import AlertConfig  # noqa: E402
 
 
 class TestWebhookDelivery(unittest.TestCase):
