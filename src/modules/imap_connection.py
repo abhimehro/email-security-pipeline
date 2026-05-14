@@ -326,12 +326,6 @@ class IMAPConnection:
 
         return None
 
-    def _fetch_batch(self, email_ids: List[bytes]) -> List[Tuple[str, bytes]]:
-        """
-        Legacy fetch batch method (kept for backward compatibility).
-        """
-        return self._fetch_batch_content(self._check_email_sizes(email_ids))
-
     def _fetch_batch_content(self, safe_ids: List[bytes]) -> List[Tuple[str, bytes]]:
         """
         Fetch only the RFC822 content for a batch of pre-validated safe email IDs.
