@@ -39,9 +39,12 @@ class TestValidators(unittest.TestCase):
             )
         ]
         errors = check_default_credentials(self.config)
-        self.assertIn(
-            "Gmail account enabled but uses default email: your-email@gmail.com", errors
+
+        msg = (
+            "Gmail account enabled but uses default email: "
+            "your-email@gmail.com"
         )
+        self.assertIn(msg, errors)
 
     def test_default_password(self):
         self.config.email_accounts = [
@@ -54,7 +57,8 @@ class TestValidators(unittest.TestCase):
             )
         ]
         errors = check_default_credentials(self.config)
-        self.assertIn("Gmail account enabled but uses default password", errors)
+        msg = "Gmail account enabled but uses default password"
+        self.assertIn(msg, errors)
 
     def test_disabled_account_ignored(self):
         self.config.email_accounts = [
@@ -81,7 +85,42 @@ class TestValidators(unittest.TestCase):
             "https://hooks.slack.com/services/YOUR/WEBHOOK/URL"
         )
         errors = check_default_credentials(self.config)
-        self.assertIn("Slack alerts enabled but uses default Webhook URL", errors)
+        msg = "Slack alerts enabled but uses default Webhook URL"
+        self.assertIn(msg, errors)
+
+    def test_none_credentials(self):
+        self.config.email_accounts = [
+            Mock(
+                spec=EmailAccountConfig,
+                enabled=True,
+                email=None,
+                app_password=None,
+                provider="gmail",
+            )
+        ]
+        self.config.alerts.webhook_enabled = True
+        self.config.alerts.webhook_url = None
+        self.config.alerts.slack_enabled = True
+        self.config.alerts.slack_webhook = None
+        errors = check_default_credentials(self.config)
+        self.assertEqual(len(errors), 0)
+
+    def test_non_string_credentials(self):
+        self.config.email_accounts = [
+            Mock(
+                spec=EmailAccountConfig,
+                enabled=True,
+                email=12345,
+                app_password={"secret": "password"},
+                provider="gmail",
+            )
+        ]
+        self.config.alerts.webhook_enabled = True
+        self.config.alerts.webhook_url = ["https://my-webhook.com"]
+        self.config.alerts.slack_enabled = True
+        self.config.alerts.slack_webhook = 9876.54
+        errors = check_default_credentials(self.config)
+        self.assertEqual(len(errors), 0)
 
 
 if __name__ == "__main__":
