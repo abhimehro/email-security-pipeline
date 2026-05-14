@@ -952,47 +952,11 @@ class MediaAuthenticityAnalyzer:
             if not frames:
                 self.logger.warning(f"Could not extract frames from {filename}")
             else:
-                # Optimization: Convert frames to grayscale once to avoid repeated conversions
-                # This saves CPU time in subsequent analysis steps
-                gray_frames = [cv2.cvtColor(f, cv2.COLOR_BGR2GRAY) for f in frames]
-
-                # 2. Analyze for facial inconsistencies
-                facial_score, facial_issues = self._analyze_facial_inconsistencies(
-                    gray_frames
+                frame_score, frame_indicators = self._analyze_video_frames(
+                    filename, temp_file_path, frames, content_type
                 )
-                if facial_score > 0:
-                    score += facial_score
-                    indicators.extend(
-                        [f"{filename}: {issue}" for issue in facial_issues]
-                    )
-
-                # 3. Check audio-visual synchronization
-                sync_score, sync_issues = self._check_audio_visual_sync(
-                    temp_file_path, frames
-                )
-                if sync_score > 0:
-                    score += sync_score
-                    indicators.extend([f"{filename}: {issue}" for issue in sync_issues])
-
-                # 4. Look for compression artifacts typical of deepfakes
-                compression_score, compression_issues = (
-                    self._check_compression_artifacts(gray_frames)
-                )
-                if compression_score > 0:
-                    score += compression_score
-                    indicators.extend(
-                        [f"{filename}: {issue}" for issue in compression_issues]
-                    )
-
-                # 5. Use specialized deepfake detection models (Simulated)
-                model_score = self._run_deepfake_model(
-                    frames, gray_frames, content_type
-                )
-                if model_score > 0.7:
-                    score += 3.0
-                    indicators.append(
-                        f"High probability of deepfake detected by model: {filename}"
-                    )
+                score += frame_score
+                indicators.extend(frame_indicators)
 
         except Exception as e:
             self.logger.error(
@@ -1008,6 +972,49 @@ class MediaAuthenticityAnalyzer:
                     self.logger.warning(
                         f"Failed to delete temp file {temp_file_path}: {e}"
                     )
+
+        return score, indicators
+
+    def _analyze_video_frames(
+        self, filename: str, temp_file_path: str, frames: list, content_type: str
+    ) -> Tuple[float, List[str]]:
+        """
+        Analyze extracted video frames for deepfake indicators.
+        """
+        score = 0.0
+        indicators = []
+
+        # Optimization: Convert frames to grayscale once to avoid repeated conversions
+        # This saves CPU time in subsequent analysis steps
+        gray_frames = [cv2.cvtColor(f, cv2.COLOR_BGR2GRAY) for f in frames]
+
+        # 2. Analyze for facial inconsistencies
+        facial_score, facial_issues = self._analyze_facial_inconsistencies(gray_frames)
+        if facial_score > 0:
+            score += facial_score
+            indicators.extend([f"{filename}: {issue}" for issue in facial_issues])
+
+        # 3. Check audio-visual synchronization
+        sync_score, sync_issues = self._check_audio_visual_sync(temp_file_path, frames)
+        if sync_score > 0:
+            score += sync_score
+            indicators.extend([f"{filename}: {issue}" for issue in sync_issues])
+
+        # 4. Look for compression artifacts typical of deepfakes
+        compression_score, compression_issues = self._check_compression_artifacts(
+            gray_frames
+        )
+        if compression_score > 0:
+            score += compression_score
+            indicators.extend([f"{filename}: {issue}" for issue in compression_issues])
+
+        # 5. Use specialized deepfake detection models (Simulated)
+        model_score = self._run_deepfake_model(frames, gray_frames, content_type)
+        if model_score > 0.7:
+            score += 3.0
+            indicators.append(
+                f"High probability of deepfake detected by model: {filename}"
+            )
 
         return score, indicators
 
