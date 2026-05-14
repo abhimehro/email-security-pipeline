@@ -15,6 +15,7 @@ class MockConfig:
         self.check_psychological_triggers = True
         self.nlp_threshold = 0.5
         self.nlp_model = "distilbert-base-uncased"
+        self.nlp_model_revision = "main"
 
 
 class TestNLPCacheSecurity(unittest.TestCase):
