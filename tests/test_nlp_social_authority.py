@@ -22,6 +22,7 @@ class MockConfig:
         self.nlp_threshold = 0.5
         self.nlp_model = "distilbert-base-uncased"
         self.nlp_model_revision = "main"
+        self.enable_ml_model = True
 
 
 class _BaseNLPTest(unittest.TestCase):
