@@ -408,32 +408,32 @@ class EmailSecurityPipeline:
         else:
             for account in self.config.email_accounts:
                 status = (
-                    Colors.colorize("✔ Active", Colors.GREEN)
+                    Colors.colorize(f"{Colors.get_status_symbol(True)} Active", Colors.GREEN)
                     if account.enabled
-                    else Colors.colorize("✖ Disabled", Colors.GREY)
+                    else Colors.colorize(f"{Colors.get_status_symbol(False)} Disabled", Colors.GREY)
                 )
                 print(f"    - {account.provider.title()}: {account.email} ({status})")
 
         # Analysis
         print(f"  🔍 {Colors.CYAN}Analysis Layers:{Colors.RESET}")
         print(
-            f"    - Spam Detection:   {Colors.GREEN}✔ Active{Colors.RESET} "
+            f"    - Spam Detection:   {Colors.colorize(f'{Colors.get_status_symbol(True)} Active', Colors.GREEN)} "
             f"(Threshold: {self.config.analysis.spam_threshold})"
         )
         print(
-            f"    - NLP Analysis:     {Colors.GREEN}✔ Active{Colors.RESET} "
+            f"    - NLP Analysis:     {Colors.colorize(f'{Colors.get_status_symbol(True)} Active', Colors.GREEN)} "
             f"(Threshold: {self.config.analysis.nlp_threshold})"
         )
 
         media_status = (
-            f"{Colors.GREEN}✔ Active{Colors.RESET}"
+            Colors.colorize(f"{Colors.get_status_symbol(True)} Active", Colors.GREEN)
             if self.config.analysis.check_media_attachments
-            else f"{Colors.GREY}✖ Disabled{Colors.RESET}"
+            else Colors.colorize(f"{Colors.get_status_symbol(False)} Disabled", Colors.GREY)
         )
         deepfake_status = (
-            f"{Colors.GREEN}✔ Enabled{Colors.RESET}"
+            Colors.colorize(f"{Colors.get_status_symbol(True)} Enabled", Colors.GREEN)
             if self.config.analysis.deepfake_detection_enabled
-            else f"{Colors.GREY}✖ Disabled{Colors.RESET}"
+            else Colors.colorize(f"{Colors.get_status_symbol(False)} Disabled", Colors.GREY)
         )
         print(f"    - Media Check:      {media_status} (Deepfake: {deepfake_status})")
 
@@ -448,7 +448,7 @@ class EmailSecurityPipeline:
             channels.append("Slack")
 
         if channels:
-            print(f"    - {Colors.GREEN}✔ Enabled{Colors.RESET}: {', '.join(channels)}")
+            print(f"    - {Colors.colorize(f'{Colors.get_status_symbol(True)} Enabled', Colors.GREEN)}: {', '.join(channels)}")
         else:
             print(
                 f"    - {Colors.colorize('⚠ No alert channels configured', Colors.YELLOW)}"
@@ -458,9 +458,9 @@ class EmailSecurityPipeline:
         print(f"    - Log Level:  {self.config.system.log_level}")
         print(f"    - Log Format: {self.config.system.log_format}")
         metrics_status = (
-            Colors.colorize("✔ Enabled", Colors.GREEN)
+            Colors.colorize(f"{Colors.get_status_symbol(True)} Enabled", Colors.GREEN)
             if self.config.system.enable_metrics
-            else Colors.colorize("✖ Disabled", Colors.GREY)
+            else Colors.colorize(f"{Colors.get_status_symbol(False)} Disabled", Colors.GREY)
         )
         print(f"    - Metrics:    {metrics_status}")
         print(f"    - Interval:   {self.config.system.check_interval}s")

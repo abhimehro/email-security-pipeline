@@ -68,3 +68,8 @@ class Colors:
             "low": "🟢",
         }
         return symbols.get(level, "⚪")
+
+    @staticmethod
+    def get_status_symbol(enabled: bool) -> str:
+        """Get explicit visual symbols for status indication."""
+        return "✔" if enabled else "✖"

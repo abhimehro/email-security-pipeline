@@ -202,15 +202,15 @@ class Spinner:
                     # Failure logic
                     msg = self.fail_msg if self.fail_msg else self.message
                     # Use Colors.colorize to ensure we get proper fallback if colors are disabled
-                    cross = Colors.colorize("✘", Colors.RED)
+                    cross = Colors.colorize(Colors.get_status_symbol(False), Colors.RED)
                     final_message = f"{cross} {msg}{time_str}\n"
                 elif self.success_msg:
                     # Explicit success message always persists
-                    check = Colors.colorize("✔", Colors.GREEN)
+                    check = Colors.colorize(Colors.get_status_symbol(True), Colors.GREEN)
                     final_message = f"{check} {self.success_msg}{time_str}\n"
                 elif self.persist:
                     # Default persistence
-                    check = Colors.colorize("✔", Colors.GREEN)
+                    check = Colors.colorize(Colors.get_status_symbol(True), Colors.GREEN)
                     final_message = f"{check} {self.message}{time_str}\n"
 
                 sys.stdout.write(f"\r\033[K{final_message}")
@@ -228,9 +228,9 @@ class Spinner:
                 sys.stdout.write(f"⚠ {self.message} (Cancelled){raw_time_str}\n")
             elif exc_type is not None or self.fail_msg:
                 msg = self.fail_msg if self.fail_msg else self.message
-                sys.stdout.write(f"✘ {msg}{raw_time_str}\n")
+                sys.stdout.write(f"{Colors.get_status_symbol(False)} {msg}{raw_time_str}\n")
             elif self.success_msg:
-                sys.stdout.write(f"✔ {self.success_msg}{raw_time_str}\n")
+                sys.stdout.write(f"{Colors.get_status_symbol(True)} {self.success_msg}{raw_time_str}\n")
             elif self.persist:
-                sys.stdout.write(f"✔ {self.message}{raw_time_str}\n")
+                sys.stdout.write(f"{Colors.get_status_symbol(True)} {self.message}{raw_time_str}\n")
             sys.stdout.flush()
