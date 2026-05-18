@@ -4,8 +4,8 @@ from pathlib import Path
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.modules.alert_system import AlertSystem  # noqa: E402
-from src.utils.config import AlertConfig  # noqa: E402
+from src.modules.alert_system import AlertSystem
+from src.utils.config import AlertConfig
 
 
 def test_redaction():

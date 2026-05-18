@@ -6,9 +6,9 @@ from unittest.mock import MagicMock
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.modules.media_analyzer import MediaAuthenticityAnalyzer  # noqa: E402
-from src.utils.config import AnalysisConfig  # noqa: E402
-from src.utils.security_validators import sanitize_filename  # noqa: E402
+from src.modules.media_analyzer import MediaAuthenticityAnalyzer
+from src.utils.config import AnalysisConfig
+from src.utils.security_validators import sanitize_filename
 
 
 class TestFilenameBypass(unittest.TestCase):

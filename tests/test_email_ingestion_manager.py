@@ -19,8 +19,8 @@ from unittest.mock import MagicMock, patch
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.modules.email_ingestion import EmailIngestionManager  # noqa: E402
-from src.utils.config import EmailAccountConfig  # noqa: E402
+from src.modules.email_ingestion import EmailIngestionManager
+from src.utils.config import EmailAccountConfig
 
 
 def _make_account(email="user@example.com", enabled=True, folders=None):

@@ -8,11 +8,11 @@ import numpy as np
 # Add repo root to path
 sys.path.insert(0, os.getcwd())
 
-from src.modules.email_ingestion import EmailData  # noqa: E402
+from src.modules.email_ingestion import EmailData
 
 # Import using src package to resolve relative imports correctly
-from src.modules.media_analyzer import MediaAuthenticityAnalyzer  # noqa: E402
-from src.utils.config import AnalysisConfig  # noqa: E402
+from src.modules.media_analyzer import MediaAuthenticityAnalyzer
+from src.utils.config import AnalysisConfig
 
 
 class TestDeepfakeDetection(unittest.TestCase):

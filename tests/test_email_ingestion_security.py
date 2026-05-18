@@ -6,9 +6,9 @@ from unittest.mock import MagicMock
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.modules.email_ingestion import EmailAccountConfig, IMAPClient  # noqa: E402
-from src.utils.sanitization import sanitize_for_logging  # noqa: E402
-from src.utils.security_validators import sanitize_filename  # noqa: E402
+from src.modules.email_ingestion import EmailAccountConfig, IMAPClient
+from src.utils.sanitization import sanitize_for_logging
+from src.utils.security_validators import sanitize_filename
 
 
 class TestEmailIngestionSecurity(unittest.TestCase):
