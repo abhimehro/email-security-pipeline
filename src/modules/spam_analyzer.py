@@ -10,7 +10,10 @@ from typing import Dict, List, Tuple, Union
 from urllib.parse import urlparse
 
 from ..utils.caching import TTLCache
-from ..utils.pattern_compiler import compile_named_group_pattern, compile_patterns
+from ..utils.pattern_compiler import (
+    compile_named_group_pattern,
+    compile_patterns,
+)
 from ..utils.threat_scoring import calculate_risk_level
 from .email_data import EmailData
 
@@ -147,7 +150,9 @@ class SpamAnalyzer:
 
     # Optimization: Pre-compiled regex reduces Python-level iteration compared to an any()-based loop
     # while preserving the original substring-matching behavior (no word boundaries)
-    CORPORATE_TITLES_PATTERN = compile_patterns(CORPORATE_TITLES, re.IGNORECASE)
+    CORPORATE_TITLES_PATTERN = compile_patterns(
+        CORPORATE_TITLES, re.IGNORECASE
+    )
 
     def __init__(self, config):
         """
@@ -178,13 +183,17 @@ class SpamAnalyzer:
         header_issues = []
 
         # Analyze subject line
-        subject_score, subject_indicators = self._analyze_subject(email_data.subject)
+        subject_score, subject_indicators = self._analyze_subject(
+            email_data.subject
+        )
         score += subject_score
         indicators.extend(subject_indicators)
 
         # Extract URLs once for both body analysis and URL checking
         # Optimization: Process parts separately to avoid large string concatenation
-        extracted_urls = self.URL_EXTRACTION_PATTERN.findall(email_data.body_text)
+        extracted_urls = self.URL_EXTRACTION_PATTERN.findall(
+            email_data.body_text
+        )
         if email_data.body_html:
             extracted_urls.extend(
                 self.URL_EXTRACTION_PATTERN.findall(email_data.body_html)
@@ -262,7 +271,9 @@ class SpamAnalyzer:
                     found_groups.add(group_name)
                     pattern_str = self.MASTER_SPAM_MAP[group_name]
                     score += 1.5
-                    indicators.append(f"Spam keyword in subject: {pattern_str}")
+                    indicators.append(
+                        f"Spam keyword in subject: {pattern_str}"
+                    )
 
         # Check for numbers indicating money
         if self.MONEY_PATTERN.search(subject_lower):
@@ -273,7 +284,8 @@ class SpamAnalyzer:
 
     def _count_spam_keywords(self, text: str) -> int:
         """Helper to count spam keywords with a fast substring pre-check."""
-        if not any(kw in text for kw in self.SPAM_KEYWORD_LITERALS):
+        text_lower = text.lower()
+        if not any(kw in text_lower for kw in self.SPAM_KEYWORD_LITERALS):
             return 0
         return len(self.COMBINED_SPAM_PATTERN.findall(text))
 
@@ -313,7 +325,9 @@ class SpamAnalyzer:
 
         # Check for hidden text (common spam technique)
         if html_body:
-            hidden_score, hidden_indicators = self._check_hidden_text(html_body)
+            hidden_score, hidden_indicators = self._check_hidden_text(
+                html_body
+            )
             score += hidden_score
             indicators.extend(hidden_indicators)
 
