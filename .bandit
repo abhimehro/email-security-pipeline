@@ -1,8 +1,8 @@
 exclude_dirs:
-  - 'tests'
-  - 'test'
-  - '.venv'
-  - 'venv'
+  - ''tests''
+  - ''test''
+  - ''.venv''
+  - ''venv''
 skips:
-  - 'B101'
-  - 'B615'
+  - ''B101''
+  - ''B615''

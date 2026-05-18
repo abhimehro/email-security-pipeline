@@ -7,8 +7,8 @@ from unittest.mock import Mock
 sys.path.append(os.getcwd())
 
 # Import using the full package path to avoid relative import issues
-from src.modules.alert_system import AlertSystem, ThreatReport
-from src.utils.config import AlertConfig
+from src.modules.alert_system import AlertSystem, ThreatReport  # noqa: E402
+from src.utils.config import AlertConfig  # noqa: E402
 
 
 def test_console_alert():

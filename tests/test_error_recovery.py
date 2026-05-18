@@ -15,14 +15,14 @@ from unittest.mock import MagicMock, patch
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.modules.email_ingestion import (
+from src.modules.email_ingestion import (  # noqa: E402
     EmailAccountConfig,
     EmailData,
     EmailIngestionManager,
     IMAPClient,
 )
-from src.modules.media_analyzer import MediaAuthenticityAnalyzer
-from src.utils.config import AnalysisConfig
+from src.modules.media_analyzer import MediaAuthenticityAnalyzer  # noqa: E402
+from src.utils.config import AnalysisConfig  # noqa: E402
 
 
 class TestIMAPErrorRecovery(unittest.TestCase):

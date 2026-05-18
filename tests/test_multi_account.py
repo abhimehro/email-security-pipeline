@@ -14,7 +14,7 @@ from unittest.mock import MagicMock, patch
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.modules.email_ingestion import (
+from src.modules.email_ingestion import (  # noqa: E402
     EmailAccountConfig,
     EmailData,
     EmailIngestionManager,

@@ -249,9 +249,9 @@ def test_imap_connections(test_connections=True):
         return False
 
 
-import json
-import subprocess
-from pathlib import Path
+import json  # noqa: E402
+import subprocess  # noqa: E402
+from pathlib import Path  # noqa: E402
 
 
 def test_folder_parsing():

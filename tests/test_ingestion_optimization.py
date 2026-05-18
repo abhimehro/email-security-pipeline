@@ -8,7 +8,7 @@ from unittest.mock import MagicMock
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.modules.email_ingestion import EmailAccountConfig, IMAPClient
+from src.modules.email_ingestion import EmailAccountConfig, IMAPClient  # noqa: E402
 
 
 class TestIngestionOptimization(unittest.TestCase):

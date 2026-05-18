@@ -12,8 +12,8 @@ import sys
 # Add the project root directory to the Python path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from src.modules.email_ingestion import EmailIngestionManager
-from src.utils.config import Config
+from src.modules.email_ingestion import EmailIngestionManager  # noqa: E402
+from src.utils.config import Config  # noqa: E402
 
 # Set up basic logging
 logging.basicConfig(

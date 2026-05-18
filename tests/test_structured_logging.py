@@ -11,7 +11,7 @@ from pathlib import Path
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.utils.structured_logging import JSONFormatter
+from src.utils.structured_logging import JSONFormatter  # noqa: E402
 
 
 class TestJSONFormatter(unittest.TestCase):
