@@ -144,7 +144,11 @@ def _select_provider() -> str:
                 + Colors.colorize("? ", Colors.CYAN)
                 + Colors.colorize("Select provider [1-4]: ", Colors.BOLD)
             )
+            if Colors.ENABLED:
+                prompt += Colors.BOLD
             choice = input(prompt).strip()
+            if Colors.ENABLED:
+                print(Colors.RESET, end="")
             if choice in ("1", "2", "3", "4"):
                 return choice
             print(
@@ -165,7 +169,11 @@ def _prompt_for_email(provider_name: str) -> str:
             + Colors.colorize("*", Colors.RED)
             + Colors.colorize(": ", Colors.BOLD)
         )
+        if Colors.ENABLED:
+            prompt += Colors.BOLD
         email = input(prompt).strip()
+        if Colors.ENABLED:
+            print(Colors.RESET, end="")
         if not email:
             print(Colors.colorize("Email is required.", Colors.YELLOW))
             continue
@@ -222,10 +230,19 @@ def _get_credentials(choice: str, provider_name: str) -> tuple[str, str]:
                 + Colors.colorize("*", Colors.RED)
                 + Colors.colorize(": ", Colors.BOLD)
             )
+
+            if Colors.ENABLED:
+                prompt += Colors.BOLD
+
             app_secret = getpass.getpass(prompt).strip()
+            if Colors.ENABLED:
+                print(Colors.RESET, end="")
+
             while not app_secret:
                 print(Colors.colorize("Password is required.", Colors.YELLOW))
                 app_secret = getpass.getpass(prompt).strip()
+                if Colors.ENABLED:
+                    print(Colors.RESET, end="")
 
             # Test the connection immediately
             if _test_connection(email, app_secret, choice):
@@ -241,7 +258,11 @@ def _get_credentials(choice: str, provider_name: str) -> tuple[str, str]:
             prompt = Colors.colorize("? ", Colors.CYAN) + Colors.colorize(
                 "Retry? [Y/n] ", Colors.BOLD
             )
+            if Colors.ENABLED:
+                prompt += Colors.BOLD
             retry = input(prompt).strip().lower()
+            if Colors.ENABLED:
+                print(Colors.RESET, end="")
             if retry not in ("", "y", "yes"):
                 print(
                     Colors.colorize(

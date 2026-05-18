@@ -161,3 +161,6 @@
 ## 2026-05-10 - Consistent CLI Output Formatting
 **Learning:** Directly concatenating ANSI escape codes (e.g., `f"{Colors.GREEN}Text{Colors.RESET}"`) in print statements breaks accessibility and output formatting in non-TTY environments (like CI/CD logs or files), because it bypasses the central color detection logic.
 **Action:** Always use the centralized helper `Colors.colorize("Text", Colors.GREEN)` when formatting strings for the CLI. This ensures fallback mechanisms work as expected, maintaining readable outputs across all environments.
+## 2025-05-18 - Visual Distinction for User Input in CLI
+**Learning:** In interactive CLI wizards, unstyled text for user input can blend into the surrounding informational text or prompts, making it hard to read and lowering the overall visual hierarchy.
+**Action:** Always append `Colors.BOLD` to the end of prompt strings immediately before calling `input()` or `getpass()` to inherit the styling to the user's typing, and use `sys.stdout.write(Colors.RESET)` or `print(Colors.RESET, end="")` immediately after to restore the terminal formatting.

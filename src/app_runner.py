@@ -127,7 +127,11 @@ class AppRunner:
                     f"Create '{self.config_file}' from template without wizard? [Y/n] ",
                     Colors.BOLD,
                 )
+                if Colors.ENABLED:
+                    prompt += Colors.BOLD
                 response = input(prompt).strip().lower()
+                if Colors.ENABLED:
+                    print(Colors.RESET, end="")
                 if response in ("", "y", "yes"):
                     try:
                         import os
@@ -248,7 +252,11 @@ class AppRunner:
         prompt = Colors.colorize("? ", Colors.CYAN) + Colors.colorize(
             "Run setup wizard? [Y/n] ", Colors.BOLD
         )
+        if Colors.ENABLED:
+            prompt += Colors.BOLD
         response = input(prompt).strip().lower()
+        if Colors.ENABLED:
+            print(Colors.RESET, end="")
         if response in ("", "y", "yes"):
             if run_setup_wizard(self.config_file):
                 sys.exit(0)
@@ -261,7 +269,11 @@ class AppRunner:
             f"Create '{self.config_file}' from template without wizard? [Y/n] ",
             Colors.BOLD,
         )
+        if Colors.ENABLED:
+            prompt += Colors.BOLD
         response = input(prompt).strip().lower()
+        if Colors.ENABLED:
+            print(Colors.RESET, end="")
         if response in ("", "y", "yes"):
             try:
                 self._create_config_from_template()
