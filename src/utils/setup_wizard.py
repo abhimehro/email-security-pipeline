@@ -49,6 +49,19 @@ def _is_valid_email(email: str) -> bool:
     return re.match(pattern, email) is not None
 
 
+def _styled_input(prompt: str) -> str:
+    """Helper to conditionally apply BOLD styling to user input."""
+    if Colors.ENABLED:
+        prompt += Colors.BOLD
+
+    val = input(prompt).strip()
+
+    if Colors.ENABLED:
+        print(Colors.RESET, end="", flush=True)
+
+    return val
+
+
 def _test_connection(email: str, app_password: str, provider_choice: str) -> bool:
     """
     Test the connection with provided credentials.
@@ -144,11 +157,7 @@ def _select_provider() -> str:
                 + Colors.colorize("? ", Colors.CYAN)
                 + Colors.colorize("Select provider [1-4]: ", Colors.BOLD)
             )
-            if Colors.ENABLED:
-                prompt += Colors.BOLD
-            choice = input(prompt).strip()
-            if Colors.ENABLED:
-                print(Colors.RESET, end="")
+            choice = _styled_input(prompt)
             if choice in ("1", "2", "3", "4"):
                 return choice
             print(
@@ -169,11 +178,7 @@ def _prompt_for_email(provider_name: str) -> str:
             + Colors.colorize("*", Colors.RED)
             + Colors.colorize(": ", Colors.BOLD)
         )
-        if Colors.ENABLED:
-            prompt += Colors.BOLD
-        email = input(prompt).strip()
-        if Colors.ENABLED:
-            print(Colors.RESET, end="")
+        email = _styled_input(prompt)
         if not email:
             print(Colors.colorize("Email is required.", Colors.YELLOW))
             continue
@@ -258,11 +263,7 @@ def _get_credentials(choice: str, provider_name: str) -> tuple[str, str]:
             prompt = Colors.colorize("? ", Colors.CYAN) + Colors.colorize(
                 "Retry? [Y/n] ", Colors.BOLD
             )
-            if Colors.ENABLED:
-                prompt += Colors.BOLD
-            retry = input(prompt).strip().lower()
-            if Colors.ENABLED:
-                print(Colors.RESET, end="")
+            retry = _styled_input(prompt).lower()
             if retry not in ("", "y", "yes"):
                 print(
                     Colors.colorize(
