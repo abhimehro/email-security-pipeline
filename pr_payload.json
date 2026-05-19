@@ -1,0 +1,6 @@
+{
+  "title": "🧹 fix: remove unused unicodedata import",
+  "body": "🎯 **What:** Removed unused `unicodedata` import from `src/modules/alert_system.py`.\n💡 **Why:** Reduces codebase clutter and improves maintainability.\n✅ **Verification:** Ran `black`, `flake8`, `bandit`, and `pytest` locally to ensure no functionality is broken. Code review passed.\n✨ **Result:** Cleaned up code health issue with no side effects.",
+  "head": "fix-unused-import",
+  "base": "main"
+}
