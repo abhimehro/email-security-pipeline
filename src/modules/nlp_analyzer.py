@@ -176,7 +176,7 @@ class NLPThreatAnalyzer:
 
     def _should_use_ml_model(self) -> bool:
         """Check if ML model should be loaded based on config."""
-        return getattr(self.config, "enable_ml_model", True)
+        return self.config.enable_ml_model
 
     def _initialize_model(self):
         """Initialize transformer model."""
@@ -187,11 +187,10 @@ class NLPThreatAnalyzer:
             return
 
         try:
-            model_name = getattr(self.config, "nlp_model", "distilbert-base-uncased")
-            # FIX: Ensure Hugging Face model download pins the revision
-            revision = getattr(self.config, "nlp_model_revision", "main")
+            model_name = self.config.nlp_model
+            revision = self.config.nlp_model_revision
             self.tokenizer = AutoTokenizer.from_pretrained(
-                model_name, revision=revision, use_safetensors=True
+                model_name, revision=revision
             )
             self.model = AutoModelForSequenceClassification.from_pretrained(
                 model_name, revision=revision, use_safetensors=True
