@@ -11,6 +11,18 @@ from src.utils.setup_wizard import run_setup_wizard
 class AppRunner:
     """Encapsulates the startup, configuration verification, and execution logic of the Email Security Pipeline."""
 
+    def _styled_input(self, prompt: str) -> str:
+        """Helper to conditionally apply BOLD styling to user input."""
+        if Colors.ENABLED:
+            prompt += Colors.BOLD
+
+        val = input(prompt).strip()
+
+        if Colors.ENABLED:
+            print(Colors.RESET, end="", flush=True)
+
+        return val
+
     def __init__(self, args: Optional[List[str]] = None) -> None:
         """
         Initialize the runner with CLI arguments.
@@ -127,7 +139,7 @@ class AppRunner:
                     f"Create '{self.config_file}' from template without wizard? [Y/n] ",
                     Colors.BOLD,
                 )
-                response = input(prompt).strip().lower()
+                response = self._styled_input(prompt).lower()
                 if response in ("", "y", "yes"):
                     try:
                         import os
@@ -248,7 +260,7 @@ class AppRunner:
         prompt = Colors.colorize("? ", Colors.CYAN) + Colors.colorize(
             "Run setup wizard? [Y/n] ", Colors.BOLD
         )
-        response = input(prompt).strip().lower()
+        response = self._styled_input(prompt).lower()
         if response in ("", "y", "yes"):
             if run_setup_wizard(self.config_file):
                 sys.exit(0)
@@ -261,7 +273,7 @@ class AppRunner:
             f"Create '{self.config_file}' from template without wizard? [Y/n] ",
             Colors.BOLD,
         )
-        response = input(prompt).strip().lower()
+        response = self._styled_input(prompt).lower()
         if response in ("", "y", "yes"):
             try:
                 self._create_config_from_template()
