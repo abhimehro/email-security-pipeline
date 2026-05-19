@@ -531,20 +531,37 @@ class AlertSystem:
                 indent=3,
             )
 
-    def _print_media_details(self, media_analysis: Dict, risk_color: str) -> None:
-        if media_analysis.get("file_type_warnings"):
+    def _print_media_indicator_list(self, title: str, items: List[str], item_color: str, risk_color: str) -> None:
+        """Helper to print a list of media threat indicators."""
+        if not items:
+            return
+        self._print_alert_row(
+            Colors.colorize(title, Colors.BOLD), risk_color, indent=3
+        )
+        for item in items[: self.MAX_MEDIA_WARNINGS_DISPLAY]:
             self._print_alert_row(
-                Colors.colorize("File Warnings:", Colors.BOLD), risk_color, indent=3
+                f"{Colors.colorize('•', item_color)} {item}",
+                risk_color,
+                indent=5,
             )
-            for warning in media_analysis["file_type_warnings"][
-                : self.MAX_MEDIA_WARNINGS_DISPLAY
-            ]:
-                self._print_alert_row(
-                    f"{Colors.colorize('•', Colors.YELLOW)} {warning}",
-                    risk_color,
-                    indent=5,
-                )
-        else:
+
+    def _print_media_details(self, media_analysis: Dict, risk_color: str) -> None:
+        has_media_warnings = False
+
+        indicators = [
+            ("Suspicious Attachments:", "suspicious_attachments", Colors.RED),
+            ("File Warnings:", "file_type_warnings", Colors.YELLOW),
+            ("Size Anomalies:", "size_anomalies", Colors.YELLOW),
+            ("Deepfake Warnings:", "potential_deepfakes", Colors.RED)
+        ]
+
+        for title, key, color in indicators:
+            items = media_analysis.get(key)
+            if items:
+                self._print_media_indicator_list(title, items, color, risk_color)
+                has_media_warnings = True
+
+        if not has_media_warnings:
             self._print_alert_row(
                 f"{Colors.colorize('✓', Colors.GREEN)} Attachments appear safe",
                 risk_color,
