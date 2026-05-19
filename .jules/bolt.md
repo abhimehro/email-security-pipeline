@@ -67,3 +67,8 @@
 
 **Learning:** Python's `datetime.now()` with `timedelta` objects incur high instantiation and garbage collection overhead, which compounds in hot cache eviction loops like `TTLCache`.
 **Action:** Replace `datetime.now()` and `timedelta` with `time.monotonic()` and float arithmetic. This avoids the object creation overhead and is more resilient to system clock adjustments.
+
+## 2025-11-20 - [Performance Optimization: Batch size tuning for IMAP retrieval]
+
+**Learning:** When retrieving unread emails via IMAP (`_fetch_emails_internal`), using a small batch size (like 10) combined with rate-limit sleep delays incurs excessive network round-trip latency and unnecessary idle time for large mailboxes. However, checking metadata/sizes without batching risks exceeding IMAP protocol command length limits.
+**Action:** Use a `batch_size` of 50 in `src/modules/imap_connection.py` to strike a balance between minimizing redundant protocol overhead / sleep intervals and keeping command strings within safe length limits, resulting in significantly faster email ingestion.

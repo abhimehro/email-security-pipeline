@@ -262,7 +262,9 @@ class IMAPConnection:
 
             # Process in batches for rate limiting
             emails = []
-            batch_size = 10
+            # ⚡ BOLT: Increased batch_size from 10 to 50 to minimize IMAP round-trips
+            # and redundant rate-limit sleeps during email retrieval.
+            batch_size = 50
 
             for i in range(0, len(email_ids), batch_size):
                 if i > 0:
