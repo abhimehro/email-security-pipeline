@@ -9,7 +9,7 @@ import re
 import shutil
 import textwrap
 import threading
-
+import unicodedata
 from dataclasses import asdict, dataclass
 from datetime import datetime
 from typing import Dict, List, Optional
@@ -532,19 +532,30 @@ class AlertSystem:
             )
 
     def _print_media_details(self, media_analysis: Dict, risk_color: str) -> None:
-        if media_analysis.get("file_type_warnings"):
-            self._print_alert_row(
-                Colors.colorize("File Warnings:", Colors.BOLD), risk_color, indent=3
-            )
-            for warning in media_analysis["file_type_warnings"][
-                : self.MAX_MEDIA_WARNINGS_DISPLAY
-            ]:
+        has_media_warnings = False
+
+        indicator_configs = [
+            ("file_type_warnings", "File Warnings:", Colors.YELLOW),
+            ("suspicious_attachments", "Suspicious Attachments:", Colors.RED),
+            ("size_anomalies", "Size Anomalies:", Colors.YELLOW),
+            ("potential_deepfakes", "Potential Deepfakes:", Colors.RED),
+        ]
+
+        for key, title, item_color in indicator_configs:
+            items = media_analysis.get(key)
+            if items:
                 self._print_alert_row(
-                    f"{Colors.colorize('•', Colors.YELLOW)} {warning}",
-                    risk_color,
-                    indent=5,
+                    Colors.colorize(title, Colors.BOLD), risk_color, indent=3
                 )
-        else:
+                for item in items[: self.MAX_MEDIA_WARNINGS_DISPLAY]:
+                    self._print_alert_row(
+                        f"{Colors.colorize('•', item_color)} {item}",
+                        risk_color,
+                        indent=5,
+                    )
+                has_media_warnings = True
+
+        if not has_media_warnings:
             self._print_alert_row(
                 f"{Colors.colorize('✓', Colors.GREEN)} Attachments appear safe",
                 risk_color,

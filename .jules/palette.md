@@ -164,3 +164,5 @@
 ## 2025-05-18 - Visual Distinction for User Input in CLI
 **Learning:** In interactive CLI wizards, unstyled text for user input can blend into the surrounding informational text or prompts, making it hard to read and lowering the overall visual hierarchy.
 **Action:** Always append `Colors.BOLD` to the end of prompt strings immediately before calling `input()` or `getpass()` to inherit the styling to the user's typing, and use `sys.stdout.write(Colors.RESET)` or `print(Colors.RESET, end="")` immediately after to restore the terminal formatting.
+
+tion in a category before defaulting to a "safe" rendering state.
