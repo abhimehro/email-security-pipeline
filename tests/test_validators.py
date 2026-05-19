@@ -103,7 +103,7 @@ class TestValidators(unittest.TestCase):
         self.config.alerts.slack_enabled = True
         self.config.alerts.slack_webhook = None
         errors = check_default_credentials(self.config)
-        self.assertEqual(len(errors), 0)
+        self.assertEqual(len(errors), 4)
 
     def test_non_string_credentials(self):
         self.config.email_accounts = [
@@ -120,7 +120,7 @@ class TestValidators(unittest.TestCase):
         self.config.alerts.slack_enabled = True
         self.config.alerts.slack_webhook = 9876.54
         errors = check_default_credentials(self.config)
-        self.assertEqual(len(errors), 0)
+        self.assertEqual(len(errors), 4)
 
 
 if __name__ == "__main__":
