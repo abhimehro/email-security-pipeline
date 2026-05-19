@@ -524,6 +524,34 @@ class AlertSystem:
                 )
             has_nlp = True
 
+        if nlp_analysis.get("urgency_markers"):
+            self._print_alert_row(
+                Colors.colorize("Urgency Markers:", Colors.BOLD),
+                risk_color,
+                indent=3,
+            )
+            for ind in nlp_analysis["urgency_markers"][
+                : self.MAX_NLP_INDICATORS_DISPLAY
+            ]:
+                self._print_alert_row(
+                    f"{Colors.colorize('•', Colors.YELLOW)} {ind}", risk_color, indent=5
+                )
+            has_nlp = True
+
+        if nlp_analysis.get("psychological_triggers"):
+            self._print_alert_row(
+                Colors.colorize("Psychological Triggers:", Colors.BOLD),
+                risk_color,
+                indent=3,
+            )
+            for ind in nlp_analysis["psychological_triggers"][
+                : self.MAX_NLP_INDICATORS_DISPLAY
+            ]:
+                self._print_alert_row(
+                    f"{Colors.colorize('•', Colors.YELLOW)} {ind}", risk_color, indent=5
+                )
+            has_nlp = True
+
         if not has_nlp:
             self._print_alert_row(
                 f"{Colors.colorize('✓', Colors.GREEN)} No social engineering or impersonation detected",
@@ -532,6 +560,7 @@ class AlertSystem:
             )
 
     def _print_media_details(self, media_analysis: Dict, risk_color: str) -> None:
+        has_media_issue = False
         if media_analysis.get("file_type_warnings"):
             self._print_alert_row(
                 Colors.colorize("File Warnings:", Colors.BOLD), risk_color, indent=3
@@ -544,7 +573,51 @@ class AlertSystem:
                     risk_color,
                     indent=5,
                 )
-        else:
+            has_media_issue = True
+
+        if media_analysis.get("suspicious_attachments"):
+            self._print_alert_row(
+                Colors.colorize("Suspicious Attachments:", Colors.BOLD), risk_color, indent=3
+            )
+            for attachment in media_analysis["suspicious_attachments"][
+                : self.MAX_MEDIA_WARNINGS_DISPLAY
+            ]:
+                self._print_alert_row(
+                    f"{Colors.colorize('•', Colors.RED)} {attachment}",
+                    risk_color,
+                    indent=5,
+                )
+            has_media_issue = True
+
+        if media_analysis.get("size_anomalies"):
+            self._print_alert_row(
+                Colors.colorize("Size Anomalies:", Colors.BOLD), risk_color, indent=3
+            )
+            for anomaly in media_analysis["size_anomalies"][
+                : self.MAX_MEDIA_WARNINGS_DISPLAY
+            ]:
+                self._print_alert_row(
+                    f"{Colors.colorize('•', Colors.YELLOW)} {anomaly}",
+                    risk_color,
+                    indent=5,
+                )
+            has_media_issue = True
+
+        if media_analysis.get("potential_deepfakes"):
+            self._print_alert_row(
+                Colors.colorize("Potential Deepfakes:", Colors.BOLD), risk_color, indent=3
+            )
+            for deepfake in media_analysis["potential_deepfakes"][
+                : self.MAX_MEDIA_WARNINGS_DISPLAY
+            ]:
+                self._print_alert_row(
+                    f"{Colors.colorize('•', Colors.RED)} {deepfake}",
+                    risk_color,
+                    indent=5,
+                )
+            has_media_issue = True
+
+        if not has_media_issue:
             self._print_alert_row(
                 f"{Colors.colorize('✓', Colors.GREEN)} Attachments appear safe",
                 risk_color,

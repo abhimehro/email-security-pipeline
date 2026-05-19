@@ -164,3 +164,6 @@
 ## 2025-05-18 - Visual Distinction for User Input in CLI
 **Learning:** In interactive CLI wizards, unstyled text for user input can blend into the surrounding informational text or prompts, making it hard to read and lowering the overall visual hierarchy.
 **Action:** Always append `Colors.BOLD` to the end of prompt strings immediately before calling `input()` or `getpass()` to inherit the styling to the user's typing, and use `sys.stdout.write(Colors.RESET)` or `print(Colors.RESET, end="")` immediately after to restore the terminal formatting.
+## 2026-05-19 - Complete Threat Indicator Rendering in CLI
+**Learning:** Threat indicators detected by the analysis engine (`urgency_markers`, `psychological_triggers`, `suspicious_attachments`, `size_anomalies`, `potential_deepfakes`) were present in the `ThreatReport` but visually hidden from the user because the CLI rendering methods (`_print_nlp_details` and `_print_media_details`) did not explicitly handle them.
+**Action:** Explicitly mapping and rendering all list-based properties of a complex data structure (like `ThreatReport`) in the UI ensures that users are fully aware of all detected issues, closing the gap between backend detection capabilities and frontend visibility.
