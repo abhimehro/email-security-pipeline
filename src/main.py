@@ -263,6 +263,63 @@ class EmailSecurityPipeline:
                     self.metrics.record_error("monitoring_loop_error")
                 CountdownTimer.wait(30, Colors.colorize("Retrying in", Colors.RED))
 
+    def _run_analysis_layers(self, email_data):
+        """Run all independent analysis layers concurrently."""
+        future_spam = self.executor.submit(self.spam_analyzer.analyze, email_data)
+        future_nlp = self.executor.submit(self.nlp_analyzer.analyze, email_data)
+        future_media = self.executor.submit(self.media_analyzer.analyze, email_data)
+
+        spam_result = future_spam.result()
+        spam_symbol = Colors.get_risk_symbol(spam_result.risk_level)
+        self.logger.debug(
+            f"Spam analysis: score={spam_result.score:.2f}, "
+            f"risk={spam_result.risk_level} {spam_symbol}"
+        )
+
+        nlp_result = future_nlp.result()
+        nlp_symbol = Colors.get_risk_symbol(nlp_result.risk_level)
+        self.logger.debug(
+            f"NLP analysis: score={nlp_result.threat_score:.2f}, "
+            f"risk={nlp_result.risk_level} {nlp_symbol}"
+        )
+
+        media_result = future_media.result()
+        media_symbol = Colors.get_risk_symbol(media_result.risk_level)
+        self.logger.debug(
+            f"Media analysis: score={media_result.threat_score:.2f}, "
+            f"risk={media_result.risk_level} {media_symbol}"
+        )
+
+        return spam_result, nlp_result, media_result
+
+    def _record_threat_metrics(
+        self, threat_report, spam_result, nlp_result, media_result
+    ):
+        """Record metrics for detected threats."""
+        if not self.metrics or threat_report.risk_level.lower() not in {
+            "medium",
+            "high",
+        }:
+            return
+
+        threat_type = "unknown"
+        max_score = max(
+            spam_result.score,
+            nlp_result.threat_score,
+            media_result.threat_score,
+        )
+
+        if max_score == 0:
+            threat_type = "spam"
+        elif spam_result.score == max_score:
+            threat_type = "spam"
+        elif nlp_result.threat_score == max_score:
+            threat_type = "phishing"
+        elif media_result.threat_score == max_score:
+            threat_type = "malware"
+
+        self.metrics.record_threat(threat_type, threat_report.risk_level.lower())
+
     def _analyze_email(
         self,
         email_data,
@@ -284,35 +341,8 @@ class EmailSecurityPipeline:
 
             self.logger.info(f"{log_prefix}Analyzing email: {safe_subject}...")
 
-            # Parallel Analysis Layer
-            # Optimization: Run independent analyzers concurrently
-            future_spam = self.executor.submit(self.spam_analyzer.analyze, email_data)
-            future_nlp = self.executor.submit(self.nlp_analyzer.analyze, email_data)
-            future_media = self.executor.submit(self.media_analyzer.analyze, email_data)
-
-            # Retrieve results (will wait if not ready)
-            # Layer 1: Spam Analysis
-            spam_result = future_spam.result()
-            spam_symbol = Colors.get_risk_symbol(spam_result.risk_level)
-            self.logger.debug(
-                f"Spam analysis: score={spam_result.score:.2f}, "
-                f"risk={spam_result.risk_level} {spam_symbol}"
-            )
-
-            # Layer 2: NLP Threat Detection
-            nlp_result = future_nlp.result()
-            nlp_symbol = Colors.get_risk_symbol(nlp_result.risk_level)
-            self.logger.debug(
-                f"NLP analysis: score={nlp_result.threat_score:.2f}, "
-                f"risk={nlp_result.risk_level} {nlp_symbol}"
-            )
-
-            # Layer 3: Media Authenticity
-            media_result = future_media.result()
-            media_symbol = Colors.get_risk_symbol(media_result.risk_level)
-            self.logger.debug(
-                f"Media analysis: score={media_result.threat_score:.2f}, "
-                f"risk={media_result.risk_level} {media_symbol}"
+            spam_result, nlp_result, media_result = self._run_analysis_layers(
+                email_data
             )
 
             # Generate threat report
@@ -331,33 +361,9 @@ class EmailSecurityPipeline:
                 self.metrics.record_email_processed()
                 self.metrics.record_processing_time(processing_time_ms)
 
-                # Record threats detected with consistent classification
-                # Only treat medium/high risk emails as "threats" in metrics.
-                # Using .lower() here keeps us robust if upstream ever changes casing.
-                if threat_report.risk_level.lower() in {"medium", "high"}:
-                    # Determine threat type based on highest scoring layer
-                    # Priority order for tie-breaking: spam > phishing > malware
-                    # (i.e., spam_result > nlp_result > media_result)
-                    threat_type = "unknown"
-                    max_score = max(
-                        spam_result.score,
-                        nlp_result.threat_score,
-                        media_result.threat_score,
-                    )
-
-                    # If all scores are 0, default to "spam" for consistency
-                    if max_score == 0:
-                        threat_type = "spam"
-                    elif spam_result.score == max_score:
-                        threat_type = "spam"
-                    elif nlp_result.threat_score == max_score:
-                        threat_type = "phishing"
-                    elif media_result.threat_score == max_score:
-                        threat_type = "malware"
-
-                    self.metrics.record_threat(
-                        threat_type, threat_report.risk_level.lower()
-                    )
+                self._record_threat_metrics(
+                    threat_report, spam_result, nlp_result, media_result
+                )
 
             self.logger.info(
                 f"Analysis complete: overall_score={threat_report.overall_threat_score:.2f}, "
