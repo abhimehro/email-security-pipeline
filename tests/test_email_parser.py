@@ -238,6 +238,56 @@ class TestAttachmentSizeLimits(unittest.TestCase):
             "Stored payload must not exceed the per-attachment limit",
         )
 
+    def test_very_large_base64_attachment_truncates_payload(self):
+        """
+        Very large attachments (e.g. 10MB) must be truncated correctly
+        without crashing the parser when processing huge base64 chunks.
+        """
+        import io
+        import base64
+
+        large_size = 10 * 1024 * 1024
+
+        raw_email = io.BytesIO()
+        raw_email.write(b"From: sender@example.com\r\n")
+        raw_email.write(b"To: recipient@example.com\r\n")
+        raw_email.write(b"Subject: Very Large Base64 Attachment\r\n")
+        raw_email.write(b"MIME-Version: 1.0\r\n")
+        raw_email.write(b'Content-Type: multipart/mixed; boundary="BOUNDARY"\r\n\r\n')
+
+        raw_email.write(b"--BOUNDARY\r\n")
+        raw_email.write(b"Content-Type: text/plain\r\n\r\n")
+        raw_email.write(b"See attached.\r\n")
+
+        raw_email.write(b"--BOUNDARY\r\n")
+        raw_email.write(b"Content-Type: application/octet-stream\r\n")
+        raw_email.write(b'Content-Disposition: attachment; filename="huge.bin"\r\n')
+        raw_email.write(b"Content-Transfer-Encoding: base64\r\n\r\n")
+
+        chunk_size = 57000  # Multiple of 3 so padding doesn't skew boundaries
+        written = 0
+        chunk_b64 = base64.b64encode(b"X" * chunk_size) + b"\r\n"
+        while written < large_size:
+            raw_email.write(chunk_b64)
+            written += chunk_size
+
+        raw_email.write(b"\r\n--BOUNDARY--\r\n")
+
+        result = self.parser.parse_email("att-huge", raw_email.getvalue(), "INBOX")
+
+        self.assertIsNotNone(result)
+        self.assertEqual(len(result.attachments), 1)
+        att = result.attachments[0]
+        self.assertLessEqual(
+            len(att["data"]),
+            self.MAX_ATTACH,
+            "Stored payload must not exceed the per-attachment limit for very large files",
+        )
+        self.assertTrue(
+            att["truncated"], "truncated flag must be True for very large attachments"
+        )
+        self.assertEqual(att["filename"], "huge.bin")
+
     def test_attachment_truncation_sets_flag(self):
         """Truncated attachments must carry truncated=True."""
         oversized = b"Y" * (self.MAX_ATTACH * 5)
