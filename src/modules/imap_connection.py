@@ -260,16 +260,25 @@ class IMAPConnection:
 
             self.logger.info(f"Found {len(email_ids)} unseen emails in {safe_folder}")
 
+            # SECURITY: Perform a bulk size check first to identify safe emails
+            # This reduces IMAP round-trips and avoids sleeps for oversized emails.
+            safe_ids = self._check_email_sizes(email_ids)
+
+            if not safe_ids:
+                self.logger.info(f"No safe-sized emails to fetch in {safe_folder}")
+                return []
+
             # Process in batches for rate limiting
             emails = []
-            batch_size = 10
+            # Performance: Default to 50 to match default limit and minimize round-trips
+            batch_size = 50
 
-            for i in range(0, len(email_ids), batch_size):
+            for i in range(0, len(safe_ids), batch_size):
                 if i > 0:
                     time.sleep(self.rate_limit_delay)
 
-                batch_ids = email_ids[i : i + batch_size]
-                batch_emails = self._fetch_batch(batch_ids)
+                batch_ids = safe_ids[i : i + batch_size]
+                batch_emails = self._fetch_batch_content(batch_ids)
                 emails.extend(batch_emails)
 
             return emails
@@ -317,33 +326,23 @@ class IMAPConnection:
 
         return None
 
-    def _fetch_batch(self, email_ids: List[bytes]) -> List[Tuple[str, bytes]]:
+    def _fetch_batch_content(self, safe_ids: List[bytes]) -> List[Tuple[str, bytes]]:
         """
-        Fetch a batch of emails with size pre-checking.
-
-        SECURITY STORY: Two-step process prevents DoS:
-        1. First, check sizes (RFC822.SIZE) - lightweight operation
-        2. Then, fetch only emails within size limit
+        Fetch only the RFC822 content for a batch of pre-validated safe email IDs.
 
         Args:
-            email_ids: List of email IDs (as bytes)
+            safe_ids: List of email IDs (as bytes) already verified to be safe-sized
 
         Returns:
             List of (email_id, raw_bytes) tuples
-
         """
-        ids_str = b",".join(email_ids)
+        if not safe_ids:
+            return []
+
         emails = []
+        safe_ids_str = b",".join(safe_ids)
 
         try:
-            # Step 1: Check sizes first (DoS prevention)
-            safe_ids = self._check_email_sizes(email_ids)
-
-            if not safe_ids:
-                return []
-
-            # Step 2: Fetch only safe-sized emails
-            safe_ids_str = b",".join(safe_ids)
             status, data = self.connection.fetch(safe_ids_str, "(RFC822)")
 
             if status == "OK" and isinstance(data, list):
@@ -355,7 +354,7 @@ class IMAPConnection:
                 self.logger.warning(f"Failed to fetch batch {safe_ids_str}: {status}")
 
         except Exception as e:
-            self.logger.error(f"Error fetching email batch {ids_str}: {e}")
+            self.logger.error(f"Error fetching email content for {safe_ids_str}: {e}")
 
         return emails
 
