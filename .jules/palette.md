@@ -161,3 +161,6 @@
 ## 2026-05-10 - Consistent CLI Output Formatting
 **Learning:** Directly concatenating ANSI escape codes (e.g., `f"{Colors.GREEN}Text{Colors.RESET}"`) in print statements breaks accessibility and output formatting in non-TTY environments (like CI/CD logs or files), because it bypasses the central color detection logic.
 **Action:** Always use the centralized helper `Colors.colorize("Text", Colors.GREEN)` when formatting strings for the CLI. This ensures fallback mechanisms work as expected, maintaining readable outputs across all environments.
+## 2025-05-16 - Prevent Visual Hiding of Threat Indicators
+**Learning:** Nested threat indicators (e.g., `suspicious_attachments`, `size_anomalies`) without an explicit rendering path in local console alerts can result in a dangerous UX disconnect, where the system detects a threat but visually reports a "safe" state to the user.
+**Action:** Ensure all specific warning keys in analysis dictionaries are explicitly checked and rendered before displaying a fallback "safe" state.
