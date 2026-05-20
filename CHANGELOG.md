@@ -25,6 +25,7 @@
 
 **Security fixes:**
 
+- \[CI\] Audit remaining workflow action versions and invalid gh-aw setup-cli pin [\#763](https://github.com/abhimehro/email-security-pipeline/issues/763)
 - \[Code Quality\] Fix duplicate nested archive detection in ZIP inspection [\#362](https://github.com/abhimehro/email-security-pipeline/issues/362)
 - \[Code Quality\] Centralize security validation patterns into validation registry [\#358](https://github.com/abhimehro/email-security-pipeline/issues/358)
 - \[Code Quality\] Add comprehensive unit tests for email\_parser module [\#354](https://github.com/abhimehro/email-security-pipeline/issues/354)
@@ -324,6 +325,11 @@
 
 **Merged pull requests:**
 
+- 🎨 Palette: Fix omitted threat indicators in CLI output [\#880](https://github.com/abhimehro/email-security-pipeline/pull/880) ([abhimehro](https://github.com/abhimehro))
+- Automated QA: formatting fix and repository check [\#878](https://github.com/abhimehro/email-security-pipeline/pull/878) ([abhimehro](https://github.com/abhimehro))
+- Automated QA: formatting fix and repository check [\#877](https://github.com/abhimehro/email-security-pipeline/pull/877) ([abhimehro](https://github.com/abhimehro))
+- ⚡ Bolt: \[Performance Optimization\] Increase IMAP fetch batch size [\#876](https://github.com/abhimehro/email-security-pipeline/pull/876) ([abhimehro](https://github.com/abhimehro))
+- ci: audit and pin workflow actions [\#872](https://github.com/abhimehro/email-security-pipeline/pull/872) ([abhimehro](https://github.com/abhimehro))
 - 🎨 Palette: Bold CLI User Input \(Refactored\) [\#866](https://github.com/abhimehro/email-security-pipeline/pull/866) ([abhimehro](https://github.com/abhimehro))
 - chore: auto-fix minor linting and import issues from Daily QA [\#863](https://github.com/abhimehro/email-security-pipeline/pull/863) ([abhimehro](https://github.com/abhimehro))
 - chore: complete daily QA and Agentic Review [\#856](https://github.com/abhimehro/email-security-pipeline/pull/856) ([abhimehro](https://github.com/abhimehro))
@@ -331,6 +337,7 @@
 - 🧪 Testing Improvement: Add test for config defaults on empty environment [\#835](https://github.com/abhimehro/email-security-pipeline/pull/835) ([abhimehro](https://github.com/abhimehro))
 - 🧹 Refactor concurrent.futures import to optimize ThreadPoolExecutor instantiation [\#833](https://github.com/abhimehro/email-security-pipeline/pull/833) ([abhimehro](https://github.com/abhimehro))
 - 🧪 test: add test for setup wizard replacing secret [\#826](https://github.com/abhimehro/email-security-pipeline/pull/826) ([abhimehro](https://github.com/abhimehro))
+- ci: fix placeholder in agentics maintenance workflow [\#811](https://github.com/abhimehro/email-security-pipeline/pull/811) ([abhimehro](https://github.com/abhimehro))
 - ⚡ Bolt: Use time.monotonic\(\) for TTLCache [\#800](https://github.com/abhimehro/email-security-pipeline/pull/800) ([abhimehro](https://github.com/abhimehro))
 - 🛡️ Sentinel: Fix password logging in setup wizard and refactor complex method [\#799](https://github.com/abhimehro/email-security-pipeline/pull/799) ([abhimehro](https://github.com/abhimehro))
 - 🎨 Palette: Improve NO\_COLOR fallback by using Colors.colorize consistently [\#796](https://github.com/abhimehro/email-security-pipeline/pull/796) ([abhimehro](https://github.com/abhimehro))
