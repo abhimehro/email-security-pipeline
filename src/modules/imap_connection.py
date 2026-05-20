@@ -262,7 +262,8 @@ class IMAPConnection:
 
             # Process in batches for rate limiting
             emails = []
-            batch_size = 10
+            # Increased to 50 to minimize 0.5s sleep overhead per batch
+            batch_size = 50
 
             for i in range(0, len(email_ids), batch_size):
                 if i > 0:
