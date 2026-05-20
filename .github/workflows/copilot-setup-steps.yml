@@ -31,6 +31,8 @@ jobs:
 
       - name: Development Partner Session
         uses: actions/github-script@v9
+        env:
+          INPUT_REQUEST: ${{ github.event.inputs.request }}
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
@@ -39,7 +41,7 @@ jobs:
             console.log('Event:', context.eventName);
 
             // Log the request if provided via workflow_dispatch
-            const request = '${{ github.event.inputs.request }}';
+            const request = process.env.INPUT_REQUEST || '';
             if (request) {
               console.log('Request:', request);
             }
