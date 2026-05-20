@@ -496,55 +496,58 @@ class AlertSystem:
 
     def _print_nlp_details(self, nlp_analysis: Dict, risk_color: str) -> None:
         has_nlp = False
-        if nlp_analysis.get("social_engineering_indicators"):
-            self._print_alert_row(
-                Colors.colorize("Social Engineering:", Colors.BOLD),
-                risk_color,
-                indent=3,
-            )
-            for ind in nlp_analysis["social_engineering_indicators"][
-                : self.MAX_NLP_INDICATORS_DISPLAY
-            ]:
-                self._print_alert_row(
-                    f"{Colors.colorize('•', Colors.RED)} {ind}", risk_color, indent=5
-                )
-            has_nlp = True
 
-        if nlp_analysis.get("authority_impersonation"):
-            self._print_alert_row(
-                Colors.colorize("Authority Impersonation:", Colors.BOLD),
-                risk_color,
-                indent=3,
-            )
-            for ind in nlp_analysis["authority_impersonation"][
-                : self.MAX_NLP_INDICATORS_DISPLAY
-            ]:
+        indicators_to_check = [
+            ("social_engineering_indicators", "Social Engineering:", Colors.RED),
+            ("authority_impersonation", "Authority Impersonation:", Colors.RED),
+            ("urgency_markers", "Urgency Markers:", Colors.YELLOW),
+            ("psychological_triggers", "Psychological Triggers:", Colors.YELLOW)
+        ]
+
+        for key, title, color in indicators_to_check:
+            if nlp_analysis.get(key):
                 self._print_alert_row(
-                    f"{Colors.colorize('•', Colors.RED)} {ind}", risk_color, indent=5
+                    Colors.colorize(title, Colors.BOLD),
+                    risk_color,
+                    indent=3,
                 )
-            has_nlp = True
+                for ind in nlp_analysis[key][: self.MAX_NLP_INDICATORS_DISPLAY]:
+                    self._print_alert_row(
+                        f"{Colors.colorize('•', color)} {ind}", risk_color, indent=5
+                    )
+                has_nlp = True
 
         if not has_nlp:
             self._print_alert_row(
-                f"{Colors.colorize('✓', Colors.GREEN)} No social engineering or impersonation detected",
+                f"{Colors.colorize('✓', Colors.GREEN)} No NLP threats detected",
                 risk_color,
                 indent=3,
             )
 
     def _print_media_details(self, media_analysis: Dict, risk_color: str) -> None:
-        if media_analysis.get("file_type_warnings"):
-            self._print_alert_row(
-                Colors.colorize("File Warnings:", Colors.BOLD), risk_color, indent=3
-            )
-            for warning in media_analysis["file_type_warnings"][
-                : self.MAX_MEDIA_WARNINGS_DISPLAY
-            ]:
+        has_media = False
+
+        indicators_to_check = [
+            ("suspicious_attachments", "Suspicious Attachments:", Colors.RED),
+            ("file_type_warnings", "File Warnings:", Colors.YELLOW),
+            ("size_anomalies", "Size Anomalies:", Colors.YELLOW),
+            ("potential_deepfakes", "Potential Deepfakes:", Colors.RED)
+        ]
+
+        for key, title, color in indicators_to_check:
+            if media_analysis.get(key):
                 self._print_alert_row(
-                    f"{Colors.colorize('•', Colors.YELLOW)} {warning}",
-                    risk_color,
-                    indent=5,
+                    Colors.colorize(title, Colors.BOLD), risk_color, indent=3
                 )
-        else:
+                for warning in media_analysis[key][: self.MAX_MEDIA_WARNINGS_DISPLAY]:
+                    self._print_alert_row(
+                        f"{Colors.colorize('•', color)} {warning}",
+                        risk_color,
+                        indent=5,
+                    )
+                has_media = True
+
+        if not has_media:
             self._print_alert_row(
                 f"{Colors.colorize('✓', Colors.GREEN)} Attachments appear safe",
                 risk_color,
