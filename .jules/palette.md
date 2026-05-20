@@ -164,3 +164,7 @@
 ## 2025-05-18 - Visual Distinction for User Input in CLI
 **Learning:** In interactive CLI wizards, unstyled text for user input can blend into the surrounding informational text or prompts, making it hard to read and lowering the overall visual hierarchy.
 **Action:** Always append `Colors.BOLD` to the end of prompt strings immediately before calling `input()` or `getpass()` to inherit the styling to the user's typing, and use `sys.stdout.write(Colors.RESET)` or `print(Colors.RESET, end="")` immediately after to restore the terminal formatting.
+
+## 2027-02-18 - Missing Rendering Paths for Nested UI
+**Learning:** Hardcoded display logic in CLI views that only checks a subset of available threat dictionary keys creates a disconnect where underlying threats (like potential deepfakes or urgency markers) are detected and sent via webhooks, but remain visually hidden from the CLI user.
+**Action:** Replaced hardcoded key checks in `alert_system.py` with configuration lists that iterate over all possible threat indicators to dynamically display any present threat to the user.
