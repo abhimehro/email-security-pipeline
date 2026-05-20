@@ -41,8 +41,15 @@ class TestSanitization(unittest.TestCase):
     def test_basic_sanitization(self):
         """Test basic string sanitization."""
         self.assertEqual(sanitize_for_logging("Hello World"), "Hello World")
+
+    def test_sanitize_empty_string(self):
+        """Test sanitization of empty or None strings."""
         self.assertEqual(sanitize_for_logging(""), "")
         self.assertEqual(sanitize_for_logging(None), "")
+
+    def test_sanitize_to_empty(self):
+        """Test that a string containing only control characters results in an empty string."""
+        self.assertEqual(sanitize_for_logging("\x07\x1b[31m\x1b[0m"), "")
 
     def test_newline_sanitization(self):
         """Test that newlines are escaped."""
