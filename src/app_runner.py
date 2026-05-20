@@ -129,7 +129,11 @@ class AppRunner:
 
     def _handle_missing_config_interactive(self) -> None:
         """Handle missing configuration interactively (wizard or copy)."""
-        print(f"Configuration file '{self.config_file}' not found.")
+        print(
+            Colors.colorize(
+                f"⚠ Configuration file '{self.config_file}' not found.", Colors.YELLOW
+            )
+        )
         try:
             self._prompt_run_wizard()
 
