@@ -495,7 +495,10 @@ class EmailParser:
         # the attachment is analyzed instead of silently dropped.
         # We also check if sanitize_filename returns 'unnamed_attachment' (which means the original
         # filename was completely invalid, e.g. purely path traversal like '../../') to apply the proper extension.
-        if not raw_filename.strip() or sanitize_filename(raw_filename) == "unnamed_attachment":
+        if (
+            not raw_filename.strip()
+            or sanitize_filename(raw_filename) == "unnamed_attachment"
+        ):
             content_type = part.get_content_type()
             # Guess extension from MIME type (e.g. image/jpeg -> .jpg)
             ext = mimetypes.guess_extension(content_type) or ".bin"
