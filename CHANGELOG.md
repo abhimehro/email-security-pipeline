@@ -38,6 +38,7 @@
 
 **Closed issues:**
 
+- Daily QA Check - email-security-pipeline - 2026-05-21 [\#884](https://github.com/abhimehro/email-security-pipeline/issues/884)
 - Jules Daily QA & Agentic Review - 2026-04-16 [\#852](https://github.com/abhimehro/email-security-pipeline/issues/852)
 - Jules Daily QA & Agentic Review - All Checks Passed [\#812](https://github.com/abhimehro/email-security-pipeline/issues/812)
 - Jules Daily QA & Agentic Review - Email Security Pipeline [\#810](https://github.com/abhimehro/email-security-pipeline/issues/810)
@@ -325,6 +326,7 @@
 
 **Merged pull requests:**
 
+- chore: QA format fixes for daily review [\#886](https://github.com/abhimehro/email-security-pipeline/pull/886) ([abhimehro](https://github.com/abhimehro))
 - chore: remove empty JSON artifacts and add to .gitignore [\#883](https://github.com/abhimehro/email-security-pipeline/pull/883) ([abhimehro](https://github.com/abhimehro))
 - fix\(security\): prevent script injection via workflow\_dispatch input in copilot-setup-steps \(CWE-94\) [\#881](https://github.com/abhimehro/email-security-pipeline/pull/881) ([abhimehro](https://github.com/abhimehro))
 - 🎨 Palette: Fix omitted threat indicators in CLI output [\#880](https://github.com/abhimehro/email-security-pipeline/pull/880) ([abhimehro](https://github.com/abhimehro))
