@@ -500,7 +500,7 @@ class AlertSystem:
             ("social_engineering_indicators", "Social Engineering:", Colors.RED),
             ("authority_impersonation", "Authority Impersonation:", Colors.RED),
             ("urgency_markers", "Urgency Markers:", Colors.YELLOW),
-            ("psychological_triggers", "Psychological Triggers:", Colors.YELLOW)
+            ("psychological_triggers", "Psychological Triggers:", Colors.YELLOW),
         ]
 
         for key, title, color in indicators_to_check:
@@ -530,7 +530,7 @@ class AlertSystem:
             ("suspicious_attachments", "Suspicious Attachments:", Colors.RED),
             ("file_type_warnings", "File Warnings:", Colors.YELLOW),
             ("size_anomalies", "Size Anomalies:", Colors.YELLOW),
-            ("potential_deepfakes", "Potential Deepfakes:", Colors.RED)
+            ("potential_deepfakes", "Potential Deepfakes:", Colors.RED),
         ]
 
         for key, title, color in indicators_to_check:
