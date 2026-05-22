@@ -329,6 +329,7 @@
 **Merged pull requests:**
 
 - chore\(deps\): bump pre-commit-hooks v4.5.0 → v5.0.0 [\#889](https://github.com/abhimehro/email-security-pipeline/pull/889) ([abhimehro](https://github.com/abhimehro))
+- chore\(actions\): consolidate workflow automation [\#887](https://github.com/abhimehro/email-security-pipeline/pull/887) ([abhimehro](https://github.com/abhimehro))
 - chore: QA format fixes for daily review [\#886](https://github.com/abhimehro/email-security-pipeline/pull/886) ([abhimehro](https://github.com/abhimehro))
 - chore: remove empty JSON artifacts and add to .gitignore [\#883](https://github.com/abhimehro/email-security-pipeline/pull/883) ([abhimehro](https://github.com/abhimehro))
 - fix\(security\): prevent script injection via workflow\_dispatch input in copilot-setup-steps \(CWE-94\) [\#881](https://github.com/abhimehro/email-security-pipeline/pull/881) ([abhimehro](https://github.com/abhimehro))
