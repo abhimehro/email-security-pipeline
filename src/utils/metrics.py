@@ -3,9 +3,9 @@ Metrics Collection Module
 Tracks system performance and threat detection statistics.
 """
 
+import time
 from collections import defaultdict, deque
 from dataclasses import dataclass, field
-from datetime import datetime
 from typing import DefaultDict, Deque, Dict
 
 
@@ -53,7 +53,10 @@ class Metrics:
     )
 
     # When metrics collection started
-    start_time: datetime = field(default_factory=datetime.now)
+    # ⚡ BOLT: Replaced `datetime.now()` with `time.monotonic()` for start_time.
+    # time.monotonic() is faster (avoids object instantiation overhead) and is
+    # immune to system clock adjustments, making uptime calculation more robust.
+    start_time: float = field(default_factory=time.monotonic)
 
     def record_email_processed(self):
         """
@@ -130,7 +133,8 @@ class Metrics:
             }
 
         return {
-            "uptime_seconds": (datetime.now() - self.start_time).total_seconds(),
+            # ⚡ BOLT: Use time.monotonic() instead of datetime arithmetic to avoid object creation overhead.
+            "uptime_seconds": time.monotonic() - self.start_time,
             "emails_processed": self.emails_processed,
             "threats_detected": dict(self.threats_detected),
             "processing_time_stats": stats,
@@ -151,4 +155,4 @@ class Metrics:
         self.threats_detected.clear()
         self.processing_time_ms.clear()
         self.errors_count.clear()
-        self.start_time = datetime.now()
+        self.start_time = time.monotonic()
