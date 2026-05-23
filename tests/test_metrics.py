@@ -5,7 +5,6 @@ Tests for metrics collection functionality.
 import sys
 import time
 import unittest
-from datetime import datetime, timedelta
 from pathlib import Path
 
 # Add project root to path
@@ -27,7 +26,7 @@ class TestMetrics(unittest.TestCase):
         self.assertEqual(len(self.metrics.threats_detected), 0)
         self.assertEqual(len(self.metrics.processing_time_ms), 0)
         self.assertEqual(len(self.metrics.errors_count), 0)
-        self.assertIsInstance(self.metrics.start_time, datetime)
+        self.assertIsInstance(self.metrics.start_time, float)
 
     def test_record_email_processed(self):
         """Test recording processed emails."""
@@ -159,13 +158,13 @@ class TestMetrics(unittest.TestCase):
     def test_uptime_calculation(self):
         """Test that uptime is calculated correctly."""
         # Set a known start time
-        self.metrics.start_time = datetime.now() - timedelta(seconds=60)
+        self.metrics.start_time = time.monotonic() - 60.0
 
         summary = self.metrics.get_summary()
 
         # Uptime should be approximately 60 seconds (with small tolerance)
-        self.assertGreater(summary["uptime_seconds"], 59)
-        self.assertLess(summary["uptime_seconds"], 61)
+        self.assertGreater(summary["uptime_seconds"], 59.0)
+        self.assertLess(summary["uptime_seconds"], 61.0)
 
     def test_single_processing_time(self):
         """Test stats calculation with a single data point."""

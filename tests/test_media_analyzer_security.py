@@ -13,6 +13,7 @@ class TestMediaAnalyzerSecurity(unittest.TestCase):
             spam_check_headers=True,
             spam_check_urls=True,
             nlp_model="test",
+            nlp_model_revision="main",
             nlp_threshold=0.7,
             nlp_batch_size=8,
             check_social_engineering=True,
