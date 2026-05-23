@@ -348,6 +348,7 @@
 - chore: complete daily QA and Agentic Review [\#856](https://github.com/abhimehro/email-security-pipeline/pull/856) ([abhimehro](https://github.com/abhimehro))
 - 🎨 Palette: Add visual warning symbol to missing config message [\#850](https://github.com/abhimehro/email-security-pipeline/pull/850) ([abhimehro](https://github.com/abhimehro))
 - Fix missing whitespace filenames in email parser [\#843](https://github.com/abhimehro/email-security-pipeline/pull/843) ([abhimehro](https://github.com/abhimehro))
+- ⚡ Bolt: Optimize dictionary get operations in media\_analyzer [\#841](https://github.com/abhimehro/email-security-pipeline/pull/841) ([abhimehro](https://github.com/abhimehro))
 - 🧪 test: add test for setup wizard replacing secret [\#840](https://github.com/abhimehro/email-security-pipeline/pull/840) ([abhimehro](https://github.com/abhimehro))
 - 🧪 \[testing improvement\] Add test case for very large base64 attachments [\#839](https://github.com/abhimehro/email-security-pipeline/pull/839) ([abhimehro](https://github.com/abhimehro))
 - 🧪 Testing Improvement: Add test for config defaults on empty environment [\#835](https://github.com/abhimehro/email-security-pipeline/pull/835) ([abhimehro](https://github.com/abhimehro))
