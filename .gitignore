@@ -64,6 +64,10 @@ data/
 htmlcov/
 .tox/
 
+# CI/agent artifacts
+payload.json
+pr_response.json
+
 # macOS
 .DS_Store
 .AppleDouble

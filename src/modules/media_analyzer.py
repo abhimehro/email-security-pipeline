@@ -3,13 +3,13 @@ Layer 3: Media Authenticity Verification
 Analyzes attachments for synthetic content and deepfakes.
 """
 
-import concurrent.futures
 import io
 import logging
 import os
 import tarfile
 import tempfile
 import zipfile
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from typing import List, Optional, Tuple
 
@@ -212,7 +212,7 @@ class MediaAuthenticityAnalyzer:
         self.logger = logging.getLogger("MediaAuthenticityAnalyzer")
         self.face_cascade = None
         # Optimization: Reuse thread pool for deepfake detection to avoid overhead
-        self._deepfake_executor = concurrent.futures.ThreadPoolExecutor()
+        self._deepfake_executor = ThreadPoolExecutor()
 
     def analyze(self, email_data: EmailData) -> MediaAnalysisResult:
         """
@@ -251,13 +251,13 @@ class MediaAuthenticityAnalyzer:
             file_type_warnings.extend(meta_results["file_type_warnings"])
             suspicious_attachments.extend(meta_results["suspicious_attachments"])
 
-            filename = attachment.get("filename", "")
-            data = attachment.get("data", b"")
-            content_type = attachment.get("content_type", "")
-
             # Check for potential deepfakes
             # Only proceed if the file hasn't already been flagged as dangerous/suspicious (score >= 5.0)
             if self.config.deepfake_detection_enabled and threat_score < 5.0:
+                filename = attachment.get("filename", "")
+                data = attachment.get("data", b"")
+                content_type = attachment.get("content_type", "")
+
                 deepfake_results = self._analyze_deepfake_threat(
                     filename, data, content_type
                 )
@@ -368,7 +368,7 @@ class MediaAuthenticityAnalyzer:
             )
             result["score"] = deepfake_score
             result["indicators"] = deepfake_indicators
-        except concurrent.futures.TimeoutError:
+        except TimeoutError:
             self.logger.warning(
                 f"Deepfake analysis timed out for {filename} (>{self.config.media_analysis_timeout}s)"
             )

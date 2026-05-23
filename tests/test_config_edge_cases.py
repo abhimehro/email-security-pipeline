@@ -347,6 +347,33 @@ class TestConfigurationDefaults(unittest.TestCase):
         # All providers default to use_ssl=True when enabled
         self.assertTrue(True)  # Verified by code inspection
 
+    def test_empty_environment_fallback(self):
+        """
+        SECURITY STORY: This tests that configuration gracefully falls back to secure
+        defaults when environment variables are entirely missing.
+        This ensures the system defaults to "safe" limits (e.g. max_emails_per_batch)
+        even in poorly configured environments.
+        """
+        # Patch os.environ to simulate an empty environment
+        with unittest.mock.patch.dict(os.environ, {}, clear=True):
+            config = Config(env_file="nonexistent.env")
+
+            # Verify system defaults
+            self.assertEqual(config.system.max_emails_per_batch, 50)
+            self.assertEqual(config.system.rate_limit_delay, 1)
+            self.assertEqual(config.system.max_attachment_size_mb, 25)
+
+            # Verify alerts defaults
+            self.assertFalse(config.alerts.webhook_enabled)
+            self.assertFalse(config.alerts.slack_enabled)
+
+            # Verify analysis defaults
+            self.assertTrue(config.analysis.enable_ml_model)
+            self.assertTrue(config.analysis.deepfake_detection_enabled)
+
+            # Verify email accounts are disabled
+            self.assertEqual(len(config.email_accounts), 0)
+
 
 class TestConfigurationSerialization(unittest.TestCase):
     """Test configuration serialization and security."""

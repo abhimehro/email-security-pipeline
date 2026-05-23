@@ -45,6 +45,7 @@ class AnalysisConfig:
 
     # Layer 2: NLP Threat Detection
     nlp_model: str
+    nlp_model_revision: str
     nlp_threshold: float
     nlp_batch_size: int
     check_social_engineering: bool
@@ -178,6 +179,9 @@ class Config:
             spam_check_headers=self._get_bool("SPAM_CHECK_HEADERS", True),
             spam_check_urls=self._get_bool("SPAM_CHECK_URLS", True),
             nlp_model=os.getenv("NLP_MODEL", "distilbert-base-uncased"),
+            nlp_model_revision=os.getenv(
+                "NLP_MODEL_REVISION", "959d503e255357cfddd5026befbca649f54b6bfd"
+            ),
             nlp_threshold=float(os.getenv("NLP_THRESHOLD", "0.7")),
             nlp_batch_size=int(os.getenv("NLP_BATCH_SIZE", "8")),
             enable_ml_model=self._get_bool("NLP_ENABLE_ML", True),
