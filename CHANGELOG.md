@@ -355,6 +355,7 @@
 - 🧹 Refactor concurrent.futures import to optimize ThreadPoolExecutor instantiation [\#833](https://github.com/abhimehro/email-security-pipeline/pull/833) ([abhimehro](https://github.com/abhimehro))
 - 🧹 Refactor \_analyze\_email to reduce complexity [\#832](https://github.com/abhimehro/email-security-pipeline/pull/832) ([abhimehro](https://github.com/abhimehro))
 - 🧪 test: add test for setup wizard replacing secret [\#826](https://github.com/abhimehro/email-security-pipeline/pull/826) ([abhimehro](https://github.com/abhimehro))
+- 🧹 code health: Remove unused security constants from email\_ingestion.py [\#823](https://github.com/abhimehro/email-security-pipeline/pull/823) ([abhimehro](https://github.com/abhimehro))
 - 🧹 Refactor \_analyze\_email to reduce complexity [\#820](https://github.com/abhimehro/email-security-pipeline/pull/820) ([abhimehro](https://github.com/abhimehro))
 - feat: pin Hugging Face model revision for NLP analysis [\#819](https://github.com/abhimehro/email-security-pipeline/pull/819) ([abhimehro](https://github.com/abhimehro))
 - 🧪 Testing Improvement: Add dedicated test cases for empty string sanitization [\#818](https://github.com/abhimehro/email-security-pipeline/pull/818) ([abhimehro](https://github.com/abhimehro))
