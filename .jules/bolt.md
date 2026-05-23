@@ -70,3 +70,8 @@
 ## 2026-05-14 - Optimize dict.get in loop
 **Learning:** Checking nested structures or dict getters (`attachment.get(...)`) unconditionally outside of a branch or guard logic results in unnecessary CPU usage when that branch won't execute.
 **Action:** Relocated data retrieval steps into the active conditional block when analyzing deepfakes in `media_analyzer.py`.
+
+## 2025-10-25 - [Performance Optimization: IMAP Batch Fetching]
+
+**Learning:** When fetching emails via IMAP, doing so in very small batches (e.g., 10) significantly incurs round-trip overhead and unnecessary rate limit sleep times, blocking for `0.5s` per batch.
+**Action:** Increase the `batch_size` to `50` in `src/modules/imap_connection.py`. This significantly minimizes IMAP round-trips and redundant rate-limit sleeps during email retrieval. Avoid checking metadata/sizes (e.g., `RFC822.SIZE`) for *all* unread emails simultaneously without batching, as this risks exceeding IMAP protocol command length limits.

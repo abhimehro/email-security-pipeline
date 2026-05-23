@@ -3,13 +3,13 @@ Layer 3: Media Authenticity Verification
 Analyzes attachments for synthetic content and deepfakes.
 """
 
-import concurrent.futures
 import io
 import logging
 import os
 import tarfile
 import tempfile
 import zipfile
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from typing import List, Optional, Tuple
 
@@ -212,7 +212,7 @@ class MediaAuthenticityAnalyzer:
         self.logger = logging.getLogger("MediaAuthenticityAnalyzer")
         self.face_cascade = None
         # Optimization: Reuse thread pool for deepfake detection to avoid overhead
-        self._deepfake_executor = concurrent.futures.ThreadPoolExecutor()
+        self._deepfake_executor = ThreadPoolExecutor()
 
     def analyze(self, email_data: EmailData) -> MediaAnalysisResult:
         """
@@ -368,7 +368,7 @@ class MediaAuthenticityAnalyzer:
             )
             result["score"] = deepfake_score
             result["indicators"] = deepfake_indicators
-        except concurrent.futures.TimeoutError:
+        except TimeoutError:
             self.logger.warning(
                 f"Deepfake analysis timed out for {filename} (>{self.config.media_analysis_timeout}s)"
             )
