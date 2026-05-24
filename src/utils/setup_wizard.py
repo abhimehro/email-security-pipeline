@@ -360,7 +360,41 @@ def _write_config_file(config_file: str, new_content: str) -> bool:
                 os.chmod(fd, 0o600)
             except (AttributeError, OSError, NotImplementedError, TypeError):
                 # Final fallback to path-based chmod
-                os.chmod(str(config_path), 0o600)
+                # To prevent TOCTOU, verify the file descriptor matches the path
+                try:
+                    stat_fd = os.fstat(fd)
+                    stat_path = (
+                        os.lstat(str(config_path))
+                        if hasattr(os, "lstat")
+                        else os.stat(str(config_path))
+                    )
+
+                    if (
+                        stat_fd.st_ino == stat_path.st_ino
+                        and stat_fd.st_dev == stat_path.st_dev
+                    ):
+                        # Use follow_symlinks=False if supported
+                        kwargs = (
+                            {"follow_symlinks": False}
+                            if os.chmod
+                            in getattr(os, "supports_follow_symlinks", set())
+                            else {}
+                        )
+                        os.chmod(str(config_path), 0o600, **kwargs)
+                    else:
+                        print(
+                            f"\n{Colors.colorize('Error:', Colors.RED)} TOCTOU detected on '{config_path}'."
+                        )
+                        import sys
+
+                        sys.exit(1)
+                except OSError as e:
+                    print(
+                        f"\n{Colors.colorize('Error setting permissions:', Colors.RED)} {e}"
+                    )
+                    import sys
+
+                    sys.exit(1)
 
         with os.fdopen(fd, "w") as f:
             f.write(new_content)
