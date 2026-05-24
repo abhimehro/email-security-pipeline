@@ -38,6 +38,7 @@
 
 **Closed issues:**
 
+- Daily QA Check - email-security-pipeline - 2026-05-24 [\#899](https://github.com/abhimehro/email-security-pipeline/issues/899)
 - Daily QA Check - email-security-pipeline - 2026-05-23 [\#895](https://github.com/abhimehro/email-security-pipeline/issues/895)
 - \[Jules Daily QA\] Repository is fully healthy [\#892](https://github.com/abhimehro/email-security-pipeline/issues/892)
 - Daily QA Check - email-security-pipeline - 2026-05-22 [\#891](https://github.com/abhimehro/email-security-pipeline/issues/891)
@@ -347,6 +348,7 @@
 - chore: auto-fix minor linting and import issues from Daily QA [\#863](https://github.com/abhimehro/email-security-pipeline/pull/863) ([abhimehro](https://github.com/abhimehro))
 - chore: complete daily QA and Agentic Review [\#856](https://github.com/abhimehro/email-security-pipeline/pull/856) ([abhimehro](https://github.com/abhimehro))
 - 🎨 Palette: Add visual warning symbol to missing config message [\#850](https://github.com/abhimehro/email-security-pipeline/pull/850) ([abhimehro](https://github.com/abhimehro))
+- 🧹 Refactor \_check\_deepfake\_indicators to reduce complexity [\#844](https://github.com/abhimehro/email-security-pipeline/pull/844) ([abhimehro](https://github.com/abhimehro))
 - Fix missing whitespace filenames in email parser [\#843](https://github.com/abhimehro/email-security-pipeline/pull/843) ([abhimehro](https://github.com/abhimehro))
 - ⚡ Bolt: Optimize dictionary get operations in media\_analyzer [\#841](https://github.com/abhimehro/email-security-pipeline/pull/841) ([abhimehro](https://github.com/abhimehro))
 - 🧪 test: add test for setup wizard replacing secret [\#840](https://github.com/abhimehro/email-security-pipeline/pull/840) ([abhimehro](https://github.com/abhimehro))
