@@ -1,0 +1,8 @@
+title: 🧹 Refactor _check_email_sizes to improve readability
+description: 🎯 **What:** Extracted the size parsing logic from `IMAPConnection._check_email_sizes` into a new `_parse_size_item` helper method.
+
+💡 **Why:** This flattens the deeply nested conditionals and try/except blocks (reduced from 6 levels deep to 3), improving maintainability and readability without altering behavior.
+
+✅ **Verification:** Verified the logic using the full pytest suite (`python3 -m pytest tests/`), ensuring no test failures. Ran `flake8`, `black`, and `bandit` to confirm code style and security.
+
+✨ **Result:** Cleaner, flatter code structure in `imap_connection.py`.

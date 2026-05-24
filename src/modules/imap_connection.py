@@ -360,6 +360,45 @@ class IMAPConnection:
 
         return emails
 
+    def _parse_size_item(self, item: Any) -> Optional[Tuple[bytes, int]]:
+        """
+        Parse a single size response item from IMAP fetch.
+
+        Args:
+            item: The item from size_data list
+
+        Returns:
+            Tuple of (sequence_number, size) or None if parsing fails
+        """
+        info = item[0] if isinstance(item, tuple) else item
+
+        if not isinstance(info, bytes):
+            return None
+
+        try:
+            # Parse: b'1 (RFC822.SIZE 1024)'
+            # SECURITY: Use 'replace' to maintain visibility of encoding issues
+            content = info.decode("ascii", errors="replace")
+
+            if "RFC822.SIZE" not in content:
+                return None
+
+            # Extract sequence number
+            parts = info.split()
+            seq = parts[0]
+
+            # Extract size
+            size_idx = content.find("RFC822.SIZE") + 11
+            remaining = content[size_idx:].strip()
+            size_str = remaining.split(")")[0].strip()
+            size = int(size_str)
+
+            return seq, size
+
+        except Exception as parse_err:
+            self.logger.warning(f"Error parsing size for {info}: {parse_err}")
+            return None
+
     def _check_email_sizes(self, email_ids: List[bytes]) -> List[bytes]:
         """
         Check email sizes and filter out oversized ones.
@@ -379,42 +418,21 @@ class IMAPConnection:
 
             if status == "OK" and isinstance(size_data, list):
                 for item in size_data:
-                    # Handle different imaplib response formats
-                    info = item
-                    if isinstance(item, tuple):
-                        info = item[0]
+                    parsed = self._parse_size_item(item)
+                    if not parsed:
+                        continue
 
-                    if isinstance(info, bytes):
-                        try:
-                            # Parse: b'1 (RFC822.SIZE 1024)'
-                            # SECURITY: Use 'replace' to maintain visibility of encoding issues
-                            content = info.decode("ascii", errors="replace")
+                    seq, size = parsed
 
-                            if "RFC822.SIZE" in content:
-                                # Extract sequence number
-                                parts = info.split()
-                                seq = parts[0]
+                    # Check against limit
+                    if size > self.max_email_size:
+                        self.logger.warning(
+                            f"Skipping oversized email {seq.decode()} "
+                            f"({size} bytes > {self.max_email_size})"
+                        )
+                        continue
 
-                                # Extract size
-                                size_idx = content.find("RFC822.SIZE") + 11
-                                remaining = content[size_idx:].strip()
-                                size_str = remaining.split(")")[0].strip()
-                                size = int(size_str)
-
-                                # Check against limit
-                                if size > self.max_email_size:
-                                    self.logger.warning(
-                                        f"Skipping oversized email {seq.decode()} "
-                                        f"({size} bytes > {self.max_email_size})"
-                                    )
-                                    continue
-
-                                safe_ids.append(seq)
-                        except Exception as parse_err:
-                            self.logger.warning(
-                                f"Error parsing size for {info}: {parse_err}"
-                            )
-                            continue
+                    safe_ids.append(seq)
 
         except Exception as e:
             self.logger.error(f"Error checking email sizes: {e}")
