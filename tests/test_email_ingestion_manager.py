@@ -199,13 +199,13 @@ class TestEmailIngestionManagerFetch(unittest.TestCase):
         persistent_client.ensure_connection.return_value = True
         persistent_client.fetch_unseen_emails.return_value = [("1", b"raw1")]
         persistent_client.parse_email.return_value = email_inbox
-        
+
         # The new client instantiated for the second folder
         temp_client = MagicMock()
         temp_client.connect.return_value = True
         temp_client.fetch_unseen_emails.return_value = [("2", b"raw2")]
         temp_client.parse_email.return_value = email_spam
-        
+
         MockIMAPClient.return_value = temp_client
 
         manager = EmailIngestionManager([account])

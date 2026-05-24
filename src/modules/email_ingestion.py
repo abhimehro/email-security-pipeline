@@ -390,7 +390,7 @@ class EmailIngestionManager:
         """
         Fetch and parse all emails for a single account across its configured folders.
 
-        Folders are processed concurrently using a ThreadPoolExecutor. 
+        Folders are processed concurrently using a ThreadPoolExecutor.
         A persistent client from `self.clients` is reused for the first folder,
         while temporary client connections are spun up for additional folders to
         avoid sharing stateful IMAP connections across threads.
@@ -404,12 +404,12 @@ class EmailIngestionManager:
 
         """
         emails: List[EmailData] = []
-        
+
         # Guard against uninitialized client
         persistent_client = self.clients.get(account.email)
         if persistent_client is None:
             return emails
-            
+
         # Original fail-fast logic: ensure connection on the persistent client first.
         # If the server is unreachable or credentials rotated, fail immediately before
         # spinning up concurrent tasks to avoid hammering the server.
@@ -419,14 +419,14 @@ class EmailIngestionManager:
                 f"skipping remaining folders"
             )
             return emails
-            
+
         max_folder_workers = min(3, len(account.folders))
         if max_folder_workers < 1:
             return emails
 
         def _fetch_from_folder(folder: str, is_first: bool) -> List[EmailData]:
             folder_emails = []
-            
+
             if is_first:
                 client = persistent_client
                 cleanup_required = False
@@ -463,14 +463,14 @@ class EmailIngestionManager:
                         client.disconnect()
                     except Exception:
                         pass
-                        
+
             return folder_emails
 
         with ThreadPoolExecutor(max_workers=max_folder_workers, thread_name_prefix=f"FolderFetch") as executor:
             futures = []
             for i, folder in enumerate(account.folders):
                 futures.append(executor.submit(_fetch_from_folder, folder, i == 0))
-                
+
             for future in as_completed(futures):
                 emails.extend(future.result())
 
