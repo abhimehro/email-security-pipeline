@@ -25,6 +25,8 @@
 
 **Security fixes:**
 
+- Security Review: No validated medium+ vulnerabilities \(2026-05-21\) [\#890](https://github.com/abhimehro/email-security-pipeline/issues/890)
+- Security review: no validated medium+ vulnerabilities found \(2026-05-14\) [\#847](https://github.com/abhimehro/email-security-pipeline/issues/847)
 - \[CI\] Audit remaining workflow action versions and invalid gh-aw setup-cli pin [\#763](https://github.com/abhimehro/email-security-pipeline/issues/763)
 - \[Code Quality\] Fix duplicate nested archive detection in ZIP inspection [\#362](https://github.com/abhimehro/email-security-pipeline/issues/362)
 - \[Code Quality\] Centralize security validation patterns into validation registry [\#358](https://github.com/abhimehro/email-security-pipeline/issues/358)
@@ -39,11 +41,23 @@
 **Closed issues:**
 
 - Daily QA Check - email-security-pipeline - 2026-05-24 [\#899](https://github.com/abhimehro/email-security-pipeline/issues/899)
+- \[repo-automation\] Daily Status Report - 2026-05-23 [\#898](https://github.com/abhimehro/email-security-pipeline/issues/898)
 - Daily QA Check - email-security-pipeline - 2026-05-23 [\#895](https://github.com/abhimehro/email-security-pipeline/issues/895)
+- \[repo-automation\] Daily Status Report - 2026-05-22 [\#893](https://github.com/abhimehro/email-security-pipeline/issues/893)
 - \[Jules Daily QA\] Repository is fully healthy [\#892](https://github.com/abhimehro/email-security-pipeline/issues/892)
 - Daily QA Check - email-security-pipeline - 2026-05-22 [\#891](https://github.com/abhimehro/email-security-pipeline/issues/891)
+- \[repo-automation\] Daily Status Report - 2026-05-21 [\#888](https://github.com/abhimehro/email-security-pipeline/issues/888)
 - Daily QA Check - email-security-pipeline - 2026-05-21 [\#884](https://github.com/abhimehro/email-security-pipeline/issues/884)
+- \[repo-automation\] Daily Status Report - 2026-05-20 [\#879](https://github.com/abhimehro/email-security-pipeline/issues/879)
+- \[repo-automation\] Daily Status Report - 2026-05-19 [\#873](https://github.com/abhimehro/email-security-pipeline/issues/873)
+- \[repo-automation\] Daily Status Report - 2026-05-18 [\#864](https://github.com/abhimehro/email-security-pipeline/issues/864)
+- \[repo-automation\] Weekly Retrospective - 2026-05-17 [\#858](https://github.com/abhimehro/email-security-pipeline/issues/858)
+- \[repo-automation\] Daily Status Report - 2026-05-17 [\#857](https://github.com/abhimehro/email-security-pipeline/issues/857)
+- \[repo-automation\] Daily Status Report - 2026-05-16 [\#853](https://github.com/abhimehro/email-security-pipeline/issues/853)
 - Jules Daily QA & Agentic Review - 2026-04-16 [\#852](https://github.com/abhimehro/email-security-pipeline/issues/852)
+- \[repo-automation\] Daily Status Report - 2026-05-15 [\#851](https://github.com/abhimehro/email-security-pipeline/issues/851)
+- \[repo-automation\] Daily Status Report - 2026-05-14 [\#821](https://github.com/abhimehro/email-security-pipeline/issues/821)
+- \[repo-automation\] Daily Status Report - 2026-05-13 [\#813](https://github.com/abhimehro/email-security-pipeline/issues/813)
 - Jules Daily QA & Agentic Review - All Checks Passed [\#812](https://github.com/abhimehro/email-security-pipeline/issues/812)
 - Jules Daily QA & Agentic Review - Email Security Pipeline [\#810](https://github.com/abhimehro/email-security-pipeline/issues/810)
 - \[repo-automation\] Daily Status Report - 2026-05-12 [\#808](https://github.com/abhimehro/email-security-pipeline/issues/808)
@@ -330,6 +344,7 @@
 
 **Merged pull requests:**
 
+- ⚡ Bolt: replace FAST\_HIDDEN\_PATTERN with string matching for faster case-insensitive substring checks [\#900](https://github.com/abhimehro/email-security-pipeline/pull/900) ([abhimehro](https://github.com/abhimehro))
 - ⚡ Bolt: Optimize uptime tracking with time.monotonic\(\) [\#896](https://github.com/abhimehro/email-security-pipeline/pull/896) ([abhimehro](https://github.com/abhimehro))
 - feat\(palette\): console media threat indicators \(salvages \#867\) [\#894](https://github.com/abhimehro/email-security-pipeline/pull/894) ([abhimehro](https://github.com/abhimehro))
 - chore\(deps\): bump pre-commit-hooks v4.5.0 → v5.0.0 [\#889](https://github.com/abhimehro/email-security-pipeline/pull/889) ([abhimehro](https://github.com/abhimehro))
