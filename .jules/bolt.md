@@ -79,3 +79,6 @@
 ## 2025-02-12 - Case-Insensitive Substring Checking
 **Learning:** For simple case-insensitive substring checks, the C-level `in` operator combined with `.lower()` on a string is significantly faster (~20x) than using a pre-compiled regex with `re.IGNORECASE` (e.g., `re.compile("pattern", re.IGNORECASE).search(string)`). The prior code explicitly avoided `.lower()` to save memory allocation overhead on large clean HTML strings, but benchmarking reveals the C-level execution speed of `.lower()` and `in` vastly outweighs the regex engine's overhead.
 **Action:** When performing simple case-insensitive substring matches, prefer allocating a lowercased copy of the string and using the `in` operator instead of `re.IGNORECASE` regex searches.
+## 2026-05-24 - Remove unused reset method from metrics
+**Learning:** We removed an unused `reset()` method from `Metrics` along with its test to simplify the class interface.
+**Action:** Removed unused `reset()` method in `src/utils/metrics.py` and `tests/test_metrics.py`. Tested and formatted properly.
