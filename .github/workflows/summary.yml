@@ -25,7 +25,7 @@ jobs:
 
       - name: Run AI inference
         id: inference
-        uses: actions/ai-inference@v2
+        uses: actions/ai-inference@17ff458cb182449bbb2e43701fcd98f6af8f6570 # v2
         with:
           prompt-file: prompt.txt
 

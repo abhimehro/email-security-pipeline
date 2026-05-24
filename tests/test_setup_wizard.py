@@ -1,9 +1,13 @@
 import os
 import unittest
-from pathlib import Path
+
 from unittest.mock import MagicMock, mock_open, patch
 
-from src.utils.setup_wizard import _is_valid_email, run_setup_wizard
+from src.utils.setup_wizard import (
+    _is_valid_email,
+    run_setup_wizard,
+    _generate_config_content,
+)
 
 
 class TestSetupWizard(unittest.TestCase):
@@ -21,6 +25,25 @@ OUTLOOK_ENABLED=false
 OUTLOOK_EMAIL=test@outlook.com
 OUTLOOK_APP_PASSWORD=password
 """
+
+    def test_generate_config_content_replaces_secret(self):
+        """Test that setup wizard correctly replaces secret using the safe regex replace."""
+        template_content = self.example_content
+
+        # Test replacing with a string that has backslashes or special chars
+        provider_key = "GMAIL"
+        email = "test_new@gmail.com"
+        app_secret = r"new_pass_with_\_backslashes_and_\g<0>_regex_groups"
+
+        updated_content = _generate_config_content(
+            template_content, provider_key, email, app_secret
+        )
+
+        self.assertIn(f"GMAIL_APP_PASSWORD={app_secret}", updated_content)
+        self.assertIn(f"GMAIL_EMAIL={email}", updated_content)
+        self.assertIn("GMAIL_ENABLED=true", updated_content)
+        self.assertIn("PROTON_ENABLED=false", updated_content)
+        self.assertIn("OUTLOOK_ENABLED=false", updated_content)
 
     def test_email_validation_logic(self):
         """Test the email validation helper function directly."""
