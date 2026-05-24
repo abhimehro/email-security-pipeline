@@ -26,6 +26,7 @@
 **Security fixes:**
 
 - Security Review: No validated medium+ vulnerabilities \(2026-05-21\) [\#890](https://github.com/abhimehro/email-security-pipeline/issues/890)
+- \[Security\] Script injection via workflow\_dispatch input in copilot-setup-steps.yml \(CWE-94\) [\#882](https://github.com/abhimehro/email-security-pipeline/issues/882)
 - Security review: no validated medium+ vulnerabilities found \(2026-05-14\) [\#847](https://github.com/abhimehro/email-security-pipeline/issues/847)
 - \[CI\] Audit remaining workflow action versions and invalid gh-aw setup-cli pin [\#763](https://github.com/abhimehro/email-security-pipeline/issues/763)
 - \[Code Quality\] Fix duplicate nested archive detection in ZIP inspection [\#362](https://github.com/abhimehro/email-security-pipeline/issues/362)
@@ -344,6 +345,7 @@
 
 **Merged pull requests:**
 
+- Refactor: Remove unused `unicodedata` import from `alert_system.py` [\#901](https://github.com/abhimehro/email-security-pipeline/pull/901) ([abhimehro](https://github.com/abhimehro))
 - ⚡ Bolt: replace FAST\_HIDDEN\_PATTERN with string matching for faster case-insensitive substring checks [\#900](https://github.com/abhimehro/email-security-pipeline/pull/900) ([abhimehro](https://github.com/abhimehro))
 - ⚡ Bolt: Optimize uptime tracking with time.monotonic\(\) [\#896](https://github.com/abhimehro/email-security-pipeline/pull/896) ([abhimehro](https://github.com/abhimehro))
 - feat\(palette\): console media threat indicators \(salvages \#867\) [\#894](https://github.com/abhimehro/email-security-pipeline/pull/894) ([abhimehro](https://github.com/abhimehro))
