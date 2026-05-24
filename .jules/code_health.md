@@ -1,0 +1,3 @@
+## 2026-05-24 - Extract Header Checks in SpamAnalyzer
+**Learning:** Extracting independent logical blocks into single-purpose methods drastically improves maintainability without altering functionality. In `SpamAnalyzer._analyze_headers`, complex checks (SPF, Auth-Results, DKIM, etc.) were separated into helper methods, reducing the monolithic block and enabling easier testing and iteration. 
+**Action:** When performing such 'Extract Method' refactorings, ensure all required state variables (like `spf_fail` needed by `_check_auth_results`) are properly passed or returned, and always verify correct type hint signatures.
