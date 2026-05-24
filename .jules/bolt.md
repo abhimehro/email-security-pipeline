@@ -82,3 +82,6 @@
 ## 2026-05-24 - Remove unused reset method from metrics
 **Learning:** We removed an unused `reset()` method from `Metrics` along with its test to simplify the class interface.
 **Action:** Removed unused `reset()` method in `src/utils/metrics.py` and `tests/test_metrics.py`. Tested and formatted properly.
+## 2026-05-24 - CI External Rate Limit Failure
+**Learning:** Encountered a CI failure in `copilot-pull-request-reviewer` due to an HTTP 429 "You've reached your weekly rate limit" error from the GitHub Copilot API. As per workflow rules, external rate limit errors are outside the repository's control.
+**Action:** Identified the failure as an external limitation. No codebase fixes were attempted or necessary. Proceeded with task completion.
