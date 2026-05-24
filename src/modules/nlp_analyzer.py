@@ -283,6 +283,30 @@ class NLPThreatAnalyzer:
             risk_level=risk_level,
         )
 
+    def _accumulate_urgency_stats(
+        self, part: str, current_exclamations: int, current_caps: int
+    ) -> Tuple[int, int]:
+        """Extract urgency statistics from a text part."""
+        # Accumulate simple counts for urgency detection
+        current_exclamations += part.count("!")
+        # Optimization: len(findall) is faster than sum(finditer) because it avoids Python-level
+        # generator iteration and executes entirely in C. Memory overhead is negligible for typical emails.
+        current_caps += len(self.CAPS_WORDS_PATTERN.findall(part))
+        return current_exclamations, current_caps
+
+    def _process_pattern_matches(self, part: str, matches_by_category: Dict) -> None:
+        """Process pattern matches in a text part."""
+        # Optimization: Fast check with simple pattern
+        if self.simple_master_pattern.search(part):
+            for match in self.master_pattern.finditer(part):
+                group_name = match.lastgroup
+                if group_name and group_name in self.master_map:
+                    prefix, description = self.master_map[group_name]
+                    if prefix == "AU":
+                        matches_by_category[prefix][description].append(match.group())
+                    else:
+                        matches_by_category[prefix][description] += 1
+
     def _scan_text_patterns(self, parts: List[Optional[str]]) -> Tuple[Dict, int, int]:
         """Scan text parts for patterns and statistics."""
         exclamation_count = 0
@@ -298,24 +322,10 @@ class NLPThreatAnalyzer:
             if not part:
                 continue
 
-            # Accumulate simple counts for urgency detection
-            exclamation_count += part.count("!")
-            # Optimization: len(findall) is faster than sum(finditer) because it avoids Python-level
-            # generator iteration and executes entirely in C. Memory overhead is negligible for typical emails.
-            caps_count += len(self.CAPS_WORDS_PATTERN.findall(part))
-
-            # Optimization: Fast check with simple pattern
-            if self.simple_master_pattern.search(part):
-                for match in self.master_pattern.finditer(part):
-                    group_name = match.lastgroup
-                    if group_name and group_name in self.master_map:
-                        prefix, description = self.master_map[group_name]
-                        if prefix == "AU":
-                            matches_by_category[prefix][description].append(
-                                match.group()
-                            )
-                        else:
-                            matches_by_category[prefix][description] += 1
+            exclamation_count, caps_count = self._accumulate_urgency_stats(
+                part, exclamation_count, caps_count
+            )
+            self._process_pattern_matches(part, matches_by_category)
 
         return matches_by_category, exclamation_count, caps_count
 
