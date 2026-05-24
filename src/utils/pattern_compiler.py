@@ -16,8 +16,6 @@ these helpers so that the ReDoS guard and flag defaults are always applied unifo
 import re
 from typing import Dict, List, Tuple
 
-# Known ReDoS signatures — nested or repeated quantifiers on unbounded character
-# classes are the most common source of catastrophic backtracking.
 _REDOS_SIGNATURES: List[str] = [
     r"(\w+)*",
     r"(\d+)+",
@@ -25,6 +23,10 @@ _REDOS_SIGNATURES: List[str] = [
     r"(a+)+",
     r"([a-zA-Z]+)*",
 ]
+"""
+Known ReDoS signatures — nested or repeated quantifiers on unbounded character
+classes are the most common source of catastrophic backtracking.
+"""
 
 
 def check_redos_safety(patterns: List[str]) -> None:
