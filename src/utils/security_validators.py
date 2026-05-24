@@ -144,25 +144,6 @@ def create_secure_ssl_context() -> ssl.SSLContext:
     return context
 
 
-def validate_subject_length(subject: str) -> str:
-    """
-    Validate and truncate subject line to prevent DoS attacks.
-
-    SECURITY STORY: Extremely long subject lines can cause memory exhaustion
-    or buffer overflows in downstream systems. We truncate to a safe length.
-
-    Args:
-        subject: Email subject line
-
-    Returns:
-        Truncated subject line if it exceeds MAX_SUBJECT_LENGTH
-
-    """
-    if len(subject) > MAX_SUBJECT_LENGTH:
-        logger.warning(f"Subject exceeds {MAX_SUBJECT_LENGTH} chars, truncating")
-        return subject[:MAX_SUBJECT_LENGTH]
-    return subject
-
 
 def validate_mime_parts_count(count: int) -> bool:
     """

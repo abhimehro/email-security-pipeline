@@ -3,39 +3,14 @@ import unittest
 from src.utils.security_validators import (
     DEFAULT_MAX_EMAIL_SIZE,
     MAX_MIME_PARTS,
-    MAX_SUBJECT_LENGTH,
     calculate_max_email_size,
     validate_mime_parts_count,
-    validate_subject_length,
 )
 
 # calculate_max_email_size is expected to add a fixed 5 MB overhead to any
 # positive attachment limit. Mirror that contract here so the tests clearly
 # document and verify this behavior.
 _OVERHEAD_BYTES = 5 * 1024 * 1024
-
-
-class TestValidateSubjectLength(unittest.TestCase):
-
-    def test_short_subject_returned_unchanged(self):
-        subject = "Hello World"
-        self.assertEqual(validate_subject_length(subject), subject)
-
-    def test_subject_at_exact_limit_returned_unchanged(self):
-        subject = "A" * MAX_SUBJECT_LENGTH
-        self.assertEqual(validate_subject_length(subject), subject)
-
-    def test_subject_one_over_limit_is_truncated(self):
-        subject = "B" * (MAX_SUBJECT_LENGTH + 1)
-        result = validate_subject_length(subject)
-        self.assertEqual(len(result), MAX_SUBJECT_LENGTH)
-        self.assertEqual(result, "B" * MAX_SUBJECT_LENGTH)
-
-    def test_very_long_subject_is_truncated(self):
-        subject = "C" * (MAX_SUBJECT_LENGTH * 10)
-        result = validate_subject_length(subject)
-        self.assertEqual(len(result), MAX_SUBJECT_LENGTH)
-        self.assertEqual(result, "C" * MAX_SUBJECT_LENGTH)
 
 
 class TestValidateMimePartsCount(unittest.TestCase):
