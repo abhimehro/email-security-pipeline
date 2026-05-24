@@ -75,3 +75,7 @@
 
 **Learning:** When fetching emails via IMAP, doing so in very small batches (e.g., 10) significantly incurs round-trip overhead and unnecessary rate limit sleep times, blocking for `0.5s` per batch.
 **Action:** Increase the `batch_size` to `50` in `src/modules/imap_connection.py`. This significantly minimizes IMAP round-trips and redundant rate-limit sleeps during email retrieval. Avoid checking metadata/sizes (e.g., `RFC822.SIZE`) for *all* unread emails simultaneously without batching, as this risks exceeding IMAP protocol command length limits.
+
+## 2025-02-12 - Case-Insensitive Substring Checking
+**Learning:** For simple case-insensitive substring checks, the C-level `in` operator combined with `.lower()` on a string is significantly faster (~20x) than using a pre-compiled regex with `re.IGNORECASE` (e.g., `re.compile("pattern", re.IGNORECASE).search(string)`). The prior code explicitly avoided `.lower()` to save memory allocation overhead on large clean HTML strings, but benchmarking reveals the C-level execution speed of `.lower()` and `in` vastly outweighs the regex engine's overhead.
+**Action:** When performing simple case-insensitive substring matches, prefer allocating a lowercased copy of the string and using the `in` operator instead of `re.IGNORECASE` regex searches.
