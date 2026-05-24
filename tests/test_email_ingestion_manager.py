@@ -152,7 +152,8 @@ class TestEmailIngestionManagerFetch(unittest.TestCase):
         self.assertEqual(result, [mock_email])
         mock_client.fetch_unseen_emails.assert_called_once_with("INBOX", 50)
 
-    def test_connection_failure_skips_remaining_folders(self):
+    @patch("src.modules.email_ingestion.IMAPClient")
+    def test_connection_failure_skips_remaining_folders(self, MockIMAPClient):
         """If reconnection fails, all remaining folders for that account are skipped."""
         account = _make_account("u@x.com", folders=["INBOX", "Spam", "Archive"])
 
@@ -167,6 +168,7 @@ class TestEmailIngestionManagerFetch(unittest.TestCase):
 
         self.assertEqual(result, [])
         mock_client.fetch_unseen_emails.assert_not_called()
+        MockIMAPClient.assert_not_called()
 
     def test_parse_email_returning_none_is_excluded(self):
         """parse_email returning None (malformed/oversized mail) is excluded."""
@@ -185,27 +187,37 @@ class TestEmailIngestionManagerFetch(unittest.TestCase):
 
         self.assertEqual(result, [])
 
-    def test_multiple_folders_aggregated(self):
+    @patch("src.modules.email_ingestion.IMAPClient")
+    def test_multiple_folders_aggregated(self, MockIMAPClient):
         """Emails from multiple folders are combined into a single list."""
         account = _make_account("u@x.com", folders=["INBOX", "Spam"])
         email_inbox = MagicMock()
         email_spam = MagicMock()
 
-        mock_client = MagicMock()
-        mock_client.ensure_connection.return_value = True
-        mock_client.fetch_unseen_emails.side_effect = [
-            [("1", b"raw1")],
-            [("2", b"raw2")],
-        ]
-        mock_client.parse_email.side_effect = [email_inbox, email_spam]
+        # The persistent client for the first folder
+        persistent_client = MagicMock()
+        persistent_client.ensure_connection.return_value = True
+        persistent_client.fetch_unseen_emails.return_value = [("1", b"raw1")]
+        persistent_client.parse_email.return_value = email_inbox
+        
+        # The new client instantiated for the second folder
+        temp_client = MagicMock()
+        temp_client.connect.return_value = True
+        temp_client.fetch_unseen_emails.return_value = [("2", b"raw2")]
+        temp_client.parse_email.return_value = email_spam
+        
+        MockIMAPClient.return_value = temp_client
 
         manager = EmailIngestionManager([account])
         manager.logger = MagicMock()
-        manager.clients = {"u@x.com": mock_client}
+        manager.clients = {"u@x.com": persistent_client}
 
         result = manager.fetch_all_emails()
 
-        self.assertEqual(result, [email_inbox, email_spam])
+        # Check that both emails were retrieved regardless of order
+        self.assertEqual(len(result), 2)
+        self.assertIn(email_inbox, result)
+        self.assertIn(email_spam, result)
 
 
 class TestEmailIngestionManagerClose(unittest.TestCase):
