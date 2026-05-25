@@ -312,7 +312,7 @@ class NLPThreatAnalyzer:
                         prefix, description = self.master_map[group_name]
                         if prefix == "AU":
                             matches_by_category[prefix][description].append(
-                                match.group().lower()
+                                match.group()
                             )
                         else:
                             matches_by_category[prefix][description] += 1
@@ -411,8 +411,8 @@ class NLPThreatAnalyzer:
 
             # Check if authority claim matches sender domain
             for match_text in matches:
-                # Optimization: match_text is already lowercased in _scan_text_patterns
-                if sender_domain and match_text not in sender_domain:
+                # Logic from original: if match.lower() not in sender_domain -> mismatch
+                if sender_domain and match_text.lower() not in sender_domain:
                     authority_mismatch = True
                     break
 

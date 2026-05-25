@@ -164,6 +164,27 @@ def validate_subject_length(subject: str) -> str:
     return subject
 
 
+def validate_mime_parts_count(count: int) -> bool:
+    """
+    Check if MIME parts count is within safe limits.
+
+    SECURITY STORY: MIME bomb attacks use deeply nested MIME structures
+    to cause exponential processing time or memory exhaustion. We limit
+    the total number of MIME parts to prevent this.
+
+    Args:
+        count: Number of MIME parts in the email
+
+    Returns:
+        True if count is safe, False if it exceeds limits
+
+    """
+    if count > MAX_MIME_PARTS:
+        logger.error(f"Email has {count} MIME parts, exceeds limit of {MAX_MIME_PARTS}")
+        return False
+    return True
+
+
 def calculate_max_email_size(max_total_attachment_bytes: int) -> int:
     """
     Calculate maximum email size based on attachment limits.

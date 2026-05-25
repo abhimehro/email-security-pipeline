@@ -460,70 +460,6 @@ class EmailParser:
             body_dict[f"{key}_parts"] = parts
             body_dict[f"{key}_len"] = new_len
 
-    def _is_attachment_count_valid(
-        self, attachments: List[Dict[str, Any]], safe_email_id: str
-    ) -> bool:
-        """Check if adding another attachment exceeds the limit."""
-        if len(attachments) >= self.max_attachment_count:
-            self.logger.warning(
-                f"Max attachment count ({self.max_attachment_count}) reached "
-                f"for email {safe_email_id}. Skipping remaining attachments."
-            )
-            return False
-        return True
-
-    def _get_safe_filename(self, part: Message, safe_email_id: str) -> Tuple[str, str]:
-        """Extract and sanitize filename, generating a safe fallback if necessary."""
-        raw_filename = self._decode_header_value(part.get_filename() or "")
-
-        if (
-            not raw_filename.strip()
-            or sanitize_filename(raw_filename) == "unnamed_attachment"
-        ):
-            content_type = part.get_content_type()
-            ext = mimetypes.guess_extension(content_type) or ".bin"
-            raw_filename = f"unnamed_attachment_{uuid.uuid4().hex[:8]}{ext}"
-            self.logger.warning(
-                f"Attachment in email {safe_email_id} has no valid filename. "
-                f"Assigned fallback name: {raw_filename}"
-            )
-
-        filename = sanitize_filename(raw_filename)
-        safe_filename = sanitize_for_logging(filename)
-        return filename, safe_filename
-
-    def _is_total_size_valid(
-        self,
-        current_total_size: int,
-        original_size: int,
-        safe_filename: str,
-        safe_email_id: str,
-    ) -> bool:
-        """Check if adding this attachment exceeds the total size limit."""
-        if self.max_total_attachment_bytes > 0:
-            if (current_total_size + original_size) > self.max_total_attachment_bytes:
-                self.logger.warning(
-                    f"Max total attachment size ({self.max_total_attachment_bytes}) "
-                    f"exceeded for email {safe_email_id}. Skipping attachment {safe_filename}."
-                )
-                return False
-        return True
-
-    def _truncate_payload(
-        self, payload: bytes, original_size: int, safe_filename: str
-    ) -> Tuple[bytes, bool]:
-        """Truncate attachment payload if it exceeds the individual max size limit."""
-        truncated = False
-        if self.max_attachment_bytes > 0 and original_size > self.max_attachment_bytes:
-            self.logger.warning(
-                "Attachment %s exceeds max size (%d bytes); truncating for analysis",
-                safe_filename,
-                original_size,
-            )
-            payload = payload[: self.max_attachment_bytes]
-            truncated = True
-        return payload, truncated
-
     def _extract_attachment(
         self,
         part: Message,
@@ -543,22 +479,62 @@ class EmailParser:
             Attachment dict if valid, None if rejected
 
         """
-        if not self._is_attachment_count_valid(attachments, safe_email_id):
+        # Check attachment count limit
+        if len(attachments) >= self.max_attachment_count:
+            self.logger.warning(
+                f"Max attachment count ({self.max_attachment_count}) reached "
+                f"for email {safe_email_id}. Skipping remaining attachments."
+            )
             return None
 
-        filename, safe_filename = self._get_safe_filename(part, safe_email_id)
+        # Get and sanitize filename
+        raw_filename = self._decode_header_value(part.get_filename() or "")
 
+        # SECURITY FIX: Handle missing filenames to prevent analysis bypass
+        # If no filename is provided, generate a fallback name to ensure
+        # the attachment is analyzed instead of silently dropped.
+        # We also check if sanitize_filename returns 'unnamed_attachment' (which means the original
+        # filename was completely invalid, e.g. purely path traversal like '../../') to apply the proper extension.
+        if (
+            not raw_filename.strip()
+            or sanitize_filename(raw_filename) == "unnamed_attachment"
+        ):
+            content_type = part.get_content_type()
+            # Guess extension from MIME type (e.g. image/jpeg -> .jpg)
+            ext = mimetypes.guess_extension(content_type) or ".bin"
+            # Generate unique fallback name
+            raw_filename = f"unnamed_attachment_{uuid.uuid4().hex[:8]}{ext}"
+
+            self.logger.warning(
+                f"Attachment in email {safe_email_id} has no valid filename. "
+                f"Assigned fallback name: {raw_filename}"
+            )
+        filename = sanitize_filename(raw_filename)
+        safe_filename = sanitize_for_logging(filename)
+
+        # Get attachment data
         payload = part.get_payload(decode=True) or b""
         original_size = len(payload)
 
-        if not self._is_total_size_valid(
-            current_total_size, original_size, safe_filename, safe_email_id
-        ):
-            return None
+        # Check total size limit
+        if self.max_total_attachment_bytes > 0:
+            if (current_total_size + original_size) > self.max_total_attachment_bytes:
+                self.logger.warning(
+                    f"Max total attachment size ({self.max_total_attachment_bytes}) "
+                    f"exceeded for email {safe_email_id}. Skipping attachment {safe_filename}."
+                )
+                return None
 
-        payload, truncated = self._truncate_payload(
-            payload, original_size, safe_filename
-        )
+        # Check and truncate individual attachment size
+        truncated = False
+        if self.max_attachment_bytes > 0 and original_size > self.max_attachment_bytes:
+            self.logger.warning(
+                "Attachment %s exceeds max size (%d bytes); truncating for analysis",
+                safe_filename,
+                original_size,
+            )
+            payload = payload[: self.max_attachment_bytes]
+            truncated = True
 
         return {
             "filename": filename,
