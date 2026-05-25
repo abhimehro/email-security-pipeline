@@ -145,10 +145,10 @@ def _test_connection(email: str, app_password: str, provider_choice: str) -> boo
 def _select_provider() -> str:
     """Prompt user to select an email provider."""
     print(f"\n{Colors.CYAN}Step 1 of 2: Choose your email provider{Colors.RESET}")
-    print(f"  {Colors.colorize('1.', Colors.BOLD)} Gmail {Colors.colorize('(Recommended)', Colors.GREEN)}")
-    print(f"  {Colors.colorize('2.', Colors.BOLD)} Proton Mail {Colors.colorize('(Requires Bridge)', Colors.GREY)}")
-    print(f"  {Colors.colorize('3.', Colors.BOLD)} Outlook {Colors.colorize('(Business Only)', Colors.YELLOW)}")
-    print(f"  {Colors.colorize('4.', Colors.BOLD)} Skip {Colors.colorize('(Manually edit .env)', Colors.GREY)}")
+    print("  1. Gmail (Recommended)")
+    print("  2. Proton Mail (Requires Bridge)")
+    print("  3. Outlook (Business Only)")
+    print("  4. Skip (Manually edit .env)")
 
     while True:
         try:
@@ -290,23 +290,23 @@ def _generate_config_content(
     for provider in all_providers:
         if provider == provider_key:
             content = re.sub(
-                f"{provider}_ENABLED=.*", lambda _: f"{provider}_ENABLED=true", content
+                f"{provider}_ENABLED=.*", f"{provider}_ENABLED=true", content
             )
         else:
             content = re.sub(
-                f"{provider}_ENABLED=.*", lambda _: f"{provider}_ENABLED=false", content
+                f"{provider}_ENABLED=.*", f"{provider}_ENABLED=false", content
             )
 
     # Set email for selected provider
     content = re.sub(
-        f"{provider_key}_EMAIL=.*", lambda _: f"{provider_key}_EMAIL={email}", content
+        f"{provider_key}_EMAIL=.*", f"{provider_key}_EMAIL={email}", content
     )
+
     # Set app_secret safely
-    content = re.sub(
-        f"{provider_key}_APP_PASSWORD=.*",
-        lambda _: f"{provider_key}_APP_PASSWORD={app_secret}",
-        content,
-    )
+    def replace_secret(match):
+        return f"{provider_key}_APP_PASSWORD={app_secret}"
+
+    content = re.sub(f"{provider_key}_APP_PASSWORD=.*", replace_secret, content)
 
     return content
 
@@ -360,7 +360,41 @@ def _write_config_file(config_file: str, new_content: str) -> bool:
                 os.chmod(fd, 0o600)
             except (AttributeError, OSError, NotImplementedError, TypeError):
                 # Final fallback to path-based chmod
-                os.chmod(str(config_path), 0o600)
+                # To prevent TOCTOU, verify the file descriptor matches the path
+                try:
+                    stat_fd = os.fstat(fd)
+                    stat_path = (
+                        os.lstat(str(config_path))
+                        if hasattr(os, "lstat")
+                        else os.stat(str(config_path))
+                    )
+
+                    if (
+                        stat_fd.st_ino == stat_path.st_ino
+                        and stat_fd.st_dev == stat_path.st_dev
+                    ):
+                        # Use follow_symlinks=False if supported
+                        kwargs = (
+                            {"follow_symlinks": False}
+                            if os.chmod
+                            in getattr(os, "supports_follow_symlinks", set())
+                            else {}
+                        )
+                        os.chmod(str(config_path), 0o600, **kwargs)
+                    else:
+                        print(
+                            f"\n{Colors.colorize('Error:', Colors.RED)} TOCTOU detected on '{config_path}'."
+                        )
+                        import sys
+
+                        sys.exit(1)
+                except OSError as e:
+                    print(
+                        f"\n{Colors.colorize('Error setting permissions:', Colors.RED)} {e}"
+                    )
+                    import sys
+
+                    sys.exit(1)
 
         with os.fdopen(fd, "w") as f:
             f.write(new_content)

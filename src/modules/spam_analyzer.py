@@ -86,10 +86,7 @@ class SpamAnalyzer:
     )
 
     # Simple combined pattern (no named groups) for fast detection/counting
-    # ⚡ BOLT: Removed re.I. We will use .lower() on the text instead.
-    # re.IGNORECASE carries a ~50-100% performance penalty during regex execution.
-    # We explicitly lower() the keywords to guarantee matching behavior.
-    COMBINED_SPAM_PATTERN = compile_patterns([kw.lower() for kw in SPAM_KEYWORDS])
+    COMBINED_SPAM_PATTERN = compile_patterns(SPAM_KEYWORDS, re.I)
 
     LINK_PATTERN = re.compile(r"https?://", re.IGNORECASE)
     URL_EXTRACTION_PATTERN = re.compile(r'https?://[^\s<>"]+', re.IGNORECASE)
@@ -274,10 +271,9 @@ class SpamAnalyzer:
 
     def _count_spam_keywords(self, text: str) -> int:
         """Helper to count spam keywords with a fast substring pre-check."""
-        text_lower = text.lower()
-        if not self.COMBINED_SPAM_PATTERN.search(text_lower):
+        if not any(kw in text for kw in self.SPAM_KEYWORD_LITERALS):
             return 0
-        return len(self.COMBINED_SPAM_PATTERN.findall(text_lower))
+        return len(self.COMBINED_SPAM_PATTERN.findall(text))
 
     def _analyze_body(
         self, text_body: str, html_body: str, link_count: int
@@ -392,13 +388,14 @@ class SpamAnalyzer:
             return [val]
         return val
 
-    def _check_spf(
+    def _analyze_headers(
         self, headers: Dict[str, Union[str, List[str]]]
-    ) -> Tuple[float, List[str], bool]:
-        """Check SPF headers for failures."""
+    ) -> Tuple[float, List[str]]:
+        """Analyze email headers for anomalies."""
         score = 0.0
         issues = []
 
+        # Check SPF
         spf_headers = self._get_header_list(headers, "received-spf")
         spf_fail = False
         spf_softfail = False
@@ -416,15 +413,7 @@ class SpamAnalyzer:
             score += 1.0
             issues.append("SPF soft fail")
 
-        return score, issues, spf_fail
-
-    def _check_auth_results(
-        self, headers: Dict[str, Union[str, List[str]]], spf_fail: bool
-    ) -> Tuple[float, List[str]]:
-        """Check Authentication-Results header for DKIM and SPF failures."""
-        score = 0.0
-        issues = []
-
+        # Check Authentication-Results (Modern SPF/DKIM validation)
         auth_results = self._get_header_list(headers, "authentication-results")
         dkim_auth_fail = False
         spf_auth_fail = False
@@ -452,29 +441,14 @@ class SpamAnalyzer:
             score += 2.0
             issues.append("SPF verification failed (Authentication-Results)")
 
-        return score, issues
-
-    def _check_dkim_presence(
-        self, headers: Dict[str, Union[str, List[str]]]
-    ) -> Tuple[float, List[str]]:
-        """Check if DKIM signature is present."""
-        score = 0.0
-        issues = []
-
+        # Check DKIM presence
         dkim = self._get_header_list(headers, "dkim-signature")
         if not dkim:
             score += 0.5
             issues.append("Missing DKIM signature")
 
-        return score, issues
-
-    def _check_missing_headers(
-        self, headers: Dict[str, Union[str, List[str]]]
-    ) -> Tuple[float, List[str]]:
-        """Check for required standard headers."""
-        score = 0.0
-        issues = []
-
+        # Check for missing standard headers
+        # We check for lowercased keys
         required_headers = ["from", "to", "date", "message-id"]
         for header in required_headers:
             if header not in headers:
@@ -483,29 +457,13 @@ class SpamAnalyzer:
                 score += 0.5
                 issues.append(f"Missing {display_header} header")
 
-        return score, issues
-
-    def _check_suspicious_received_headers(
-        self, headers: Dict[str, Union[str, List[str]]]
-    ) -> Tuple[float, List[str]]:
-        """Check for excessive hops in delivery path."""
-        score = 0.0
-        issues = []
-
+        # Check for suspicious received headers
         received_headers = self._get_header_list(headers, "received")
         if len(received_headers) > self.EXCESSIVE_HOP_THRESHOLD:
             score += 1.0
             issues.append("Excessive hops in delivery path")
 
-        return score, issues
-
-    def _check_forged_sender(
-        self, headers: Dict[str, Union[str, List[str]]]
-    ) -> Tuple[float, List[str]]:
-        """Check for forged sender by comparing From and Return-Path headers."""
-        score = 0.0
-        issues = []
-
+        # Check for forged sender
         from_headers = self._get_header_list(headers, "from")
         return_path_headers = self._get_header_list(headers, "return-path")
 
@@ -527,37 +485,6 @@ class SpamAnalyzer:
                     issues.append("From and Return-Path mismatch")
 
         return score, issues
-
-    def _analyze_headers(
-        self, headers: Dict[str, Union[str, List[str]]]
-    ) -> Tuple[float, List[str]]:
-        """Analyze email headers for anomalies."""
-        total_score = 0.0
-        all_issues = []
-
-        # List of check functions to run
-        # Note: _check_auth_results needs spf_fail from _check_spf
-        spf_score, spf_issues, spf_fail = self._check_spf(headers)
-        total_score += spf_score
-        all_issues.extend(spf_issues)
-
-        auth_score, auth_issues = self._check_auth_results(headers, spf_fail)
-        total_score += auth_score
-        all_issues.extend(auth_issues)
-
-        check_functions = [
-            self._check_dkim_presence,
-            self._check_missing_headers,
-            self._check_suspicious_received_headers,
-            self._check_forged_sender,
-        ]
-
-        for check_func in check_functions:
-            score, issues = check_func(headers)
-            total_score += score
-            all_issues.extend(issues)
-
-        return total_score, all_issues
 
     def _check_sender(
         self, sender: str, headers: Dict[str, Union[str, List[str]]]
