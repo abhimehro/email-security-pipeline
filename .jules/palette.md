@@ -168,6 +168,3 @@
 ## 2027-02-18 - Missing Rendering Paths for Nested UI
 **Learning:** Hardcoded display logic in CLI views that only checks a subset of available threat dictionary keys creates a disconnect where underlying threats (like potential deepfakes or urgency markers) are detected and sent via webhooks, but remain visually hidden from the CLI user.
 **Action:** Replaced hardcoded key checks in `alert_system.py` with configuration lists that iterate over all possible threat indicators to dynamically display any present threat to the user.
-## 2027-02-18 - Semantic Colors for Menu Scannability
-**Learning:** Flat, unstyled terminal menus require users to read every word to understand the distinction between options. By using bolding for numbers and semantic colors for caveats (e.g., Green for Recommended, Yellow for restrictions), users can instantly visually parse the menu hierarchy and recommendations.
-**Action:** Apply semantic coloring and bold text to distinct components (indices, primary text, caveats) of terminal menu options to enhance scannability.

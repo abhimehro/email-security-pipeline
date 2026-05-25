@@ -2,8 +2,10 @@ import unittest
 
 from src.utils.security_validators import (
     DEFAULT_MAX_EMAIL_SIZE,
+    MAX_MIME_PARTS,
     MAX_SUBJECT_LENGTH,
     calculate_max_email_size,
+    validate_mime_parts_count,
     validate_subject_length,
 )
 
@@ -34,6 +36,21 @@ class TestValidateSubjectLength(unittest.TestCase):
         result = validate_subject_length(subject)
         self.assertEqual(len(result), MAX_SUBJECT_LENGTH)
         self.assertEqual(result, "C" * MAX_SUBJECT_LENGTH)
+
+
+class TestValidateMimePartsCount(unittest.TestCase):
+
+    def test_count_of_one_is_safe(self):
+        self.assertTrue(validate_mime_parts_count(1))
+
+    def test_count_at_exact_limit_is_safe(self):
+        self.assertTrue(validate_mime_parts_count(MAX_MIME_PARTS))
+
+    def test_count_one_over_limit_is_rejected(self):
+        self.assertFalse(validate_mime_parts_count(MAX_MIME_PARTS + 1))
+
+    def test_count_of_zero_is_safe(self):
+        self.assertTrue(validate_mime_parts_count(0))
 
 
 class TestCalculateMaxEmailSize(unittest.TestCase):

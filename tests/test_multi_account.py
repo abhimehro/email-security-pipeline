@@ -162,7 +162,8 @@ class TestMultiAccountProcessing(unittest.TestCase):
         self.assertTrue(mock_client1.fetch_unseen_emails.called)
         self.assertTrue(mock_client2.fetch_unseen_emails.called)
 
-    def test_cross_account_isolation(self):
+    @patch("src.modules.email_ingestion.IMAPClient")
+    def test_cross_account_isolation(self, MockIMAPClient):
         """
         SECURITY STORY: This tests that emails from different accounts remain isolated.
         If account isolation fails, an attacker with access to one account could
@@ -206,21 +207,11 @@ class TestMultiAccountProcessing(unittest.TestCase):
             folder="INBOX",
         )
 
-        # Setup mock clients
-        # Account1 has 2 folders, so fetch_unseen_emails will be called twice
-        # We need to return different emails for each folder
+        # Setup persistent mock clients
         mock_client1 = MagicMock()
         mock_client1.ensure_connection.return_value = True
-        # Return different emails for each folder call
-        mock_client1.fetch_unseen_emails.side_effect = [
-            [("1", b"raw1")],  # First folder (INBOX)
-            [("2", b"raw2")],  # Second folder (Spam)
-        ]
-        # parse_email will be called for each fetched email
-        mock_client1.parse_email.side_effect = [
-            email1,
-            email1,
-        ]  # Return email1 for both
+        mock_client1.fetch_unseen_emails.return_value = [("1", b"raw1")]
+        mock_client1.parse_email.return_value = email1
 
         mock_client2 = MagicMock()
         mock_client2.ensure_connection.return_value = True
@@ -231,6 +222,13 @@ class TestMultiAccountProcessing(unittest.TestCase):
             "user1@example.com": mock_client1,
             "user2@different.com": mock_client2,
         }
+
+        # Setup temporary mock client for concurrent folder
+        temp_client = MagicMock()
+        temp_client.connect.return_value = True
+        temp_client.fetch_unseen_emails.return_value = [("2", b"raw2")]
+        temp_client.parse_email.return_value = email1
+        MockIMAPClient.return_value = temp_client
 
         # Fetch all
         all_emails = manager.fetch_all_emails(max_per_folder=10)
