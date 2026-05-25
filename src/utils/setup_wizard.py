@@ -303,7 +303,9 @@ def _generate_config_content(
     )
     # Set app_secret safely
     content = re.sub(
-        f"{provider_key}_APP_PASSWORD=.*", lambda _: f"{provider_key}_APP_PASSWORD={app_secret}", content
+        f"{provider_key}_APP_PASSWORD=.*",
+        lambda _: f"{provider_key}_APP_PASSWORD={app_secret}",
+        content,
     )
 
     return content
