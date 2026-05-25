@@ -348,12 +348,14 @@
 
 **Merged pull requests:**
 
+- Provide final QA notes [\#927](https://github.com/abhimehro/email-security-pipeline/pull/927) ([abhimehro](https://github.com/abhimehro))
 - 🧹 \[Formatting\] Run Black to resolve formatting drift [\#926](https://github.com/abhimehro/email-security-pipeline/pull/926) ([abhimehro](https://github.com/abhimehro))
 - ⚡ Bolt: Optimize regex performance by removing re.IGNORECASE [\#925](https://github.com/abhimehro/email-security-pipeline/pull/925) ([abhimehro](https://github.com/abhimehro))
 - 🛡️ Sentinel: \[CRITICAL\] Fix re.error vulnerability in setup wizard regex replacements [\#923](https://github.com/abhimehro/email-security-pipeline/pull/923) ([abhimehro](https://github.com/abhimehro))
 - ⚡ Bolt: \[Performance\] Optimize spam keyword substring pre-check [\#922](https://github.com/abhimehro/email-security-pipeline/pull/922) ([abhimehro](https://github.com/abhimehro))
 - 🧹 convert comment to variable docstring in pattern\_compiler [\#920](https://github.com/abhimehro/email-security-pipeline/pull/920) ([abhimehro](https://github.com/abhimehro))
 - 🧹 \[code health\] Remove unused function validate\_mime\_parts\_count [\#918](https://github.com/abhimehro/email-security-pipeline/pull/918) ([abhimehro](https://github.com/abhimehro))
+- 🧹 Refactor unused `replace_secret` method to lambda in setup\_wizard [\#917](https://github.com/abhimehro/email-security-pipeline/pull/917) ([abhimehro](https://github.com/abhimehro))
 - 🧹 Extract header checks into single-purpose methods [\#916](https://github.com/abhimehro/email-security-pipeline/pull/916) ([abhimehro](https://github.com/abhimehro))
 - 🧹 Refactor \_check\_email\_sizes to improve readability [\#915](https://github.com/abhimehro/email-security-pipeline/pull/915) ([abhimehro](https://github.com/abhimehro))
 - 🧹 Refactor \_extract\_attachment in EmailParser for improved readability [\#914](https://github.com/abhimehro/email-security-pipeline/pull/914) ([abhimehro](https://github.com/abhimehro))
