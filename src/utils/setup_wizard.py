@@ -290,23 +290,23 @@ def _generate_config_content(
     for provider in all_providers:
         if provider == provider_key:
             content = re.sub(
-                f"{provider}_ENABLED=.*", lambda _: f"{provider}_ENABLED=true", content
+                f"{provider}_ENABLED=.*", f"{provider}_ENABLED=true", content
             )
         else:
             content = re.sub(
-                f"{provider}_ENABLED=.*", lambda _: f"{provider}_ENABLED=false", content
+                f"{provider}_ENABLED=.*", f"{provider}_ENABLED=false", content
             )
 
     # Set email for selected provider
     content = re.sub(
-        f"{provider_key}_EMAIL=.*", lambda _: f"{provider_key}_EMAIL={email}", content
+        f"{provider_key}_EMAIL=.*", f"{provider_key}_EMAIL={email}", content
     )
+
     # Set app_secret safely
-    content = re.sub(
-        f"{provider_key}_APP_PASSWORD=.*",
-        lambda _: f"{provider_key}_APP_PASSWORD={app_secret}",
-        content,
-    )
+    def replace_secret(match):
+        return f"{provider_key}_APP_PASSWORD={app_secret}"
+
+    content = re.sub(f"{provider_key}_APP_PASSWORD=.*", replace_secret, content)
 
     return content
 
