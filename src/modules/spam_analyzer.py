@@ -271,7 +271,7 @@ class SpamAnalyzer:
 
     def _count_spam_keywords(self, text: str) -> int:
         """Helper to count spam keywords with a fast substring pre-check."""
-        if not any(kw in text for kw in self.SPAM_KEYWORD_LITERALS):
+        if not self.COMBINED_SPAM_PATTERN.search(text):
             return 0
         return len(self.COMBINED_SPAM_PATTERN.findall(text))
 
