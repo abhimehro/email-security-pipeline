@@ -348,6 +348,7 @@
 
 **Merged pull requests:**
 
+- 🎨 Palette: Enhance setup wizard menu with semantic colors [\#929](https://github.com/abhimehro/email-security-pipeline/pull/929) ([abhimehro](https://github.com/abhimehro))
 - Provide final QA notes [\#927](https://github.com/abhimehro/email-security-pipeline/pull/927) ([abhimehro](https://github.com/abhimehro))
 - 🧹 \[Formatting\] Run Black to resolve formatting drift [\#926](https://github.com/abhimehro/email-security-pipeline/pull/926) ([abhimehro](https://github.com/abhimehro))
 - ⚡ Bolt: Optimize regex performance by removing re.IGNORECASE [\#925](https://github.com/abhimehro/email-security-pipeline/pull/925) ([abhimehro](https://github.com/abhimehro))
