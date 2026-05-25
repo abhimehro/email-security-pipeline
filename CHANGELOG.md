@@ -41,6 +41,9 @@
 
 **Closed issues:**
 
+- Daily QA Check - email-security-pipeline - 2026-05-25 [\#924](https://github.com/abhimehro/email-security-pipeline/issues/924)
+- \[repo-automation\] Weekly Retrospective - 2026-05-24 [\#903](https://github.com/abhimehro/email-security-pipeline/issues/903)
+- \[repo-automation\] Daily Status Report - 2026-05-24 [\#902](https://github.com/abhimehro/email-security-pipeline/issues/902)
 - Daily QA Check - email-security-pipeline - 2026-05-24 [\#899](https://github.com/abhimehro/email-security-pipeline/issues/899)
 - \[repo-automation\] Daily Status Report - 2026-05-23 [\#898](https://github.com/abhimehro/email-security-pipeline/issues/898)
 - Daily QA Check - email-security-pipeline - 2026-05-23 [\#895](https://github.com/abhimehro/email-security-pipeline/issues/895)
@@ -345,6 +348,18 @@
 
 **Merged pull requests:**
 
+- 🛡️ Sentinel: \[CRITICAL\] Fix re.error vulnerability in setup wizard regex replacements [\#923](https://github.com/abhimehro/email-security-pipeline/pull/923) ([abhimehro](https://github.com/abhimehro))
+- ⚡ Bolt: \[Performance\] Optimize spam keyword substring pre-check [\#922](https://github.com/abhimehro/email-security-pipeline/pull/922) ([abhimehro](https://github.com/abhimehro))
+- 🧹 convert comment to variable docstring in pattern\_compiler [\#920](https://github.com/abhimehro/email-security-pipeline/pull/920) ([abhimehro](https://github.com/abhimehro))
+- 🧹 \[code health\] Remove unused function validate\_mime\_parts\_count [\#918](https://github.com/abhimehro/email-security-pipeline/pull/918) ([abhimehro](https://github.com/abhimehro))
+- 🧹 Extract header checks into single-purpose methods [\#916](https://github.com/abhimehro/email-security-pipeline/pull/916) ([abhimehro](https://github.com/abhimehro))
+- 🧹 Refactor \_check\_email\_sizes to improve readability [\#915](https://github.com/abhimehro/email-security-pipeline/pull/915) ([abhimehro](https://github.com/abhimehro))
+- 🧹 Refactor \_extract\_attachment in EmailParser for improved readability [\#914](https://github.com/abhimehro/email-security-pipeline/pull/914) ([abhimehro](https://github.com/abhimehro))
+- ⚡ Bolt: Optimize authority impersonation domain matching [\#912](https://github.com/abhimehro/email-security-pipeline/pull/912) ([abhimehro](https://github.com/abhimehro))
+- 🧹 \[code health\] Remove unused function validate\_mime\_parts\_count [\#911](https://github.com/abhimehro/email-security-pipeline/pull/911) ([abhimehro](https://github.com/abhimehro))
+- ⚡ Bolt: Optimize authority impersonation domain matching [\#910](https://github.com/abhimehro/email-security-pipeline/pull/910) ([abhimehro](https://github.com/abhimehro))
+- 🧹 Refactor \_check\_email\_sizes to improve readability [\#909](https://github.com/abhimehro/email-security-pipeline/pull/909) ([abhimehro](https://github.com/abhimehro))
+- 🎨 Palette: Display all NLP threat indicators in console alerts [\#904](https://github.com/abhimehro/email-security-pipeline/pull/904) ([abhimehro](https://github.com/abhimehro))
 - Refactor: Remove unused `unicodedata` import from `alert_system.py` [\#901](https://github.com/abhimehro/email-security-pipeline/pull/901) ([abhimehro](https://github.com/abhimehro))
 - ⚡ Bolt: replace FAST\_HIDDEN\_PATTERN with string matching for faster case-insensitive substring checks [\#900](https://github.com/abhimehro/email-security-pipeline/pull/900) ([abhimehro](https://github.com/abhimehro))
 - ⚡ Bolt: Optimize uptime tracking with time.monotonic\(\) [\#896](https://github.com/abhimehro/email-security-pipeline/pull/896) ([abhimehro](https://github.com/abhimehro))
