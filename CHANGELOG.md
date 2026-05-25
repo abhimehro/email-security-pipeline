@@ -348,6 +348,8 @@
 
 **Merged pull requests:**
 
+- 🧹 \[Formatting\] Run Black to resolve formatting drift [\#926](https://github.com/abhimehro/email-security-pipeline/pull/926) ([abhimehro](https://github.com/abhimehro))
+- ⚡ Bolt: Optimize regex performance by removing re.IGNORECASE [\#925](https://github.com/abhimehro/email-security-pipeline/pull/925) ([abhimehro](https://github.com/abhimehro))
 - 🛡️ Sentinel: \[CRITICAL\] Fix re.error vulnerability in setup wizard regex replacements [\#923](https://github.com/abhimehro/email-security-pipeline/pull/923) ([abhimehro](https://github.com/abhimehro))
 - ⚡ Bolt: \[Performance\] Optimize spam keyword substring pre-check [\#922](https://github.com/abhimehro/email-security-pipeline/pull/922) ([abhimehro](https://github.com/abhimehro))
 - 🧹 convert comment to variable docstring in pattern\_compiler [\#920](https://github.com/abhimehro/email-security-pipeline/pull/920) ([abhimehro](https://github.com/abhimehro))
