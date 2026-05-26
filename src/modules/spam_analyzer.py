@@ -251,7 +251,7 @@ class SpamAnalyzer:
 
         # Check spam keywords
         # Optimization: Fast check first, then single-pass identification
-        if self.COMBINED_SPAM_PATTERN.search(subject_lower):
+        if any(kw in subject_lower for kw in self.SPAM_KEYWORD_LITERALS):
             found_groups = set()
             for match in self.MASTER_SPAM_PATTERN.finditer(subject_lower):
                 group_name = match.lastgroup
@@ -275,7 +275,7 @@ class SpamAnalyzer:
     def _count_spam_keywords(self, text: str) -> int:
         """Helper to count spam keywords with a fast substring pre-check."""
         text_lower = text.lower()
-        if not self.COMBINED_SPAM_PATTERN.search(text_lower):
+        if not any(kw in text_lower for kw in self.SPAM_KEYWORD_LITERALS):
             return 0
         return len(self.COMBINED_SPAM_PATTERN.findall(text_lower))
 
