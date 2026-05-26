@@ -85,3 +85,7 @@
 ## 2025-05-25 - Regex Case-Sensitivity Optimization
 **Learning:** The regex engine's `re.IGNORECASE` (`re.I`) flag imposes a massive performance overhead in Python (often ~50-100% slower).
 **Action:** Instead of compiling regexes with `re.I` for case-insensitive matching, pre-lowercase both the pattern strings (e.g., `[kw.lower() for kw in SPAM_KEYWORDS]`) and the target text (`text.lower()`). This trades a minor memory allocation (string copy) for a massive CPU speedup because the C-level string operations are significantly faster than the complex casing rules inside the Python regex engine.
+
+## 2026-05-26 - Fast Substring Pre-checks for Regex Evaluation
+**Learning:** For large collections of regex patterns (like spam keywords), executing `re.search()` is significantly slower (~50x) than pre-checking with Python's C-level `in` operator combined with `any()` and string literals (`any(kw in text.lower() for kw in LITERALS)`).
+**Action:** When applying a large compiled regex pattern (e.g. `re.compile("|".join(keywords))`) to text that is unlikely to match in the common case, ALWAYS guard the regex execution with a fast `any(kw in ...)` substring pre-check.
