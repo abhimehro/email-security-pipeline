@@ -41,6 +41,7 @@
 
 **Closed issues:**
 
+- Daily QA Check - email-security-pipeline - 2026-05-26 [\#934](https://github.com/abhimehro/email-security-pipeline/issues/934)
 - Daily QA Check - email-security-pipeline - 2026-05-25 [\#924](https://github.com/abhimehro/email-security-pipeline/issues/924)
 - \[repo-automation\] Weekly Retrospective - 2026-05-24 [\#903](https://github.com/abhimehro/email-security-pipeline/issues/903)
 - \[repo-automation\] Daily Status Report - 2026-05-24 [\#902](https://github.com/abhimehro/email-security-pipeline/issues/902)
@@ -179,7 +180,6 @@
 - \[Code Quality\] Remove development artifact files from repository root [\#501](https://github.com/abhimehro/email-security-pipeline/issues/501)
 - \[Code Quality\] Add unit tests for MediaAnalyzer.\_inspect\_archive\_member dangerous extension early-exit gate [\#500](https://github.com/abhimehro/email-security-pipeline/issues/500)
 - \[Code Quality\] Add unit tests for MediaAnalyzer signature validation score thresholds [\#499](https://github.com/abhimehro/email-security-pipeline/issues/499)
-- \[Code Quality\] Add unit tests for SpamAnalyzer.\_check\_urls URL deduplication and edge cases [\#495](https://github.com/abhimehro/email-security-pipeline/issues/495)
 - \[repo-status\] Daily Status Report — March 5, 2026 [\#494](https://github.com/abhimehro/email-security-pipeline/issues/494)
 - \[Code Quality\] Implement \_should\_use\_ml\_model\(\) to respect config \(currently hardcoded True\) [\#492](https://github.com/abhimehro/email-security-pipeline/issues/492)
 - \[Code Quality\] Add unit tests for NLPThreatAnalyzer.\_scan\_text\_patterns\(\) [\#491](https://github.com/abhimehro/email-security-pipeline/issues/491)
@@ -348,6 +348,7 @@
 
 **Merged pull requests:**
 
+- ⚡ Bolt: Replace regex search with fast substring pre-checks for spam keywords [\#936](https://github.com/abhimehro/email-security-pipeline/pull/936) ([abhimehro](https://github.com/abhimehro))
 - 🎨 Palette: Enhance setup wizard menu with semantic colors [\#929](https://github.com/abhimehro/email-security-pipeline/pull/929) ([abhimehro](https://github.com/abhimehro))
 - Provide final QA notes [\#927](https://github.com/abhimehro/email-security-pipeline/pull/927) ([abhimehro](https://github.com/abhimehro))
 - 🧹 \[Formatting\] Run Black to resolve formatting drift [\#926](https://github.com/abhimehro/email-security-pipeline/pull/926) ([abhimehro](https://github.com/abhimehro))
