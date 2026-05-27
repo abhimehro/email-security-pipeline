@@ -57,48 +57,39 @@ class TestPaletteUI(TestCase):
         with patch("sys.stdout") as mock_stdout:
             mock_stdout.isatty.return_value = True
 
-            with patch.object(Spinner, '_start_tty_spinner'):
+            with patch.object(Spinner, '_start_tty_spinner') as mock_start:
                 spinner = Spinner("Testing")
                 spinner.__enter__()
-                self.assertIn(" (Press Ctrl+C to stop)", spinner.message)
+                # Since message is no longer mutated, verify it's passed to _start_tty_spinner correctly
+                mock_start.assert_called_with("Testing (Press Ctrl+C to stop)...")
 
                 spinner_with_hint = Spinner("Testing (Press Ctrl+C to stop)")
                 spinner_with_hint.__enter__()
-                self.assertEqual(spinner_with_hint.message.count("(Press Ctrl+C to stop)"), 1)
+                mock_start.assert_called_with("Testing (Press Ctrl+C to stop)...")
+
+    def _run_spinner_interrupt_test(self, is_tty: bool):
+        from src.utils.ui import Spinner
+
+        with patch("sys.stdout") as mock_stdout:
+            mock_stdout.isatty.return_value = is_tty
+
+            spinner = Spinner(message="Test Cancel")
+            spinner.__enter__()
+            spinner.__exit__(KeyboardInterrupt, None, None)
+
+            writes = "".join(
+                call.args[0] for call in mock_stdout.write.mock_calls if call.args
+            )
+            self.assertIn("Test Cancel (Cancelled)", writes)
+            self.assertIn("⚠", writes)
 
     def test_spinner_keyboard_interrupt_tty(self):
         """Test graceful cancellation message on KeyboardInterrupt in TTY mode."""
-        from src.utils.ui import Spinner
-
-        with patch("sys.stdout") as mock_stdout:
-            mock_stdout.isatty.return_value = True
-
-            spinner = Spinner(message="Test Cancel")
-            spinner.__enter__()
-            spinner.__exit__(KeyboardInterrupt, None, None)
-
-            writes = "".join(
-                call.args[0] for call in mock_stdout.write.mock_calls if call.args
-            )
-            self.assertIn("Test Cancel (Cancelled)", writes)
-            self.assertIn("⚠", writes)
+        self._run_spinner_interrupt_test(True)
 
     def test_spinner_keyboard_interrupt_non_tty(self):
         """Test graceful cancellation message on KeyboardInterrupt in non-TTY mode."""
-        from src.utils.ui import Spinner
-
-        with patch("sys.stdout") as mock_stdout:
-            mock_stdout.isatty.return_value = False
-
-            spinner = Spinner(message="Test Cancel")
-            spinner.__enter__()
-            spinner.__exit__(KeyboardInterrupt, None, None)
-
-            writes = "".join(
-                call.args[0] for call in mock_stdout.write.mock_calls if call.args
-            )
-            self.assertIn("Test Cancel (Cancelled)", writes)
-            self.assertIn("⚠", writes)
+        self._run_spinner_interrupt_test(False)
 
     def test_countdown_keyboard_interrupt_tty(self):
         """Test graceful cancellation message on KeyboardInterrupt in TTY mode for CountdownTimer."""
