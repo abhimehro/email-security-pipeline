@@ -163,7 +163,7 @@ class NLPThreatAnalyzer:
             group_map[group_name] = (prefix, description)
 
         full_pattern = "|".join(regex_parts)
-        return re.compile(full_pattern, re.IGNORECASE), group_map
+        return re.compile(full_pattern, flags=0), group_map
 
     def _compile_simple_master_pattern(
         self, patterns: List[Tuple[str, str, str]]
@@ -172,7 +172,7 @@ class NLPThreatAnalyzer:
         Compile a simplified master pattern without named groups for fast presence check.
         """
         raw_patterns = [pattern for pattern, _, _ in patterns]
-        return compile_patterns(raw_patterns, re.I)
+        return compile_patterns(raw_patterns, flags=0)
 
     def _should_use_ml_model(self) -> bool:
         """Check if ML model should be loaded based on config."""
@@ -304,9 +304,11 @@ class NLPThreatAnalyzer:
             # generator iteration and executes entirely in C. Memory overhead is negligible for typical emails.
             caps_count += len(self.CAPS_WORDS_PATTERN.findall(part))
 
-            # Optimization: Fast check with simple pattern
-            if self.simple_master_pattern.search(part):
-                for match in self.master_pattern.finditer(part):
+            # Optimization: Fast check with simple pattern on lowercased text
+            # avoiding re.IGNORECASE penalty
+            part_lower = part.lower()
+            if self.simple_master_pattern.search(part_lower):
+                for match in self.master_pattern.finditer(part_lower):
                     group_name = match.lastgroup
                     if group_name and group_name in self.master_map:
                         prefix, description = self.master_map[group_name]
