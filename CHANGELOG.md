@@ -41,6 +41,7 @@
 
 **Closed issues:**
 
+- Daily QA & Agentic Review — 2026-05-27 [\#941](https://github.com/abhimehro/email-security-pipeline/issues/941)
 - Daily QA Check - email-security-pipeline - 2026-05-26 [\#934](https://github.com/abhimehro/email-security-pipeline/issues/934)
 - Daily QA Check - email-security-pipeline - 2026-05-25 [\#924](https://github.com/abhimehro/email-security-pipeline/issues/924)
 - \[repo-automation\] Weekly Retrospective - 2026-05-24 [\#903](https://github.com/abhimehro/email-security-pipeline/issues/903)
@@ -348,6 +349,7 @@
 
 **Merged pull requests:**
 
+- ⚡ Bolt: Remove re.IGNORECASE penalty in NLPAnalyzer [\#943](https://github.com/abhimehro/email-security-pipeline/pull/943) ([abhimehro](https://github.com/abhimehro))
 - ⚡ Bolt: Replace regex search with fast substring pre-checks for spam keywords [\#936](https://github.com/abhimehro/email-security-pipeline/pull/936) ([abhimehro](https://github.com/abhimehro))
 - 🎨 Palette: Enhance setup wizard menu with semantic colors [\#929](https://github.com/abhimehro/email-security-pipeline/pull/929) ([abhimehro](https://github.com/abhimehro))
 - Provide final QA notes [\#927](https://github.com/abhimehro/email-security-pipeline/pull/927) ([abhimehro](https://github.com/abhimehro))
