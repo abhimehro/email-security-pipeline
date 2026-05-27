@@ -142,7 +142,12 @@ class Spinner:
             )
             # \r moves cursor to start of line, \033[K clears the line
             spin_char = Colors.colorize(next(self.spinner), Colors.CYAN)
-            sys.stdout.write(f"\r{spin_char} {self.message}{time_str}   \033[K")
+            display_msg = self.message
+            if sys.stdout.isatty():
+                hint = " (Press Ctrl+C to stop)"
+                if hint not in display_msg:
+                    display_msg += hint
+            sys.stdout.write(f"\r{spin_char} {display_msg}{time_str}   \033[K")
             sys.stdout.flush()
             time.sleep(self.delay)
             # Check again to avoid writing after stop
@@ -151,7 +156,14 @@ class Spinner:
 
     def __enter__(self):
         self.start_time = time.time()
-        msg = self.message if self.message.endswith("...") else f"{self.message}..."
+        # We don't mutate self.message, we just format the display string
+        display_msg = self.message
+        if sys.stdout.isatty():
+            hint = " (Press Ctrl+C to stop)"
+            if hint not in display_msg:
+                display_msg += hint
+
+        msg = display_msg if display_msg.endswith("...") else f"{display_msg}..."
 
         if sys.stdout.isatty():
             self._start_tty_spinner(msg)
@@ -195,9 +207,8 @@ class Spinner:
                 final_message = ""
 
                 if exc_type is KeyboardInterrupt:
-                    msg = self.message
                     warning = Colors.colorize("⚠", Colors.YELLOW)
-                    final_message = f"{warning} {msg} (Cancelled){time_str}\n"
+                    final_message = f"{warning} {self.message} (Cancelled){time_str}\n"
                 elif exc_type is not None or self.fail_msg:
                     # Failure logic
                     msg = self.fail_msg if self.fail_msg else self.message

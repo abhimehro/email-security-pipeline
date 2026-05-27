@@ -171,3 +171,7 @@
 ## 2027-02-18 - Semantic Colors for Menu Scannability
 **Learning:** Flat, unstyled terminal menus require users to read every word to understand the distinction between options. By using bolding for numbers and semantic colors for caveats (e.g., Green for Recommended, Yellow for restrictions), users can instantly visually parse the menu hierarchy and recommendations.
 **Action:** Apply semantic coloring and bold text to distinct components (indices, primary text, caveats) of terminal menu options to enhance scannability.
+
+## 2025-05-19 - Add keyboard shortcut hint to spinner
+**Learning:** Terminal spinners blocking output streams without visible keyboard exit hints cause user anxiety and increase perceived lock-ups, especially in interactive CLIs where users don't know if Ctrl+C is safe.
+**Action:** Always append actionable exit hints like '(Press Ctrl+C to stop)' dynamically to long-running terminal elements, but ensure the hint is cleanly stripped from the final success/failure log message to prevent polluting permanent logs with interactive UX instructions.
