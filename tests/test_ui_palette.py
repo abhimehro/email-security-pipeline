@@ -50,6 +50,22 @@ class TestPaletteUI(TestCase):
             self.assertNotIn("\033[?25l", writes)
             self.assertNotIn("\033[?25h", writes)
 
+    def test_spinner_keyboard_interrupt_hint(self):
+        # Verify the "Press Ctrl+C to stop" hint is added correctly to Spinner.
+        from src.utils.ui import Spinner
+
+        with patch("sys.stdout") as mock_stdout:
+            mock_stdout.isatty.return_value = True
+
+            with patch.object(Spinner, '_start_tty_spinner'):
+                spinner = Spinner("Testing")
+                spinner.__enter__()
+                self.assertIn(" (Press Ctrl+C to stop)", spinner.message)
+
+                spinner_with_hint = Spinner("Testing (Press Ctrl+C to stop)")
+                spinner_with_hint.__enter__()
+                self.assertEqual(spinner_with_hint.message.count("(Press Ctrl+C to stop)"), 1)
+
     def test_spinner_keyboard_interrupt_tty(self):
         """Test graceful cancellation message on KeyboardInterrupt in TTY mode."""
         from src.utils.ui import Spinner
