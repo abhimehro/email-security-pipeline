@@ -145,10 +145,18 @@ def _test_connection(email: str, app_password: str, provider_choice: str) -> boo
 def _select_provider() -> str:
     """Prompt user to select an email provider."""
     print(f"\n{Colors.CYAN}Step 1 of 2: Choose your email provider{Colors.RESET}")
-    print(f"  {Colors.colorize('1.', Colors.BOLD)} Gmail {Colors.colorize('(Recommended)', Colors.GREEN)}")
-    print(f"  {Colors.colorize('2.', Colors.BOLD)} Proton Mail {Colors.colorize('(Requires Bridge)', Colors.GREY)}")
-    print(f"  {Colors.colorize('3.', Colors.BOLD)} Outlook {Colors.colorize('(Business Only)', Colors.YELLOW)}")
-    print(f"  {Colors.colorize('4.', Colors.BOLD)} Skip {Colors.colorize('(Manually edit .env)', Colors.GREY)}")
+    print(
+        f"  {Colors.colorize('1.', Colors.BOLD)} Gmail {Colors.colorize('(Recommended)', Colors.GREEN)}"
+    )
+    print(
+        f"  {Colors.colorize('2.', Colors.BOLD)} Proton Mail {Colors.colorize('(Requires Bridge)', Colors.GREY)}"
+    )
+    print(
+        f"  {Colors.colorize('3.', Colors.BOLD)} Outlook {Colors.colorize('(Business Only)', Colors.YELLOW)}"
+    )
+    print(
+        f"  {Colors.colorize('4.', Colors.BOLD)} Skip {Colors.colorize('(Manually edit .env)', Colors.GREY)}"
+    )
 
     while True:
         try:
