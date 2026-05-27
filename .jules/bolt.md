@@ -89,3 +89,6 @@
 ## 2026-05-26 - Fast Substring Pre-checks for Regex Evaluation
 **Learning:** For large collections of regex patterns (like spam keywords), executing `re.search()` is significantly slower (~50x) than pre-checking with Python's C-level `in` operator combined with `any()` and string literals (`any(kw in text.lower() for kw in LITERALS)`).
 **Action:** When applying a large compiled regex pattern (e.g. `re.compile("|".join(keywords))`) to text that is unlikely to match in the common case, ALWAYS guard the regex execution with a fast `any(kw in ...)` substring pre-check.
+## 2026-05-27 - Remove re.IGNORECASE penalty in NLPAnalyzer
+**Learning:** The `re.IGNORECASE` flag imposes a significant runtime penalty (roughly 50-100% overhead) during regex execution in Python. For fast threat scanning, especially on long emails, it's significantly faster to pre-lowercase the text and run a case-sensitive regex when the keywords are already lowercased.
+**Action:** When compiling keyword-driven regexes for fast text scanning, explicitly compile with `flags=0` and execute the search against `.lower()` transformed text rather than relying on `re.IGNORECASE`.
