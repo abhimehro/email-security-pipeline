@@ -159,10 +159,7 @@ class AppRunner:
                             | getattr(os, "O_NOFOLLOW", 0),
                             0o600,
                         )
-                        try:
-                            os.fchmod(fd, 0o600)
-                        except (AttributeError, OSError, NotImplementedError):
-                            os.chmod(self.config_file, 0o600)
+                        self._set_secure_permissions(fd)
 
                         with os.fdopen(fd, "wb") as dst:
                             dst.write(content)
@@ -331,8 +328,33 @@ class AppRunner:
                 # Some platforms support os.chmod(fd, mode)
                 os.chmod(fd, 0o600)
             except (AttributeError, OSError, NotImplementedError, TypeError):
-                # Final fallback to path-based chmod (e.g. Windows)
-                os.chmod(self.config_file, 0o600)
+                # Final fallback to path-based chmod (e.g. Windows) with inode check.
+                try:
+                    stat_fd = os.fstat(fd)
+                    stat_path = (
+                        os.lstat(self.config_file)
+                        if hasattr(os, "lstat")
+                        else os.stat(self.config_file)
+                    )
+                    if (
+                        stat_fd.st_ino == stat_path.st_ino
+                        and stat_fd.st_dev == stat_path.st_dev
+                    ):
+                        chmod_kwargs = (
+                            {"follow_symlinks": False}
+                            if os.chmod
+                            in getattr(os, "supports_follow_symlinks", set())
+                            else {}
+                        )
+                        os.chmod(self.config_file, 0o600, **chmod_kwargs)
+                    else:
+                        print(
+                            f"Error: TOCTOU detected on '{self.config_file}'."
+                        )
+                        sys.exit(1)
+                except OSError as exc:
+                    print(f"Error setting permissions: {exc}")
+                    sys.exit(1)
 
     def start_pipeline(self) -> None:
         """Instantiate and start the main pipeline."""
