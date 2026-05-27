@@ -5,6 +5,11 @@ from src.utils.ui import CountdownTimer
 
 
 class TestPaletteUI(TestCase):
+    def _get_writes(self, mock_stdout):
+        return "".join(
+            call.args[0] for call in mock_stdout.write.mock_calls if call.args
+        )
+
     def test_countdown_timer_keyboard_interrupt_hint(self):
         # Verify the "Press Ctrl+C to stop" hint is added correctly.
         with patch("sys.stdout") as mock_stdout:
@@ -30,9 +35,7 @@ class TestPaletteUI(TestCase):
             timer = CountdownTimer(duration=0, message="Test")
             timer.start()
 
-            writes = "".join(
-                call.args[0] for call in mock_stdout.write.mock_calls if call.args
-            )
+            writes = self._get_writes(mock_stdout)
             self.assertIn("\033[?25l", writes)  # CURSOR_HIDE
             self.assertIn("\033[?25h", writes)  # CURSOR_SHOW
 
@@ -44,9 +47,7 @@ class TestPaletteUI(TestCase):
             timer = CountdownTimer(duration=0, message="Test")
             timer.start()
 
-            writes = "".join(
-                call.args[0] for call in mock_stdout.write.mock_calls if call.args
-            )
+            writes = self._get_writes(mock_stdout)
             self.assertNotIn("\033[?25l", writes)
             self.assertNotIn("\033[?25h", writes)
 
@@ -77,9 +78,7 @@ class TestPaletteUI(TestCase):
             spinner.__enter__()
             spinner.__exit__(KeyboardInterrupt, None, None)
 
-            writes = "".join(
-                call.args[0] for call in mock_stdout.write.mock_calls if call.args
-            )
+            writes = self._get_writes(mock_stdout)
             self.assertIn("Test Cancel (Cancelled)", writes)
             self.assertIn("⚠", writes)
 
@@ -105,9 +104,7 @@ class TestPaletteUI(TestCase):
                 with self.assertRaises(KeyboardInterrupt):
                     timer.start()
 
-            writes = "".join(
-                call.args[0] for call in mock_stdout.write.mock_calls if call.args
-            )
+            writes = self._get_writes(mock_stdout)
             self.assertIn("Testing Cancel (Cancelled)", writes)
             self.assertNotIn("(Press Ctrl+C to stop) (Cancelled)", writes)
             self.assertIn("⚠", writes)
