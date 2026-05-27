@@ -349,6 +349,7 @@
 
 **Merged pull requests:**
 
+- 🧹 style: fix long lines in setup\_wizard.py via black [\#944](https://github.com/abhimehro/email-security-pipeline/pull/944) ([abhimehro](https://github.com/abhimehro))
 - ⚡ Bolt: Remove re.IGNORECASE penalty in NLPAnalyzer [\#943](https://github.com/abhimehro/email-security-pipeline/pull/943) ([abhimehro](https://github.com/abhimehro))
 - ⚡ Bolt: Replace regex search with fast substring pre-checks for spam keywords [\#936](https://github.com/abhimehro/email-security-pipeline/pull/936) ([abhimehro](https://github.com/abhimehro))
 - 🎨 Palette: Enhance setup wizard menu with semantic colors [\#929](https://github.com/abhimehro/email-security-pipeline/pull/929) ([abhimehro](https://github.com/abhimehro))
