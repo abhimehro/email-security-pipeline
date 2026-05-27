@@ -119,7 +119,7 @@ This is a **dispatcher agent** that routes your request to the appropriate speci
 
 - **Creating new workflows**: Routes to `create` prompt
 - **Updating existing workflows**: Routes to `update` prompt
-- **Debugging workflows**: Routes to `debug` prompt  
+- **Debugging workflows**: Routes to `debug` prompt
 - **Upgrading workflows**: Routes to `upgrade-agentic-workflows` prompt
 - **Creating shared components**: Routes to `create-shared-agentic-workflow` prompt
 
@@ -162,7 +162,7 @@ When you interact with this agent, it will:
 - "I need a workflow to label pull requests"
 - "Design a weekly research automation"
 
-### Update Existing Workflow  
+### Update Existing Workflow
 **Load when**: User wants to modify, improve, or refactor an existing workflow
 
 **Prompt file**: https://github.com/github/gh-aw/blob/v0.45.0/.github/aw/update-agentic-workflow.md
@@ -172,7 +172,7 @@ When you interact with this agent, it will:
 - "Update the PR reviewer to use discussions instead of issues"
 - "Improve the prompt for the weekly-research workflow"
 
-### Debug Workflow  
+### Debug Workflow
 **Load when**: User needs to investigate, audit, debug, or understand a workflow, troubleshoot issues, analyze logs, or fix errors
 
 **Prompt file**: https://github.com/github/gh-aw/blob/v0.45.0/.github/aw/debug-agentic-workflow.md
@@ -39554,8 +39554,8 @@ All identified issues have been addressed, and the codebase is now more robust, 
 <file path="BACKLOG_PHASE_2A_SUMMARY.md" size="11.5 KB" language="markdown">
 # Backlog Burner Phase 2A - Quick Wins Summary
 
-**Date:** 2026-02-15  
-**Phase:** 2A - Quick Wins  
+**Date:** 2026-02-15
+**Phase:** 2A - Quick Wins
 **Status:** ✅ COMPLETE
 
 ## Executive Summary
@@ -39568,13 +39568,13 @@ Phase 2A has been successfully completed per maintainer feedback on issue #194. 
 
 ### 1. Workflow Failure Issues - CLOSED ✅
 
-**Issue #185** - Daily Backlog Burner Failed  
+**Issue #185** - Daily Backlog Burner Failed
 - **Status:** CLOSED (2026-02-14)
 - **Root Cause:** Missing discussion categories in repository
 - **Resolution:** Discussion categories were created; issue no longer relevant
 - **Action Taken:** Verified closure per maintainer feedback
 
-**Issue #186** - Daily Perf Improver Failed  
+**Issue #186** - Daily Perf Improver Failed
 - **Status:** CLOSED (2026-02-14)
 - **Root Cause:** Missing discussion categories in repository
 - **Resolution:** Discussion categories were created; issue no longer relevant
@@ -39582,7 +39582,7 @@ Phase 2A has been successfully completed per maintainer feedback on issue #194. 
 
 ### 2. Performance Research Issue - KEPT OPEN 📋
 
-**Issue #193** - Daily Perf Improver Research and Plan  
+**Issue #193** - Daily Perf Improver Research and Plan
 - **Status:** OPEN (intentional)
 - **Purpose:** Valuable reference document for future optimization work
 - **Content:** Comprehensive performance analysis covering:
@@ -39594,7 +39594,7 @@ Phase 2A has been successfully completed per maintainer feedback on issue #194. 
 
 ### 3. PR #192 Review - READY FOR MERGE ✅
 
-**PR #192** - 🎨 Palette: Add NO_COLOR support and auto-disable colors in non-TTY  
+**PR #192** - 🎨 Palette: Add NO_COLOR support and auto-disable colors in non-TTY
 - **Status:** OPEN, ready for merge
 - **Branch:** `palette-ux-no-color-13799634109474746294`
 - **Commits:** 6 commits, 151 additions, 26 deletions
@@ -39804,12 +39804,12 @@ Per the original plan, Phase 2B focuses on verification and documentation:
 
 ## Sign-Off
 
-**Phase 2A Status:** ✅ COMPLETE  
-**Ready for:** Maintainer review and PR merge  
+**Phase 2A Status:** ✅ COMPLETE
+**Ready for:** Maintainer review and PR merge
 **Next Phase:** 2B (Verification & Documentation)
 
-**Review Conducted By:** @copilot (GitHub Copilot Agent)  
-**Review Date:** 2026-02-15  
+**Review Conducted By:** @copilot (GitHub Copilot Agent)
+**Review Date:** 2026-02-15
 **Review Confidence:** HIGH (all tests passed, code reviewed, security assessed)
 
 ---
@@ -40508,8 +40508,8 @@ This is **professional-grade testing** that future contributors should emulate.
 <file path="COMPREHENSIVE_REVIEW_2025-11-08.md" size="19.2 KB" language="markdown">
 # Email Security Pipeline - Comprehensive Review Report
 
-**Date:** November 8, 2025  
-**Reviewer:** AI Assistant (Warp)  
+**Date:** November 8, 2025
+**Reviewer:** AI Assistant (Warp)
 **Review Type:** Complete system validation and testing
 
 ---
@@ -41183,8 +41183,8 @@ The system is ready to use with Gmail and/or Proton Mail immediately after creat
 
 ---
 
-**Review Completed:** November 8, 2025  
-**Next Review:** After initial deployment or 30 days  
+**Review Completed:** November 8, 2025
+**Next Review:** After initial deployment or 30 days
 **Status:** ✅ **READY FOR PRODUCTION USE**
 
 ---
@@ -41253,7 +41253,7 @@ Close these 20 PRs with a comment linking to the consolidated PR #160:
 **Security (Sentinel) PRs:**
 - #134 - sentinel-fix-alert-config-leak
 - #143 - sentinel-log-sanitization-fix
-- #123 - sentinel/dos-protection  
+- #123 - sentinel/dos-protection
 - #128 - sentinel-dangerous-extensions
 - #137 - sentinel-media-dos-fix
 - #146 - sentinel/zip-inspection
@@ -41830,7 +41830,7 @@ All changes have been merged in priority order while preserving functionality an
 ## Merge Statistics
 - **Total PRs Merged**: 20
 - **Security (Sentinel)**: 9 PRs
-- **Performance (Bolt)**: 4 PRs  
+- **Performance (Bolt)**: 4 PRs
 - **UX (Palette)**: 7 PRs
 
 ## Detailed Breakdown
@@ -42030,7 +42030,7 @@ All changes have been merged in priority order while preserving functionality an
 
 All 20 PRs have been successfully consolidated with zero data loss and intelligent conflict resolution. The codebase now includes:
 - **Stronger security** against multiple attack vectors
-- **Better performance** through parallelization and optimization  
+- **Better performance** through parallelization and optimization
 - **Enhanced UX** with better feedback and error handling
 
 The consolidation followed security-first principles, ensuring that all security fixes were properly integrated while maintaining performance improvements and UX enhancements.
@@ -43474,9 +43474,9 @@ The fix is minimal, focused, and well-documented.
 
 ---
 
-**Fixed by**: GitHub Copilot Agent  
-**Date**: February 16, 2026  
-**Issue**: #232  
+**Fixed by**: GitHub Copilot Agent
+**Date**: February 16, 2026
+**Issue**: #232
 **Branch**: `copilot/debug-daily-backlog-burner`
 
 </file>
@@ -46785,14 +46785,14 @@ You can start monitoring emails with Gmail and Proton Mail immediately. The Outl
 <file path="TROUBLESHOOTING_SUMMARY.md" size="4.7 KB" language="markdown">
 # Email Security Pipeline Troubleshooting Summary
 
-**Date**: April 2, 2026  
+**Date**: April 2, 2026
 **Status**: ✅ .env detection fixed | ⚠️ Email authentication issues remain
 
 ## What We Fixed
 
 ### 1. Docker .env Detection Issue ✅
-**Problem**: Container couldn't find `/app/.env` file  
-**Root Cause**: `docker-compose.yml` was loading environment **variables** via `env_file`, but the Python app needed the actual `.env` **file** to exist  
+**Problem**: Container couldn't find `/app/.env` file
+**Root Cause**: `docker-compose.yml` was loading environment **variables** via `env_file`, but the Python app needed the actual `.env` **file** to exist
 **Solution**: Added `.env` as a read-only volume mount in `docker-compose.yml`
 
 **Changes Made**:
@@ -46811,7 +46811,7 @@ You can start monitoring emails with Gmail and Proton Mail immediately. The Outl
 ## Remaining Issues
 
 ### Issue 1: Gmail Authentication Failure
-**Error**: `[AUTHENTICATIONFAILED] Invalid credentials (Failure)`  
+**Error**: `[AUTHENTICATIONFAILED] Invalid credentials (Failure)`
 **Current Config**:
 - Email: `abhimhrtr@gmail.com`
 - App Password: `enmfnbufsdmrdpnf` (spaces removed)
@@ -46837,7 +46837,7 @@ docker compose down && docker compose up -d
 ```
 
 ### Issue 2: Proton Mail Bridge SSL Failure
-**Error**: `[SSL] record layer failure (_ssl.c:1016)`  
+**Error**: `[SSL] record layer failure (_ssl.c:1016)`
 **Current Config**:
 - Email: `abhimehro@pm.me`
 - Bridge: `host.docker.internal:1143`
@@ -46932,9 +46932,9 @@ docker compose logs -f
 
 ## Summary
 
-**Fixed**: ✅ Docker .env detection and mounting  
-**Fixed**: ✅ Proton Bridge networking (host.docker.internal)  
-**Next**: 🔍 Need to verify/regenerate both Gmail and Proton credentials  
+**Fixed**: ✅ Docker .env detection and mounting
+**Fixed**: ✅ Proton Bridge networking (host.docker.internal)
+**Next**: 🔍 Need to verify/regenerate both Gmail and Proton credentials
 
 The pipeline infrastructure is now working correctly. The remaining issues are authentication-specific and need credential verification/regeneration.
 
@@ -47757,8 +47757,8 @@ If you encounter any issues after applying this fix:
 
 ---
 
-**Fix Author**: GitHub Copilot  
-**Date**: 2026-02-16  
+**Fix Author**: GitHub Copilot
+**Date**: 2026-02-16
 **Issue**: #232 - [agentics] Daily Backlog Burner failed
 
 </file>

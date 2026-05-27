@@ -349,6 +349,8 @@
 
 **Merged pull requests:**
 
+- 🎨 Palette: Add keyboard shortcut hint to spinner [\#950](https://github.com/abhimehro/email-security-pipeline/pull/950) ([abhimehro](https://github.com/abhimehro))
+- 🎨 Palette: Add keyboard shortcut hint to spinner [\#949](https://github.com/abhimehro/email-security-pipeline/pull/949) ([abhimehro](https://github.com/abhimehro))
 - 🧹 style: fix long lines in setup\_wizard.py via black [\#945](https://github.com/abhimehro/email-security-pipeline/pull/945) ([abhimehro](https://github.com/abhimehro))
 - 🧹 style: fix long lines in setup\_wizard.py via black [\#944](https://github.com/abhimehro/email-security-pipeline/pull/944) ([abhimehro](https://github.com/abhimehro))
 - ⚡ Bolt: Remove re.IGNORECASE penalty in NLPAnalyzer [\#943](https://github.com/abhimehro/email-security-pipeline/pull/943) ([abhimehro](https://github.com/abhimehro))
