@@ -348,9 +348,7 @@ class AppRunner:
                         )
                         os.chmod(self.config_file, 0o600, **chmod_kwargs)
                     else:
-                        print(
-                            f"Error: TOCTOU detected on '{self.config_file}'."
-                        )
+                        print(f"Error: TOCTOU detected on '{self.config_file}'.")
                         sys.exit(1)
                 except OSError as exc:
                     print(f"Error setting permissions: {exc}")
