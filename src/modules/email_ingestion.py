@@ -462,11 +462,13 @@ class EmailIngestionManager:
                     try:
                         client.disconnect()
                     except Exception:
-                        pass
+                        pass  # nosec B110
 
             return folder_emails
 
-        with ThreadPoolExecutor(max_workers=max_folder_workers, thread_name_prefix=f"FolderFetch") as executor:
+        with ThreadPoolExecutor(
+            max_workers=max_folder_workers, thread_name_prefix="FolderFetch"
+        ) as executor:
             futures = []
             for i, folder in enumerate(account.folders):
                 futures.append(executor.submit(_fetch_from_folder, folder, i == 0))
