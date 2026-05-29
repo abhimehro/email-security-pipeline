@@ -351,7 +351,9 @@
 
 **Merged pull requests:**
 
+- Jules 6594818209076343297 c1158f9c [\#958](https://github.com/abhimehro/email-security-pipeline/pull/958) ([abhimehro](https://github.com/abhimehro))
 - No UX Changes Required [\#957](https://github.com/abhimehro/email-security-pipeline/pull/957) ([abhimehro](https://github.com/abhimehro))
+- automation: resolve QA and bandit findings [\#956](https://github.com/abhimehro/email-security-pipeline/pull/956) ([abhimehro](https://github.com/abhimehro))
 - 🧹 Jules Daily QA: Minor linting and security fixes [\#953](https://github.com/abhimehro/email-security-pipeline/pull/953) ([abhimehro](https://github.com/abhimehro))
 - 🎨 Palette: Add keyboard shortcut hint to spinner [\#950](https://github.com/abhimehro/email-security-pipeline/pull/950) ([abhimehro](https://github.com/abhimehro))
 - 🎨 Palette: Add keyboard shortcut hint to spinner [\#949](https://github.com/abhimehro/email-security-pipeline/pull/949) ([abhimehro](https://github.com/abhimehro))
