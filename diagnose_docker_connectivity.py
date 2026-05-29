@@ -7,7 +7,6 @@ This helps identify whether issues are credential-based or network/SSL-based.
 import imaplib
 import os
 import ssl
-import sys
 
 from dotenv import load_dotenv
 
@@ -26,7 +25,7 @@ def test_connection(label, host, port, email, password, use_ssl=True, verify_ssl
             if verify_ssl:
                 context = ssl.create_default_context()
             else:
-                context = ssl._create_unverified_context()
+                context = ssl._create_unverified_context()  # nosec B323
                 print("⚠️  SSL verification DISABLED")
 
             print(f"Connecting to {host}:{port} with SSL...")
@@ -38,7 +37,7 @@ def test_connection(label, host, port, email, password, use_ssl=True, verify_ssl
             if verify_ssl:
                 context = ssl.create_default_context()
             else:
-                context = ssl._create_unverified_context()
+                context = ssl._create_unverified_context()  # nosec B323
             imap.starttls(ssl_context=context)
 
         print("✓ Connection established")
