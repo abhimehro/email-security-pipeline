@@ -6,7 +6,7 @@ import json
 import os
 import re
 import shutil
-import subprocess
+import subprocess  # nosec B404
 import sys
 from pathlib import Path
 from typing import Any
@@ -61,7 +61,7 @@ def run_process(
     timeout: int = 300,
     check: bool = False,
 ) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(
+    return subprocess.run(  # nosec B603
         command,
         cwd=ROOT,
         check=check,
