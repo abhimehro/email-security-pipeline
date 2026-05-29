@@ -14,7 +14,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@900f2210b1d28bbbd0bd22d17926b9e224e8f231
 
       - name: Prepare prompt
         env:
@@ -25,7 +25,7 @@ jobs:
 
       - name: Run AI inference
         id: inference
-        uses: actions/ai-inference@17ff458cb182449bbb2e43701fcd98f6af8f6570 # v2
+        uses: actions/ai-inference@a7805884c80886efc241e94a5351df715968a0ad
         with:
           prompt-file: prompt.txt
 

@@ -22,15 +22,15 @@ jobs:
       issues: write
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@900f2210b1d28bbbd0bd22d17926b9e224e8f231
 
       - name: Setup Python Environment
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@c8813ba1bc76ebf779b911ad8ffccbf2e449cb48
         with:
           python-version: "3.12"
 
       - name: Development Partner Session
-        uses: actions/github-script@v9
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3
         env:
           INPUT_REQUEST: ${{ github.event.inputs.request }}
         with:
@@ -48,7 +48,7 @@ jobs:
 
       - name: PR Review Assistant
         if: github.event_name == 'pull_request'
-        uses: actions/github-script@v9
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
