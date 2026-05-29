@@ -67,7 +67,7 @@ jobs:
 
       - name: Upload workflow updater artifact
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: workflow-updater
           path: .automation-output/workflow-updater
@@ -103,7 +103,7 @@ jobs:
 
       - name: Upload performance artifact
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: performance-optimizer
           path: .automation-output/performance-optimizer
@@ -139,7 +139,7 @@ jobs:
 
       - name: Upload QA artifact
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: quality-assurance
           path: .automation-output/quality-assurance
@@ -175,7 +175,7 @@ jobs:
 
       - name: Upload backlog artifact
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: backlog-manager
           path: .automation-output/backlog-manager
@@ -210,7 +210,7 @@ jobs:
         run: python -m pip install --upgrade pip pyyaml
 
       - name: Download task artifacts
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@484a0b528fb4d7bd804637ccb632e47a0e638317
         with:
           path: .automation-output
 
@@ -220,7 +220,7 @@ jobs:
 
       - name: Upload status artifact
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: daily-status-report
           path: .automation-output/daily-status-report
