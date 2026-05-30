@@ -15,13 +15,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@900f2210b1d28bbbd0bd22d17926b9e224e8f231
-      
+
       - name: Install dependencies
         run: pip install bandit bandit-sarif-formatter
 
       - name: Run Bandit Scan
         run: bandit -f sarif -o results.sarif -r . --exit-zero --ini .bandit
-        
+
       - name: Upload artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
