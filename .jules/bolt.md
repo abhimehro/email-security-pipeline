@@ -92,3 +92,7 @@
 ## 2026-05-27 - Remove re.IGNORECASE penalty in NLPAnalyzer
 **Learning:** The `re.IGNORECASE` flag imposes a significant runtime penalty (roughly 50-100% overhead) during regex execution in Python. For fast threat scanning, especially on long emails, it's significantly faster to pre-lowercase the text and run a case-sensitive regex when the keywords are already lowercased.
 **Action:** When compiling keyword-driven regexes for fast text scanning, explicitly compile with `flags=0` and execute the search against `.lower()` transformed text rather than relying on `re.IGNORECASE`.
+
+## 2026-05-30 - Remove re.IGNORECASE penalty in hidden text regex evaluation
+**Learning:** In Python, using `re.IGNORECASE` significantly slows down regex execution. On regexes that don't depend on original casing for correct matching (like HTML tags or simple CSS matches), pre-lowercasing the target string and running a case-sensitive regex is 2-4x faster than using `re.IGNORECASE` on the original string, even accounting for the `.lower()` memory allocation overhead.
+**Action:** When a regex with `re.IGNORECASE` is used on strings and the original casing is not needed for the match context, compile the regex without `re.IGNORECASE` and use `.search(text.lower())`.

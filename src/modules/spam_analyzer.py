@@ -97,8 +97,7 @@ class SpamAnalyzer:
     IMG_TAG_PATTERN = re.compile(r"<img\b", re.IGNORECASE)
     # Use bounded quantifiers to prevent ReDoS (Regular Expression Denial of Service)
     HIDDEN_TEXT_PATTERN = re.compile(
-        r"font-size:\s*[0-2]px|color:\s*#fff.{0,100}background.{0,100}#fff",
-        re.IGNORECASE,
+        r"font-size:\s*[0-2]px|color:\s*#fff.{0,100}background.{0,100}#fff"
     )
     EMAIL_ADDRESS_PATTERN = re.compile(r"[\w\.-]+@[\w\.-]+")
     SENDER_DOMAIN_PATTERN = re.compile(r"[\w\.-]+@([\w\.-]+)", re.IGNORECASE)
@@ -331,7 +330,7 @@ class SpamAnalyzer:
         # (~20x) than re.compile(..., re.IGNORECASE) despite memory allocation overhead.
         html_lower = html_body.lower()
         if "font-size:" in html_lower or "color:" in html_lower:
-            if self.HIDDEN_TEXT_PATTERN.search(html_body):
+            if self.HIDDEN_TEXT_PATTERN.search(html_lower):
                 score += 2.0
                 indicators.append("Hidden text detected")
         return score, indicators
