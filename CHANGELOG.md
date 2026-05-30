@@ -41,6 +41,7 @@
 
 **Closed issues:**
 
+- Daily QA & Agentic Review — 2026-05-30 [\#959](https://github.com/abhimehro/email-security-pipeline/issues/959)
 - Daily QA & Agentic Review — 2026-05-29 [\#955](https://github.com/abhimehro/email-security-pipeline/issues/955)
 - Daily QA & Agentic Review — 2026-05-28 [\#951](https://github.com/abhimehro/email-security-pipeline/issues/951)
 - Daily QA & Agentic Review — 2026-05-27 [\#941](https://github.com/abhimehro/email-security-pipeline/issues/941)
@@ -351,6 +352,8 @@
 
 **Merged pull requests:**
 
+- 🧹 Fix: Remove trailing whitespace in config files [\#963](https://github.com/abhimehro/email-security-pipeline/pull/963) ([abhimehro](https://github.com/abhimehro))
+- ⚡ Bolt: Remove re.IGNORECASE penalty in hidden text regex evaluation [\#961](https://github.com/abhimehro/email-security-pipeline/pull/961) ([abhimehro](https://github.com/abhimehro))
 - Jules 6594818209076343297 c1158f9c [\#958](https://github.com/abhimehro/email-security-pipeline/pull/958) ([abhimehro](https://github.com/abhimehro))
 - No UX Changes Required [\#957](https://github.com/abhimehro/email-security-pipeline/pull/957) ([abhimehro](https://github.com/abhimehro))
 - automation: resolve QA and bandit findings [\#956](https://github.com/abhimehro/email-security-pipeline/pull/956) ([abhimehro](https://github.com/abhimehro))
