@@ -41,6 +41,7 @@
 
 **Closed issues:**
 
+- \[repo-automation\] Weekly Retrospective - 2026-05-31 [\#969](https://github.com/abhimehro/email-security-pipeline/issues/969)
 - Daily QA & Agentic Review — 2026-05-31 [\#965](https://github.com/abhimehro/email-security-pipeline/issues/965)
 - Daily QA & Agentic Review — 2026-05-30 [\#959](https://github.com/abhimehro/email-security-pipeline/issues/959)
 - Daily QA & Agentic Review — 2026-05-29 [\#955](https://github.com/abhimehro/email-security-pipeline/issues/955)
@@ -353,6 +354,7 @@
 
 **Merged pull requests:**
 
+- 🎨 Palette: Improve connection retry menu scannability [\#970](https://github.com/abhimehro/email-security-pipeline/pull/970) ([abhimehro](https://github.com/abhimehro))
 - 🧹 chore: minor formatting fixes [\#968](https://github.com/abhimehro/email-security-pipeline/pull/968) ([abhimehro](https://github.com/abhimehro))
 - chore\(actions\): consolidate workflow automation [\#966](https://github.com/abhimehro/email-security-pipeline/pull/966) ([abhimehro](https://github.com/abhimehro))
 - 🧹 Fix: Remove trailing whitespace in config files [\#963](https://github.com/abhimehro/email-security-pipeline/pull/963) ([abhimehro](https://github.com/abhimehro))
