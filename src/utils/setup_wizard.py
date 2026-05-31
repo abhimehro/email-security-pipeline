@@ -265,8 +265,12 @@ def _get_credentials(choice: str, provider_name: str) -> tuple[str, str]:
             print(
                 f"\n{Colors.YELLOW}Connection failed. Would you like to try entering credentials again?{Colors.RESET}"
             )
-            print("  y: Try again")
-            print("  n: Proceed anyway (skip verification)")
+            print(
+                f"  {Colors.colorize('y:', Colors.BOLD)} Try again {Colors.colorize('(Recommended)', Colors.GREEN)}"
+            )
+            print(
+                f"  {Colors.colorize('n:', Colors.BOLD)} Proceed anyway {Colors.colorize('(Skip verification)', Colors.YELLOW)}"
+            )
 
             prompt = Colors.colorize("? ", Colors.CYAN) + Colors.colorize(
                 "Retry? [Y/n] ", Colors.BOLD
