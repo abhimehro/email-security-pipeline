@@ -354,6 +354,7 @@
 **Merged pull requests:**
 
 - 🧹 chore: minor formatting fixes [\#968](https://github.com/abhimehro/email-security-pipeline/pull/968) ([abhimehro](https://github.com/abhimehro))
+- chore\(actions\): consolidate workflow automation [\#966](https://github.com/abhimehro/email-security-pipeline/pull/966) ([abhimehro](https://github.com/abhimehro))
 - 🧹 Fix: Remove trailing whitespace in config files [\#963](https://github.com/abhimehro/email-security-pipeline/pull/963) ([abhimehro](https://github.com/abhimehro))
 - ⚡ Bolt: Remove re.IGNORECASE penalty in hidden text regex evaluation [\#961](https://github.com/abhimehro/email-security-pipeline/pull/961) ([abhimehro](https://github.com/abhimehro))
 - Jules 6594818209076343297 c1158f9c [\#958](https://github.com/abhimehro/email-security-pipeline/pull/958) ([abhimehro](https://github.com/abhimehro))
