@@ -58,7 +58,7 @@ class TestPaletteUI(TestCase):
         with patch("sys.stdout") as mock_stdout:
             mock_stdout.isatty.return_value = True
 
-            with patch.object(Spinner, '_start_tty_spinner') as mock_start:
+            with patch.object(Spinner, "_start_tty_spinner") as mock_start:
                 spinner = Spinner("Testing")
                 spinner.__enter__()
                 # Since message is no longer mutated, verify it's passed to _start_tty_spinner correctly
