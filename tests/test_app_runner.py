@@ -140,3 +140,96 @@ def test_start_pipeline(mock_pipeline_class, mock_app_runner):
 
     mock_pipeline_class.assert_called_once_with(mock_app_runner.config_file)
     mock_pipeline_instance.start.assert_called_once()
+
+
+
+
+@patch("os.fchmod")
+def test_set_secure_permissions_primary(mock_fchmod, mock_app_runner):
+    mock_app_runner._set_secure_permissions(123)
+    mock_fchmod.assert_called_once_with(123, 0o600)
+
+@patch("os.chmod")
+@patch("os.fchmod")
+def test_set_secure_permissions_fallback_chmod_fd(mock_fchmod, mock_chmod, mock_app_runner):
+    mock_fchmod.side_effect = AttributeError("fchmod not available")
+    mock_app_runner._set_secure_permissions(123)
+    mock_fchmod.assert_called_once_with(123, 0o600)
+    mock_chmod.assert_called_once_with(123, 0o600)
+
+@patch("os.chmod")
+@patch("os.lstat")
+@patch("os.fstat")
+@patch("os.fchmod")
+def test_set_secure_permissions_fallback_chmod_path(mock_fchmod, mock_fstat, mock_lstat, mock_chmod, mock_app_runner):
+    import os
+    mock_fchmod.side_effect = AttributeError("fchmod not available")
+    mock_chmod.side_effect = [TypeError("chmod fd not supported"), None]
+
+    mock_stat_fd = MagicMock()
+    mock_stat_fd.st_ino = 1
+    mock_stat_fd.st_dev = 2
+    mock_fstat.return_value = mock_stat_fd
+
+    mock_stat_path = MagicMock()
+    mock_stat_path.st_ino = 1
+    mock_stat_path.st_dev = 2
+    mock_lstat.return_value = mock_stat_path
+
+    # Mock the follow_symlinks support
+    original_supports = os.supports_follow_symlinks
+    os.supports_follow_symlinks = {os.chmod}
+
+    try:
+        mock_app_runner._set_secure_permissions(123)
+
+        mock_fchmod.assert_called_once_with(123, 0o600)
+        assert mock_chmod.call_count == 2
+        assert mock_chmod.call_args_list[0] == ((123, 0o600), {})
+        assert mock_chmod.call_args_list[1] == ((mock_app_runner.config_file, 0o600), {"follow_symlinks": False})
+    finally:
+        os.supports_follow_symlinks = original_supports
+
+@patch("src.app_runner.sys.exit")
+@patch("os.lstat")
+@patch("os.fstat")
+@patch("os.chmod")
+@patch("os.fchmod")
+def test_set_secure_permissions_toctou_detected(mock_fchmod, mock_chmod, mock_fstat, mock_lstat, mock_exit, mock_app_runner):
+    mock_fchmod.side_effect = AttributeError("fchmod not available")
+    mock_chmod.side_effect = TypeError("chmod fd not supported")
+    mock_exit.side_effect = SystemExit(1)
+
+    mock_stat_fd = MagicMock()
+    mock_stat_fd.st_ino = 1
+    mock_stat_fd.st_dev = 2
+    mock_fstat.return_value = mock_stat_fd
+
+    mock_stat_path = MagicMock()
+    mock_stat_path.st_ino = 3 # Different inode
+    mock_stat_path.st_dev = 2
+    mock_lstat.return_value = mock_stat_path
+
+    import pytest
+    with pytest.raises(SystemExit) as excinfo:
+        mock_app_runner._set_secure_permissions(123)
+
+    assert excinfo.value.code == 1
+    mock_exit.assert_called_once_with(1)
+
+@patch("src.app_runner.sys.exit")
+@patch("os.fstat")
+@patch("os.chmod")
+@patch("os.fchmod")
+def test_set_secure_permissions_oserror(mock_fchmod, mock_chmod, mock_fstat, mock_exit, mock_app_runner):
+    mock_fchmod.side_effect = AttributeError("fchmod not available")
+    mock_chmod.side_effect = TypeError("chmod fd not supported")
+    mock_fstat.side_effect = OSError("Permission denied")
+    mock_exit.side_effect = SystemExit(1)
+
+    import pytest
+    with pytest.raises(SystemExit) as excinfo:
+        mock_app_runner._set_secure_permissions(123)
+
+    assert excinfo.value.code == 1
+    mock_exit.assert_called_once_with(1)
