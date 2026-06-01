@@ -112,7 +112,7 @@ class TestArchivePathTraversal(unittest.TestCase):
         self.assertTrue(result.threat_score >= 5.0)
         found_warning = False
         for warning in result.suspicious_attachments:
-            if "Archive test.tar contains dangerous file:" in warning:
+            if "Archive test.tar contains dangerous file:" in warning or "Tar file test.tar contains path traversal member:" in warning:
                 self.assertNotIn("../", warning)
                 self.assertNotIn("\n", warning)
                 found_warning = True

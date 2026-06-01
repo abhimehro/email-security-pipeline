@@ -1,0 +1,12 @@
+--- src/modules/media_analyzer.py
++++ src/modules/media_analyzer.py
+@@ -754,7 +754,8 @@
+                 for member in tf:
+                     if member.name.startswith("/") or ".." in member.name:
+                         score += 5.0
+-                        warnings.append(f"Tar file {filename} contains path traversal member: {member.name}")
++                        safe_name = sanitize_for_logging(sanitize_filename(member.name))
++                        warnings.append(f"Tar file {filename} contains path traversal member: {safe_name}")
+                         continue
+ 
+                     file_count += 1

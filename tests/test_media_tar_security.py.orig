@@ -272,7 +272,7 @@ class TestMediaTarSecurity(unittest.TestCase):
         # Expectation: Even with traversal/absolute paths, .exe files inside the tar are detected.
         found_warning = False
         for warning in result.suspicious_attachments:
-            if "contains path traversal member" in warning or "contains dangerous file" in warning:
+            if "contains dangerous file" in warning:
                 found_warning = True
                 break
 
