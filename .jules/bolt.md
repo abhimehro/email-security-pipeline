@@ -96,3 +96,7 @@
 ## 2026-05-30 - Remove re.IGNORECASE penalty in hidden text regex evaluation
 **Learning:** In Python, using `re.IGNORECASE` significantly slows down regex execution. On regexes that don't depend on original casing for correct matching (like HTML tags or simple CSS matches), pre-lowercasing the target string and running a case-sensitive regex is 2-4x faster than using `re.IGNORECASE` on the original string, even accounting for the `.lower()` memory allocation overhead.
 **Action:** When a regex with `re.IGNORECASE` is used on strings and the original casing is not needed for the match context, compile the regex without `re.IGNORECASE` and use `.search(text.lower())`.
+
+## 2025-06-01 - Optimizing Fast Loops in CPython
+**Learning:** For extremely fast, lightweight CPU-bound tasks in Python (like tuple destructuring and basic validation), introducing ThreadPool/ProcessPool executors can severely degrade performance due to GIL contention and IPC overhead.
+**Action:** When asked to optimize tight loops, benchmark C-level functional tools like `filter(None, map(func, iter))` first, which can provide a ~15% speedup without the overhead of parallelism.
