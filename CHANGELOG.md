@@ -364,6 +364,8 @@
 - 🧹 Daily QA Review Completed \(No Findings\) [\#1005](https://github.com/abhimehro/email-security-pipeline/pull/1005) ([abhimehro](https://github.com/abhimehro))
 - 🔒 Sentinel: \[HIGH\] Fix TOCTOU vulnerability in file permissions [\#1004](https://github.com/abhimehro/email-security-pipeline/pull/1004) ([abhimehro](https://github.com/abhimehro))
 - ⚡ Bolt: Parallelize email parsing with ThreadPoolExecutor [\#1000](https://github.com/abhimehro/email-security-pipeline/pull/1000) ([abhimehro](https://github.com/abhimehro))
+- 🧪 \[Test nested TAR member error handling\] [\#995](https://github.com/abhimehro/email-security-pipeline/pull/995) ([abhimehro](https://github.com/abhimehro))
+- 🧹 \[Code Health\] Refactor `_analyze_email` to extract metric/alert logic [\#994](https://github.com/abhimehro/email-security-pipeline/pull/994) ([abhimehro](https://github.com/abhimehro))
 - 🎨 Palette: Improve connection retry menu scannability [\#970](https://github.com/abhimehro/email-security-pipeline/pull/970) ([abhimehro](https://github.com/abhimehro))
 - 🧹 chore: minor formatting fixes [\#968](https://github.com/abhimehro/email-security-pipeline/pull/968) ([abhimehro](https://github.com/abhimehro))
 - chore\(actions\): consolidate workflow automation [\#966](https://github.com/abhimehro/email-security-pipeline/pull/966) ([abhimehro](https://github.com/abhimehro))
