@@ -96,3 +96,6 @@
 ## 2026-05-30 - Remove re.IGNORECASE penalty in hidden text regex evaluation
 **Learning:** In Python, using `re.IGNORECASE` significantly slows down regex execution. On regexes that don't depend on original casing for correct matching (like HTML tags or simple CSS matches), pre-lowercasing the target string and running a case-sensitive regex is 2-4x faster than using `re.IGNORECASE` on the original string, even accounting for the `.lower()` memory allocation overhead.
 **Action:** When a regex with `re.IGNORECASE` is used on strings and the original casing is not needed for the match context, compile the regex without `re.IGNORECASE` and use `.search(text.lower())`.
+## 2026-06-01 - Test Loop Execution Break
+**Learning:** Testing an infinite `while` loop requires injecting a break condition during the loop execution. This can be cleanly achieved using `unittest.mock.patch` with `side_effect` on an internal function call inside the loop to set the `while` condition variable to `False`.
+**Action:** Use a side effect on an internal call like `timer.wait` to safely break out of infinite loops during testing without hanging.
