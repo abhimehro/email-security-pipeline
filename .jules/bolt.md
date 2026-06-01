@@ -96,3 +96,9 @@
 ## 2026-05-30 - Remove re.IGNORECASE penalty in hidden text regex evaluation
 **Learning:** In Python, using `re.IGNORECASE` significantly slows down regex execution. On regexes that don't depend on original casing for correct matching (like HTML tags or simple CSS matches), pre-lowercasing the target string and running a case-sensitive regex is 2-4x faster than using `re.IGNORECASE` on the original string, even accounting for the `.lower()` memory allocation overhead.
 **Action:** When a regex with `re.IGNORECASE` is used on strings and the original casing is not needed for the match context, compile the regex without `re.IGNORECASE` and use `.search(text.lower())`.
+## 2023-10-27 - Parallelize IMAP Email Parsing
+**Learning:** Sequential processing of inherently stateless I/O or CPU-bound tasks (like parsing hundreds of individual raw emails) scales poorly. Python's `ThreadPoolExecutor` can significantly reduce overall processing time.
+**Action:** When iterating over a batch of independent data items to process them (e.g., parsing raw IMAP payloads), use `concurrent.futures.ThreadPoolExecutor.map()` rather than sequential `for` loops. This ensures parallel execution while safely preserving the original ordering of results.
+## 2023-10-27 - Addressing CodeScene Complexity Errors
+**Learning:** Adding new functional blocks with nested context managers (`with` statements) inside large existing methods can trigger static analysis / cyclomatic complexity warnings (like CodeScene's "Complex Method" gate).
+**Action:** When introducing new concurrent blocks (like `ThreadPoolExecutor`), prefer extracting the block into a dedicated private helper method rather than bloating the parent method, improving readability and satisfying static code health gates.
