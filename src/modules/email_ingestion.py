@@ -449,10 +449,19 @@ class EmailIngestionManager:
 
                 raw_emails = client.fetch_unseen_emails(folder, max_per_folder)
 
-                for email_id, raw_email in raw_emails:
-                    email_data = client.parse_email(email_id, raw_email, folder)
-                    if email_data:
-                        folder_emails.append(email_data)
+                if raw_emails:
+                    with ThreadPoolExecutor(
+                        max_workers=min(32, len(raw_emails) if isinstance(raw_emails, list) else 32),
+                        thread_name_prefix="EmailParse"
+                    ) as parse_executor:
+                        # Use map to preserve the original ordering
+                        results = parse_executor.map(
+                            lambda args: client.parse_email(args[0], args[1], folder),
+                            raw_emails
+                        )
+                        for email_data in results:
+                            if email_data:
+                                folder_emails.append(email_data)
             except Exception as e:
                 self.logger.error(
                     f"Error fetching from {sanitize_for_logging(folder)}: {e}"
