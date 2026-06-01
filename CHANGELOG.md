@@ -41,13 +41,20 @@
 
 **Closed issues:**
 
+- Daily QA & Agentic Review — 2026-06-01 [\#971](https://github.com/abhimehro/email-security-pipeline/issues/971)
 - \[repo-automation\] Weekly Retrospective - 2026-05-31 [\#969](https://github.com/abhimehro/email-security-pipeline/issues/969)
+- \[repo-automation\] Daily Status Report - 2026-05-31 [\#967](https://github.com/abhimehro/email-security-pipeline/issues/967)
 - Daily QA & Agentic Review — 2026-05-31 [\#965](https://github.com/abhimehro/email-security-pipeline/issues/965)
+- \[repo-automation\] Daily Status Report - 2026-05-30 [\#964](https://github.com/abhimehro/email-security-pipeline/issues/964)
 - Daily QA & Agentic Review — 2026-05-30 [\#959](https://github.com/abhimehro/email-security-pipeline/issues/959)
 - Daily QA & Agentic Review — 2026-05-29 [\#955](https://github.com/abhimehro/email-security-pipeline/issues/955)
+- \[repo-automation\] Daily Status Report - 2026-05-28 [\#954](https://github.com/abhimehro/email-security-pipeline/issues/954)
 - Daily QA & Agentic Review — 2026-05-28 [\#951](https://github.com/abhimehro/email-security-pipeline/issues/951)
+- \[repo-automation\] Daily Status Report - 2026-05-27 [\#946](https://github.com/abhimehro/email-security-pipeline/issues/946)
 - Daily QA & Agentic Review — 2026-05-27 [\#941](https://github.com/abhimehro/email-security-pipeline/issues/941)
+- \[repo-automation\] Daily Status Report - 2026-05-26 [\#938](https://github.com/abhimehro/email-security-pipeline/issues/938)
 - Daily QA Check - email-security-pipeline - 2026-05-26 [\#934](https://github.com/abhimehro/email-security-pipeline/issues/934)
+- \[repo-automation\] Daily Status Report - 2026-05-25 [\#928](https://github.com/abhimehro/email-security-pipeline/issues/928)
 - Daily QA Check - email-security-pipeline - 2026-05-25 [\#924](https://github.com/abhimehro/email-security-pipeline/issues/924)
 - \[repo-automation\] Weekly Retrospective - 2026-05-24 [\#903](https://github.com/abhimehro/email-security-pipeline/issues/903)
 - \[repo-automation\] Daily Status Report - 2026-05-24 [\#902](https://github.com/abhimehro/email-security-pipeline/issues/902)
@@ -354,6 +361,8 @@
 
 **Merged pull requests:**
 
+- 🧹 Daily QA Review Completed \(No Findings\) [\#1005](https://github.com/abhimehro/email-security-pipeline/pull/1005) ([abhimehro](https://github.com/abhimehro))
+- 🔒 Sentinel: \[HIGH\] Fix TOCTOU vulnerability in file permissions [\#1004](https://github.com/abhimehro/email-security-pipeline/pull/1004) ([abhimehro](https://github.com/abhimehro))
 - 🎨 Palette: Improve connection retry menu scannability [\#970](https://github.com/abhimehro/email-security-pipeline/pull/970) ([abhimehro](https://github.com/abhimehro))
 - 🧹 chore: minor formatting fixes [\#968](https://github.com/abhimehro/email-security-pipeline/pull/968) ([abhimehro](https://github.com/abhimehro))
 - chore\(actions\): consolidate workflow automation [\#966](https://github.com/abhimehro/email-security-pipeline/pull/966) ([abhimehro](https://github.com/abhimehro))
