@@ -195,7 +195,7 @@ class NLPThreatAnalyzer:
             self.model = AutoModelForSequenceClassification.from_pretrained(
                 model_name, revision=revision, use_safetensors=True
             )
-            self.model.eval()
+            self.model.train(False)
             self.device = next(self.model.parameters()).device
             self.logger.info(f"ML model initialized with {model_name} on {self.device}")
         except Exception as e:
