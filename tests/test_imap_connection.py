@@ -544,5 +544,58 @@ class TestIMAPDiagnosticsSSLCertificate(unittest.TestCase):
         self.assertIn("SSL check failed", result["error"])
 
 
+
+class TestIMAPConnectionFetchEmailsInternal(unittest.TestCase):
+    """Tests for IMAPConnection._fetch_emails_internal()."""
+
+    def setUp(self):
+        self.config = _make_config()
+        self.conn = IMAPConnection(self.config)
+        self.conn.logger = MagicMock()
+        self.conn.connection = MagicMock()
+        self.conn._fetch_batch = MagicMock(return_value=[("1", b"raw1")])
+
+    @patch("src.modules.imap_connection.time.sleep")
+    def test_fetch_emails_internal_success(self, mock_sleep):
+        """Should fetch and return unseen emails in batches."""
+        self.conn.connection.search.return_value = ("OK", [b"1 2"])
+        # We need to simulate fetching 2 emails, but the batch size is 50.
+        # So _fetch_batch will only be called once with both IDs.
+        self.conn._fetch_batch.side_effect = [[("1", b"raw1"), ("2", b"raw2")]]
+
+        result = self.conn._fetch_emails_internal("INBOX", limit=2)
+
+        self.assertEqual(len(result), 2)
+        self.conn.connection.search.assert_called_with(None, "UNSEEN")
+        self.conn._fetch_batch.assert_called_once_with([b"1", b"2"])
+
+    def test_fetch_emails_internal_search_failed(self):
+        """Should return empty list if search fails."""
+        self.conn.connection.search.return_value = ("NO", [])
+
+        result = self.conn._fetch_emails_internal("INBOX")
+
+        self.assertEqual(result, [])
+        self.conn.logger.warning.assert_called()
+
+    def test_fetch_emails_internal_no_unseen(self):
+        """Should return empty list if no unseen emails."""
+        self.conn.connection.search.return_value = ("OK", [b""])
+
+        result = self.conn._fetch_emails_internal("INBOX")
+
+        self.assertEqual(result, [])
+        self.conn.logger.debug.assert_called()
+
+    def test_fetch_emails_internal_exception(self):
+        """Should return empty list and log error on exception."""
+        self.conn.connection.search.side_effect = Exception("Search error")
+
+        result = self.conn._fetch_emails_internal("INBOX")
+
+        self.assertEqual(result, [])
+        self.conn.logger.error.assert_called()
+
+
 if __name__ == "__main__":
     unittest.main()
