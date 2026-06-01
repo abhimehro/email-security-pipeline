@@ -20,6 +20,7 @@ from unittest.mock import MagicMock, patch
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src.modules.email_ingestion import EmailIngestionManager
+from src.utils.sanitization import sanitize_for_logging, redact_email
 from src.utils.config import EmailAccountConfig
 
 
@@ -218,6 +219,55 @@ class TestEmailIngestionManagerFetch(unittest.TestCase):
         self.assertEqual(len(result), 2)
         self.assertIn(email_inbox, result)
         self.assertIn(email_spam, result)
+
+
+    @patch("src.modules.email_ingestion.IMAPClient")
+    def test_fetch_from_folder_connect_error_path(self, MockIMAPClient):
+        """If secondary client fails to connect, log error and skip folder."""
+        account = _make_account("user@example.com", folders=["INBOX", "Spam"])
+
+        # The persistent client for the first folder
+        persistent_client = MagicMock()
+        persistent_client.ensure_connection.return_value = True
+        persistent_client.fetch_unseen_emails.return_value = [("1", b"raw1")]
+
+        # The new client instantiated for the second folder which fails to connect
+        temp_client = MagicMock()
+        temp_client.connect.return_value = False
+
+        MockIMAPClient.return_value = temp_client
+
+        manager = EmailIngestionManager([account])
+        manager.logger = MagicMock()
+        manager.clients = {"user@example.com": persistent_client}
+
+        result = manager.fetch_all_emails()
+        manager.logger.error.assert_any_call(
+            f"Failed to connect for folder {sanitize_for_logging('Spam')} "
+            f"on {redact_email('user@example.com')}"
+        )
+
+        # Ensure cleanup wasn't called on temp_client because connect failed
+        temp_client.disconnect.assert_not_called()
+
+    @patch("src.modules.email_ingestion.IMAPClient")
+    def test_fetch_from_folder_exception_path(self, MockIMAPClient):
+        """If fetching from a folder throws an exception, catch and log it."""
+        account = _make_account("user@example.com", folders=["INBOX", "Spam"])
+
+        # The persistent client for the first folder
+        persistent_client = MagicMock()
+        persistent_client.ensure_connection.return_value = True
+        persistent_client.fetch_unseen_emails.side_effect = Exception("Test fetch exception")
+
+        manager = EmailIngestionManager([account])
+        manager.logger = MagicMock()
+        manager.clients = {"user@example.com": persistent_client}
+
+        result = manager.fetch_all_emails()
+        manager.logger.error.assert_any_call(
+            f"Error fetching from {sanitize_for_logging('INBOX')}: Test fetch exception"
+        )
 
 
 class TestEmailIngestionManagerClose(unittest.TestCase):
