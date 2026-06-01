@@ -45,6 +45,36 @@ class TestMediaAnalyzerBug(unittest.TestCase):
         except Exception as e:
             self.fail(f"Caught unexpected exception: {type(e).__name__}: {e}")
 
+    def test_analyze_deepfake_threat_general_exception(self):
+        # Create a mock config
+        config = MagicMock()
+        config.media_analysis_timeout = 10
+
+        analyzer = MediaAuthenticityAnalyzer(config)
+        analyzer.logger = MagicMock()
+
+        # Mock executor to return a future that raises an Exception
+        mock_future = MagicMock()
+        mock_future.result.side_effect = Exception("General deepfake analysis error")
+        analyzer._deepfake_executor = MagicMock()
+        analyzer._deepfake_executor.submit.return_value = mock_future
+
+        # Call the method
+        result = analyzer._analyze_deepfake_threat("test.mp4", b"data", "video/mp4")
+
+        # Verify the structure returned
+        self.assertEqual(result["score"], 0.0)
+        self.assertEqual(result["indicators"], [])
+        self.assertEqual(result["errors"], [])
+
+        # Verify logger.error was called with the correct message
+        analyzer.logger.error.assert_called_once()
+        args, _ = analyzer.logger.error.call_args
+        self.assertIn(
+            "Deepfake analysis failed for test.mp4: General deepfake analysis error",
+            args[0],
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
