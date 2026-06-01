@@ -746,10 +746,26 @@ class MediaAuthenticityAnalyzer:
 
         try:
             with tarfile.open(fileobj=io.BytesIO(data), mode="r:*") as tf:
+                # SECURITY: Apply PEP-706 data filter if available to prevent extraction traversal
+                if hasattr(tarfile, "data_filter"):
+                    tf.extraction_filter = getattr(
+                        tarfile, "data_filter", (lambda member, path: member)
+                    )
+
                 file_count = 0
                 max_files = self.MAX_ZIP_FILE_COUNT
 
                 for member in tf:
+                    # SECURITY: Explicitly check for absolute paths and path traversal attempts
+                    if member.name.startswith("/") or ".." in member.name:
+                        score += 5.0
+                        warnings.append(
+                            f"Tar file {filename} contains path traversal attempt: {member.name}"
+                        )
+                        # Do not 'continue', allow it to be processed so dangerous file check triggers
+                        # and the filename gets sanitized for the warning
+                        pass
+
                     file_count += 1
                     if file_count > max_files:
                         score += 1.0
