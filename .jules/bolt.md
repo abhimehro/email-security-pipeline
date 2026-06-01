@@ -96,3 +96,6 @@
 ## 2026-05-30 - Remove re.IGNORECASE penalty in hidden text regex evaluation
 **Learning:** In Python, using `re.IGNORECASE` significantly slows down regex execution. On regexes that don't depend on original casing for correct matching (like HTML tags or simple CSS matches), pre-lowercasing the target string and running a case-sensitive regex is 2-4x faster than using `re.IGNORECASE` on the original string, even accounting for the `.lower()` memory allocation overhead.
 **Action:** When a regex with `re.IGNORECASE` is used on strings and the original casing is not needed for the match context, compile the regex without `re.IGNORECASE` and use `.search(text.lower())`.
+## 2026-06-01 - Test Coverage Improved for _process_singlepart_body
+**Learning:** `_process_singlepart_body` lacked tests targeting error recovery blocks during email payload extraction.
+**Action:** Created `TestProcessSinglepartBody` using `unittest.mock.patch.object` on `_decode_bytes` to enforce deterministic entry into `UnicodeDecodeError` and generic `Exception` paths.
