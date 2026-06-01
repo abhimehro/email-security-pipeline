@@ -46,5 +46,35 @@ class TestMediaAnalyzerBug(unittest.TestCase):
             self.fail(f"Caught unexpected exception: {type(e).__name__}: {e}")
 
 
+
+    def test_handle_nested_tar_member_extraction_error(self):
+        config = MagicMock()
+        config.check_media_attachments = True
+        config.deepfake_detection_enabled = False
+
+        analyzer = MediaAuthenticityAnalyzer(config)
+        analyzer.logger = MagicMock()
+
+        # Mock TarFile and TarInfo
+        mock_tf = MagicMock()
+        mock_member = MagicMock()
+        mock_member.name = "nested.zip"
+        mock_member.size = 100
+
+        # Mock extraction to raise an Exception
+        mock_tf.extractfile.side_effect = Exception("Mocked extraction error")
+
+        score, warnings = analyzer._handle_nested_tar_member(
+            tf=mock_tf, member=mock_member, parent_filename="parent.tar", depth=0
+        )
+
+        self.assertEqual(score, 3.0)
+        self.assertEqual(len(warnings), 1)
+        self.assertIn(
+            "Failed to inspect nested archive nested.zip: Mocked extraction error",
+            warnings[0],
+        )
+        analyzer.logger.warning.assert_called()
+
 if __name__ == "__main__":
     unittest.main()

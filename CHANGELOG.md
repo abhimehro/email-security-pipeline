@@ -41,13 +41,20 @@
 
 **Closed issues:**
 
+- Daily QA & Agentic Review — 2026-06-01 [\#971](https://github.com/abhimehro/email-security-pipeline/issues/971)
 - \[repo-automation\] Weekly Retrospective - 2026-05-31 [\#969](https://github.com/abhimehro/email-security-pipeline/issues/969)
+- \[repo-automation\] Daily Status Report - 2026-05-31 [\#967](https://github.com/abhimehro/email-security-pipeline/issues/967)
 - Daily QA & Agentic Review — 2026-05-31 [\#965](https://github.com/abhimehro/email-security-pipeline/issues/965)
+- \[repo-automation\] Daily Status Report - 2026-05-30 [\#964](https://github.com/abhimehro/email-security-pipeline/issues/964)
 - Daily QA & Agentic Review — 2026-05-30 [\#959](https://github.com/abhimehro/email-security-pipeline/issues/959)
 - Daily QA & Agentic Review — 2026-05-29 [\#955](https://github.com/abhimehro/email-security-pipeline/issues/955)
+- \[repo-automation\] Daily Status Report - 2026-05-28 [\#954](https://github.com/abhimehro/email-security-pipeline/issues/954)
 - Daily QA & Agentic Review — 2026-05-28 [\#951](https://github.com/abhimehro/email-security-pipeline/issues/951)
+- \[repo-automation\] Daily Status Report - 2026-05-27 [\#946](https://github.com/abhimehro/email-security-pipeline/issues/946)
 - Daily QA & Agentic Review — 2026-05-27 [\#941](https://github.com/abhimehro/email-security-pipeline/issues/941)
+- \[repo-automation\] Daily Status Report - 2026-05-26 [\#938](https://github.com/abhimehro/email-security-pipeline/issues/938)
 - Daily QA Check - email-security-pipeline - 2026-05-26 [\#934](https://github.com/abhimehro/email-security-pipeline/issues/934)
+- \[repo-automation\] Daily Status Report - 2026-05-25 [\#928](https://github.com/abhimehro/email-security-pipeline/issues/928)
 - Daily QA Check - email-security-pipeline - 2026-05-25 [\#924](https://github.com/abhimehro/email-security-pipeline/issues/924)
 - \[repo-automation\] Weekly Retrospective - 2026-05-24 [\#903](https://github.com/abhimehro/email-security-pipeline/issues/903)
 - \[repo-automation\] Daily Status Report - 2026-05-24 [\#902](https://github.com/abhimehro/email-security-pipeline/issues/902)
@@ -354,6 +361,19 @@
 
 **Merged pull requests:**
 
+- 🧹 Daily QA Review Completed \(No Findings\) [\#1005](https://github.com/abhimehro/email-security-pipeline/pull/1005) ([abhimehro](https://github.com/abhimehro))
+- 🔒 Sentinel: \[HIGH\] Fix TOCTOU vulnerability in file permissions [\#1004](https://github.com/abhimehro/email-security-pipeline/pull/1004) ([abhimehro](https://github.com/abhimehro))
+- ⚡ Bolt: Parallelize email parsing with ThreadPoolExecutor [\#1000](https://github.com/abhimehro/email-security-pipeline/pull/1000) ([abhimehro](https://github.com/abhimehro))
+- 🧪 \[Test nested TAR member error handling\] [\#995](https://github.com/abhimehro/email-security-pipeline/pull/995) ([abhimehro](https://github.com/abhimehro))
+- 🧹 \[Code Health\] Refactor `_analyze_email` to extract metric/alert logic [\#994](https://github.com/abhimehro/email-security-pipeline/pull/994) ([abhimehro](https://github.com/abhimehro))
+- 🧪 \[testing improvement\] Add test coverage for \_fetch\_emails\_internal error recovery [\#993](https://github.com/abhimehro/email-security-pipeline/pull/993) ([abhimehro](https://github.com/abhimehro))
+- 🧪 Add test for error path in EmailSecurityPipeline.\_analyze\_email [\#988](https://github.com/abhimehro/email-security-pipeline/pull/988) ([abhimehro](https://github.com/abhimehro))
+- 🧪 \[testing improvement\] Add tests for frame resize error handling [\#986](https://github.com/abhimehro/email-security-pipeline/pull/986) ([abhimehro](https://github.com/abhimehro))
+- 🧪 \[testing improvement\] Add test for alert worker loop exception cleanup [\#983](https://github.com/abhimehro/email-security-pipeline/pull/983) ([abhimehro](https://github.com/abhimehro))
+- 🧪 Add exception test for singlepart attachment processing [\#978](https://github.com/abhimehro/email-security-pipeline/pull/978) ([abhimehro](https://github.com/abhimehro))
+- 🧹 \[Code Health\] Extract helper method for address formatting to reduce nesting [\#977](https://github.com/abhimehro/email-security-pipeline/pull/977) ([abhimehro](https://github.com/abhimehro))
+- 🧪 \[testing improvement\] Add coverage for test fetch from folder error path [\#976](https://github.com/abhimehro/email-security-pipeline/pull/976) ([abhimehro](https://github.com/abhimehro))
+- 🧪 \[Add test coverage for video frame advance error path\] [\#975](https://github.com/abhimehro/email-security-pipeline/pull/975) ([abhimehro](https://github.com/abhimehro))
 - 🎨 Palette: Improve connection retry menu scannability [\#970](https://github.com/abhimehro/email-security-pipeline/pull/970) ([abhimehro](https://github.com/abhimehro))
 - 🧹 chore: minor formatting fixes [\#968](https://github.com/abhimehro/email-security-pipeline/pull/968) ([abhimehro](https://github.com/abhimehro))
 - chore\(actions\): consolidate workflow automation [\#966](https://github.com/abhimehro/email-security-pipeline/pull/966) ([abhimehro](https://github.com/abhimehro))

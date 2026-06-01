@@ -177,3 +177,33 @@ class TestDecodeHeaderValue:
         mock_logger.debug.assert_called_once()
         msg = mock_logger.debug.call_args[0][0]
         assert "ValueError" in msg
+
+
+# ---------------------------------------------------------------------------
+# _process_singlepart_attachment – exception handling
+# ---------------------------------------------------------------------------
+
+
+class TestProcessSinglepartAttachment:
+    def test_generic_exception_is_logged_as_error(self):
+        """Any exception when extracting an attachment must be caught and logged as an error."""
+        parser = _make_parser()
+        msg = MagicMock(spec=Message)
+        attachments = []
+
+        with patch.object(
+            parser,
+            "_extract_attachment",
+            side_effect=RuntimeError("simulated attachment error"),
+        ):
+            parser._process_singlepart_attachment(msg, attachments, "email_003")
+
+        # The exception should be caught, not crash
+        assert len(attachments) == 0
+
+        # And it should be logged as an error
+        parser.logger.error.assert_called_once()
+        error_msg = parser.logger.error.call_args[0][0]
+        assert "email_003" in error_msg
+        assert "RuntimeError" in error_msg
+        assert "simulated attachment error" in error_msg
