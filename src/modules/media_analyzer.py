@@ -177,6 +177,10 @@ class MediaAuthenticityAnalyzer:
     # Tuple of just the byte prefixes for fast `startswith` check
     MAGIC_PREFIXES_OFFSET_0 = tuple(sig for sig, _ in MAGIC_SIGNATURES_OFFSET_0)
 
+    # Optimization: Dictionary and length list for fast O(1) signature matching
+    MAGIC_DICT_OFFSET_0 = {sig: name for sig, name in MAGIC_SIGNATURES_OFFSET_0}
+    MAGIC_LENGTHS_OFFSET_0 = tuple(sorted(set(len(sig) for sig, _ in MAGIC_SIGNATURES_OFFSET_0), reverse=True))
+
     # Expected extensions for content type mismatch checking
     # Optimization: Moving this dictionary to the class level avoids re-creating
     # it on every file check, and using tuples allows fast C-level str.endswith()
@@ -430,8 +434,9 @@ class MediaAuthenticityAnalyzer:
 
         # Optimization: Fast check for all signatures with offset 0
         if data.startswith(self.MAGIC_PREFIXES_OFFSET_0):
-            for sig, name in self.MAGIC_SIGNATURES_OFFSET_0:
-                if data.startswith(sig):
+            for length in self.MAGIC_LENGTHS_OFFSET_0:
+                name = self.MAGIC_DICT_OFFSET_0.get(data[:length])
+                if name:
                     return name
 
         # Check signatures with non-zero offset

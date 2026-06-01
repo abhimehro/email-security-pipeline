@@ -96,3 +96,7 @@
 ## 2026-05-30 - Remove re.IGNORECASE penalty in hidden text regex evaluation
 **Learning:** In Python, using `re.IGNORECASE` significantly slows down regex execution. On regexes that don't depend on original casing for correct matching (like HTML tags or simple CSS matches), pre-lowercasing the target string and running a case-sensitive regex is 2-4x faster than using `re.IGNORECASE` on the original string, even accounting for the `.lower()` memory allocation overhead.
 **Action:** When a regex with `re.IGNORECASE` is used on strings and the original casing is not needed for the match context, compile the regex without `re.IGNORECASE` and use `.search(text.lower())`.
+
+## 2024-05-18 - Optimized python loop over signatures with slice and dictionary
+**Learning:** Checking for prefixes across an entire tuple/list iteratively is slower in Python than checking for sliced length sizes against a pre-compiled mapping (dictionary), especially as the length of the list grows.
+**Action:** When a loop involves checking `startswith()` multiple times over a static set of string values, construct a `MAGIC_DICT` mapping signatures to targets, and a `MAGIC_LENGTH` set. Check `MAGIC_DICT.get(data[:length])` instead.
