@@ -142,8 +142,6 @@ def test_start_pipeline(mock_pipeline_class, mock_app_runner):
     mock_pipeline_instance.start.assert_called_once()
 
 
-
-
 @patch("os.fchmod")
 def test_set_secure_permissions_primary(mock_fchmod, mock_app_runner):
     mock_app_runner._set_secure_permissions(123)
