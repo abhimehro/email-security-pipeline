@@ -96,3 +96,6 @@
 ## 2026-05-30 - Remove re.IGNORECASE penalty in hidden text regex evaluation
 **Learning:** In Python, using `re.IGNORECASE` significantly slows down regex execution. On regexes that don't depend on original casing for correct matching (like HTML tags or simple CSS matches), pre-lowercasing the target string and running a case-sensitive regex is 2-4x faster than using `re.IGNORECASE` on the original string, even accounting for the `.lower()` memory allocation overhead.
 **Action:** When a regex with `re.IGNORECASE` is used on strings and the original casing is not needed for the match context, compile the regex without `re.IGNORECASE` and use `.search(text.lower())`.
+## 2026-06-01 - Code Health Improvement: Centralize Imports
+**Learning:** Local imports (like `import os`) nested inside functions should be avoided as they can result in duplication and hurt code maintainability, unless there is a specific need such as circular dependency resolution.
+**Action:** Always check and push redundant local imports to the top level of the module to align with PEP-8.

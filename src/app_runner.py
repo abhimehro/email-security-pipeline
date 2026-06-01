@@ -1,5 +1,6 @@
 import signal
 import sys
+import os
 from pathlib import Path
 from typing import List, NoReturn, Optional
 
@@ -146,7 +147,6 @@ class AppRunner:
                 response = self._styled_input(prompt).lower()
                 if response in ("", "y", "yes"):
                     try:
-                        import os
 
                         with open(".env.example", "rb") as src:
                             content = src.read()
@@ -288,7 +288,6 @@ class AppRunner:
 
     def _create_config_from_template(self) -> None:
         """Create the configuration file from .env.example with secure permissions."""
-        import os
 
         with open(".env.example", "rb") as src:
             content = src.read()
@@ -318,7 +317,6 @@ class AppRunner:
 
     def _set_secure_permissions(self, fd: int) -> None:
         """Set restrictive permissions (0o600) on a file descriptor with fallback."""
-        import os
 
         # Prioritize using the file descriptor to prevent TOCTOU vulnerabilities.
         try:
