@@ -384,6 +384,22 @@ class EmailIngestionManager:
         client.max_body_size = self.max_body_size
         return client
 
+    def _parse_emails_parallel(
+        self, client: IMAPClient, raw_emails: List[Tuple[str, bytes]], folder: str, folder_emails: List[EmailData]
+    ) -> None:
+        """Helper to parse emails concurrently."""
+        with ThreadPoolExecutor(
+            max_workers=min(32, len(raw_emails) if isinstance(raw_emails, list) else 32),
+            thread_name_prefix="EmailParse"
+        ) as parse_executor:
+            results = parse_executor.map(
+                lambda args: client.parse_email(args[0], args[1], folder),
+                raw_emails
+            )
+            for email_data in results:
+                if email_data:
+                    folder_emails.append(email_data)
+
     def _process_account(
         self, account: EmailAccountConfig, max_per_folder: int
     ) -> List[EmailData]:
@@ -450,18 +466,7 @@ class EmailIngestionManager:
                 raw_emails = client.fetch_unseen_emails(folder, max_per_folder)
 
                 if raw_emails:
-                    with ThreadPoolExecutor(
-                        max_workers=min(32, len(raw_emails) if isinstance(raw_emails, list) else 32), 
-                        thread_name_prefix="EmailParse"
-                    ) as parse_executor:
-                        # Use map to preserve the original ordering
-                        results = parse_executor.map(
-                            lambda args: client.parse_email(args[0], args[1], folder),
-                            raw_emails
-                        )
-                        for email_data in results:
-                            if email_data:
-                                folder_emails.append(email_data)
+                    self._parse_emails_parallel(client, raw_emails, folder, folder_emails)
             except Exception as e:
                 self.logger.error(
                     f"Error fetching from {sanitize_for_logging(folder)}: {e}"
