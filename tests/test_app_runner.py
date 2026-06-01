@@ -99,7 +99,7 @@ def test_ensure_config_exists_non_interactive(mock_isatty, mock_path, mock_app_r
         mock_non_interactive.assert_called_once()
 
 
-@patch("src.app_runner.print")
+@patch("builtins.print")
 def test_handle_missing_config_non_interactive(mock_print, mock_app_runner):
     with patch("src.app_runner.Path") as mock_path:
         mock_path_instance = MagicMock()
@@ -140,3 +140,56 @@ def test_start_pipeline(mock_pipeline_class, mock_app_runner):
 
     mock_pipeline_class.assert_called_once_with(mock_app_runner.config_file)
     mock_pipeline_instance.start.assert_called_once()
+
+
+@patch("builtins.print")
+@patch("os.fdopen")
+@patch("os.open")
+@patch("builtins.open", new_callable=MagicMock)
+def test_create_config_from_template_success(mock_open, mock_os_open, mock_fdopen, mock_print, mock_app_runner):
+    import os
+    mock_file = MagicMock()
+    mock_open.return_value.__enter__.return_value = mock_file
+    mock_file.read.return_value = b"MOCK_CONTENT"
+
+    mock_fd = 42
+    mock_os_open.return_value = mock_fd
+    
+    mock_fdopen_file = MagicMock()
+    mock_fdopen.return_value.__enter__.return_value = mock_fdopen_file
+
+    with patch.object(mock_app_runner, "_set_secure_permissions") as mock_set_permissions:
+        mock_app_runner._create_config_from_template()
+
+        mock_open.assert_called_once_with(".env.example", "rb")
+        
+        flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL
+        if hasattr(os, "O_NOFOLLOW"):
+            flags |= os.O_NOFOLLOW
+            
+        mock_os_open.assert_called_once_with(mock_app_runner.config_file, flags, 0o600)
+        mock_set_permissions.assert_called_once_with(mock_fd)
+        
+        mock_fdopen.assert_called_once_with(mock_fd, "wb")
+        mock_fdopen_file.write.assert_called_once_with(b"MOCK_CONTENT")
+        mock_print.assert_called()
+
+@patch("os.close")
+@patch("os.fdopen")
+@patch("os.open")
+@patch("builtins.open", new_callable=MagicMock)
+def test_create_config_from_template_error_handling(mock_open, mock_os_open, mock_fdopen, mock_close, mock_app_runner):
+    mock_file = MagicMock()
+    mock_open.return_value.__enter__.return_value = mock_file
+    mock_file.read.return_value = b"MOCK_CONTENT"
+    
+    mock_fd = 42
+    mock_os_open.return_value = mock_fd
+
+    with patch.object(mock_app_runner, "_set_secure_permissions") as mock_set_permissions:
+        mock_set_permissions.side_effect = Exception("Test Error")
+        
+        with pytest.raises(Exception, match="Test Error"):
+            mock_app_runner._create_config_from_template()
+
+        mock_close.assert_called_once_with(mock_fd)
