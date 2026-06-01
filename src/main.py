@@ -350,20 +350,16 @@ class EmailSecurityPipeline:
                 email_data, spam_result, nlp_result, media_result
             )
 
-            # Send alerts
-            self.alert_system.send_alert(threat_report)
+            # Process threat report
+            self._handle_threat_report(threat_report)
 
             # Calculate processing time
             processing_time_ms = (time.time() - start_time) * 1000
 
-            # Record metrics if enabled
-            if self.metrics:
-                self.metrics.record_email_processed()
-                self.metrics.record_processing_time(processing_time_ms)
-
-                self._record_threat_metrics(
-                    threat_report, spam_result, nlp_result, media_result
-                )
+            # Record metrics
+            self._record_analysis_metrics(
+                processing_time_ms, threat_report, spam_result, nlp_result, media_result
+            )
 
             self.logger.info(
                 f"Analysis complete: overall_score={threat_report.overall_threat_score:.2f}, "
@@ -375,6 +371,21 @@ class EmailSecurityPipeline:
             if self.metrics:
                 self.metrics.record_error("analysis_error")
             self.logger.error(f"Error analyzing email: {e}", exc_info=True)
+
+    def _handle_threat_report(self, threat_report):
+        """Process the threat report and send alerts if necessary."""
+        self.alert_system.send_alert(threat_report)
+
+    def _record_analysis_metrics(
+        self, processing_time_ms, threat_report, spam_result, nlp_result, media_result
+    ):
+        """Record performance and threat metrics for the analysis."""
+        if self.metrics:
+            self.metrics.record_email_processed()
+            self.metrics.record_processing_time(processing_time_ms)
+            self._record_threat_metrics(
+                threat_report, spam_result, nlp_result, media_result
+            )
 
     def _log_metrics_summary(self):
         """
