@@ -34,3 +34,6 @@
 - [x] Run `python3 -m pytest` to verify the local test environment
 - [x] Run `python3 src/main.py` to demonstrate application startup behavior
 - [x] Configure Cursor Cloud startup dependency refresh for future sessions
+## Completed Tasks
+- [x] Refactor nested conditionals in `_record_threat_metrics` to dictionary mapping.
+- [x] Create PR with ELIR summary.
