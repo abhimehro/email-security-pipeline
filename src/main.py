@@ -292,9 +292,7 @@ class EmailSecurityPipeline:
 
         return spam_result, nlp_result, media_result
 
-    def _record_threat_metrics(
-        self, threat_report, spam_result, nlp_result, media_result
-    ):
+    def _record_threat_metrics(self, threat_report):
         """Record metrics for detected threats."""
         if not self.metrics or threat_report.risk_level.lower() not in {
             "medium",
@@ -303,19 +301,19 @@ class EmailSecurityPipeline:
             return
 
         threat_type = "unknown"
-        max_score = max(
-            spam_result.score,
-            nlp_result.threat_score,
-            media_result.threat_score,
-        )
+        spam_score = threat_report.spam_analysis.get("score", 0)
+        nlp_score = threat_report.nlp_analysis.get("score", 0)
+        media_score = threat_report.media_analysis.get("score", 0)
+
+        max_score = max(spam_score, nlp_score, media_score)
 
         if max_score == 0:
             threat_type = "spam"
-        elif spam_result.score == max_score:
+        elif spam_score == max_score:
             threat_type = "spam"
-        elif nlp_result.threat_score == max_score:
+        elif nlp_score == max_score:
             threat_type = "phishing"
-        elif media_result.threat_score == max_score:
+        elif media_score == max_score:
             threat_type = "malware"
 
         self.metrics.record_threat(threat_type, threat_report.risk_level.lower())
@@ -357,9 +355,7 @@ class EmailSecurityPipeline:
             processing_time_ms = (time.time() - start_time) * 1000
 
             # Record metrics
-            self._record_analysis_metrics(
-                processing_time_ms, threat_report, spam_result, nlp_result, media_result
-            )
+            self._record_analysis_metrics(processing_time_ms, threat_report)
 
             self.logger.info(
                 f"Analysis complete: overall_score={threat_report.overall_threat_score:.2f}, "
@@ -376,16 +372,12 @@ class EmailSecurityPipeline:
         """Process the threat report and send alerts if necessary."""
         self.alert_system.send_alert(threat_report)
 
-    def _record_analysis_metrics(
-        self, processing_time_ms, threat_report, spam_result, nlp_result, media_result
-    ):
+    def _record_analysis_metrics(self, processing_time_ms, threat_report):
         """Record performance and threat metrics for the analysis."""
         if self.metrics:
             self.metrics.record_email_processed()
             self.metrics.record_processing_time(processing_time_ms)
-            self._record_threat_metrics(
-                threat_report, spam_result, nlp_result, media_result
-            )
+            self._record_threat_metrics(threat_report)
 
     def _log_metrics_summary(self):
         """
