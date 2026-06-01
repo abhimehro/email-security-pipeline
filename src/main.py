@@ -302,21 +302,19 @@ class EmailSecurityPipeline:
         }:
             return
 
-        threat_type = "unknown"
         max_score = max(
             spam_result.score,
             nlp_result.threat_score,
             media_result.threat_score,
         )
 
-        if max_score == 0:
-            threat_type = "spam"
-        elif spam_result.score == max_score:
-            threat_type = "spam"
-        elif nlp_result.threat_score == max_score:
-            threat_type = "phishing"
-        elif media_result.threat_score == max_score:
-            threat_type = "malware"
+        threat_mapping = {
+            media_result.threat_score: "malware",
+            nlp_result.threat_score: "phishing",
+            spam_result.score: "spam",
+            0: "spam",
+        }
+        threat_type = threat_mapping.get(max_score, "unknown")
 
         self.metrics.record_threat(threat_type, threat_report.risk_level.lower())
 
