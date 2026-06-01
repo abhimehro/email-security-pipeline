@@ -544,5 +544,39 @@ class TestIMAPDiagnosticsSSLCertificate(unittest.TestCase):
         self.assertIn("SSL check failed", result["error"])
 
 
+class TestIMAPConnectionParseSizeItem(unittest.TestCase):
+    """Tests for IMAPConnection._parse_size_item()."""
+
+    def setUp(self):
+        self.config = _make_config()
+        self.conn = IMAPConnection(self.config)
+        self.conn.logger = MagicMock()
+
+    def test_parse_size_item_valid(self):
+        """Happy path: correctly formats and extracts sequence and size."""
+        result = self.conn._parse_size_item(b"1 (RFC822.SIZE 1024)")
+        self.assertEqual(result, (b"1", 1024))
+
+    def test_parse_size_item_tuple(self):
+        """Valid tuple input (commonly returned by IMAP clients)."""
+        result = self.conn._parse_size_item((b"2 (RFC822.SIZE 2048)", b"other data"))
+        self.assertEqual(result, (b"2", 2048))
+
+    def test_parse_size_item_not_bytes(self):
+        """Non-bytes items (e.g. integer or string) should be rejected gracefully."""
+        self.assertIsNone(self.conn._parse_size_item(123))
+        self.assertIsNone(self.conn._parse_size_item("1 (RFC822.SIZE 1024)"))
+
+    def test_parse_size_item_no_rfc822_size(self):
+        """Valid bytes that lack RFC822.SIZE indicator."""
+        result = self.conn._parse_size_item(b"1 (FLAGS (\\Seen))")
+        self.assertIsNone(result)
+
+    def test_parse_size_item_malformed_size(self):
+        """Malformed RFC822.SIZE response where the size is not an integer."""
+        result = self.conn._parse_size_item(b"1 (RFC822.SIZE invalid)")
+        self.assertIsNone(result)
+        self.conn.logger.warning.assert_called()
+
 if __name__ == "__main__":
     unittest.main()
