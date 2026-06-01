@@ -46,5 +46,53 @@ class TestMediaAnalyzerBug(unittest.TestCase):
             self.fail(f"Caught unexpected exception: {type(e).__name__}: {e}")
 
 
+
+    def test_inspect_zip_contents_bad_zipfile(self):
+        # Create a mock config
+        config = MagicMock()
+        config.check_media_attachments = True
+        config.deepfake_detection_enabled = False
+
+        analyzer = MediaAuthenticityAnalyzer(config)
+        analyzer.logger = MagicMock()
+
+        # Pass intentionally malformed zip data to trigger zipfile.BadZipFile
+        score, warnings = analyzer._inspect_zip_contents("test.zip", b"not a valid zip")
+
+        # BadZipFile is caught and ignored
+        self.assertEqual(score, 0.0)
+        self.assertEqual(warnings, [])
+        analyzer.logger.warning.assert_not_called()
+
+    def test_inspect_zip_contents_generic_exception(self):
+        # Create a mock config
+        config = MagicMock()
+        config.check_media_attachments = True
+        config.deepfake_detection_enabled = False
+
+        analyzer = MediaAuthenticityAnalyzer(config)
+        analyzer.logger = MagicMock()
+
+        import zipfile
+        import io
+        from unittest.mock import patch
+
+        with patch("src.modules.media_analyzer.zipfile.ZipFile") as mock_zipfile:
+            mock_zipfile.side_effect = Exception("Generic unexpected error")
+
+            score, warnings = analyzer._inspect_zip_contents("test.zip", b"some data")
+
+            # Exception is caught and logged
+            self.assertEqual(score, 0.0)
+            self.assertEqual(warnings, [])
+
+            # Verify the warning was logged
+            analyzer.logger.warning.assert_called_once()
+            args, _ = analyzer.logger.warning.call_args
+            self.assertIn("Error inspecting zip test.zip", args[0])
+            self.assertIn("Generic unexpected error", args[0])
+
+
 if __name__ == "__main__":
+
     unittest.main()
