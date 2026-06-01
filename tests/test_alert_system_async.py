@@ -111,6 +111,27 @@ class TestAlertWorkerLifecycle(unittest.TestCase):
         system.stop_worker()
 
 
+    def test_run_worker_loop_exception_cleanup(self):
+        """If _alert_worker raises an exception, the loop must be cleaned up properly."""
+        system = AlertSystem(_make_config())
+
+        # We need to simulate being in the worker thread for the identity check
+        system._worker_thread = threading.current_thread()
+
+        async def fake_worker():
+            raise RuntimeError("Simulated crash")
+
+        with patch.object(system, "_alert_worker", side_effect=fake_worker):
+            with self.assertRaises(RuntimeError) as cm:
+                system._run_worker_loop()
+            self.assertIn("Simulated crash", str(cm.exception))
+
+        self.assertIsNone(system._loop)
+        self.assertIsNone(system._alert_queue)
+        self.assertFalse(system._queue_ready.is_set())
+        self.assertIsNone(system._worker_thread)
+
+
 class TestAsyncAlertDispatch(unittest.TestCase):
     """Test that send_alert() enqueues asynchronously when worker is running."""
 
