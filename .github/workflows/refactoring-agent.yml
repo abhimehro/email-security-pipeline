@@ -13,7 +13,7 @@ jobs:
       pull-requests: write
       issues: write
     steps:
-      - uses: codescene-oss/pr-refactoring-agent@latest
+      - uses: codescene-oss/pr-refactoring-agent@v1
         with:
           pr_number: ${{ github.event.issue.number }}
           command: ${{ github.event.comment.body }}
