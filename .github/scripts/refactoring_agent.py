@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+import os
+
 """
 Custom PR Refactoring Agent using CodeScene API + Google Gemini
 Hybrid approach: Auto-fixes based on skill type and confidence levels.
@@ -9,7 +11,6 @@ Supported Skills:
 - skill:uplift-code-health (Moderate confidence auto-fix, broader scope)
 """
 
-import os
 import json
 import sys
 import argparse
@@ -199,7 +200,12 @@ class CodeSceneRefactoringAgent:
     def read_file_content(self, file_path: str, max_lines: int = 100) -> str:
         """Read file content with line limit for context."""
         try:
-            with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
+            base_dir = os.path.abspath(os.getcwd())
+            safe_path = os.path.abspath(os.path.join(base_dir, str(file_path)))
+            if not safe_path.startswith(base_dir + os.sep) and safe_path != base_dir:
+                self.log("ERROR", "Path traversal detected")
+                return ""
+            with open(safe_path, "r", encoding="utf-8", errors="ignore") as f:
                 lines = f.readlines()[:max_lines]
                 return "".join(lines)
         except Exception as e:
@@ -352,7 +358,12 @@ Return the fixed code:"""
     def apply_auto_fix(self, file_path: str, fixed_code: str) -> bool:
         """Apply and commit the auto-fix."""
         try:
-            with open(file_path, "w", encoding="utf-8") as f:
+            base_dir = os.path.abspath(os.getcwd())
+            safe_path = os.path.abspath(os.path.join(base_dir, str(file_path)))
+            if not safe_path.startswith(base_dir + os.sep) and safe_path != base_dir:
+                self.log("ERROR", "Path traversal detected")
+                return False
+            with open(safe_path, "w", encoding="utf-8") as f:
                 f.write(fixed_code)
 
             # Stage and commit

@@ -405,22 +405,35 @@ class EmailIngestionManager:
                 if email_data:
                     folder_emails.append(email_data)
 
-    def _fetch_folder(self, account, folder, client, is_first, max_per_folder):
+    def _fetch_folder(
+        self,
+        account: EmailAccountConfig,
+        folder: str,
+        client,
+        is_first: bool,
+        max_per_folder: int,
+    ) -> list:
         folder_emails = []
         cleanup_required = not is_first
         if not is_first:
             if not client.connect():
                 self.logger.error(
-                    f"Failed to connect for folder {folder} on {account.email[:1]}***@{account.email.split('@')[1]}"
+                    f"Failed to connect for folder {sanitize_for_logging(folder)} "
+                    f"on {redact_email(account.email)}"
                 )
                 return folder_emails
-
         try:
+            self.logger.info(
+                f"Fetching from {redact_email(account.email)}/"
+                f"{sanitize_for_logging(folder)}"
+            )
             raw_emails = client.fetch_unseen_emails(folder, max_per_folder)
             if raw_emails:
                 self._parse_emails_parallel(client, raw_emails, folder, folder_emails)
         except Exception as e:
-            self.logger.error(f"Error fetching from {folder}: {e}")
+            self.logger.error(
+                f"Error fetching from {sanitize_for_logging(folder)}: {e}"
+            )
         finally:
             if cleanup_required:
                 try:
@@ -437,14 +450,18 @@ class EmailIngestionManager:
         if persistent_client is None or (
             account.folders and not persistent_client.ensure_connection()
         ):
+            self.logger.error(
+                f"Unable to reconnect to {redact_email(account.email)}; "
+                f"skipping remaining folders"
+            )
             return emails
 
-        if min(3, len(account.folders)) < 1:
+        max_folder_workers = min(3, len(account.folders))
+        if max_folder_workers < 1:
             return emails
 
         with ThreadPoolExecutor(
-            max_workers=min(3, len(account.folders)),
-            thread_name_prefix="FolderFetch",
+            max_workers=max_folder_workers, thread_name_prefix="FolderFetch"
         ) as folder_executor:
             futures = []
             for i, folder in enumerate(account.folders):
@@ -462,76 +479,6 @@ class EmailIngestionManager:
                         max_per_folder,
                     )
                 )
-
-            for future in as_completed(futures):
-                try:
-                    emails.extend(future.result())
-                except Exception as e:
-                    self.logger.error(f"Error fetching folder for {account.email}: {e}")
-        return emails
-
-        # Original fail-fast logic: ensure connection on the persistent client first.
-        # If the server is unreachable or credentials rotated, fail immediately before
-        # spinning up concurrent tasks to avoid hammering the server.
-        if account.folders and not persistent_client.ensure_connection():
-            self.logger.error(
-                f"Unable to reconnect to {redact_email(account.email)}; "
-                f"skipping remaining folders"
-            )
-            return emails
-
-        max_folder_workers = min(3, len(account.folders))
-        if max_folder_workers < 1:
-            return emails
-
-        def _fetch_from_folder(folder: str, is_first: bool) -> List[EmailData]:
-            folder_emails = []
-
-            if is_first:
-                client = persistent_client
-                cleanup_required = False
-            else:
-                # Need fresh client for parallel fetching to avoid IMAP state clashes
-                client = self._create_imap_client(account)
-                if not client.connect():
-                    self.logger.error(
-                        f"Failed to connect for folder {sanitize_for_logging(folder)} "
-                        f"on {redact_email(account.email)}"
-                    )
-                    return folder_emails
-                cleanup_required = True
-
-            try:
-                self.logger.info(
-                    f"Fetching from {redact_email(account.email)}/"
-                    f"{sanitize_for_logging(folder)}"
-                )
-
-                raw_emails = client.fetch_unseen_emails(folder, max_per_folder)
-
-                if raw_emails:
-                    self._parse_emails_parallel(
-                        client, raw_emails, folder, folder_emails
-                    )
-            except Exception as e:
-                self.logger.error(
-                    f"Error fetching from {sanitize_for_logging(folder)}: {e}"
-                )
-            finally:
-                if cleanup_required:
-                    try:
-                        client.disconnect()
-                    except Exception:  # nosec B110
-                        pass  # nosec B110
-
-            return folder_emails
-
-        with ThreadPoolExecutor(
-            max_workers=max_folder_workers, thread_name_prefix="FolderFetch"
-        ) as executor:
-            futures = []
-            for i, folder in enumerate(account.folders):
-                futures.append(executor.submit(_fetch_from_folder, folder, i == 0))
 
             for future in as_completed(futures):
                 emails.extend(future.result())
