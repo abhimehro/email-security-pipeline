@@ -22,14 +22,10 @@ import time
 import re
 
 try:
-    import google.genai as genai
-    from google.genai import types
+    import google.generativeai as genai
 except ImportError:
-    try:
-        import google.generativeai as genai
-    except ImportError:
-        print("ERROR: google-genai not installed. Install with: pip install google-genai")
-        sys.exit(1)
+    print("ERROR: google-generativeai not installed. Install with: pip install google-generativeai")
+    sys.exit(1)
 
 
 class CodeSceneRefactoringAgent:
@@ -67,9 +63,9 @@ class CodeSceneRefactoringAgent:
         self.skill = self._extract_skill(command)
         self.auto_fix_threshold = self._get_confidence_threshold(self.skill)
         
-        # Configure Gemini
+        # Configure Gemini with proper API key
         genai.configure(api_key=google_api_key)
-        self.gemini_model = genai.GenerativeModel(model_name='gemini-2.0-flash-exp')
+        self.gemini_model = genai.GenerativeModel(model_name='gemini-2.0-flash')
         
         # Set up headers for CodeScene API
         self.cs_headers = {
