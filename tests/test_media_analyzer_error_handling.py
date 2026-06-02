@@ -45,8 +45,6 @@ class TestMediaAnalyzerBug(unittest.TestCase):
         except Exception as e:
             self.fail(f"Caught unexpected exception: {type(e).__name__}: {e}")
 
-
-
     def test_handle_nested_tar_member_extraction_error(self):
         config = MagicMock()
         config.check_media_attachments = True
@@ -75,6 +73,7 @@ class TestMediaAnalyzerBug(unittest.TestCase):
             warnings[0],
         )
         analyzer.logger.warning.assert_called()
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -544,7 +544,6 @@ class TestIMAPDiagnosticsSSLCertificate(unittest.TestCase):
         self.assertIn("SSL check failed", result["error"])
 
 
-
 class TestIMAPConnectionFetchEmailsInternal(unittest.TestCase):
     """Tests for IMAPConnection._fetch_emails_internal()."""
 
