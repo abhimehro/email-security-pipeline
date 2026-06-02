@@ -405,30 +405,6 @@ class EmailIngestionManager:
                 if email_data:
                     folder_emails.append(email_data)
 
-    def _fetch_folder(self, account, folder, client, is_first, max_per_folder):
-        folder_emails = []
-        cleanup_required = not is_first
-        if not is_first:
-            if not client.connect():
-                self.logger.error(
-                    f"Failed to connect for folder {folder} on {account.email[:1]}***@{account.email.split('@')[1]}"
-                )
-                return folder_emails
-
-        try:
-            raw_emails = client.fetch_unseen_emails(folder, max_per_folder)
-            if raw_emails:
-                self._parse_emails_parallel(client, raw_emails, folder, folder_emails)
-        except Exception as e:
-            self.logger.error(f"Error fetching from {folder}: {e}")
-        finally:
-            if cleanup_required:
-                try:
-                    client.disconnect()
-                except Exception:  # nosec B110
-                    pass
-        return folder_emails
-
     def _fetch_folder(
         self,
         account: EmailAccountConfig,
