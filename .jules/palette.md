@@ -175,3 +175,6 @@
 ## 2025-05-19 - Add keyboard shortcut hint to spinner
 **Learning:** Terminal spinners blocking output streams without visible keyboard exit hints cause user anxiety and increase perceived lock-ups, especially in interactive CLIs where users don't know if Ctrl+C is safe.
 **Action:** Always append actionable exit hints like '(Press Ctrl+C to stop)' dynamically to long-running terminal elements, but ensure the hint is cleanly stripped from the final success/failure log message to prevent polluting permanent logs with interactive UX instructions.
+## 2025-06-02 - Strip Interactive Hints from Final UI State
+**Learning:** Terminal spinners that append interactive hints (like `(Press Ctrl+C to stop)`) often leave those hints permanently visible on the screen if they aren't stripped before printing the final success/failure state. This creates messy logs and confusing UX once the action is over.
+**Action:** Always strip interactive instructions from terminal components during their cleanup or `__exit__` phase before printing the final persisted message.
