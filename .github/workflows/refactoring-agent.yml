@@ -1,4 +1,4 @@
-name: CodeScene PR Refactoring Agent
+name: PR Refactoring Agent
 
 on:
   issue_comment:
@@ -6,6 +6,7 @@ on:
 
 jobs:
   refactor:
+    # Only run on PR comments containing /refactor
     if: github.event.issue.pull_request != null && contains(github.event.comment.body, '/cs-agent')
     runs-on: ubuntu-latest
     permissions:
@@ -13,10 +14,12 @@ jobs:
       pull-requests: write
       issues: write
     steps:
-      - uses: codescene-oss/pr-refactoring-agent@v1
+      - name: Run refactoring agent
+        uses: codescene-oss/pr-refactoring-agent@v1
         with:
           pr_number: ${{ github.event.issue.number }}
-          command: ${{ github.event.comment.body }}
+          command: 'skill:fix-code-health-degradations'
           model: 'google/gemini-flash-latest'
+          push: true
           codescene_token: ${{ secrets.CODESCENE_ACCESS_TOKEN }}
           google_api_key: ${{ secrets.GOOGLE_API_KEY }}
