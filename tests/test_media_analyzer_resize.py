@@ -4,6 +4,7 @@ import numpy as np
 
 from src.modules.media_analyzer import MediaAuthenticityAnalyzer
 
+
 class TestMediaAnalyzerResize(unittest.TestCase):
     def setUp(self):
         config = MagicMock()
@@ -29,7 +30,7 @@ class TestMediaAnalyzerResize(unittest.TestCase):
         frame = np.zeros((2000, 2000, 3), dtype=np.uint8)
 
         # We simulate a resize failure by mocking cv2.resize to throw an Exception
-        with patch('src.modules.media_analyzer.cv2.resize') as mock_resize:
+        with patch("src.modules.media_analyzer.cv2.resize") as mock_resize:
             mock_resize.side_effect = Exception("Mocked resize error")
 
             result = self.analyzer._resize_frame_if_needed(frame, max_dim=1000)
@@ -62,5 +63,6 @@ class TestMediaAnalyzerResize(unittest.TestCase):
         # Should be the exact same object
         self.assertIs(result, frame)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

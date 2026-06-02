@@ -110,7 +110,6 @@ class TestAlertWorkerLifecycle(unittest.TestCase):
         # Should not raise
         system.stop_worker()
 
-
     def test_run_worker_loop_exception_cleanup(self):
         """If _alert_worker raises an exception, the loop must be cleaned up properly."""
         system = AlertSystem(_make_config())

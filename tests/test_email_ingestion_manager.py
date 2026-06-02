@@ -220,7 +220,6 @@ class TestEmailIngestionManagerFetch(unittest.TestCase):
         self.assertIn(email_inbox, result)
         self.assertIn(email_spam, result)
 
-
     @patch("src.modules.email_ingestion.IMAPClient")
     def test_fetch_from_folder_connect_error_path(self, MockIMAPClient):
         """If secondary client fails to connect, log error and skip folder."""
@@ -241,7 +240,7 @@ class TestEmailIngestionManagerFetch(unittest.TestCase):
         manager.logger = MagicMock()
         manager.clients = {"user@example.com": persistent_client}
 
-        result = manager.fetch_all_emails()
+        manager.fetch_all_emails()
         manager.logger.error.assert_any_call(
             f"Failed to connect for folder {sanitize_for_logging('Spam')} "
             f"on {redact_email('user@example.com')}"
@@ -258,13 +257,15 @@ class TestEmailIngestionManagerFetch(unittest.TestCase):
         # The persistent client for the first folder
         persistent_client = MagicMock()
         persistent_client.ensure_connection.return_value = True
-        persistent_client.fetch_unseen_emails.side_effect = Exception("Test fetch exception")
+        persistent_client.fetch_unseen_emails.side_effect = Exception(
+            "Test fetch exception"
+        )
 
         manager = EmailIngestionManager([account])
         manager.logger = MagicMock()
         manager.clients = {"user@example.com": persistent_client}
 
-        result = manager.fetch_all_emails()
+        manager.fetch_all_emails()
         manager.logger.error.assert_any_call(
             f"Error fetching from {sanitize_for_logging('INBOX')}: Test fetch exception"
         )
