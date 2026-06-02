@@ -8,15 +8,17 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src.main import EmailSecurityPipeline
 
+
 class TestMainErrorHandling(unittest.TestCase):
     def test_analyze_email_error_handling(self):
         """Test that _analyze_email correctly handles exceptions and records them to metrics."""
-        with patch('src.main.Config') as mock_config, \
-             patch('src.main.EmailIngestionManager'), \
-             patch('src.main.SpamAnalyzer'), \
-             patch('src.main.NLPThreatAnalyzer'), \
-             patch('src.main.MediaAuthenticityAnalyzer'), \
-             patch('src.main.AlertSystem'):
+        with patch("src.main.Config") as mock_config, patch(
+            "src.main.EmailIngestionManager"
+        ), patch("src.main.SpamAnalyzer"), patch("src.main.NLPThreatAnalyzer"), patch(
+            "src.main.MediaAuthenticityAnalyzer"
+        ), patch(
+            "src.main.AlertSystem"
+        ):
 
             # Setup mock config
             mock_config_instance = mock_config.return_value
@@ -38,7 +40,9 @@ class TestMainErrorHandling(unittest.TestCase):
             email_data.subject = "Test Subject"
 
             # Mock _run_analysis_layers to raise exception
-            pipeline._run_analysis_layers = MagicMock(side_effect=Exception("Test Exception for Analysis Error Path"))
+            pipeline._run_analysis_layers = MagicMock(
+                side_effect=Exception("Test Exception for Analysis Error Path")
+            )
 
             # Mock logger and metrics
             pipeline.logger = MagicMock()
@@ -50,9 +54,14 @@ class TestMainErrorHandling(unittest.TestCase):
             # Verify error was logged and metric recorded
             pipeline.logger.error.assert_called_once()
             error_msg = pipeline.logger.error.call_args[0][0]
-            self.assertTrue(error_msg.startswith("Error analyzing email: Test Exception for Analysis Error Path"))
-            self.assertTrue(pipeline.logger.error.call_args[1].get('exc_info'))
+            self.assertTrue(
+                error_msg.startswith(
+                    "Error analyzing email: Test Exception for Analysis Error Path"
+                )
+            )
+            self.assertTrue(pipeline.logger.error.call_args[1].get("exc_info"))
             pipeline.metrics.record_error.assert_called_once_with("analysis_error")
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

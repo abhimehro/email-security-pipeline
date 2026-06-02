@@ -1,7 +1,8 @@
 import unittest
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 from src.modules.media_analyzer import MediaAuthenticityAnalyzer
+
 
 class TestMediaAnalyzerAdvanceFrame(unittest.TestCase):
     def setUp(self):
@@ -32,6 +33,7 @@ class TestMediaAnalyzerAdvanceFrame(unittest.TestCase):
         self.assertEqual(result, 5)
         self.assertEqual(cap.grab.call_count, 6)
         cap.set.assert_not_called()
+
 
 if __name__ == "__main__":
     unittest.main()
