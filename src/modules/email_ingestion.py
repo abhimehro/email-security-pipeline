@@ -405,31 +405,70 @@ class EmailIngestionManager:
                 if email_data:
                     folder_emails.append(email_data)
 
+    def _fetch_folder(self, account, folder, client, is_first, max_per_folder):
+        folder_emails = []
+        cleanup_required = not is_first
+        if not is_first:
+            if not client.connect():
+                self.logger.error(
+                    f"Failed to connect for folder {folder} on {account.email[:1]}***@{account.email.split('@')[1]}"
+                )
+                return folder_emails
+
+        try:
+            raw_emails = client.fetch_unseen_emails(folder, max_per_folder)
+            if raw_emails:
+                self._parse_emails_parallel(client, raw_emails, folder, folder_emails)
+        except Exception as e:
+            self.logger.error(f"Error fetching from {folder}: {e}")
+        finally:
+            if cleanup_required:
+                try:
+                    client.disconnect()
+                except Exception:
+                    pass
+        return folder_emails
+
     def _process_account(
         self, account: EmailAccountConfig, max_per_folder: int
     ) -> List[EmailData]:
-        """
-        Fetch and parse all emails for a single account across its configured folders.
-
-        Folders are processed concurrently using a ThreadPoolExecutor.
-        A persistent client from `self.clients` is reused for the first folder,
-        while temporary client connections are spun up for additional folders to
-        avoid sharing stateful IMAP connections across threads.
-
-        Args:
-            account: The email account configuration to process
-            max_per_folder: Maximum emails to fetch per folder
-
-        Returns:
-            List of EmailData objects collected from all folders of this account
-
-        """
         emails: List[EmailData] = []
-
-        # Guard against uninitialized client
         persistent_client = self.clients.get(account.email)
-        if persistent_client is None:
+        if persistent_client is None or (
+            account.folders and not persistent_client.ensure_connection()
+        ):
             return emails
+
+        if min(3, len(account.folders)) < 1:
+            return emails
+
+        with ThreadPoolExecutor(
+            max_workers=min(3, len(account.folders)),
+            thread_name_prefix="FolderFetch",
+        ) as folder_executor:
+            futures = []
+            for i, folder in enumerate(account.folders):
+                is_first = i == 0
+                client = (
+                    persistent_client if is_first else self._create_imap_client(account)
+                )
+                futures.append(
+                    folder_executor.submit(
+                        self._fetch_folder,
+                        account,
+                        folder,
+                        client,
+                        is_first,
+                        max_per_folder,
+                    )
+                )
+
+            for future in as_completed(futures):
+                try:
+                    emails.extend(future.result())
+                except Exception as e:
+                    self.logger.error(f"Error fetching folder for {account.email}: {e}")
+        return emails
 
         # Original fail-fast logic: ensure connection on the persistent client first.
         # If the server is unreachable or credentials rotated, fail immediately before

@@ -640,76 +640,46 @@ Skill-guided refactoring | Confidence-based decisions | Code Health driven"""
         return True
 
 
-def main():
+def parse_arguments():
     parser = argparse.ArgumentParser(
         description="CodeScene PR Refactoring Agent (Skill-Based Hybrid Mode)",
         formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog="""
-Examples:
-  python refactoring_agent.py --pr-number 42 \\
-    --repository owner/repo \\
-    --command "skill:fix-code-health-degradations"
-
-  python refactoring_agent.py --pr-number 42 \\
-    --repository owner/repo \\
-    --command "skill:uplift-code-health"
-        """,
     )
-
+    parser.add_argument("--pr-number", type=int, default=0)
+    parser.add_argument("--repository", default=os.getenv("GITHUB_REPOSITORY", ""))
+    parser.add_argument("--command", default="skill:fix-code-health-degradations")
     parser.add_argument(
-        "--pr-number",
-        type=int,
-        default=0,
-        help="Pull request number for GitHub comment context",
-    )
-    parser.add_argument(
-        "--repository",
-        default=os.getenv("GITHUB_REPOSITORY", ""),
-        help="Repository in format owner/repo",
-    )
-    parser.add_argument(
-        "--command",
-        default="skill:fix-code-health-degradations",
-        help="Refactoring command/skill to execute (e.g., 'skill:fix-code-health-degradations', 'skill:uplift-code-health')",
-    )
-    parser.add_argument(
-        "--codescene-token",
-        default=os.getenv("CODESCENE_ACCESS_TOKEN", ""),
-        help="CodeScene API token (env: CODESCENE_ACCESS_TOKEN)",
+        "--codescene-token", default=os.getenv("CODESCENE_ACCESS_TOKEN", "")
     )
     parser.add_argument(
         "--google-api-key",
         default=os.getenv("GOOGLE_GENERATIVE_AI_API_KEY")
         or os.getenv("GOOGLE_API_KEY", ""),
-        help="Google API key (env: GOOGLE_GENERATIVE_AI_API_KEY or GOOGLE_API_KEY)",
     )
-    parser.add_argument(
-        "--github-token",
-        default=os.getenv("GITHUB_TOKEN", ""),
-        help="GitHub token (env: GITHUB_TOKEN)",
-    )
+    parser.add_argument("--github-token", default=os.getenv("GITHUB_TOKEN", ""))
     parser.add_argument(
         "--codescene-url",
         default=os.getenv("CODESCENE_URL", "https://api.codescene.io/v2"),
-        help="CodeScene API base URL",
     )
+    return parser.parse_args()
 
-    args = parser.parse_args()
 
-    # Validate required inputs
+def validate_args(args):
     if not args.codescene_token:
         print("::error::CODESCENE_ACCESS_TOKEN not provided")
         sys.exit(1)
-
     if not args.google_api_key:
         print("::error::GOOGLE_GENERATIVE_AI_API_KEY or GOOGLE_API_KEY not provided")
         sys.exit(1)
-
     if not args.github_token:
         print("::error::GITHUB_TOKEN not provided")
         sys.exit(1)
 
-    # Initialize and run agent
+
+def main():
+    args = parse_arguments()
+    validate_args(args)
+
     agent = CodeSceneRefactoringAgent(
         codescene_token=args.codescene_token,
         google_api_key=args.google_api_key,
@@ -719,7 +689,6 @@ Examples:
         pr_number=args.pr_number,
         command=args.command,
     )
-
     success = agent.run()
     sys.exit(0 if success else 1)
 
