@@ -3,10 +3,10 @@
 [![CodeScene general](https://codescene.io/images/analyzed-by-codescene-badge.svg)](https://codescene.io/projects/78056)
 [![Changelog Status](https://github.com/abhimehro/email-security-pipeline/actions/workflows/changelog.yml/badge.svg)](https://github.com/abhimehro/email-security-pipeline/actions/workflows/changelog.yml)
 
-[![CodeScene Average Code Health](https://codescene.io/projects/78056/status-badges/average-code-health?component-name=Email-security-pipeline)](https://codescene.io/projects/78056/architecture/biomarkers?component=Email-security-pipeline)
-[![CodeScene Hotspot Code Health](https://codescene.io/projects/78056/status-badges/hotspot-code-health)](https://codescene.io/projects/78056)
-[![CodeScene Missed Goals](https://codescene.io/projects/78056/status-badges/missed-goals)](https://codescene.io/projects/78056)
-[![CodeScene System Mastery](https://codescene.io/projects/78056/status-badges/system-mastery?component-name=Email-security-pipeline)](https://codescene.io/projects/78056/)
+[![CodeScene Average Code Health](https://codescene.io/projects/80823/status-badges/average-code-health)](https://codescene.io/projects/80823)
+[![CodeScene Hotspot Code Health]([![CodeScene Hotspot Code Health]([![CodeScene Hotspot Code Health](https://codescene.io/projects/80823/status-badges/hotspot-code-health)](https://codescene.io/projects/80823))](https://codescene.io/projects/80822))](https://codescene.io/projects/78056)
+[![CodeScene Missed Goals](https://codescene.io/projects/80823/status-badges/missed-goals)](https://codescene.io/projects/80823)
+[![CodeScene System Mastery](https://codescene.io/projects/78056/status-badges/system-mastery?component-name=Email-security-pipeline)]([![CodeScene Missed Goals](https://codescene.io/projects/80822/status-badges/missed-goals)](https://codescene.io/projects/80822))
 
 A self-hosted, containerized email security analysis system that monitors IMAP folders for suspicious messages using multi-layered threat detection.
 
