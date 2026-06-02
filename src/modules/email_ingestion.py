@@ -425,7 +425,7 @@ class EmailIngestionManager:
             if cleanup_required:
                 try:
                     client.disconnect()
-                except Exception:
+                except Exception: # nosec B110
                     pass
         return folder_emails
 
@@ -521,7 +521,7 @@ class EmailIngestionManager:
                 if cleanup_required:
                     try:
                         client.disconnect()
-                    except Exception:
+                    except Exception: # nosec B110
                         pass  # nosec B110
 
             return folder_emails
