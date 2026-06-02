@@ -201,7 +201,7 @@ class CodeSceneRefactoringAgent:
         """Read file content with line limit for context."""
         try:
             base_dir = os.path.abspath(os.getcwd())
-            safe_path = os.path.abspath(os.path.join(base_dir, str(file_path)))
+            safe_path = os.path.realpath(os.path.join(base_dir, str(file_path)))
             if not safe_path.startswith(base_dir + os.sep) and safe_path != base_dir:
                 self.log("ERROR", "Path traversal detected")
                 return ""
@@ -359,7 +359,7 @@ Return the fixed code:"""
         """Apply and commit the auto-fix."""
         try:
             base_dir = os.path.abspath(os.getcwd())
-            safe_path = os.path.abspath(os.path.join(base_dir, str(file_path)))
+            safe_path = os.path.realpath(os.path.join(base_dir, str(file_path)))
             if not safe_path.startswith(base_dir + os.sep) and safe_path != base_dir:
                 self.log("ERROR", "Path traversal detected")
                 return False
