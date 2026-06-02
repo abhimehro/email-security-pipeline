@@ -1,5 +1,6 @@
 import signal
 import sys
+import os
 from pathlib import Path
 from typing import List, NoReturn, Optional
 
@@ -146,22 +147,19 @@ class AppRunner:
                 response = self._styled_input(prompt).lower()
                 if response in ("", "y", "yes"):
                     try:
-                        import os
 
                         with open(".env.example", "rb") as src:
                             content = src.read()
-                        old_umask = os.umask(0o077)
-                        try:
-                            fd = os.open(
-                                self.config_file,
-                                os.O_WRONLY
-                                | os.O_CREAT
-                                | os.O_EXCL
-                                | getattr(os, "O_NOFOLLOW", 0),
-                                0o600,
-                            )
-                        finally:
-                            os.umask(old_umask)
+
+                        fd = os.open(
+                            self.config_file,
+                            os.O_WRONLY
+                            | os.O_CREAT
+                            | os.O_EXCL
+                            | getattr(os, "O_NOFOLLOW", 0),
+                            0o600,
+                        )
+                        self._set_secure_permissions(fd)
 
                         with os.fdopen(fd, "wb") as dst:
                             dst.write(content)
@@ -290,24 +288,21 @@ class AppRunner:
 
     def _create_config_from_template(self) -> None:
         """Create the configuration file from .env.example with secure permissions."""
-        import os
 
         with open(".env.example", "rb") as src:
             content = src.read()
+
         flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL
         if hasattr(os, "O_NOFOLLOW"):
             flags |= os.O_NOFOLLOW
 
-        old_umask = os.umask(0o077)
+        fd = os.open(
+            self.config_file,
+            flags,
+            0o600,
+        )
         try:
-            fd = os.open(
-                self.config_file,
-                flags,
-                0o600,
-            )
-        finally:
-            os.umask(old_umask)
-        try:
+            self._set_secure_permissions(fd)
 
             with os.fdopen(fd, "wb") as dst:
                 dst.write(content)
@@ -319,6 +314,43 @@ class AppRunner:
         except Exception:
             os.close(fd)
             raise
+
+    def _set_secure_permissions(self, fd: int) -> None:
+        """Set restrictive permissions (0o600) on a file descriptor with fallback."""
+
+        # Prioritize using the file descriptor to prevent TOCTOU vulnerabilities.
+        try:
+            os.fchmod(fd, 0o600)
+        except (AttributeError, OSError, NotImplementedError):
+            try:
+                # Some platforms support os.chmod(fd, mode)
+                os.chmod(fd, 0o600)
+            except (AttributeError, OSError, NotImplementedError, TypeError):
+                # Final fallback to path-based chmod (e.g. Windows) with inode check.
+                try:
+                    stat_fd = os.fstat(fd)
+                    stat_path = (
+                        os.lstat(self.config_file)
+                        if hasattr(os, "lstat")
+                        else os.stat(self.config_file)
+                    )
+                    if (
+                        stat_fd.st_ino == stat_path.st_ino
+                        and stat_fd.st_dev == stat_path.st_dev
+                    ):
+                        chmod_kwargs = (
+                            {"follow_symlinks": False}
+                            if os.chmod
+                            in getattr(os, "supports_follow_symlinks", set())
+                            else {}
+                        )
+                        os.chmod(self.config_file, 0o600, **chmod_kwargs)
+                    else:
+                        print(f"Error: TOCTOU detected on '{self.config_file}'.")
+                        sys.exit(1)
+                except OSError as exc:
+                    print(f"Error setting permissions: {exc}")
+                    sys.exit(1)
 
     def start_pipeline(self) -> None:
         """Instantiate and start the main pipeline."""
