@@ -362,6 +362,7 @@
 
 **Merged pull requests:**
 
+- 🎨 Palette: Improve CLI output formatting accessibility in config summary [\#1010](https://github.com/abhimehro/email-security-pipeline/pull/1010) ([abhimehro](https://github.com/abhimehro))
 - 🧹 Daily QA Review Completed \(No Findings\) [\#1005](https://github.com/abhimehro/email-security-pipeline/pull/1005) ([abhimehro](https://github.com/abhimehro))
 - 🔒 Sentinel: \[HIGH\] Fix TOCTOU vulnerability in file permissions [\#1004](https://github.com/abhimehro/email-security-pipeline/pull/1004) ([abhimehro](https://github.com/abhimehro))
 - ⚡ Bolt: Parallelize email parsing with ThreadPoolExecutor [\#1000](https://github.com/abhimehro/email-security-pipeline/pull/1000) ([abhimehro](https://github.com/abhimehro))
