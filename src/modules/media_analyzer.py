@@ -764,13 +764,11 @@ class MediaAuthenticityAnalyzer:
                 )
 
                 for member in members[:self.MAX_ZIP_FILE_COUNT]:
-                    # SECURITY: Explicitly check for absolute paths and path traversal attempts
-                    for member in members[:self.MAX_ZIP_FILE_COUNT]:
-                        # SECURITY: Sanitize member name to prevent path traversal and log injection
-                        safe_member_name = sanitize_for_logging(sanitize_filename(member.name))
-                        member_lower = safe_member_name.lower()
-                        
-                    # Check for dangerous extensions FIRST (regardless of path traversal attempts)
+                    # SECURITY: Sanitize member name to prevent path traversal and log injection
+                    safe_member_name = sanitize_for_logging(sanitize_filename(member.name))
+                    member_lower = safe_member_name.lower()
+
+                    # Check for dangerous extensions FIRST
                     if member_lower.endswith(self.DANGEROUS_EXTENSIONS):
                         score += 5.0
                         warnings.append(
@@ -779,29 +777,28 @@ class MediaAuthenticityAnalyzer:
                         if score >= 5.0:
                             return score, warnings
                         continue
-                    
-                    # THEN check for path traversal attempts as a separate warning
+
+                    # THEN check for path traversal attempts
                     if member.name.startswith("/") or ".." in member.name:
                         score += 5.0
                         warnings.append(
-                            f"Tar file {filename} contains path traversal attempt:
-                            {member.name}"
+                            f"Tar file {filename} contains path traversal attempt: {member.name}"
                         )
                         continue
-                        
-                    # Call the standard archive member inspection for other checks
-                        member_score, member_warnings = self._inspect_archive_member(
-                            filename,
-                            member.name,
-                            lambda: self._handle_nested_tar_member(
-                                tf, member, filename, depth
-                            ),
-                        )
-                        score += member_score
-                        warnings.extend(member_warnings)
-                        
-                        if score >= 5.0:
-                            return score, warnings
+
+                    # Standard archive member inspection
+                    member_score, member_warnings = self._inspect_archive_member(
+                        filename,
+                        member.name,
+                        lambda: self._handle_nested_tar_member(
+                            tf, member, filename, depth
+                        ),
+                    )
+                    score += member_score
+                    warnings.extend(member_warnings)
+
+                    if score >= 5.0:
+                        return score, warnings
 
         except tarfile.TarError:
             pass
