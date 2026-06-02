@@ -447,9 +447,9 @@ class EmailIngestionManager:
     ) -> List[EmailData]:
         emails: List[EmailData] = []
         persistent_client = self.clients.get(account.email)
-        if persistent_client is None or (
-            account.folders and not persistent_client.ensure_connection()
-        ):
+        if persistent_client is None:
+            return emails
+        if account.folders and not persistent_client.ensure_connection():
             self.logger.error(
                 f"Unable to reconnect to {redact_email(account.email)}; "
                 f"skipping remaining folders"

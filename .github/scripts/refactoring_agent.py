@@ -202,7 +202,7 @@ class CodeSceneRefactoringAgent:
         try:
             base_dir = os.path.abspath(os.getcwd())
             safe_path = os.path.abspath(os.path.join(base_dir, str(file_path)))
-            if not safe_path.startswith(base_dir + os.sep) and safe_path != base_dir:
+            if os.path.commonprefix([safe_path, base_dir]) != base_dir:
                 self.log("ERROR", "Path traversal detected")
                 return ""
             with open(safe_path, "r", encoding="utf-8", errors="ignore") as f:
@@ -360,7 +360,7 @@ Return the fixed code:"""
         try:
             base_dir = os.path.abspath(os.getcwd())
             safe_path = os.path.abspath(os.path.join(base_dir, str(file_path)))
-            if not safe_path.startswith(base_dir + os.sep) and safe_path != base_dir:
+            if os.path.commonprefix([safe_path, base_dir]) != base_dir:
                 self.log("ERROR", "Path traversal detected")
                 return False
             with open(safe_path, "w", encoding="utf-8") as f:
