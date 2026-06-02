@@ -199,7 +199,10 @@ class CodeSceneRefactoringAgent:
     def read_file_content(self, file_path: str, max_lines: int = 100) -> str:
         """Read file content with line limit for context."""
         try:
-            with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
+            safe_path = os.path.abspath(os.path.join(os.getcwd(), str(file_path)))
+            if not safe_path.startswith(os.getcwd()):
+                raise ValueError("Path traversal detected")
+            with open(safe_path, "r", encoding="utf-8", errors="ignore") as f:
                 lines = f.readlines()[:max_lines]
                 return "".join(lines)
         except Exception as e:
@@ -352,7 +355,10 @@ Return the fixed code:"""
     def apply_auto_fix(self, file_path: str, fixed_code: str) -> bool:
         """Apply and commit the auto-fix."""
         try:
-            with open(file_path, "w", encoding="utf-8") as f:
+            safe_path = os.path.abspath(os.path.join(os.getcwd(), str(file_path)))
+            if not safe_path.startswith(os.getcwd()):
+                raise ValueError("Path traversal detected")
+            with open(safe_path, "w", encoding="utf-8") as f:
                 f.write(fixed_code)
 
             # Stage and commit
