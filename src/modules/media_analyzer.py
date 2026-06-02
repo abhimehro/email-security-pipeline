@@ -770,6 +770,7 @@ class MediaAuthenticityAnalyzer:
                         warnings.append(
                             f"Tar file {filename} contains path traversal attempt: {member.name}"
                         )
+                        continue
 
                     member_score, member_warnings = self._inspect_archive_member(
                         filename,
