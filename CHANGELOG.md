@@ -362,6 +362,7 @@
 
 **Merged pull requests:**
 
+- 🧹 chore: Resolve CodeScene and CodeQL CI Failures [\#1025](https://github.com/abhimehro/email-security-pipeline/pull/1025) ([abhimehro](https://github.com/abhimehro))
 - 🧹 chore: Resolve CodeScene and CodeQL CI Failures [\#1013](https://github.com/abhimehro/email-security-pipeline/pull/1013) ([abhimehro](https://github.com/abhimehro))
 - 🎨 Palette: Improve CLI output formatting accessibility in config summary [\#1010](https://github.com/abhimehro/email-security-pipeline/pull/1010) ([abhimehro](https://github.com/abhimehro))
 - 🧹 Daily QA Review Completed \(No Findings\) [\#1005](https://github.com/abhimehro/email-security-pipeline/pull/1005) ([abhimehro](https://github.com/abhimehro))
