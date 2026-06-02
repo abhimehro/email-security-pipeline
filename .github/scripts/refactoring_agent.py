@@ -22,10 +22,14 @@ import time
 import re
 
 try:
-    import google.generativeai as genai
+    import google.genai as genai
+    from google.genai import types
 except ImportError:
-    print("ERROR: google-generativeai not installed. Install with: pip install google-generativeai")
-    sys.exit(1)
+    try:
+        import google.generativeai as genai
+    except ImportError:
+        print("ERROR: google-genai not installed. Install with: pip install google-genai")
+        sys.exit(1)
 
 
 class CodeSceneRefactoringAgent:
@@ -65,7 +69,7 @@ class CodeSceneRefactoringAgent:
         
         # Configure Gemini
         genai.configure(api_key=google_api_key)
-        self.gemini_model = genai.GenerativeModel('gemini-2.0-flash-exp')
+        self.gemini_model = genai.GenerativeModel(model_name='gemini-2.0-flash-exp')
         
         # Set up headers for CodeScene API
         self.cs_headers = {
@@ -664,8 +668,8 @@ Examples:
     )
     parser.add_argument(
         "--google-api-key",
-        default=os.getenv("GOOGLE_API_KEY", ""),
-        help="Google API key (env: GOOGLE_API_KEY)"
+        default=os.getenv("GOOGLE_GENERATIVE_AI_API_KEY") or os.getenv("GOOGLE_API_KEY", ""),
+        help="Google API key (env: GOOGLE_GENERATIVE_AI_API_KEY or GOOGLE_API_KEY)"
     )
     parser.add_argument(
         "--github-token",
@@ -682,15 +686,15 @@ Examples:
     
     # Validate required inputs
     if not args.codescene_token:
-        print("ERROR: CODESCENE_ACCESS_TOKEN not provided")
+        print("::error::CODESCENE_ACCESS_TOKEN not provided")
         sys.exit(1)
     
     if not args.google_api_key:
-        print("ERROR: GOOGLE_API_KEY not provided")
+        print("::error::GOOGLE_GENERATIVE_AI_API_KEY or GOOGLE_API_KEY not provided")
         sys.exit(1)
     
     if not args.github_token:
-        print("ERROR: GITHUB_TOKEN not provided")
+        print("::error::GITHUB_TOKEN not provided")
         sys.exit(1)
     
     # Initialize and run agent
