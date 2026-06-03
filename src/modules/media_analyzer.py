@@ -746,10 +746,21 @@ class MediaAuthenticityAnalyzer:
 
         try:
             with tarfile.open(fileobj=io.BytesIO(data), mode="r:*") as tf:
+                if hasattr(tarfile, "data_filter"):
+                    tf.extraction_filter = getattr(tarfile, "data_filter", (lambda member, path: member))
+                    
                 file_count = 0
                 max_files = self.MAX_ZIP_FILE_COUNT
 
                 for member in tf:
+                    # SECURITY: Prevent Zip Slip / Path Traversal
+                    if member.name.startswith("/") or "../" in member.name or "\\..\\" in member.name:
+                        safe_name = sanitize_for_logging(sanitize_filename(member.name))
+                        self.logger.warning(f"Skipping dangerous tar member: {safe_name}")
+                        score += 5.0
+                        warnings.append(f"Archive {filename} contains dangerous file: {safe_name}")
+                        continue
+
                     file_count += 1
                     if file_count > max_files:
                         score += 1.0
