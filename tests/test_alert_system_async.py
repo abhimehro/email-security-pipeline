@@ -15,7 +15,7 @@ import threading
 import time
 import unittest
 from datetime import datetime
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, patch, AsyncMock
 
 from src.modules.alert_system import AlertSystem, ThreatReport
 from src.utils.config import AlertConfig
@@ -578,6 +578,73 @@ class TestOnEnqueueDone(unittest.TestCase):
         system.logger.error.assert_not_called()
         system.logger.debug.assert_not_called()
 
+
+
+
+class TestProcessSingleAlertWithRetry(unittest.IsolatedAsyncioTestCase):
+    """Test retry logic directly on _process_single_alert_with_retry."""
+
+    def _make_config(self, webhook=False):
+        config = MagicMock()
+        config.slack_webhook = "https://hooks.slack.com/services/T0000/B0000/XXXX" if webhook else None
+        return config
+
+    def _make_report(self, email_id="test"):
+        report = MagicMock()
+        report.email_id = email_id
+        report.risk_level = "high"
+        return report
+
+    @patch("src.modules.alert_system.asyncio.sleep", new_callable=AsyncMock)
+    async def test_retry_on_exception(self, mock_sleep):
+        system = AlertSystem(self._make_config(webhook=True))
+        system.MAX_DISPATCH_RETRIES = 3
+        system.logger = MagicMock()
+
+        system._dispatch_alert_async = AsyncMock(side_effect=[Exception("transient error"), None])
+
+        report = self._make_report("retry_exc")
+        await system._process_single_alert_with_retry(report)
+
+        self.assertEqual(system._dispatch_alert_async.call_count, 2)
+        self.assertEqual(mock_sleep.call_count, 1)
+        mock_sleep.assert_called_with(1)  # 2**0
+        self.assertTrue(any("failed" in str(c[1][0]) for c in system.logger.error.mock_calls))
+        self.assertFalse(any("permanently" in str(c[1][0]) for c in system.logger.error.mock_calls))
+
+    @patch("src.modules.alert_system.asyncio.sleep", new_callable=AsyncMock)
+    async def test_retry_on_timeout(self, mock_sleep):
+        system = AlertSystem(self._make_config(webhook=True))
+        system.MAX_DISPATCH_RETRIES = 3
+        system.logger = MagicMock()
+
+        system._dispatch_alert_async = AsyncMock(side_effect=[asyncio.TimeoutError("timeout"), None])
+
+        report = self._make_report("retry_timeout")
+        await system._process_single_alert_with_retry(report)
+
+        self.assertEqual(system._dispatch_alert_async.call_count, 2)
+        self.assertEqual(mock_sleep.call_count, 1)
+        mock_sleep.assert_called_with(1)  # 2**0
+        self.assertTrue(any("timed out" in str(c[1][0]) for c in system.logger.error.mock_calls))
+        self.assertFalse(any("permanently" in str(c[1][0]) for c in system.logger.error.mock_calls))
+
+    @patch("src.modules.alert_system.asyncio.sleep", new_callable=AsyncMock)
+    async def test_permanent_failure(self, mock_sleep):
+        system = AlertSystem(self._make_config(webhook=True))
+        system.MAX_DISPATCH_RETRIES = 3
+        system.logger = MagicMock()
+
+        system._dispatch_alert_async = AsyncMock(side_effect=[Exception("fail 1"), Exception("fail 2"), Exception("fail 3")])
+
+        report = self._make_report("permanent_fail")
+        await system._process_single_alert_with_retry(report)
+
+        self.assertEqual(system._dispatch_alert_async.call_count, 3)
+        self.assertEqual(mock_sleep.call_count, 2)
+        mock_sleep.assert_any_call(1)  # 2**0
+        mock_sleep.assert_any_call(2)  # 2**1
+        self.assertTrue(any("permanently failed" in str(c[1][0]) for c in system.logger.error.mock_calls))
 
 if __name__ == "__main__":
     unittest.main()
