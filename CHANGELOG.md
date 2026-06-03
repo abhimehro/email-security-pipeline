@@ -41,6 +41,7 @@
 
 **Closed issues:**
 
+- Daily QA Check - 2026-06-03 [\#1027](https://github.com/abhimehro/email-security-pipeline/issues/1027)
 - Daily QA Check - email-security-pipeline - 2026-06-02 [\#1012](https://github.com/abhimehro/email-security-pipeline/issues/1012)
 - Daily QA & Agentic Review — 2026-06-01 [\#971](https://github.com/abhimehro/email-security-pipeline/issues/971)
 - \[repo-automation\] Weekly Retrospective - 2026-05-31 [\#969](https://github.com/abhimehro/email-security-pipeline/issues/969)
@@ -363,6 +364,10 @@
 **Merged pull requests:**
 
 - 🧹 chore: Resolve CodeScene and CodeQL CI Failures [\#1025](https://github.com/abhimehro/email-security-pipeline/pull/1025) ([abhimehro](https://github.com/abhimehro))
+- test\(email\_parser\): singlepart body error \(salvages \#989\) [\#1020](https://github.com/abhimehro/email-security-pipeline/pull/1020) ([abhimehro](https://github.com/abhimehro))
+- test\(error\_recovery\): monitoring loop error path \(salvages \#982\) [\#1019](https://github.com/abhimehro/email-security-pipeline/pull/1019) ([abhimehro](https://github.com/abhimehro))
+- test\(imap\): fetch batch error handling \(salvages \#984\) [\#1018](https://github.com/abhimehro/email-security-pipeline/pull/1018) ([abhimehro](https://github.com/abhimehro))
+- 🎨 Palette: Strip keyboard hint from Spinner on completion [\#1017](https://github.com/abhimehro/email-security-pipeline/pull/1017) ([abhimehro](https://github.com/abhimehro))
 - 🧹 chore: Resolve CodeScene and CodeQL CI Failures [\#1013](https://github.com/abhimehro/email-security-pipeline/pull/1013) ([abhimehro](https://github.com/abhimehro))
 - 🎨 Palette: Improve CLI output formatting accessibility in config summary [\#1010](https://github.com/abhimehro/email-security-pipeline/pull/1010) ([abhimehro](https://github.com/abhimehro))
 - 🧹 Daily QA Review Completed \(No Findings\) [\#1005](https://github.com/abhimehro/email-security-pipeline/pull/1005) ([abhimehro](https://github.com/abhimehro))
