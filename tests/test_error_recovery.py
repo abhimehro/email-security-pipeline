@@ -448,5 +448,70 @@ class TestGracefulDegradation(unittest.TestCase):
         self.assertIsNotNone(result)
 
 
+
+
+class TestMonitoringLoopErrorRecovery(unittest.TestCase):
+    """Test error handling and recovery in the main monitoring loop."""
+
+    @patch("src.main.RotatingFileHandler")
+    @patch("src.main.Config")
+    def test_monitoring_loop_error_handling(self, mock_config, mock_rotating_handler):
+        """
+        SECURITY STORY: This tests the main monitoring loop's resilience against
+        unexpected errors during ingestion. Ensures the pipeline does not crash
+        on a transient failure, records metrics properly, and attempts to recover.
+        """
+        mock_config_instance = mock_config.return_value
+        mock_config_instance.system.log_file = "logs/test.log"
+        mock_config_instance.system.log_level = "INFO"
+        mock_config_instance.system.log_format = "text"
+        mock_config_instance.system.log_rotation_size_mb = 10
+        mock_config_instance.system.log_rotation_count = 5
+        mock_config_instance.system.check_interval = 1
+
+        # Ensure mock_rotating_handler is a real logging handler
+        import logging
+
+        mock_rotating_handler.return_value = logging.NullHandler()
+
+        from src.main import EmailSecurityPipeline
+
+        with patch("src.main.EmailIngestionManager") as _:
+            pipeline = EmailSecurityPipeline()
+            pipeline.logger = MagicMock()
+            pipeline.running = True
+            pipeline.metrics = MagicMock()
+
+            # Make fetch_all_emails raise an exception to trigger error handling
+            pipeline.ingestion_manager.fetch_all_emails.side_effect = Exception(
+                "Test Ingestion Exception"
+            )
+
+            with patch("src.main.CountdownTimer") as mock_timer, patch(
+                "src.main.Spinner"
+            ) as _:
+
+                def run_once_then_stop(*args, **kwargs):
+                    pipeline.running = False
+                    return MagicMock()
+
+                mock_timer.wait.side_effect = run_once_then_stop
+
+                # Act
+                pipeline._monitoring_loop()
+
+                # Assert
+                pipeline.logger.error.assert_called()
+                pipeline.metrics.record_error.assert_called_with(
+                    "monitoring_loop_error"
+                )
+
+                # Verify that CountdownTimer.wait was called to pause for 30s before retrying
+                from src.utils.colors import Colors
+
+                mock_timer.wait.assert_called_with(
+                    30, Colors.colorize("Retrying in", Colors.RED)
+                )
+
 if __name__ == "__main__":
     unittest.main()
