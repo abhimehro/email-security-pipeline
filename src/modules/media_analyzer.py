@@ -748,7 +748,7 @@ class MediaAuthenticityAnalyzer:
             with tarfile.open(fileobj=io.BytesIO(data), mode="r:*") as tf:
                 if hasattr(tarfile, "data_filter"):
                     tf.extraction_filter = getattr(tarfile, "data_filter", (lambda member, path: member))
-                    
+
                 file_count = 0
                 max_files = self.MAX_ZIP_FILE_COUNT
 
