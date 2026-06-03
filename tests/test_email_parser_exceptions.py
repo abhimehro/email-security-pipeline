@@ -180,30 +180,67 @@ class TestDecodeHeaderValue:
 
 
 # ---------------------------------------------------------------------------
-# _process_singlepart_attachment – exception handling
+# _process_singlepart_body - Exception handling paths
 # ---------------------------------------------------------------------------
 
 
-class TestProcessSinglepartAttachment:
-    def test_generic_exception_is_logged_as_error(self):
-        """Any exception when extracting an attachment must be caught and logged as an error."""
-        parser = _make_parser()
+class TestProcessSinglepartBody:
+    def _make_msg_with_payload(self) -> Message:
+        """Build a Message with a valid payload to reach the decode block."""
         msg = MagicMock(spec=Message)
-        attachments = []
+        msg.get_content_type.return_value = "text/plain"
+        msg.get_content_charset.return_value = "utf-8"
+        msg.get_payload.return_value = b"some raw bytes"
+        return msg
+
+    def test_process_singlepart_body_unicode_decode_error(self):
+        """Test UnicodeDecodeError is caught and logged as a warning."""
+        parser = _make_parser()
+        msg = self._make_msg_with_payload()
+        body_dict = {"text_parts": [], "html_parts": []}
 
         with patch.object(
             parser,
-            "_extract_attachment",
-            side_effect=RuntimeError("simulated attachment error"),
+            "_decode_bytes",
+            side_effect=UnicodeDecodeError(
+                "utf-8", b"\xff", 0, 1, "invalid start byte"
+            ),
         ):
-            parser._process_singlepart_attachment(msg, attachments, "email_003")
+            parser._process_singlepart_body(msg, body_dict, "email_003")
 
-        # The exception should be caught, not crash
-        assert len(attachments) == 0
+        # Warning must have been logged
+        parser.logger.warning.assert_called_once()
+        warning_msg = parser.logger.warning.call_args[0][0]
+        assert "Failed to decode email payload" in warning_msg
+        assert "email_003" in warning_msg
 
-        # And it should be logged as an error
+    def test_process_singlepart_body_generic_exception(self):
+        """Test general exceptions are caught and logged as an error."""
+        parser = _make_parser()
+        msg = self._make_msg_with_payload()
+        body_dict = {"text_parts": [], "html_parts": []}
+
+        with patch.object(
+            parser, "_decode_bytes", side_effect=RuntimeError("Test error")
+        ):
+            parser._process_singlepart_body(msg, body_dict, "email_004")
+
+        # Error must have been logged
         parser.logger.error.assert_called_once()
         error_msg = parser.logger.error.call_args[0][0]
-        assert "email_003" in error_msg
+        assert "Unexpected error extracting content" in error_msg
+        assert "email_004" in error_msg
         assert "RuntimeError" in error_msg
-        assert "simulated attachment error" in error_msg
+
+    def test_process_singlepart_body_success(self):
+        """Test successful decoding and appending of the body."""
+        parser = _make_parser()
+        msg = self._make_msg_with_payload()
+        body_dict = {"text_parts": [], "html_parts": []}
+
+        with patch.object(parser, "_decode_bytes", return_value="decoded string"):
+            with patch.object(parser, "_add_body_content") as mock_add_body:
+                parser._process_singlepart_body(msg, body_dict, "email_005")
+                mock_add_body.assert_called_once_with(
+                    "text/plain", "decoded string", body_dict, "email_005"
+                )
