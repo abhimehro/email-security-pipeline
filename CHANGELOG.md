@@ -41,6 +41,7 @@
 
 **Closed issues:**
 
+- Daily QA Check - 2026-06-05 [\#1033](https://github.com/abhimehro/email-security-pipeline/issues/1033)
 - Daily QA Check - 2026-06-03 [\#1027](https://github.com/abhimehro/email-security-pipeline/issues/1027)
 - Daily QA Check - email-security-pipeline - 2026-06-02 [\#1012](https://github.com/abhimehro/email-security-pipeline/issues/1012)
 - Daily QA & Agentic Review — 2026-06-01 [\#971](https://github.com/abhimehro/email-security-pipeline/issues/971)
@@ -363,6 +364,7 @@
 
 **Merged pull requests:**
 
+- fix\(app\_runner\): restore \_set\_secure\_permissions for secure config creation [\#1034](https://github.com/abhimehro/email-security-pipeline/pull/1034) ([abhimehro](https://github.com/abhimehro))
 - 🧹 chore: Resolve CodeScene and CodeQL CI Failures [\#1025](https://github.com/abhimehro/email-security-pipeline/pull/1025) ([abhimehro](https://github.com/abhimehro))
 - test\(email\_parser\): singlepart body error \(salvages \#989\) [\#1020](https://github.com/abhimehro/email-security-pipeline/pull/1020) ([abhimehro](https://github.com/abhimehro))
 - test\(error\_recovery\): monitoring loop error path \(salvages \#982\) [\#1019](https://github.com/abhimehro/email-security-pipeline/pull/1019) ([abhimehro](https://github.com/abhimehro))
