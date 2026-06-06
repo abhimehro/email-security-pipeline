@@ -41,6 +41,7 @@
 
 **Closed issues:**
 
+- Daily QA Check - email-security-pipeline - 2026-06-06 [\#1038](https://github.com/abhimehro/email-security-pipeline/issues/1038)
 - Daily QA Check - 2026-06-05 [\#1033](https://github.com/abhimehro/email-security-pipeline/issues/1033)
 - Daily QA Check - 2026-06-03 [\#1027](https://github.com/abhimehro/email-security-pipeline/issues/1027)
 - Daily QA Check - email-security-pipeline - 2026-06-02 [\#1012](https://github.com/abhimehro/email-security-pipeline/issues/1012)
@@ -364,8 +365,11 @@
 
 **Merged pull requests:**
 
+- refactor\(app\_runner\): move import os to top \(salvages \#996, v3\) [\#1037](https://github.com/abhimehro/email-security-pipeline/pull/1037) ([abhimehro](https://github.com/abhimehro))
+- refactor\(main\): flatten \_record\_threat\_metrics \(salvages \#972, v4\) [\#1036](https://github.com/abhimehro/email-security-pipeline/pull/1036) ([abhimehro](https://github.com/abhimehro))
 - fix\(app\_runner\): restore \_set\_secure\_permissions for secure config creation [\#1034](https://github.com/abhimehro/email-security-pipeline/pull/1034) ([abhimehro](https://github.com/abhimehro))
 - 🧹 chore: Resolve CodeScene and CodeQL CI Failures [\#1025](https://github.com/abhimehro/email-security-pipeline/pull/1025) ([abhimehro](https://github.com/abhimehro))
+- fix\(security\): NLP eval false positive \(salvages \#973\) [\#1023](https://github.com/abhimehro/email-security-pipeline/pull/1023) ([abhimehro](https://github.com/abhimehro))
 - test\(email\_parser\): singlepart body error \(salvages \#989\) [\#1020](https://github.com/abhimehro/email-security-pipeline/pull/1020) ([abhimehro](https://github.com/abhimehro))
 - test\(error\_recovery\): monitoring loop error path \(salvages \#982\) [\#1019](https://github.com/abhimehro/email-security-pipeline/pull/1019) ([abhimehro](https://github.com/abhimehro))
 - test\(imap\): fetch batch error handling \(salvages \#984\) [\#1018](https://github.com/abhimehro/email-security-pipeline/pull/1018) ([abhimehro](https://github.com/abhimehro))
@@ -373,6 +377,7 @@
 - 🧹 chore: Resolve CodeScene and CodeQL CI Failures [\#1013](https://github.com/abhimehro/email-security-pipeline/pull/1013) ([abhimehro](https://github.com/abhimehro))
 - 🎨 Palette: Improve CLI output formatting accessibility in config summary [\#1010](https://github.com/abhimehro/email-security-pipeline/pull/1010) ([abhimehro](https://github.com/abhimehro))
 - 🧪 \[Testing\] Cover secure permissions error path [\#1009](https://github.com/abhimehro/email-security-pipeline/pull/1009) ([abhimehro](https://github.com/abhimehro))
+- fix\(security\): tarfile Zip Slip guard \(salvages \#999\) [\#1008](https://github.com/abhimehro/email-security-pipeline/pull/1008) ([abhimehro](https://github.com/abhimehro))
 - 🧹 Daily QA Review Completed \(No Findings\) [\#1005](https://github.com/abhimehro/email-security-pipeline/pull/1005) ([abhimehro](https://github.com/abhimehro))
 - 🔒 Sentinel: \[HIGH\] Fix TOCTOU vulnerability in file permissions [\#1004](https://github.com/abhimehro/email-security-pipeline/pull/1004) ([abhimehro](https://github.com/abhimehro))
 - ⚡ Bolt: Parallelize email parsing with ThreadPoolExecutor [\#1000](https://github.com/abhimehro/email-security-pipeline/pull/1000) ([abhimehro](https://github.com/abhimehro))
