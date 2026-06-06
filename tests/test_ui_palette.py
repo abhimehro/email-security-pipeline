@@ -112,28 +112,33 @@ class TestPaletteUI(TestCase):
     def test_spinner_strip_hint_on_exit(self):
         """Test that the keyboard interrupt hint is cleanly stripped from the final completion message."""
         from src.utils.ui import Spinner
-        with patch('sys.stdout') as mock_stdout:
+
+        with patch("sys.stdout") as mock_stdout:
             mock_stdout.isatty.return_value = True
 
-            with patch.object(Spinner, '_start_tty_spinner'):
+            with patch.object(Spinner, "_start_tty_spinner"):
                 spinner = Spinner("Loading (Press Ctrl+C to stop)")
                 spinner.__enter__()
                 spinner.success("Done (Press Ctrl+C to stop)")
                 spinner.__exit__(None, None, None)
 
-                writes = "".join(c.args[0] for c in mock_stdout.write.mock_calls if c.args)
+                writes = "".join(
+                    c.args[0] for c in mock_stdout.write.mock_calls if c.args
+                )
                 self.assertNotIn("(Press Ctrl+C to stop)", writes)
                 self.assertIn("Done", writes)
 
-        with patch('sys.stdout') as mock_stdout:
+        with patch("sys.stdout") as mock_stdout:
             mock_stdout.isatty.return_value = True
 
-            with patch.object(Spinner, '_start_tty_spinner'):
+            with patch.object(Spinner, "_start_tty_spinner"):
                 spinner = Spinner("Loading (Press Ctrl+C to stop)")
                 spinner.__enter__()
                 spinner.fail("Error (Press Ctrl+C to stop)")
                 spinner.__exit__(RuntimeError, None, None)
 
-                writes = "".join(c.args[0] for c in mock_stdout.write.mock_calls if c.args)
+                writes = "".join(
+                    c.args[0] for c in mock_stdout.write.mock_calls if c.args
+                )
                 self.assertNotIn("(Press Ctrl+C to stop)", writes)
                 self.assertIn("Error", writes)
