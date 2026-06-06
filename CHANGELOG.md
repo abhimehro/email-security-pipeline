@@ -365,6 +365,7 @@
 
 **Merged pull requests:**
 
+- Jules Daily QA & Agentic Review - Minor fixes [\#1041](https://github.com/abhimehro/email-security-pipeline/pull/1041) ([abhimehro](https://github.com/abhimehro))
 - Jules Daily QA & Agentic Review - Minor fixes [\#1039](https://github.com/abhimehro/email-security-pipeline/pull/1039) ([abhimehro](https://github.com/abhimehro))
 - refactor\(app\_runner\): move import os to top \(salvages \#996, v3\) [\#1037](https://github.com/abhimehro/email-security-pipeline/pull/1037) ([abhimehro](https://github.com/abhimehro))
 - refactor\(main\): flatten \_record\_threat\_metrics \(salvages \#972, v4\) [\#1036](https://github.com/abhimehro/email-security-pipeline/pull/1036) ([abhimehro](https://github.com/abhimehro))
