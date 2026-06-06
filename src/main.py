@@ -292,7 +292,9 @@ class EmailSecurityPipeline:
 
         return spam_result, nlp_result, media_result
 
-    def _record_threat_metrics(self, threat_report):
+    def _record_threat_metrics(
+        self, threat_report, spam_result, nlp_result, media_result
+    ):
         """Record metrics for detected threats."""
         if not self.metrics or threat_report.risk_level.lower() not in {
             "medium",
@@ -300,21 +302,19 @@ class EmailSecurityPipeline:
         }:
             return
 
-        threat_type = "unknown"
-        spam_score = threat_report.spam_analysis.get("score", 0)
-        nlp_score = threat_report.nlp_analysis.get("score", 0)
-        media_score = threat_report.media_analysis.get("score", 0)
+        max_score = max(
+            spam_result.score,
+            nlp_result.threat_score,
+            media_result.threat_score,
+        )
 
-        max_score = max(spam_score, nlp_score, media_score)
-
-        if max_score == 0:
-            threat_type = "spam"
-        elif spam_score == max_score:
-            threat_type = "spam"
-        elif nlp_score == max_score:
-            threat_type = "phishing"
-        elif media_score == max_score:
-            threat_type = "malware"
+        threat_mapping = {
+            media_result.threat_score: "malware",
+            nlp_result.threat_score: "phishing",
+            spam_result.score: "spam",
+            0: "spam",
+        }
+        threat_type = threat_mapping.get(max_score, "unknown")
 
         self.metrics.record_threat(threat_type, threat_report.risk_level.lower())
 
@@ -348,14 +348,20 @@ class EmailSecurityPipeline:
                 email_data, spam_result, nlp_result, media_result
             )
 
-            # Process threat report
-            self._handle_threat_report(threat_report)
+            # Send alerts
+            self.alert_system.send_alert(threat_report)
 
             # Calculate processing time
             processing_time_ms = (time.time() - start_time) * 1000
 
-            # Record metrics
-            self._record_analysis_metrics(processing_time_ms, threat_report)
+            # Record metrics if enabled
+            if self.metrics:
+                self.metrics.record_email_processed()
+                self.metrics.record_processing_time(processing_time_ms)
+
+                self._record_threat_metrics(
+                    threat_report, spam_result, nlp_result, media_result
+                )
 
             self.logger.info(
                 f"Analysis complete: overall_score={threat_report.overall_threat_score:.2f}, "
@@ -367,17 +373,6 @@ class EmailSecurityPipeline:
             if self.metrics:
                 self.metrics.record_error("analysis_error")
             self.logger.error(f"Error analyzing email: {e}", exc_info=True)
-
-    def _handle_threat_report(self, threat_report):
-        """Process the threat report and send alerts if necessary."""
-        self.alert_system.send_alert(threat_report)
-
-    def _record_analysis_metrics(self, processing_time_ms, threat_report):
-        """Record performance and threat metrics for the analysis."""
-        if self.metrics:
-            self.metrics.record_email_processed()
-            self.metrics.record_processing_time(processing_time_ms)
-            self._record_threat_metrics(threat_report)
 
     def _log_metrics_summary(self):
         """
@@ -426,23 +421,23 @@ class EmailSecurityPipeline:
         # Analysis
         print(f"  🔍 {Colors.CYAN}Analysis Layers:{Colors.RESET}")
         print(
-            f"    - Spam Detection:   {Colors.colorize('✔ Active', Colors.GREEN)} "
+            f"    - Spam Detection:   {Colors.GREEN}✔ Active{Colors.RESET} "
             f"(Threshold: {self.config.analysis.spam_threshold})"
         )
         print(
-            f"    - NLP Analysis:     {Colors.colorize('✔ Active', Colors.GREEN)} "
+            f"    - NLP Analysis:     {Colors.GREEN}✔ Active{Colors.RESET} "
             f"(Threshold: {self.config.analysis.nlp_threshold})"
         )
 
         media_status = (
-            Colors.colorize("✔ Active", Colors.GREEN)
+            f"{Colors.GREEN}✔ Active{Colors.RESET}"
             if self.config.analysis.check_media_attachments
-            else Colors.colorize("✖ Disabled", Colors.GREY)
+            else f"{Colors.GREY}✖ Disabled{Colors.RESET}"
         )
         deepfake_status = (
-            Colors.colorize("✔ Enabled", Colors.GREEN)
+            f"{Colors.GREEN}✔ Enabled{Colors.RESET}"
             if self.config.analysis.deepfake_detection_enabled
-            else Colors.colorize("✖ Disabled", Colors.GREY)
+            else f"{Colors.GREY}✖ Disabled{Colors.RESET}"
         )
         print(f"    - Media Check:      {media_status} (Deepfake: {deepfake_status})")
 
@@ -457,9 +452,7 @@ class EmailSecurityPipeline:
             channels.append("Slack")
 
         if channels:
-            print(
-                f"    - {Colors.colorize('✔ Enabled', Colors.GREEN)}: {', '.join(channels)}"
-            )
+            print(f"    - {Colors.GREEN}✔ Enabled{Colors.RESET}: {', '.join(channels)}")
         else:
             print(
                 f"    - {Colors.colorize('⚠ No alert channels configured', Colors.YELLOW)}"
