@@ -213,14 +213,20 @@ class Spinner:
                     final_message = f"{warning} {clean_msg} (Cancelled){time_str}\n"
                 elif exc_type is not None or self.fail_msg:
                     # Failure logic
-                    msg = self.fail_msg.replace(" (Press Ctrl+C to stop)", "") if self.fail_msg else clean_msg
+                    msg = (
+                        self.fail_msg.replace(" (Press Ctrl+C to stop)", "")
+                        if self.fail_msg
+                        else clean_msg
+                    )
                     # Use Colors.colorize to ensure we get proper fallback if colors are disabled
                     cross = Colors.colorize("✘", Colors.RED)
                     final_message = f"{cross} {msg}{time_str}\n"
                 elif self.success_msg:
                     # Explicit success message always persists
                     check = Colors.colorize("✔", Colors.GREEN)
-                    clean_success_msg = self.success_msg.replace(" (Press Ctrl+C to stop)", "")
+                    clean_success_msg = self.success_msg.replace(
+                        " (Press Ctrl+C to stop)", ""
+                    )
                     final_message = f"{check} {clean_success_msg}{time_str}\n"
                 elif self.persist:
                     # Default persistence
@@ -243,10 +249,16 @@ class Spinner:
             if exc_type is KeyboardInterrupt:
                 sys.stdout.write(f"⚠ {clean_msg} (Cancelled){raw_time_str}\n")
             elif exc_type is not None or self.fail_msg:
-                msg = self.fail_msg.replace(" (Press Ctrl+C to stop)", "") if self.fail_msg else clean_msg
+                msg = (
+                    self.fail_msg.replace(" (Press Ctrl+C to stop)", "")
+                    if self.fail_msg
+                    else clean_msg
+                )
                 sys.stdout.write(f"✘ {msg}{raw_time_str}\n")
             elif self.success_msg:
-                clean_success_msg = self.success_msg.replace(" (Press Ctrl+C to stop)", "")
+                clean_success_msg = self.success_msg.replace(
+                    " (Press Ctrl+C to stop)", ""
+                )
                 sys.stdout.write(f"✔ {clean_success_msg}{raw_time_str}\n")
             elif self.persist:
                 sys.stdout.write(f"✔ {clean_msg}{raw_time_str}\n")

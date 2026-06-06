@@ -544,7 +544,6 @@ class TestIMAPDiagnosticsSSLCertificate(unittest.TestCase):
         self.assertIn("SSL check failed", result["error"])
 
 
-
 class TestIMAPConnectionFetchBatch(unittest.TestCase):
     """Tests for IMAPConnection._fetch_batch()."""
 
@@ -625,6 +624,7 @@ class TestIMAPConnectionFetchBatch(unittest.TestCase):
 
         self.assertEqual(result, [])
         self.conn.logger.error.assert_called()
+
 
 if __name__ == "__main__":
     unittest.main()

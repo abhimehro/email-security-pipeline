@@ -448,8 +448,6 @@ class TestGracefulDegradation(unittest.TestCase):
         self.assertIsNotNone(result)
 
 
-
-
 class TestMonitoringLoopErrorRecovery(unittest.TestCase):
     """Test error handling and recovery in the main monitoring loop."""
 
@@ -512,6 +510,7 @@ class TestMonitoringLoopErrorRecovery(unittest.TestCase):
                 mock_timer.wait.assert_called_with(
                     30, Colors.colorize("Retrying in", Colors.RED)
                 )
+
 
 if __name__ == "__main__":
     unittest.main()
