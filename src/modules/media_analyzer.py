@@ -763,9 +763,11 @@ class MediaAuthenticityAnalyzer:
                     filename, [m.name for m in members], score, warnings
                 )
 
-                for member in members[:self.MAX_ZIP_FILE_COUNT]:
+                for member in members[: self.MAX_ZIP_FILE_COUNT]:
                     # SECURITY: Sanitize member name to prevent path traversal and log injection
-                    safe_member_name = sanitize_for_logging(sanitize_filename(member.name))
+                    safe_member_name = sanitize_for_logging(
+                        sanitize_filename(member.name)
+                    )
                     member_lower = safe_member_name.lower()
 
                     # Check for dangerous extensions FIRST
