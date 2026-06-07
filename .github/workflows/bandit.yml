@@ -29,6 +29,6 @@ jobs:
           path: results.sarif
 
       - name: Upload SARIF file
-        uses: github/codeql-action/upload-sarif@d1eb1207b45130d2edf64a0aa1c93be23510592f # codeql-bundle-v2.25.5
+        uses: github/codeql-action/upload-sarif@codeql-bundle-v2.25.6 # codeql-bundle-v2.25.5
         with:
           sarif_file: results.sarif
