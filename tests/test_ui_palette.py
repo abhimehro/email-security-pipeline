@@ -142,3 +142,35 @@ class TestPaletteUI(TestCase):
                 )
                 self.assertNotIn("(Press Ctrl+C to stop)", writes)
                 self.assertIn("Error", writes)
+
+    def test_main_print_configuration_summary_uses_colorize(self):
+        from src.main import EmailSecurityPipeline
+        from src.utils.config import Config
+        from io import StringIO
+        import sys
+
+        # Create a mock config
+        config = Config()
+        config.system.check_interval = 60
+        pipeline = EmailSecurityPipeline()
+        pipeline.config = config
+
+        # Mock stdout and Colors.colorize to track calls
+        with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
+            from src.utils.colors import Colors
+            with patch("src.main.Colors.colorize", wraps=Colors.colorize) as mock_colorize:
+                pipeline._print_configuration_summary()
+
+                # Verify that colorize was called for all colored outputs
+                calls = mock_colorize.call_args_list
+                colored_strings = [call[0][0] for call in calls]
+
+                self.assertIn("📊 System Configuration:", colored_strings)
+                self.assertIn("Monitored Accounts:", colored_strings)
+                self.assertIn("Analysis Layers:", colored_strings)
+                self.assertIn("Alert Channels:", colored_strings)
+                self.assertIn("System:", colored_strings)
+
+                # Check actual output for fallback safety (no ANSI code directly interpolated)
+                output = mock_stdout.getvalue()
+                self.assertIn("📊 System Configuration:", output)
