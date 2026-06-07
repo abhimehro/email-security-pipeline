@@ -75,14 +75,14 @@ class CountdownTimer:
                 sys.stdout.write("\r\033[K")
                 sys.stdout.flush()
 
-        except KeyboardInterrupt:
+        except (EOFError, KeyboardInterrupt):
             # Clean up line on interrupt
             warning = Colors.colorize("⚠", Colors.YELLOW)
             clean_msg = self.message.replace(" (Press Ctrl+C to stop)", "")
             # Ensure we print the cancellation message correctly
             sys.stdout.write(f"\r\033[K{warning} {clean_msg} (Cancelled)\n")
             sys.stdout.flush()
-            raise
+            raise KeyboardInterrupt()
         finally:
             # Restore cursor
             sys.stdout.write(CURSOR_SHOW)
@@ -186,7 +186,7 @@ class Spinner:
         # Catch and skip so we just enter the spinner loop which handles cancellation gracefully
         try:
             time.sleep(0.1)
-        except KeyboardInterrupt:
+        except (EOFError, KeyboardInterrupt):
             pass
 
         self.busy = True
@@ -208,7 +208,7 @@ class Spinner:
 
                 clean_msg = self.message.replace(" (Press Ctrl+C to stop)", "")
 
-                if exc_type is KeyboardInterrupt:
+                if exc_type is not None and issubclass(exc_type, (EOFError, KeyboardInterrupt)):
                     warning = Colors.colorize("⚠", Colors.YELLOW)
                     final_message = f"{warning} {clean_msg} (Cancelled){time_str}\n"
                 elif exc_type is not None or self.fail_msg:
@@ -246,7 +246,7 @@ class Spinner:
             raw_time_str = f" [{elapsed:.1f}s]" if elapsed >= 1.0 else ""
             clean_msg = self.message.replace(" (Press Ctrl+C to stop)", "")
 
-            if exc_type is KeyboardInterrupt:
+            if exc_type is not None and issubclass(exc_type, (EOFError, KeyboardInterrupt)):
                 sys.stdout.write(f"⚠ {clean_msg} (Cancelled){raw_time_str}\n")
             elif exc_type is not None or self.fail_msg:
                 msg = (
