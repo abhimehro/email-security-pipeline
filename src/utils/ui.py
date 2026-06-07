@@ -208,10 +208,14 @@ class Spinner:
 
                 clean_msg = self.message.replace(" (Press Ctrl+C to stop)", "")
 
-                if exc_type is not None and issubclass(exc_type, (EOFError, KeyboardInterrupt)):
+
+                is_cancelled = exc_type is not None and issubclass(exc_type, (EOFError, KeyboardInterrupt))
+                is_failed = exc_type is not None or self.fail_msg
+
+                if is_cancelled:
                     warning = Colors.colorize("⚠", Colors.YELLOW)
                     final_message = f"{warning} {clean_msg} (Cancelled){time_str}\n"
-                elif exc_type is not None or self.fail_msg:
+                elif is_failed:
                     # Failure logic
                     msg = (
                         self.fail_msg.replace(" (Press Ctrl+C to stop)", "")
