@@ -193,77 +193,74 @@ class Spinner:
         self.thread = threading.Thread(target=self._spin)
         self.thread.start()
 
+    def _get_final_message_components(self, exc_type) -> tuple[str, str]:
+        """Determine the final symbol and message to display."""
+        clean_msg = self.message.replace(" (Press Ctrl+C to stop)", "")
+        is_cancelled = exc_type is not None and issubclass(
+            exc_type, (EOFError, KeyboardInterrupt)
+        )
+        is_failed = exc_type is not None or self.fail_msg
+
+        if is_cancelled:
+            return "⚠", f"{clean_msg} (Cancelled)"
+
+        if is_failed:
+            msg = (
+                self.fail_msg.replace(" (Press Ctrl+C to stop)", "")
+                if self.fail_msg
+                else clean_msg
+            )
+            return "✘", msg
+
+        if self.success_msg:
+            return "✔", self.success_msg.replace(" (Press Ctrl+C to stop)", "")
+
+        if self.persist:
+            return "✔", clean_msg
+
+        return "", ""
+
     def __exit__(self, exc_type, exc_val, exc_tb):
         elapsed = time.time() - getattr(self, "start_time", time.time())
-        time_str = (
-            Colors.colorize(f" [{elapsed:.1f}s]", Colors.GREY) if elapsed >= 1.0 else ""
-        )
+        raw_time_str = f" [{elapsed:.1f}s]" if elapsed >= 1.0 else ""
 
-        if sys.stdout.isatty():
-            try:
-                self.busy = False
-                if self.thread:
-                    self.thread.join()
-                final_message = ""
+        symbol, msg = self._get_final_message_components(exc_type)
 
-                clean_msg = self.message.replace(" (Press Ctrl+C to stop)", "")
-
-
-                is_cancelled = exc_type is not None and issubclass(exc_type, (EOFError, KeyboardInterrupt))
-                is_failed = exc_type is not None or self.fail_msg
-
-                if is_cancelled:
-                    warning = Colors.colorize("⚠", Colors.YELLOW)
-                    final_message = f"{warning} {clean_msg} (Cancelled){time_str}\n"
-                elif is_failed:
-                    # Failure logic
-                    msg = (
-                        self.fail_msg.replace(" (Press Ctrl+C to stop)", "")
-                        if self.fail_msg
-                        else clean_msg
-                    )
-                    # Use Colors.colorize to ensure we get proper fallback if colors are disabled
-                    cross = Colors.colorize("✘", Colors.RED)
-                    final_message = f"{cross} {msg}{time_str}\n"
-                elif self.success_msg:
-                    # Explicit success message always persists
-                    check = Colors.colorize("✔", Colors.GREEN)
-                    clean_success_msg = self.success_msg.replace(
-                        " (Press Ctrl+C to stop)", ""
-                    )
-                    final_message = f"{check} {clean_success_msg}{time_str}\n"
-                elif self.persist:
-                    # Default persistence
-                    check = Colors.colorize("✔", Colors.GREEN)
-                    final_message = f"{check} {clean_msg}{time_str}\n"
-
-                sys.stdout.write(f"\r\033[K{final_message}")
+        if not symbol:
+            self._cleanup_thread()
+            if sys.stdout.isatty():
+                sys.stdout.write("\r\033[K")
                 sys.stdout.flush()
-            finally:
-                # Restore cursor
                 sys.stdout.write(CURSOR_SHOW)
                 sys.stdout.flush()
-        else:
-            # Non-TTY: provide simple success/failure feedback without ANSI codes.
-            # Colors.ENABLED is computed at import time, so use plain symbols here
-            # to avoid leaking escape sequences when stdout is redirected later.
-            raw_time_str = f" [{elapsed:.1f}s]" if elapsed >= 1.0 else ""
-            clean_msg = self.message.replace(" (Press Ctrl+C to stop)", "")
+            return
 
-            if exc_type is not None and issubclass(exc_type, (EOFError, KeyboardInterrupt)):
-                sys.stdout.write(f"⚠ {clean_msg} (Cancelled){raw_time_str}\n")
-            elif exc_type is not None or self.fail_msg:
-                msg = (
-                    self.fail_msg.replace(" (Press Ctrl+C to stop)", "")
-                    if self.fail_msg
-                    else clean_msg
-                )
-                sys.stdout.write(f"✘ {msg}{raw_time_str}\n")
-            elif self.success_msg:
-                clean_success_msg = self.success_msg.replace(
-                    " (Press Ctrl+C to stop)", ""
-                )
-                sys.stdout.write(f"✔ {clean_success_msg}{raw_time_str}\n")
-            elif self.persist:
-                sys.stdout.write(f"✔ {clean_msg}{raw_time_str}\n")
+        if sys.stdout.isatty():
+            self._cleanup_thread()
+            time_str = Colors.colorize(raw_time_str, Colors.GREY) if raw_time_str else ""
+            color = self._get_color_for_symbol(symbol)
+            colored_symbol = Colors.colorize(symbol, color)
+
+            sys.stdout.write(f"\r\033[K{colored_symbol} {msg}{time_str}\n")
             sys.stdout.flush()
+            sys.stdout.write(CURSOR_SHOW)
+            sys.stdout.flush()
+        else:
+            sys.stdout.write(f"{symbol} {msg}{raw_time_str}\n")
+            sys.stdout.flush()
+
+    def _cleanup_thread(self):
+        """Stop the spinner thread safely."""
+        self.busy = False
+        if self.thread:
+            self.thread.join()
+
+    def _get_color_for_symbol(self, symbol: str) -> str:
+        """Map symbols to their respective colors."""
+        if symbol == "⚠":
+            return Colors.YELLOW
+        if symbol == "✘":
+            return Colors.RED
+        if symbol == "✔":
+            return Colors.GREEN
+        return Colors.WHITE
