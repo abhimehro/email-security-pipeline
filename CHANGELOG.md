@@ -367,6 +367,7 @@
 
 **Merged pull requests:**
 
+- chore\(actions\): consolidate workflow automation [\#1046](https://github.com/abhimehro/email-security-pipeline/pull/1046) ([abhimehro](https://github.com/abhimehro))
 - Jules Daily QA & Agentic Review - Spotless Health [\#1045](https://github.com/abhimehro/email-security-pipeline/pull/1045) ([abhimehro](https://github.com/abhimehro))
 - 🎨 Palette: Use semantic Colors.colorize for configuration summary UI [\#1042](https://github.com/abhimehro/email-security-pipeline/pull/1042) ([abhimehro](https://github.com/abhimehro))
 - Jules Daily QA & Agentic Review - Minor fixes [\#1041](https://github.com/abhimehro/email-security-pipeline/pull/1041) ([abhimehro](https://github.com/abhimehro))
