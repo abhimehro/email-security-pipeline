@@ -91,16 +91,16 @@ class SpamAnalyzer:
     # We explicitly lower() the keywords to guarantee matching behavior.
     COMBINED_SPAM_PATTERN = compile_patterns([kw.lower() for kw in SPAM_KEYWORDS])
 
-    LINK_PATTERN = re.compile(r"https?://", re.IGNORECASE)
-    URL_EXTRACTION_PATTERN = re.compile(r'https?://[^\s<>"]+', re.IGNORECASE)
-    MONEY_PATTERN = re.compile(r"\$\d+|\d+\s*(dollar|usd|euro)", re.IGNORECASE)
-    IMG_TAG_PATTERN = re.compile(r"<img\b", re.IGNORECASE)
+    LINK_PATTERN = re.compile(r"https?://")
+    URL_EXTRACTION_PATTERN = re.compile(r'https?://[^\s<>"]+')
+    MONEY_PATTERN = re.compile(r"\$\d+|\d+\s*(dollar|usd|euro)")
+    IMG_TAG_PATTERN = re.compile(r"<img\b")
     # Use bounded quantifiers to prevent ReDoS (Regular Expression Denial of Service)
     HIDDEN_TEXT_PATTERN = re.compile(
         r"font-size:\s*[0-2]px|color:\s*#fff.{0,100}background.{0,100}#fff"
     )
     EMAIL_ADDRESS_PATTERN = re.compile(r"[\w\.-]+@[\w\.-]+")
-    SENDER_DOMAIN_PATTERN = re.compile(r"[\w\.-]+@([\w\.-]+)", re.IGNORECASE)
+    SENDER_DOMAIN_PATTERN = re.compile(r"[\w\.-]+@([\w\.-]+)")
 
     # Number of links in an email body that triggers an "excessive links" spam signal.
     EXCESSIVE_LINK_THRESHOLD = 10
@@ -147,7 +147,7 @@ class SpamAnalyzer:
 
     # Optimization: Pre-compiled regex reduces Python-level iteration compared to an any()-based loop
     # while preserving the original substring-matching behavior (no word boundaries)
-    CORPORATE_TITLES_PATTERN = compile_patterns(CORPORATE_TITLES, re.IGNORECASE)
+    CORPORATE_TITLES_PATTERN = compile_patterns([kw.lower() for kw in CORPORATE_TITLES])
 
     def __init__(self, config):
         """
@@ -184,10 +184,10 @@ class SpamAnalyzer:
 
         # Extract URLs once for both body analysis and URL checking
         # Optimization: Process parts separately to avoid large string concatenation
-        extracted_urls = self.URL_EXTRACTION_PATTERN.findall(email_data.body_text)
+        extracted_urls = self.URL_EXTRACTION_PATTERN.findall(email_data.body_text.lower())
         if email_data.body_html:
             extracted_urls.extend(
-                self.URL_EXTRACTION_PATTERN.findall(email_data.body_html)
+                self.URL_EXTRACTION_PATTERN.findall(email_data.body_html.lower())
             )
         link_count = len(extracted_urls)
 
@@ -307,7 +307,7 @@ class SpamAnalyzer:
         if html_body and len(text_body.strip()) < 50:
             # Only check HTML for img tags, case-insensitive
             # Optimization: len(findall) is faster for simple occurrence counting
-            img_count = len(self.IMG_TAG_PATTERN.findall(html_body))
+            img_count = len(self.IMG_TAG_PATTERN.findall(html_body.lower()))
             if img_count > 2:
                 score += 1.0
                 indicators.append("Image-heavy email with little text")

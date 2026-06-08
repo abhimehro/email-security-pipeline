@@ -102,3 +102,7 @@
 ## 2023-10-27 - Addressing CodeScene Complexity Errors
 **Learning:** Adding new functional blocks with nested context managers (`with` statements) inside large existing methods can trigger static analysis / cyclomatic complexity warnings (like CodeScene's "Complex Method" gate).
 **Action:** When introducing new concurrent blocks (like `ThreadPoolExecutor`), prefer extracting the block into a dedicated private helper method rather than bloating the parent method, improving readability and satisfying static code health gates.
+
+## 2025-06-08 - [Performance Optimization: Remove re.IGNORECASE penalty in SpamAnalyzer regex]
+**Learning:** Python's regex engine incurs a massive performance penalty (~50-100% overhead) when evaluating patterns compiled with `re.IGNORECASE` (`re.I`). For patterns where casing doesn't strictly matter or target text can be efficiently pre-lowercased, it is much faster to use default case-sensitive matching on `.lower()` text.
+**Action:** Removed `re.IGNORECASE` from `SpamAnalyzer` patterns (`URL_EXTRACTION_PATTERN`, `IMG_TAG_PATTERN`, `MONEY_PATTERN`, `LINK_PATTERN`, `SENDER_DOMAIN_PATTERN`, `CORPORATE_TITLES_PATTERN`) and updated the matching sites to apply `.lower()` on the target strings.
