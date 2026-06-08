@@ -178,3 +178,6 @@
 ## 2025-06-02 - Strip Interactive Hints from Final UI State
 **Learning:** Terminal spinners that append interactive hints (like `(Press Ctrl+C to stop)`) often leave those hints permanently visible on the screen if they aren't stripped before printing the final success/failure state. This creates messy logs and confusing UX once the action is over.
 **Action:** Always strip interactive instructions from terminal components during their cleanup or `__exit__` phase before printing the final persisted message.
+## 2026-06-07 - Graceful exit on EOF inputs
+**Learning:** Terminal applications can break unexpectedly with ugly tracebacks when encountering EOF (Ctrl+D or piped non-interactive execution). This is confusing UX compared to Ctrl+C (KeyboardInterrupt).
+**Action:** When working with CLI inputs (`input()`, `getpass()`), wrap the input calls to catch `EOFError` and translate it into a graceful cancellation state (like raising `KeyboardInterrupt`) so standard shutdown handlers provide clean feedback without dumping traces to the user's shell. Always ensure terminal colors/formatting are reset in a `finally` block so an interrupted prompt doesn't leave the user's terminal permanently bold or colored.
