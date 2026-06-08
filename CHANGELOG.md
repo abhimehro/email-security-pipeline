@@ -368,6 +368,7 @@
 
 **Merged pull requests:**
 
+- ⚡ Bolt: Remove re.IGNORECASE penalty from SpamAnalyzer regex [\#1052](https://github.com/abhimehro/email-security-pipeline/pull/1052) ([abhimehro](https://github.com/abhimehro))
 - 🎨 Palette: Graceful exit on EOF inputs [\#1050](https://github.com/abhimehro/email-security-pipeline/pull/1050) ([abhimehro](https://github.com/abhimehro))
 - chore\(actions\): consolidate workflow automation [\#1046](https://github.com/abhimehro/email-security-pipeline/pull/1046) ([abhimehro](https://github.com/abhimehro))
 - Jules Daily QA & Agentic Review - Spotless Health [\#1045](https://github.com/abhimehro/email-security-pipeline/pull/1045) ([abhimehro](https://github.com/abhimehro))
