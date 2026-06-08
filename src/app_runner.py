@@ -17,10 +17,17 @@ class AppRunner:
         if Colors.ENABLED:
             prompt += Colors.BOLD
 
-        val = input(prompt).strip()
-
-        if Colors.ENABLED:
-            print(Colors.RESET, end="", flush=True)
+        try:
+            val = input(prompt).strip()
+        except EOFError:
+            print() # Print newline since input was interrupted
+            raise KeyboardInterrupt()
+        except KeyboardInterrupt:
+            print() # Print newline since input was interrupted
+            raise
+        finally:
+            if Colors.ENABLED:
+                print(Colors.RESET, end="", flush=True)
 
         return val
 

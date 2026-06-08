@@ -54,10 +54,17 @@ def _styled_input(prompt: str) -> str:
     if Colors.ENABLED:
         prompt += Colors.BOLD
 
-    val = input(prompt).strip()
-
-    if Colors.ENABLED:
-        print(Colors.RESET, end="", flush=True)
+    try:
+        val = input(prompt).strip()
+    except EOFError:
+        print() # Print newline since input was interrupted
+        raise KeyboardInterrupt()
+    except KeyboardInterrupt:
+        print() # Print newline since input was interrupted
+        raise
+    finally:
+        if Colors.ENABLED:
+            print(Colors.RESET, end="", flush=True)
 
     return val
 
@@ -231,15 +238,23 @@ def _prompt_for_password(provider_name: str) -> str:
     if Colors.ENABLED:
         prompt += Colors.BOLD
 
-    app_secret = getpass.getpass(prompt).strip()
-    if Colors.ENABLED:
-        print(Colors.RESET, end="")
+    def _get_input() -> str:
+        try:
+            return getpass.getpass(prompt).strip()
+        except EOFError:
+            print() # Print newline since input was interrupted
+            raise KeyboardInterrupt()
+        except KeyboardInterrupt:
+            print() # Print newline since input was interrupted
+            raise
+        finally:
+            if Colors.ENABLED:
+                print(Colors.RESET, end="")
 
+    app_secret = _get_input()
     while not app_secret:
         print(Colors.colorize("Password is required.", Colors.YELLOW))
-        app_secret = getpass.getpass(prompt).strip()
-        if Colors.ENABLED:
-            print(Colors.RESET, end="")
+        app_secret = _get_input()
 
     return app_secret
 
