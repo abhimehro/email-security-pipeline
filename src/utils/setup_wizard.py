@@ -77,7 +77,7 @@ def _test_connection(email: str, app_password: str, provider_choice: str) -> boo
     if not (EmailAccountConfig and IMAPConnection and Spinner):
         return True  # Cannot verify, assume valid to proceed
 
-    print(f"\n{Colors.CYAN}Verifying credentials...{Colors.RESET}")
+    print("\n" + Colors.colorize("Verifying credentials...", Colors.CYAN))
 
     # Defaults based on provider
     if provider_choice == "1":  # Gmail
@@ -278,7 +278,9 @@ def _get_credentials(choice: str, provider_name: str) -> tuple[str, str]:
 
             # If connection failed, ask user how to proceed
             print(
-                f"\n{Colors.YELLOW}Connection failed. Would you like to try entering credentials again?{Colors.RESET}"
+                "\n" + Colors.colorize(
+                    "Connection failed. Would you like to try entering credentials again?", Colors.YELLOW
+                )
             )
             print(
                 f"  {Colors.colorize('y:', Colors.BOLD)} Try again {Colors.colorize('(Recommended)', Colors.GREEN)}"
@@ -300,7 +302,7 @@ def _get_credentials(choice: str, provider_name: str) -> tuple[str, str]:
                 return email, app_secret
 
             # Loop continues to ask for email/password again
-            print(f"\n{Colors.CYAN}Let's try again...{Colors.RESET}")
+            print("\n" + Colors.colorize("Let's try again...", Colors.CYAN))
 
     except EOFError:
         return "", ""
