@@ -147,7 +147,6 @@ class TestPaletteUI(TestCase):
         from src.main import EmailSecurityPipeline
         from src.utils.config import Config
         from io import StringIO
-        import sys
 
         # Create a mock config
         config = Config()
