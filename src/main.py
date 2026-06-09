@@ -160,7 +160,9 @@ class EmailSecurityPipeline:
             for error in e.args[0]:
                 print(f"  • {Colors.colorize(error, Colors.YELLOW)}")
             print(
-                "\nPlease check your configuration file (e.g., .env) and ensure at least one account is enabled."
+                "\n" + Colors.colorize("Please check your configuration file (e.g., ", Colors.YELLOW) +
+                Colors.colorize(".env", Colors.CYAN) +
+                Colors.colorize(") and ensure at least one account is enabled.", Colors.YELLOW)
             )
             self.stop()
             sys.exit(1)
