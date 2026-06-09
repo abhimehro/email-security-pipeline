@@ -237,7 +237,9 @@ class Spinner:
 
         if sys.stdout.isatty():
             self._cleanup_thread()
-            time_str = Colors.colorize(raw_time_str, Colors.GREY) if raw_time_str else ""
+            time_str = (
+                Colors.colorize(raw_time_str, Colors.GREY) if raw_time_str else ""
+            )
             color = self._get_color_for_symbol(symbol)
             colored_symbol = Colors.colorize(symbol, color)
 

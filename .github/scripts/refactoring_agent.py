@@ -110,6 +110,7 @@ class CodeSceneRefactoringAgent:
                 f"{self.codescene_url}/projects",
                 headers=self.cs_headers,
                 params={"page": 1, "page_size": 100},
+                timeout=10,
             )
             response.raise_for_status()
 
@@ -138,6 +139,7 @@ class CodeSceneRefactoringAgent:
             response = requests.get(
                 f"{self.codescene_url}/projects/{project_id}/analyses/latest",
                 headers=self.cs_headers,
+                timeout=10,
             )
             response.raise_for_status()
             analysis = response.json()
@@ -158,6 +160,7 @@ class CodeSceneRefactoringAgent:
                 f"{self.codescene_url}/projects/{project_id}/analyses/latest/technical-debt",
                 headers=self.cs_headers,
                 params={"refactoring_targets": "true"},
+                timeout=10,
             )
             response.raise_for_status()
 
@@ -185,6 +188,7 @@ class CodeSceneRefactoringAgent:
                     "order_by": "code_health",
                     "fields": "path,code_health,lines_of_code",
                 },
+                timeout=10,
             )
             response.raise_for_status()
 
@@ -518,7 +522,7 @@ Skill-guided refactoring | Confidence-based decisions | Code Health driven"""
                 "Accept": "application/vnd.github.v3+json",
             }
 
-            response = requests.post(url, json={"body": comment_body}, headers=headers)
+            response = requests.post(url, json={"body": comment_body}, headers=headers, timeout=10)
             response.raise_for_status()
 
             self.log("SUCCESS", "Posted comment to PR")

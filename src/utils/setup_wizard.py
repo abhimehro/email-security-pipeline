@@ -57,10 +57,10 @@ def _styled_input(prompt: str) -> str:
     try:
         val = input(prompt).strip()
     except EOFError:
-        print() # Print newline since input was interrupted
+        print()  # Print newline since input was interrupted
         raise KeyboardInterrupt()
     except KeyboardInterrupt:
-        print() # Print newline since input was interrupted
+        print()  # Print newline since input was interrupted
         raise
     finally:
         if Colors.ENABLED:
@@ -242,10 +242,10 @@ def _prompt_for_password(provider_name: str) -> str:
         try:
             return getpass.getpass(prompt).strip()
         except EOFError:
-            print() # Print newline since input was interrupted
+            print()  # Print newline since input was interrupted
             raise KeyboardInterrupt()
         except KeyboardInterrupt:
-            print() # Print newline since input was interrupted
+            print()  # Print newline since input was interrupted
             raise
         finally:
             if Colors.ENABLED:

@@ -185,7 +185,9 @@ class SpamAnalyzer:
 
         # Extract URLs once for both body analysis and URL checking
         # Optimization: Process parts separately to avoid large string concatenation
-        extracted_urls = self.URL_EXTRACTION_PATTERN.findall(email_data.body_text.lower())
+        extracted_urls = self.URL_EXTRACTION_PATTERN.findall(
+            email_data.body_text.lower()
+        )
         if email_data.body_html:
             extracted_urls.extend(
                 self.URL_EXTRACTION_PATTERN.findall(email_data.body_html.lower())

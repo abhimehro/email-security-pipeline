@@ -157,7 +157,10 @@ class TestPaletteUI(TestCase):
         # Mock stdout and Colors.colorize to track calls
         with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
             from src.utils.colors import Colors
-            with patch("src.main.Colors.colorize", wraps=Colors.colorize) as mock_colorize:
+
+            with patch(
+                "src.main.Colors.colorize", wraps=Colors.colorize
+            ) as mock_colorize:
                 pipeline._print_configuration_summary()
 
                 # Verify that colorize was called for all colored outputs
