@@ -1,4 +1,4 @@
-name: PR Refactoring
+name: CodeScene PR Refactoring Agent
 
 on:
   issue_comment:
@@ -9,33 +9,16 @@ jobs:
     if: github.event.issue.pull_request != null && contains(github.event.comment.body, '/cs-agent')
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
       pull-requests: write
       issues: write
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
-
-      - name: Set up Python
-        uses: actions/setup-python@v6
-        with:
-          python-version: '3.11'
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install google-generativeai
-
-      - name: Run CodeScene Refactoring Agent
+      - uses: codescene-oss/pr-refactoring-agent@3cff36e4c847e0ecd98dbdabd297c44ea4f7e151 # v1.0.1
         env:
-          CODESCENE_ACCESS_TOKEN: ${{ secrets.CODESCENE_ACCESS_TOKEN }}
           GOOGLE_GENERATIVE_AI_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITHUB_REPOSITORY: ${{ github.repository }}
-        run: |
-          python .github/scripts/refactoring_agent.py \
-            --pr-number ${{ github.event.issue.number }} \
-            --repository ${{ github.repository }} \
-            --command "${{ github.event.comment.body }}"
+        with:
+          pr_number: ${{ github.event.issue.number }}
+          command: ${{ github.event.comment.body }}
+          model: 'gemini-flash-latest'
+          codescene_token: ${{ secrets.CODESCENE_ACCESS_TOKEN }}
+          google_api_key: ${{ secrets.GOOGLE_API_KEY }}
