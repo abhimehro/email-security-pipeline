@@ -37,3 +37,7 @@
 **Vulnerability:** Zip Slip / path traversal in `tarfile` parsing. Iterating over `tarfile.open()` allows a crafted archive to supply malicious `member.name` properties (like `../../etc/passwd`). Calling `extractfile(member)` blindly on those members creates an extraction vulnerability.
 **Learning:** Python's `tarfile` module does not intrinsically protect against path traversal when looping `for member in tf:` or using `extractfile(member)`.
 **Prevention:** Apply the PEP-706 extraction filter natively (`tf.extraction_filter = getattr(tarfile, "data_filter", ...)`) AND explicitly guard `member.name.startswith("/")` and `".." in member.name` during parsing iteration.
+## 2024-06-09 - Path Traversal Log Leakage
+**Vulnerability:** Path Traversal Log Leakage
+**Learning:** During analysis, path traversal checks logged the raw malicious paths in the analyzer warning.
+**Prevention:** Sanitize the raw malicious strings before adding them to warning lists and subsequently to the logger.

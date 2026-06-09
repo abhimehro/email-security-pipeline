@@ -585,6 +585,13 @@ class MediaAuthenticityAnalyzer:
                 files_to_check = file_list[: self.MAX_ZIP_FILE_COUNT]
 
                 for contained_file in files_to_check:
+                    if contained_file.startswith("/") or ".." in contained_file:
+                        score += 5.0
+                        safe_contained_file = sanitize_for_logging(sanitize_filename(contained_file))
+                        warnings.append(
+                            f"Zip file {filename} contains path traversal attempt: {safe_contained_file}"
+                        )
+
                     member_score, member_warnings = self._inspect_archive_member(
                         filename,
                         contained_file,
@@ -783,8 +790,9 @@ class MediaAuthenticityAnalyzer:
                     # THEN check for path traversal attempts
                     if member.name.startswith("/") or ".." in member.name:
                         score += 5.0
+                        safe_member_name = sanitize_for_logging(sanitize_filename(member.name))
                         warnings.append(
-                            f"Tar file {filename} contains path traversal attempt: {member.name}"
+                            f"Tar file {filename} contains path traversal attempt: {safe_member_name}"
                         )
                         continue
 
