@@ -591,6 +591,10 @@ class MediaAuthenticityAnalyzer:
                         warnings.append(
                             f"Zip file {filename} contains path traversal attempt: {safe_contained_file}"
                         )
+                        if not safe_contained_file.lower().endswith(
+                            self.DANGEROUS_EXTENSIONS
+                        ):
+                            continue
 
                     member_score, member_warnings = self._inspect_archive_member(
                         filename,
