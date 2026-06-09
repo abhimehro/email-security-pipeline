@@ -106,3 +106,6 @@
 ## 2025-06-08 - [Performance Optimization: Remove re.IGNORECASE penalty in SpamAnalyzer regex]
 **Learning:** Python's regex engine incurs a massive performance penalty (~50-100% overhead) when evaluating patterns compiled with `re.IGNORECASE` (`re.I`). For patterns where casing doesn't strictly matter or target text can be efficiently pre-lowercased, it is much faster to use default case-sensitive matching on `.lower()` text.
 **Action:** Removed `re.IGNORECASE` from `SpamAnalyzer` patterns (`URL_EXTRACTION_PATTERN`, `IMG_TAG_PATTERN`, `MONEY_PATTERN`, `LINK_PATTERN`, `SENDER_DOMAIN_PATTERN`, `CORPORATE_TITLES_PATTERN`) and updated the matching sites to apply `.lower()` on the target strings.
+## 2025-06-09 - Deduplicate URLs in Spam Analysis using Counter
+**Learning:** In spam filtering contexts, emails (especially malicious ones) frequently repeat the same URLs multiple times (e.g., tracking pixels, redundant call-to-action buttons). Processing a raw list of URLs sequentially incurs redundant parsing overhead and cache lookups for each duplicate.
+**Action:** Deduplicate items (using `set` or `collections.Counter` if tracking frequency) before running expensive validation/parsing logic on them to ensure each unique item is processed exactly once.
