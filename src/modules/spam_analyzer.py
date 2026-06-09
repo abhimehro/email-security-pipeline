@@ -7,6 +7,7 @@ import logging
 import re
 from dataclasses import dataclass
 from typing import Dict, List, Tuple, Union
+from collections import Counter
 from urllib.parse import urlparse
 
 from ..utils.caching import TTLCache
@@ -340,15 +341,18 @@ class SpamAnalyzer:
         score = 0.0
         suspicious = []
 
-        for url in urls:
+        # Optimization: Deduplicate URLs using Counter to avoid redundant parsing and cache lookups
+        url_counts = Counter(urls)
+
+        for url, count in url_counts.items():
             cached = self.url_cache.get(url)
             if cached is not None:
                 # Retrieve cached results
                 url_score, append_count = cached
-                score += url_score
+                score += url_score * count
                 # Replicate the exact number of appends
                 if append_count > 0:
-                    suspicious.extend([url] * append_count)
+                    suspicious.extend([url] * (append_count * count))
                 continue
 
             try:
@@ -365,9 +369,9 @@ class SpamAnalyzer:
                     current_url_score += 0.5
                     append_count += 1
 
-                score += current_url_score
+                score += current_url_score * count
                 if append_count > 0:
-                    suspicious.extend([url] * append_count)
+                    suspicious.extend([url] * (append_count * count))
 
                 self.url_cache.put(url, (current_url_score, append_count))
 
