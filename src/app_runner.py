@@ -1,6 +1,6 @@
+import os
 import signal
 import sys
-import os
 from pathlib import Path
 from typing import List, NoReturn, Optional
 
@@ -13,17 +13,17 @@ class AppRunner:
     """Encapsulates the startup, configuration verification, and execution logic of the Email Security Pipeline."""
 
     def _styled_input(self, prompt: str) -> str:
-        """Helper to conditionally apply BOLD styling to user input."""
+        """Conditionally apply BOLD styling to user input."""
         if Colors.ENABLED:
             prompt += Colors.BOLD
 
         try:
             val = input(prompt).strip()
         except EOFError:
-            print() # Print newline since input was interrupted
-            raise KeyboardInterrupt()
+            print()  # Print newline since input was interrupted
+            raise KeyboardInterrupt() from None
         except KeyboardInterrupt:
-            print() # Print newline since input was interrupted
+            print()  # Print newline since input was interrupted
             raise
         finally:
             if Colors.ENABLED:
@@ -97,6 +97,60 @@ class AppRunner:
             )
         )
         raise KeyboardInterrupt
+
+    def _set_secure_permissions(self, fd: int) -> None:
+        """
+        Set secure permissions (0o600) on a file descriptor.
+
+        Uses fchmod if available (preferred), falls back to chmod with fd,
+        then to path-based chmod with TOCTOU detection.
+        Exits on security failures.
+        """
+        SECURE_MODE = 0o600
+
+        # Primary: use fchmod (atomic, no TOCTOU)
+        try:
+            os.fchmod(fd, SECURE_MODE)
+            return
+        except AttributeError:
+            pass  # fchmod not available on this platform
+
+        # Fallback 1: chmod with file descriptor
+        try:
+            os.chmod(fd, SECURE_MODE)
+            return
+        except (AttributeError, TypeError):
+            pass  # chmod doesn't support fd on this platform
+
+        # Fallback 2: path-based chmod with TOCTOU detection
+        try:
+            # Get file stats via fd
+            fd_stat = os.fstat(fd)
+
+            # Get file stats via path
+            path_stat = os.lstat(self.config_file)
+
+            # TOCTOU detection: verify inode and device match
+            if fd_stat.st_ino != path_stat.st_ino or fd_stat.st_dev != path_stat.st_dev:
+                print(
+                    Colors.colorize(
+                        "❌ CRITICAL: TOCTOU detected during permission setting. Aborting.",
+                        Colors.RED,
+                    )
+                )
+                sys.exit(1)
+
+            # Use follow_symlinks=False to prevent symlink attacks
+            os.chmod(self.config_file, SECURE_MODE, follow_symlinks=False)
+            return
+        except OSError as e:
+            print(
+                Colors.colorize(
+                    f"❌ CRITICAL: Failed to set secure permissions: {e}",
+                    Colors.RED,
+                )
+            )
+            sys.exit(1)
 
     def print_help(self) -> None:
         """Print usage instructions for the CLI."""
