@@ -41,3 +41,7 @@
 **Vulnerability:** Path Traversal Log Leakage
 **Learning:** During analysis, path traversal checks logged the raw malicious paths in the analyzer warning.
 **Prevention:** Sanitize the raw malicious strings before adding them to warning lists and subsequently to the logger.
+## 2024-06-09 - CodeScene Complex Method Hotspot
+**Vulnerability:** CodeScene flagged `_inspect_zip_contents` as a Complex Method due to the added path traversal check logic.
+**Learning:** Adding new checks to existing loops inside complex methods can trigger CodeScene "Complex Method" hotspot warnings, breaking CI checks.
+**Prevention:** Extract complex nested logic or multiple conditional checks into separate helper methods to keep the cyclomatic complexity of individual functions low.
