@@ -15,8 +15,8 @@ lint:
     - markdownlint
     - prettier
   enabled:
-    - pinact@4.0.0
-    - trufflehog-git@3.95.3
+    - pinact@4.1.0
+    - trufflehog-git@3.95.5
     - grype@0.114.0
     - taplo@0.10.0
     - actionlint@1.7.12

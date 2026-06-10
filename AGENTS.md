@@ -41,3 +41,13 @@ Without valid IMAP credentials the pipeline will fail at the connection step. Fo
 - **Dependencies**: Use `requirements-ci.txt` for development to avoid installing multi-GB ML libraries (`torch`, `transformers`, etc.). Uncomment the optional ML dependencies in `requirements.txt` only when full model-backed analysis is needed.
 - **PATH for pip-installed scripts**: User-installed pip scripts land in `~/.local/bin`. Ensure this directory is in your `PATH`.
 - **`core.hooksPath` conflict**: If `pre-commit install` fails with a `core.hooksPath` error, first check where it is set with `git config --show-origin --get-all core.hooksPath`. If it is set in the local repo, run `git config --unset-all core.hooksPath`; if it is set globally or system-wide, unset it with `git config --global --unset-all core.hooksPath` or `git config --system --unset-all core.hooksPath` as appropriate.
+
+### CodeScene review/salvage trigger
+
+During automated PR review or salvage sessions, if CodeScene is red on a PR, post:
+
+```bash
+/cs-agent skill:fix-code-health-degradations
+```
+
+Then wait for that run to complete before final defer/salvage disposition.

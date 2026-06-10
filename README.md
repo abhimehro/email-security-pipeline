@@ -700,6 +700,14 @@ This repository includes automated workflows powered by GitHub Actions and AI ag
 - **Daily QA** - Performs quality assurance checks and suggests improvements
 - **Daily Backlog Burner** - Helps work through backlog items systematically
 
+When CodeScene fails on a PR during review/salvage sessions, comment:
+
+```bash
+/cs-agent skill:fix-code-health-degradations
+```
+
+Then continue salvage verification after the CodeScene remediation run completes.
+
 ### Prerequisites for Agentic Workflows
 
 Some workflows require **GitHub Discussions** to be enabled for coordination and planning.
