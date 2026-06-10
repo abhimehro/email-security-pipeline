@@ -109,3 +109,8 @@
 ## 2025-06-09 - Deduplicate URLs in Spam Analysis using Counter
 **Learning:** In spam filtering contexts, emails (especially malicious ones) frequently repeat the same URLs multiple times (e.g., tracking pixels, redundant call-to-action buttons). Processing a raw list of URLs sequentially incurs redundant parsing overhead and cache lookups for each duplicate.
 **Action:** Deduplicate items (using `set` or `collections.Counter` if tracking frequency) before running expensive validation/parsing logic on them to ensure each unique item is processed exactly once.
+
+
+## 2025-11-13 - Fast String Count Over Regex Findall
+**Learning:** `string.count()` in Python runs entirely in C and is generally 10-15x faster than `.findall()` with a compiled regex like `<img\b` on long strings, making it a better choice for simple substring occurrence counting.
+**Action:** Always prefer `.count("string")` over `len(regex.findall(string))` if the regex is just a simple literal string match.
