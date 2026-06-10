@@ -181,3 +181,7 @@
 ## 2026-06-07 - Graceful exit on EOF inputs
 **Learning:** Terminal applications can break unexpectedly with ugly tracebacks when encountering EOF (Ctrl+D or piped non-interactive execution). This is confusing UX compared to Ctrl+C (KeyboardInterrupt).
 **Action:** When working with CLI inputs (`input()`, `getpass()`), wrap the input calls to catch `EOFError` and translate it into a graceful cancellation state (like raising `KeyboardInterrupt`) so standard shutdown handlers provide clean feedback without dumping traces to the user's shell. Always ensure terminal colors/formatting are reset in a `finally` block so an interrupted prompt doesn't leave the user's terminal permanently bold or colored.
+
+## 2024-05-30 - Refactor direct ANSI concatenations
+**Learning:** Hardcoded ANSI escape codes (like `f"\n{Colors.CYAN}Text{Colors.RESET}"`) bypass TTY detection mechanisms. This breaks accessibility, clutters log files with raw escape characters, and negatively affects users on non-TTY environments who rely on clean output.
+**Action:** Always use the centralized `Colors.colorize(text, color)` utility function for styling text. It cleanly handles environment checks (TTY/NO_COLOR) and conditionally applies styling without polluting logs or non-interactive stdout streams.
