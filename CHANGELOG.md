@@ -41,6 +41,7 @@
 
 **Closed issues:**
 
+- Daily QA Check - email-security-pipeline - 2026-06-10 [\#1063](https://github.com/abhimehro/email-security-pipeline/issues/1063)
 - Jules Daily QA & Agentic Review - Completed [\#1059](https://github.com/abhimehro/email-security-pipeline/issues/1059)
 - Daily QA Check - email-security-pipeline - 2026-06-09 [\#1057](https://github.com/abhimehro/email-security-pipeline/issues/1057)
 - Daily QA Check - email-security-pipeline - 2026-06-08 [\#1051](https://github.com/abhimehro/email-security-pipeline/issues/1051)
@@ -370,6 +371,9 @@
 
 **Merged pull requests:**
 
+- chore: Perform daily QA review [\#1065](https://github.com/abhimehro/email-security-pipeline/pull/1065) ([abhimehro](https://github.com/abhimehro))
+- ⚡ Bolt: Optimize image count in spam analyzer [\#1064](https://github.com/abhimehro/email-security-pipeline/pull/1064) ([abhimehro](https://github.com/abhimehro))
+- 🛡️ Sentinel: \[CRITICAL\] Fix Path Traversal Log Leakage [\#1062](https://github.com/abhimehro/email-security-pipeline/pull/1062) ([abhimehro](https://github.com/abhimehro))
 - 🔧 Jules: Daily QA & Agentic Review Fixes [\#1060](https://github.com/abhimehro/email-security-pipeline/pull/1060) ([abhimehro](https://github.com/abhimehro))
 - ⚡ Bolt: Optimize URL checking in spam analyzer [\#1058](https://github.com/abhimehro/email-security-pipeline/pull/1058) ([abhimehro](https://github.com/abhimehro))
 - 🎨 Palette: Fix unstyled ANSI escape sequences in CLI output [\#1056](https://github.com/abhimehro/email-security-pipeline/pull/1056) ([abhimehro](https://github.com/abhimehro))
