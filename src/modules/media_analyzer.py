@@ -585,12 +585,8 @@ class MediaAuthenticityAnalyzer:
                 files_to_check = file_list[: self.MAX_ZIP_FILE_COUNT]
 
                 for contained_file in files_to_check:
-                    member_score, member_warnings = self._inspect_archive_member(
-                        filename,
-                        contained_file,
-                        lambda: self._handle_nested_zip_member(
-                            zf, contained_file, filename, depth
-                        ),
+                    member_score, member_warnings = self._inspect_zip_member_and_check_traversal(
+                        zf, contained_file, filename, depth
                     )
                     score += member_score
                     warnings.extend(member_warnings)
@@ -614,6 +610,29 @@ class MediaAuthenticityAnalyzer:
             warnings.append(
                 f"Archive {filename} contains too many files ({len(file_list)})"
             )
+        return score, warnings
+
+    def _inspect_zip_member_and_check_traversal(
+        self, zf: zipfile.ZipFile, contained_file: str, filename: str, depth: int
+    ) -> Tuple[float, List[str]]:
+        score = 0.0
+        warnings = []
+        if contained_file.startswith("/") or ".." in contained_file:
+            score += 5.0
+            safe_contained_file = sanitize_for_logging(sanitize_filename(contained_file))
+            warnings.append(
+                f"Zip file {filename} contains path traversal attempt: {safe_contained_file}"
+            )
+
+        member_score, member_warnings = self._inspect_archive_member(
+            filename,
+            contained_file,
+            lambda: self._handle_nested_zip_member(
+                zf, contained_file, filename, depth
+            ),
+        )
+        score += member_score
+        warnings.extend(member_warnings)
         return score, warnings
 
     def _inspect_archive_member(
@@ -783,8 +802,9 @@ class MediaAuthenticityAnalyzer:
                     # THEN check for path traversal attempts
                     if member.name.startswith("/") or ".." in member.name:
                         score += 5.0
+                        safe_member_name = sanitize_for_logging(sanitize_filename(member.name))
                         warnings.append(
-                            f"Tar file {filename} contains path traversal attempt: {member.name}"
+                            f"Tar file {filename} contains path traversal attempt: {safe_member_name}"
                         )
                         continue
 
