@@ -206,7 +206,15 @@ class TestProcessSinglepartBody:
                 "utf-8", b"\xff", 0, 1, "invalid start byte"
             ),
         ):
-            parser._process_singlepart_body(msg, body_dict, "email_003")
+            from src.modules.email_parser import ParseContext
+
+            ctx = ParseContext(
+                safe_email_id="email_003",
+                body_dict=body_dict,
+                attachments=[],
+                current_total_size=0,
+            )
+            parser._process_singlepart_body(msg, ctx)
 
         # Warning must have been logged
         parser.logger.warning.assert_called_once()
@@ -220,10 +228,18 @@ class TestProcessSinglepartBody:
         msg = self._make_msg_with_payload()
         body_dict = {"text_parts": [], "html_parts": []}
 
+        from src.modules.email_parser import ParseContext
+
+        ctx = ParseContext(
+            safe_email_id="email_004",
+            body_dict=body_dict,
+            attachments=[],
+            current_total_size=0,
+        )
         with patch.object(
             parser, "_decode_bytes", side_effect=RuntimeError("Test error")
         ):
-            parser._process_singlepart_body(msg, body_dict, "email_004")
+            parser._process_singlepart_body(msg, ctx)
 
         # Error must have been logged
         parser.logger.error.assert_called_once()
@@ -238,9 +254,17 @@ class TestProcessSinglepartBody:
         msg = self._make_msg_with_payload()
         body_dict = {"text_parts": [], "html_parts": []}
 
+        from src.modules.email_parser import ParseContext
+
+        ctx = ParseContext(
+            safe_email_id="email_005",
+            body_dict=body_dict,
+            attachments=[],
+            current_total_size=0,
+        )
         with patch.object(parser, "_decode_bytes", return_value="decoded string"):
             with patch.object(parser, "_add_body_content") as mock_add_body:
-                parser._process_singlepart_body(msg, body_dict, "email_005")
+                parser._process_singlepart_body(msg, ctx)
                 mock_add_body.assert_called_once_with(
                     "text/plain", "decoded string", body_dict, "email_005"
                 )
