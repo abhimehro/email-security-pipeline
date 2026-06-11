@@ -78,7 +78,7 @@ class CountdownTimer:
         except (EOFError, KeyboardInterrupt):
             # Clean up line on interrupt
             warning = Colors.colorize("⚠", Colors.YELLOW)
-            clean_msg = self.message.replace(" (Press Ctrl+C to stop)", "")
+            clean_msg = self.message.replace(Colors.colorize(" (Press Ctrl+C to stop)", Colors.GREY), "").replace(" (Press Ctrl+C to stop)", "")
             # Ensure we print the cancellation message correctly
             sys.stdout.write(f"\r\033[K{warning} {clean_msg} (Cancelled)\n")
             sys.stdout.flush()
@@ -98,7 +98,7 @@ class CountdownTimer:
         # Only add the interactive hint when we're actually in a TTY.
         # In non-TTY mode, `start()` will just sleep and never render the message.
         if sys.stdout.isatty():
-            hint = " (Press Ctrl+C to stop)"
+            hint = Colors.colorize(" (Press Ctrl+C to stop)", Colors.GREY)
             if hint not in message:
                 message += hint
         timer = CountdownTimer(seconds, message)
@@ -144,7 +144,7 @@ class Spinner:
             spin_char = Colors.colorize(next(self.spinner), Colors.CYAN)
             display_msg = self.message
             if sys.stdout.isatty():
-                hint = " (Press Ctrl+C to stop)"
+                hint = Colors.colorize(" (Press Ctrl+C to stop)", Colors.GREY)
                 if hint not in display_msg:
                     display_msg += hint
             sys.stdout.write(f"\r{spin_char} {display_msg}{time_str}   \033[K")
@@ -159,7 +159,7 @@ class Spinner:
         # We don't mutate self.message, we just format the display string
         display_msg = self.message
         if sys.stdout.isatty():
-            hint = " (Press Ctrl+C to stop)"
+            hint = Colors.colorize(" (Press Ctrl+C to stop)", Colors.GREY)
             if hint not in display_msg:
                 display_msg += hint
 
@@ -195,7 +195,7 @@ class Spinner:
 
     def _get_final_message_components(self, exc_type) -> tuple[str, str]:
         """Determine the final symbol and message to display."""
-        clean_msg = self.message.replace(" (Press Ctrl+C to stop)", "")
+        clean_msg = self.message.replace(Colors.colorize(" (Press Ctrl+C to stop)", Colors.GREY), "").replace(" (Press Ctrl+C to stop)", "")
         is_cancelled = exc_type is not None and issubclass(
             exc_type, (EOFError, KeyboardInterrupt)
         )
@@ -206,14 +206,14 @@ class Spinner:
 
         if is_failed:
             msg = (
-                self.fail_msg.replace(" (Press Ctrl+C to stop)", "")
+                self.fail_msg.replace(Colors.colorize(" (Press Ctrl+C to stop)", Colors.GREY), "").replace(" (Press Ctrl+C to stop)", "")
                 if self.fail_msg
                 else clean_msg
             )
             return "✘", msg
 
         if self.success_msg:
-            return "✔", self.success_msg.replace(" (Press Ctrl+C to stop)", "")
+            return "✔", self.success_msg.replace(Colors.colorize(" (Press Ctrl+C to stop)", Colors.GREY), "").replace(" (Press Ctrl+C to stop)", "")
 
         if self.persist:
             return "✔", clean_msg

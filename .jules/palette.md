@@ -185,3 +185,6 @@
 ## 2024-05-30 - Refactor direct ANSI concatenations
 **Learning:** Hardcoded ANSI escape codes (like `f"\n{Colors.CYAN}Text{Colors.RESET}"`) bypass TTY detection mechanisms. This breaks accessibility, clutters log files with raw escape characters, and negatively affects users on non-TTY environments who rely on clean output.
 **Action:** Always use the centralized `Colors.colorize(text, color)` utility function for styling text. It cleanly handles environment checks (TTY/NO_COLOR) and conditionally applies styling without polluting logs or non-interactive stdout streams.
+## 2025-02-12 - De-emphasize Secondary Interaction Hints
+**Learning:** Secondary hints like "(Press Ctrl+C to stop)" command too much visual attention when styled with the primary foreground color, competing with the actual status message (e.g. "Waiting" or "Checking for emails").
+**Action:** Always de-emphasize secondary keyboard shortcuts and terminal hints using a muted color (like `Colors.GREY`) to maintain focus on the primary action and reduce visual clutter.
