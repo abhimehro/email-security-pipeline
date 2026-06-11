@@ -114,3 +114,6 @@
 ## 2025-11-13 - Fast String Count Over Regex Findall
 **Learning:** `string.count()` in Python runs entirely in C and is generally 10-15x faster than `.findall()` with a compiled regex like `<img\b` on long strings, making it a better choice for simple substring occurrence counting.
 **Action:** Always prefer `.count("string")` over `len(regex.findall(string))` if the regex is just a simple literal string match.
+## 2024-05-17 - Optimize async alert dispatch throughput
+**Learning:** Sequential `run_in_executor` await calls for independent I/O-bound tasks in async python blocks the execution path unnecessarily and multiplies latency.
+**Action:** Replace sequential `await`s with `asyncio.gather(*tasks)` for parallel execution to improve throughput when dispatching independent operations. Use `return_exceptions=True` for safe error handling of multiple tasks.
