@@ -13,7 +13,7 @@ import logging
 import re
 import socket
 import ssl
-from typing import Tuple
+from typing import Tuple, Any, List, Optional
 from urllib.parse import urlparse
 
 # Security limits to prevent various attacks
@@ -186,6 +186,53 @@ def calculate_max_email_size(max_total_attachment_bytes: int) -> int:
         return DEFAULT_MAX_EMAIL_SIZE
 
 
+def _is_ip_safe(ip_str: str, hostname: str) -> Tuple[bool, str]:
+    """
+    Validate a single IP address against security rules.
+    Helper for is_safe_webhook_url.
+    """
+    try:
+        ip = ipaddress.ip_address(ip_str)
+    except ValueError:
+        return False, f"Resolved to an invalid IP address: {ip_str}"
+
+    # SECURITY: Explicitly block various internal/private/reserved ranges
+    checks = [
+        (ip.is_loopback, "loopback"),
+        (ip.is_private, "private IP"),
+        (ip.is_link_local, "link-local"),
+        (ip.is_multicast, "multicast"),
+        (ip.is_reserved, "reserved"),
+        (ip.is_unspecified, "unspecified"),
+    ]
+
+    for is_bad, block_type in checks:
+        if is_bad:
+            return False, f"'{hostname}' resolves to {block_type} ({ip_str})"
+
+    # Check specific IPv4 scenarios not covered entirely by the above
+    if ip.version == 4:
+        # 0.0.0.0/8
+        if int(ip) >> 24 == 0:
+            return False, f"'{hostname}' resolves to zero-net ({ip_str})"
+
+    return True, ""
+
+
+def _resolve_hostname(hostname: str, port: int) -> Tuple[Optional[List[Any]], str]:
+    """Helper to resolve hostname for webhook validation."""
+    try:
+        # Resolve the hostname to all available IP addresses
+        addr_info = socket.getaddrinfo(
+            hostname, port, socket.AF_UNSPEC, socket.SOCK_STREAM
+        )
+        return addr_info, ""
+    except socket.gaierror as e:
+        return None, f"Could not resolve hostname '{hostname}': {e}"
+    except Exception as e:
+        return None, f"Error resolving hostname '{hostname}': {e}"
+
+
 def is_safe_webhook_url(url: str) -> Tuple[bool, str]:
     """
     Validate a webhook URL to prevent SSRF (Server-Side Request Forgery).
@@ -223,46 +270,17 @@ def is_safe_webhook_url(url: str) -> Tuple[bool, str]:
     if not hostname:
         return False, "URL must contain a valid hostname"
 
-    try:
-        # Resolve the hostname to all available IP addresses
-        # AF_UNSPEC allows both IPv4 and IPv6
-        addr_info = socket.getaddrinfo(
-            hostname, parsed.port or 80, socket.AF_UNSPEC, socket.SOCK_STREAM
-        )
-    except socket.gaierror as e:
-        # If it doesn't resolve, it can't be requested anyway
-        return False, f"Could not resolve hostname '{hostname}': {e}"
-    except Exception as e:
-        return False, f"Error resolving hostname '{hostname}': {e}"
+    addr_info, error_msg = _resolve_hostname(hostname, parsed.port or 80)
+    if addr_info is None:
+        return False, error_msg
 
     for res in addr_info:
         # The 4th element of the tuple returned by getaddrinfo is the sockaddr.
         # IPv4 is (address, port), IPv6 is (addr, port, flow, scope)
         ip_str = res[4][0]
 
-        try:
-            ip = ipaddress.ip_address(ip_str)
-        except ValueError:
-            return False, f"Resolved to an invalid IP address: {ip_str}"
-
-        # SECURITY: Explicitly block various internal/private/reserved ranges
-        if ip.is_loopback:
-            return False, f"'{hostname}' resolves to loopback ({ip_str})"
-        if ip.is_private:
-            return False, f"'{hostname}' resolves to private IP ({ip_str})"
-        if ip.is_link_local:
-            return False, f"'{hostname}' resolves to link-local ({ip_str})"
-        if ip.is_multicast:
-            return False, f"'{hostname}' resolves to multicast ({ip_str})"
-        if ip.is_reserved:
-            return False, f"'{hostname}' resolves to reserved ({ip_str})"
-        if ip.is_unspecified:
-            return False, f"'{hostname}' resolves to unspecified ({ip_str})"
-
-        # Check specific IPv4 scenarios not covered entirely by the above
-        if ip.version == 4:
-            # 0.0.0.0/8
-            if int(ip) >> 24 == 0:
-                return False, f"'{hostname}' resolves to zero-net ({ip_str})"
+        is_safe, error_msg = _is_ip_safe(ip_str, hostname)
+        if not is_safe:
+            return False, error_msg
 
     return True, ""
