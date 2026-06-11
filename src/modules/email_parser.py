@@ -32,6 +32,16 @@ from ..utils.security_validators import (
     sanitize_filename,
 )
 from .email_data import EmailData
+from dataclasses import dataclass
+
+
+@dataclass
+class ParseContext:
+    safe_email_id: str
+    body_dict: Dict[str, Any]
+    attachments: List[Dict[str, Any]]
+    current_total_size: int = 0
+
 
 logger = logging.getLogger(__name__)
 
@@ -237,7 +247,12 @@ class EmailParser:
         }
 
         attachments = []
-        current_total_size = 0
+        ctx = ParseContext(
+            safe_email_id=safe_email_id,
+            body_dict=body_dict,
+            attachments=attachments,
+            current_total_size=0,
+        )
 
         part_count = 0
         for part in msg.walk():
@@ -251,9 +266,7 @@ class EmailParser:
                 )
                 break
 
-            current_total_size = self._process_multipart_part(
-                part, body_dict, attachments, current_total_size, safe_email_id
-            )
+            self._process_multipart_part(part, ctx)
 
         # Join accumulated parts
         body_text = "".join(body_dict["text_parts"])
@@ -281,49 +294,40 @@ class EmailParser:
     def _process_multipart_part(
         self,
         part: Message,
-        body_dict: Dict[str, Any],
-        attachments: List[Dict[str, Any]],
-        current_total_size: int,
-        safe_email_id: str,
-    ) -> int:
+        ctx: ParseContext,
+    ) -> None:
         """Process a single MIME part in a multipart email."""
         content_type = part.get_content_type()
 
         if self._is_attachment(part):
-            return self._process_multipart_attachment(
-                part, attachments, current_total_size, safe_email_id
-            )
+            self._process_multipart_attachment(part, ctx)
         elif content_type in ("text/plain", "text/html"):
-            self._process_multipart_body(part, content_type, body_dict, safe_email_id)
-
-        return current_total_size
+            self._process_multipart_body(part, content_type, ctx)
 
     def _process_multipart_body(
         self,
         part: Message,
         content_type: str,
-        body_dict: Dict[str, Any],
-        safe_email_id: str,
+        ctx: ParseContext,
     ) -> None:
         """Process a text/html body part in a multipart email."""
         decoded_part = self._decode_part_payload(part)
-        self._add_body_content(content_type, decoded_part, body_dict, safe_email_id)
+        self._add_body_content(
+            content_type, decoded_part, ctx.body_dict, ctx.safe_email_id
+        )
 
     def _process_multipart_attachment(
         self,
         part: Message,
-        attachments: List[Dict[str, Any]],
-        current_total_size: int,
-        safe_email_id: str,
-    ) -> int:
+        ctx: ParseContext,
+    ) -> None:
         """Process an attachment part in a multipart email and return the new total size."""
         attachment = self._extract_attachment(
-            part, attachments, current_total_size, safe_email_id
+            part, ctx.attachments, ctx.current_total_size, ctx.safe_email_id
         )
         if attachment:
-            attachments.append(attachment)
-            return current_total_size + attachment["size"]
-        return current_total_size
+            ctx.attachments.append(attachment)
+            ctx.current_total_size += attachment["size"]
 
     def _extract_singlepart_content(
         self, msg: Message, safe_email_id: str
@@ -338,14 +342,20 @@ class EmailParser:
             "html_len": 0,
         }
         attachments = []
+        ctx = ParseContext(
+            safe_email_id=safe_email_id,
+            body_dict=body_dict,
+            attachments=attachments,
+            current_total_size=0,
+        )
 
         # Check if this single part is actually an attachment.
         # Security: Single-part emails with malicious attachments might bypass
         # multipart analysis. This ensures even single-part payloads are analyzed.
         if self._is_attachment(msg):
-            self._process_singlepart_attachment(msg, attachments, safe_email_id)
+            self._process_singlepart_attachment(msg, ctx)
         else:
-            self._process_singlepart_body(msg, body_dict, safe_email_id)
+            self._process_singlepart_body(msg, ctx)
 
         return (
             "".join(body_dict["text_parts"]),
@@ -353,37 +363,38 @@ class EmailParser:
             attachments,
         )
 
-    def _process_singlepart_attachment(
-        self, msg: Message, attachments: List[Dict[str, Any]], safe_email_id: str
-    ) -> None:
+    def _process_singlepart_attachment(self, msg: Message, ctx: ParseContext) -> None:
         """Process a single-part email that is actually an attachment."""
         try:
-            attachment = self._extract_attachment(msg, attachments, 0, safe_email_id)
+            attachment = self._extract_attachment(
+                msg, ctx.attachments, ctx.current_total_size, ctx.safe_email_id
+            )
             if attachment:
-                attachments.append(attachment)
+                ctx.attachments.append(attachment)
+                ctx.current_total_size += attachment["size"]
         except Exception as e:
             self.logger.error(
-                f"Unexpected error extracting attachment from {safe_email_id}: "
+                f"Unexpected error extracting attachment from {ctx.safe_email_id}: "
                 f"{type(e).__name__}: {e}"
             )
 
-    def _process_singlepart_body(
-        self, msg: Message, body_dict: Dict[str, Any], safe_email_id: str
-    ) -> None:
+    def _process_singlepart_body(self, msg: Message, ctx: ParseContext) -> None:
         """Process a single-part email body."""
         content_type = msg.get_content_type()
         try:
             payload = msg.get_payload(decode=True)
             if payload:
                 decoded = self._decode_bytes(payload, msg.get_content_charset())
-                self._add_body_content(content_type, decoded, body_dict, safe_email_id)
+                self._add_body_content(
+                    content_type, decoded, ctx.body_dict, ctx.safe_email_id
+                )
         except UnicodeDecodeError as e:
             self.logger.warning(
-                f"Failed to decode email payload for {safe_email_id}: {e}"
+                f"Failed to decode email payload for {ctx.safe_email_id}: {e}"
             )
         except Exception as e:
             self.logger.error(
-                f"Unexpected error extracting content from {safe_email_id}: "
+                f"Unexpected error extracting content from {ctx.safe_email_id}: "
                 f"{type(e).__name__}: {e}"
             )
 
