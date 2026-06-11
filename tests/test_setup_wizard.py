@@ -7,6 +7,7 @@ from src.utils.setup_wizard import (
     _is_valid_email,
     run_setup_wizard,
     _generate_config_content,
+    _write_config_file,
 )
 
 
@@ -345,6 +346,47 @@ OUTLOOK_APP_PASSWORD=password
         self.assertTrue(
             found_tip,
             "Outlook specific troubleshooting tip not printed on connection failure.",
+        )
+
+
+
+
+    @patch("os.fdopen")
+    @patch("os.fchmod", create=True)
+    @patch("os.open")
+    @patch("builtins.print")
+    def test_write_config_file_exception(
+        self,
+        mock_print,
+        mock_os_open,
+        mock_os_fchmod,
+        mock_os_fdopen,
+    ):
+        """Test that writing the config handles exceptions properly."""
+        # Configure os.open to return a fake file descriptor
+        mock_os_open.return_value = 123
+
+        # Configure os.fdopen to raise an exception
+        mock_os_fdopen.side_effect = OSError("Mocked I/O error")
+
+        # Run the internal function
+        result = _write_config_file(".env.test", "TEST_CONTENT")
+
+        # Verify it returns False and prints the error
+        self.assertFalse(result)
+
+        # Check if the error message is printed
+        from src.utils.colors import Colors
+        expected_error = Colors.colorize("Error writing config: Mocked I/O error", Colors.RED)
+
+        found_error = any(
+            print_call.args and expected_error in print_call.args[0]
+            for print_call in mock_print.call_args_list
+        )
+
+        self.assertTrue(
+            found_error,
+            "Error writing config message not printed on OSError.",
         )
 
 
