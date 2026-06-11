@@ -5,8 +5,8 @@
 
 [![CodeScene Average Code Health](https://codescene.io/projects/80823/status-badges/average-code-health)](https://codescene.io/projects/80823)
 [![CodeScene Hotspot Code Health](https://codescene.io/projects/80823/status-badges/hotspot-code-health)](https://codescene.io/projects/80823)
-[![CodeScene Missed Goals](https://codescene.io/projects/80823/status-badges/missed-goals)](https://codescene.io/projects/80823)
 [![CodeScene System Mastery](https://codescene.io/projects/80823/status-badges/system-mastery)](https://codescene.io/projects/80823)
+[![CodeScene Missed Goals](https://codescene.io/projects/80823/status-badges/missed-goals)](https://codescene.io/projects/80823)
 
 A self-hosted, containerized email security analysis system that monitors IMAP folders for suspicious messages using multi-layered threat detection.
 
