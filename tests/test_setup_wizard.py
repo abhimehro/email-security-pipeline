@@ -329,12 +329,8 @@ OUTLOOK_APP_PASSWORD=password
         self.assertTrue(result)
 
         # Ensure the tip was printed during the first failure
-        from src.utils.colors import Colors
-
-        expected_tip = Colors.colorize(
-            "Tip: Personal Outlook accounts NO LONGER support App Passwords.",
-            Colors.YELLOW,
-        )
+        from src.utils.setup_wizard import OUTLOOK_AUTH_ERROR_TIP
+        expected_tip = OUTLOOK_AUTH_ERROR_TIP
 
         # Check if the tip string is in any of the print calls
         found_tip = any(
@@ -345,6 +341,47 @@ OUTLOOK_APP_PASSWORD=password
         self.assertTrue(
             found_tip,
             "Outlook specific troubleshooting tip not printed on connection failure.",
+        )
+
+    @patch("builtins.print")
+    @patch("src.utils.setup_wizard.IMAPConnection")
+    def test_connection_test_exception(self, mock_imap_conn, mock_print):
+        """Test that an exception during connection testing is caught, redacted, and prints Outlook tip."""
+        # Setup IMAPConnection to raise an exception
+        mock_imap_conn.side_effect = Exception("Auth failed for mypassword_123")
+
+        # Call _test_connection directly
+        from src.utils.setup_wizard import _test_connection
+
+        result = _test_connection("test@outlook.com", "mypassword_123", "3")
+
+        # Verify it returns False
+        self.assertFalse(result)
+
+        # Check that the exception message was printed and redacted
+        found_redacted = False
+        found_tip = False
+
+        from src.utils.setup_wizard import OUTLOOK_AUTH_ERROR_TIP
+        expected_tip = OUTLOOK_AUTH_ERROR_TIP
+
+        for call in mock_print.call_args_list:
+            if call.args and isinstance(call.args[0], str):
+                msg = call.args[0]
+                if (
+                    "Error during connection test" in msg
+                    and "***" in msg
+                    and "mypassword_123" not in msg
+                ):
+                    found_redacted = True
+                if expected_tip in msg:
+                    found_tip = True
+
+        self.assertTrue(
+            found_redacted, "Error message should be printed and password redacted."
+        )
+        self.assertTrue(
+            found_tip, "Outlook specific troubleshooting tip not printed on exception."
         )
 
 
