@@ -24,9 +24,9 @@ class ColoredFormatter(logging.Formatter):
         record = copy.copy(record)
 
         # Colorize level name and pad it to ensure vertical alignment of messages
-        color = self.LEVEL_COLORS.get(record.levelno, Colors.RESET)
+        color = self.LEVEL_COLORS.get(record.levelno, "")
         padded_level = record.levelname.ljust(8)
-        record.levelname = f"{color}{padded_level}{Colors.RESET}"
+        record.levelname = Colors.colorize(padded_level, color) if color else padded_level
 
         # UX Enhancement: Highlight specific operational messages
         if isinstance(record.msg, str):
