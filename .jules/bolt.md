@@ -114,3 +114,7 @@
 ## 2025-11-13 - Fast String Count Over Regex Findall
 **Learning:** `string.count()` in Python runs entirely in C and is generally 10-15x faster than `.findall()` with a compiled regex like `<img\b` on long strings, making it a better choice for simple substring occurrence counting.
 **Action:** Always prefer `.count("string")` over `len(regex.findall(string))` if the regex is just a simple literal string match.
+
+## 2025-03-09 - Redundant String Lowercasing in Nested Call
+**Learning:** Found an inefficiency where a string was converted to lowercase twice in nested function calls. Python's `str.lower()` creates a new string object and has overhead.
+**Action:** Removed the redundant `.lower()` call in the inner function, relying on the outer function to provide the lowercased string. Changed the parameter name to `filename_lower` to make the expectation explicit.

@@ -558,10 +558,10 @@ class MediaAuthenticityAnalyzer:
 
         return score, warning
 
-    def _is_nested_archive(self, filename: str) -> bool:
-        """Check if filename is a nested archive type."""
+    def _is_nested_archive(self, filename_lower: str) -> bool:
+        """Check if filename is a nested archive type. Assumes filename_lower is already lowercase."""
         # Optimization: O(1) loop iteration using tuple-based endswith() check
-        return filename.lower().endswith(self.ARCHIVE_EXTENSIONS)
+        return filename_lower.endswith(self.ARCHIVE_EXTENSIONS)
 
     def _inspect_zip_contents(
         self, filename: str, data: bytes, depth: int = 0
