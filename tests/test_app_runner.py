@@ -241,3 +241,54 @@ def test_set_secure_permissions_oserror(mock_app_runner):
 
         assert excinfo.value.code == 1
         mock_exit.assert_called_once_with(1)
+
+@patch("src.app_runner.Colors.ENABLED", True)
+@patch("src.app_runner.Colors.BOLD", "[BOLD]")
+@patch("src.app_runner.Colors.RESET", "[RESET]")
+@patch("builtins.input", return_value=" test_input ")
+@patch("builtins.print")
+def test_styled_input_colors_enabled(mock_print, mock_input, mock_app_runner):
+    result = mock_app_runner._styled_input("Prompt:")
+
+    assert result == "test_input"
+    mock_input.assert_called_once_with("Prompt:[BOLD]")
+    mock_print.assert_called_once_with("[RESET]", end="", flush=True)
+
+
+@patch("src.app_runner.Colors.ENABLED", False)
+@patch("src.app_runner.Colors.BOLD", "[BOLD]")
+@patch("src.app_runner.Colors.RESET", "[RESET]")
+@patch("builtins.input", return_value=" test_input ")
+@patch("builtins.print")
+def test_styled_input_colors_disabled(mock_print, mock_input, mock_app_runner):
+    result = mock_app_runner._styled_input("Prompt:")
+
+    assert result == "test_input"
+    mock_input.assert_called_once_with("Prompt:")
+    mock_print.assert_not_called()
+
+
+@patch("src.app_runner.Colors.ENABLED", True)
+@patch("src.app_runner.Colors.RESET", "[RESET]")
+@patch("builtins.print")
+def test_styled_input_eof_error(mock_print, mock_app_runner):
+    with patch("builtins.input", side_effect=EOFError):
+        with pytest.raises(KeyboardInterrupt):
+            mock_app_runner._styled_input("Prompt:")
+
+    assert mock_print.call_count == 2
+    mock_print.assert_any_call()
+    mock_print.assert_any_call("[RESET]", end="", flush=True)
+
+
+@patch("src.app_runner.Colors.ENABLED", True)
+@patch("src.app_runner.Colors.RESET", "[RESET]")
+@patch("builtins.print")
+def test_styled_input_keyboard_interrupt(mock_print, mock_app_runner):
+    with patch("builtins.input", side_effect=KeyboardInterrupt):
+        with pytest.raises(KeyboardInterrupt):
+            mock_app_runner._styled_input("Prompt:")
+
+    assert mock_print.call_count == 2
+    mock_print.assert_any_call()
+    mock_print.assert_any_call("[RESET]", end="", flush=True)
