@@ -277,19 +277,9 @@ class Config:
             return False
         return parsed.scheme == "https" and bool(parsed.netloc)
 
-    def validate(self) -> bool:
-        """
-        Validate configuration.
-
-        Returns:
-            True if configuration is valid
-
-        Raises:
-            ConfigurationError: If configuration is invalid, contains list of errors
-
-        """
+    def _validate_email_accounts(self) -> List[str]:
+        """Validate email account configurations."""
         errors = []
-
         if not self.email_accounts:
             errors.append("No email accounts configured. Enable at least one account.")
 
@@ -300,7 +290,11 @@ class Config:
                 errors.append(f"No folders configured for {account.provider} account")
             if account.imap_port <= 0:
                 errors.append(f"Invalid IMAP port for {account.provider} account")
+        return errors
 
+    def _validate_alerts(self) -> List[str]:
+        """Validate alert configurations."""
+        errors = []
         if self.alerts.webhook_enabled:
             if not self.alerts.webhook_url:
                 errors.append("Webhook enabled but no URL provided")
@@ -323,6 +317,18 @@ class Config:
                 if not is_safe:
                     errors.append(f"Slack webhook URL SSRF check failed: {err_msg}")
 
+        if not (
+            self.alerts.threat_low < self.alerts.threat_medium < self.alerts.threat_high
+        ):
+            errors.append(
+                f"Threat thresholds must satisfy LOW < MEDIUM < HIGH. "
+                f"Got: LOW={self.alerts.threat_low}, MEDIUM={self.alerts.threat_medium}, HIGH={self.alerts.threat_high}"
+            )
+        return errors
+
+    def _validate_system(self) -> List[str]:
+        """Validate system configurations."""
+        errors = []
         if self.system.max_attachment_size_mb <= 0:
             errors.append("MAX_ATTACHMENT_SIZE_MB must be greater than zero")
 
@@ -339,14 +345,23 @@ class Config:
 
         if self.system.log_rotation_keep_files <= 0:
             errors.append("LOG_ROTATION_KEEP_FILES must be greater than zero")
+        return errors
 
-        if not (
-            self.alerts.threat_low < self.alerts.threat_medium < self.alerts.threat_high
-        ):
-            errors.append(
-                f"Threat thresholds must satisfy LOW < MEDIUM < HIGH. "
-                f"Got: LOW={self.alerts.threat_low}, MEDIUM={self.alerts.threat_medium}, HIGH={self.alerts.threat_high}"
-            )
+    def validate(self) -> bool:
+        """
+        Validate configuration.
+
+        Returns:
+            True if configuration is valid
+
+        Raises:
+            ConfigurationError: If configuration is invalid, contains list of errors
+
+        """
+        errors = []
+        errors.extend(self._validate_email_accounts())
+        errors.extend(self._validate_alerts())
+        errors.extend(self._validate_system())
 
         if errors:
             raise ConfigurationError(errors)
