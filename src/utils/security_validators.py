@@ -13,7 +13,7 @@ import logging
 import re
 import socket
 import ssl
-from typing import Tuple
+from typing import Tuple, Any, List
 from urllib.parse import urlparse
 
 # Security limits to prevent various attacks
@@ -212,7 +212,7 @@ def _is_ip_safe(ip_str: str, hostname: str) -> Tuple[bool, str]:
     return True, ""
 
 
-def _resolve_hostname(hostname: str, port: int) -> Tuple[bool, any]:
+def _resolve_hostname(hostname: str, port: int) -> Tuple[bool, List[Any]]:
     """Helper to resolve hostname for webhook validation."""
     try:
         # Resolve the hostname to all available IP addresses
@@ -255,6 +255,7 @@ def is_safe_webhook_url(url: str) -> Tuple[bool, str]:
     except Exception as e:
         return False, f"Failed to parse URL: {e}"
 
+    # Explicitly enforce HTTPS for webhook destinations
     if parsed.scheme != "https":
         return False, f"URL scheme must be https, got: {parsed.scheme}"
 
