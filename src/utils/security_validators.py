@@ -13,7 +13,7 @@ import logging
 import re
 import socket
 import ssl
-from typing import Tuple, Any, List, Union
+from typing import Tuple, Any, List, Optional
 from urllib.parse import urlparse
 
 # Security limits to prevent various attacks
@@ -219,18 +219,18 @@ def _is_ip_safe(ip_str: str, hostname: str) -> Tuple[bool, str]:
     return True, ""
 
 
-def _resolve_hostname(hostname: str, port: int) -> Tuple[bool, Union[List[Any], str]]:
+def _resolve_hostname(hostname: str, port: int) -> Tuple[Optional[List[Any]], str]:
     """Helper to resolve hostname for webhook validation."""
     try:
         # Resolve the hostname to all available IP addresses
         addr_info = socket.getaddrinfo(
             hostname, port, socket.AF_UNSPEC, socket.SOCK_STREAM
         )
-        return True, addr_info
+        return addr_info, ""
     except socket.gaierror as e:
-        return False, f"Could not resolve hostname '{hostname}': {e}"
+        return None, f"Could not resolve hostname '{hostname}': {e}"
     except Exception as e:
-        return False, f"Error resolving hostname '{hostname}': {e}"
+        return None, f"Error resolving hostname '{hostname}': {e}"
 
 
 def is_safe_webhook_url(url: str) -> Tuple[bool, str]:
@@ -270,11 +270,9 @@ def is_safe_webhook_url(url: str) -> Tuple[bool, str]:
     if not hostname:
         return False, "URL must contain a valid hostname"
 
-    is_safe, addrs_or_err = _resolve_hostname(hostname, parsed.port or 80)
-    if not is_safe:
-        return False, addrs_or_err
-
-    addr_info = addrs_or_err
+    addr_info, error_msg = _resolve_hostname(hostname, parsed.port or 80)
+    if addr_info is None:
+        return False, error_msg
 
     for res in addr_info:
         # The 4th element of the tuple returned by getaddrinfo is the sockaddr.
