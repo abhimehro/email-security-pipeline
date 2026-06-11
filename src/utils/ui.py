@@ -12,6 +12,7 @@ from .colors import Colors
 
 CURSOR_HIDE = "\033[?25l"
 CURSOR_SHOW = "\033[?25h"
+CTRL_C_HINT = " (Press Ctrl+C to stop)"
 
 
 class CountdownTimer:
@@ -98,9 +99,8 @@ class CountdownTimer:
         # Only add the interactive hint when we're actually in a TTY.
         # In non-TTY mode, `start()` will just sleep and never render the message.
         if sys.stdout.isatty():
-            hint = Colors.colorize(" (Press Ctrl+C to stop)", Colors.GREY)
-            if hint not in message:
-                message += hint
+            if CTRL_C_HINT not in message:
+                message += Colors.colorize(CTRL_C_HINT, Colors.GREY)
         timer = CountdownTimer(seconds, message)
         timer.start()
 
@@ -144,9 +144,8 @@ class Spinner:
             spin_char = Colors.colorize(next(self.spinner), Colors.CYAN)
             display_msg = self.message
             if sys.stdout.isatty():
-                hint = Colors.colorize(" (Press Ctrl+C to stop)", Colors.GREY)
-                if hint not in display_msg:
-                    display_msg += hint
+                if CTRL_C_HINT not in display_msg:
+                    display_msg += Colors.colorize(CTRL_C_HINT, Colors.GREY)
             sys.stdout.write(f"\r{spin_char} {display_msg}{time_str}   \033[K")
             sys.stdout.flush()
             time.sleep(self.delay)
@@ -159,9 +158,8 @@ class Spinner:
         # We don't mutate self.message, we just format the display string
         display_msg = self.message
         if sys.stdout.isatty():
-            hint = Colors.colorize(" (Press Ctrl+C to stop)", Colors.GREY)
-            if hint not in display_msg:
-                display_msg += hint
+            if CTRL_C_HINT not in display_msg:
+                display_msg += Colors.colorize(CTRL_C_HINT, Colors.GREY)
 
         msg = display_msg if display_msg.endswith("...") else f"{display_msg}..."
 
