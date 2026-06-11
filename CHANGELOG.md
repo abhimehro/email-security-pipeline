@@ -372,6 +372,15 @@
 
 **Merged pull requests:**
 
+- Jules Daily QA & Agentic Review - Completed [\#1079](https://github.com/abhimehro/email-security-pipeline/pull/1079) ([abhimehro](https://github.com/abhimehro))
+- 🧪 \[Testing Improvement\] Add unit test for config writing exception handling [\#1078](https://github.com/abhimehro/email-security-pipeline/pull/1078) ([abhimehro](https://github.com/abhimehro))
+- 🧪 Add test coverage for email redaction exception fallback [\#1077](https://github.com/abhimehro/email-security-pipeline/pull/1077) ([abhimehro](https://github.com/abhimehro))
+- ⚡ Bolt: Remove redundant string lowercasing in nested archive check [\#1076](https://github.com/abhimehro/email-security-pipeline/pull/1076) ([abhimehro](https://github.com/abhimehro))
+- 🧹 Refactor \_process\_multipart\_part to use ParseContext [\#1074](https://github.com/abhimehro/email-security-pipeline/pull/1074) ([abhimehro](https://github.com/abhimehro))
+- 🧹 Reduce cyclomatic complexity in is\_safe\_webhook\_url [\#1073](https://github.com/abhimehro/email-security-pipeline/pull/1073) ([abhimehro](https://github.com/abhimehro))
+- 🧪 Add tests for AppRunner.\_styled\_input [\#1072](https://github.com/abhimehro/email-security-pipeline/pull/1072) ([abhimehro](https://github.com/abhimehro))
+- 🧹 Refactor validate method to reduce Cyclomatic Complexity [\#1070](https://github.com/abhimehro/email-security-pipeline/pull/1070) ([abhimehro](https://github.com/abhimehro))
+- 🎨 Palette: Refactor ANSI string concatenations to fix non-TTY accessibility [\#1068](https://github.com/abhimehro/email-security-pipeline/pull/1068) ([abhimehro](https://github.com/abhimehro))
 - chore: Perform daily QA review [\#1065](https://github.com/abhimehro/email-security-pipeline/pull/1065) ([abhimehro](https://github.com/abhimehro))
 - ⚡ Bolt: Optimize image count in spam analyzer [\#1064](https://github.com/abhimehro/email-security-pipeline/pull/1064) ([abhimehro](https://github.com/abhimehro))
 - 🛡️ Sentinel: \[CRITICAL\] Fix Path Traversal Log Leakage [\#1062](https://github.com/abhimehro/email-security-pipeline/pull/1062) ([abhimehro](https://github.com/abhimehro))
