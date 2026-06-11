@@ -253,15 +253,27 @@ class AlertSystem:
         if self.config.console:
             self._console_alert(report)
 
+        tasks = []
+        channel_names = []
+
         if self.config.webhook_enabled and self.config.webhook_url:
-            ok = await loop.run_in_executor(None, self._webhook_alert, report)
-            if not ok:
-                failed_channels.append("webhook")
+            tasks.append(loop.run_in_executor(None, self._webhook_alert, report))
+            channel_names.append("webhook")
 
         if self.config.slack_enabled and self.config.slack_webhook:
-            ok = await loop.run_in_executor(None, self._slack_alert, report)
-            if not ok:
-                failed_channels.append("slack")
+            tasks.append(loop.run_in_executor(None, self._slack_alert, report))
+            channel_names.append("slack")
+
+        if tasks:
+            results = await asyncio.gather(*tasks, return_exceptions=True)
+            for channel, result in zip(channel_names, results):
+                if isinstance(result, Exception):
+                    self.logger.error(
+                        "Alert dispatch failed unexpectedly for %s: %s", channel, result
+                    )
+                    failed_channels.append(channel)
+                elif not result:
+                    failed_channels.append(channel)
 
         if failed_channels:
             raise RuntimeError(
