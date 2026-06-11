@@ -47,6 +47,49 @@ class ThreatReport:
     timestamp: str
 
 
+def _safe_requests_post(url: str, **kwargs) -> requests.Response:
+    """
+    Wrapper around requests.post that enforces SSRF protection at request time.
+    Overrides urllib3's create_connection to resolve the host and verify the IP
+    isn't internal before establishing the socket.
+    """
+    import socket
+    import ipaddress
+    import urllib3.util.connection
+    import requests.exceptions
+
+    orig_create_connection = urllib3.util.connection.create_connection
+
+    def _safe_create_connection(
+        address,
+        timeout=socket._GLOBAL_DEFAULT_TIMEOUT,
+        source_address=None,
+        socket_options=None,
+    ):
+        host, port = address
+        for res in socket.getaddrinfo(host, port, 0, socket.SOCK_STREAM):
+            ip_str = res[4][0]
+            ip = ipaddress.ip_address(ip_str)
+            if (
+                ip.is_private
+                or ip.is_loopback
+                or ip.is_link_local
+                or ip.is_reserved
+                or ip.is_multicast
+                or (ip.version == 4 and int(ip) >> 24 == 0)
+            ):
+                raise requests.exceptions.ConnectionError(
+                    f"SSRF attempt blocked to {ip_str}"
+                )
+        return orig_create_connection(address, timeout, source_address, socket_options)
+
+    try:
+        urllib3.util.connection.create_connection = _safe_create_connection
+        return requests.post(url, timeout=kwargs.pop("timeout", 10), **kwargs)  # nosec B113
+    finally:
+        urllib3.util.connection.create_connection = orig_create_connection
+
+
 class AlertSystem:
     """Manages alerts and notifications."""
 
@@ -868,7 +911,7 @@ class AlertSystem:
                         self._redact_sensitive_url_params(url) for url in urls
                     ]
 
-            response = requests.post(
+            response = _safe_requests_post(
                 self.config.webhook_url,
                 json=payload,
                 headers={"Content-Type": "application/json"},
@@ -1193,7 +1236,7 @@ class AlertSystem:
                 "attachments": attachments,
             }
 
-            response = requests.post(
+            response = _safe_requests_post(
                 self.config.slack_webhook,
                 json=payload,
                 headers={"Content-Type": "application/json"},
