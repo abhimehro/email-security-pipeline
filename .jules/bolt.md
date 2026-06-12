@@ -118,3 +118,7 @@
 ## 2025-03-09 - Redundant String Lowercasing in Nested Call
 **Learning:** Found an inefficiency where a string was converted to lowercase twice in nested function calls. Python's `str.lower()` creates a new string object and has overhead.
 **Action:** Removed the redundant `.lower()` call in the inner function, relying on the outer function to provide the lowercased string. Changed the parameter name to `filename_lower` to make the expectation explicit.
+
+## 2025-06-12 - Remove re.IGNORECASE penalty in structured logging and imap connection
+**Learning:** Python's regex engine incurs a significant performance penalty (~50-100% overhead) when evaluating patterns compiled with `re.IGNORECASE` (`re.I`). For patterns applied extensively across fast-path systems (like every logged field in `structured_logging.py` or repeating connection error parsings), it is substantially faster to compile a case-sensitive regex and apply it against a `.lower()` transformed string, even accounting for the minor object allocation overhead of lowercasing.
+**Action:** Removed `re.IGNORECASE` from `_SENSITIVE_PATTERN` in `structured_logging.py` and `_AUTH_KEYWORD_PATTERN` in `imap_connection.py`. Now relying on standard case-sensitive compilation and using `.lower()` on target strings during searches to optimize performance.

@@ -39,9 +39,9 @@ class JSONFormatter(logging.Formatter):
     }
 
     # Pre-compiled regex pattern for faster substring matching (avoids generator loop)
-    # Uses re.IGNORECASE to match case-insensitively.
+    # Case-sensitive compilation. Target string is lowercased during search.
     _SENSITIVE_PATTERN = re.compile(
-        "|".join(map(re.escape, SENSITIVE_FIELDS)) or "(?!)", re.IGNORECASE
+        "|".join(re.escape(f.lower()) for f in SENSITIVE_FIELDS) or "(?!)"
     )
 
     def format(self, record: logging.LogRecord) -> str:
@@ -103,6 +103,6 @@ class JSONFormatter(logging.Formatter):
         """
         # Check if key contains any sensitive field name
         # Optimization: compiled regex search is faster than any() generator loop for substring matching
-        if self._SENSITIVE_PATTERN.search(key):
+        if self._SENSITIVE_PATTERN.search(key.lower()):
             return "[REDACTED]"
         return value

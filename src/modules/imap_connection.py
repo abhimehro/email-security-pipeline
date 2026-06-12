@@ -453,7 +453,7 @@ class IMAPConnection:
             User-friendly tip or None
 
         """
-        error_msg.lower()
+        error_msg_lower = error_msg.lower()
         server_lower = self.config.imap_server.lower()
 
         # Check for authentication failures
@@ -469,11 +469,10 @@ class IMAPConnection:
             ]
             # Use shared pattern compiler for consistent escaping/grouping and safety checks
             self.__class__._AUTH_KEYWORD_PATTERN = compile_patterns(
-                auth_keywords,
-                flags=re.IGNORECASE,
+                auth_keywords
             )
 
-        if not self.__class__._AUTH_KEYWORD_PATTERN.search(error_msg):
+        if not self.__class__._AUTH_KEYWORD_PATTERN.search(error_msg_lower):
             return None
 
         if "outlook" in server_lower or "office365" in server_lower:
