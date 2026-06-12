@@ -246,13 +246,20 @@ class AlertSystem:
         RuntimeError if any configured channel fails so the caller (_alert_worker)
         can apply retry logic.
         """
-        loop = asyncio.get_running_loop()
-        failed_channels = []
-
         # Console output is fast (no I/O); run directly in event loop thread.
         if self.config.console:
             self._console_alert(report)
 
+        failed_channels = await self._dispatch_external_alerts_async(report)
+
+        if failed_channels:
+            raise RuntimeError(
+                f"Alert dispatch failed for channels: {', '.join(failed_channels)}"
+            )
+
+    async def _dispatch_external_alerts_async(self, report: ThreatReport) -> List[str]:
+        """Helper to run webhook and slack alerts in parallel and collect failed channels."""
+        loop = asyncio.get_running_loop()
         tasks = []
         channel_names = []
 
@@ -264,21 +271,24 @@ class AlertSystem:
             tasks.append(loop.run_in_executor(None, self._slack_alert, report))
             channel_names.append("slack")
 
-        if tasks:
-            results = await asyncio.gather(*tasks, return_exceptions=True)
-            for channel, result in zip(channel_names, results):
-                if isinstance(result, Exception):
-                    self.logger.error(
-                        "Alert dispatch failed unexpectedly for %s: %s", channel, result
-                    )
-                    failed_channels.append(channel)
-                elif not result:
-                    failed_channels.append(channel)
+        if not tasks:
+            return []
 
-        if failed_channels:
-            raise RuntimeError(
-                f"Alert dispatch failed for channels: {', '.join(failed_channels)}"
-            )
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+        return self._process_dispatch_results(channel_names, results)
+
+    def _process_dispatch_results(self, channel_names: List[str], results: List) -> List[str]:
+        """Process results from gather and return a list of failed channel names."""
+        failed = []
+        for channel, result in zip(channel_names, results):
+            if isinstance(result, Exception):
+                self.logger.error(
+                    "Alert dispatch failed unexpectedly for %s: %s", channel, result
+                )
+                failed.append(channel)
+            elif not result:
+                failed.append(channel)
+        return failed
 
     def _dispatch_alert_sync(self, report: ThreatReport) -> None:
         """Synchronous alert dispatch used as a fallback when the worker is not running."""
