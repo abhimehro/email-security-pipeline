@@ -277,19 +277,8 @@ class Config:
             return False
         return parsed.scheme == "https" and bool(parsed.netloc)
 
-    def validate(self) -> bool:
-        """
-        Validate configuration.
-
-        Returns:
-            True if configuration is valid
-
-        Raises:
-            ConfigurationError: If configuration is invalid, contains list of errors
-
-        """
-        errors = []
-
+    def _validate_email_accounts(self, errors: list) -> None:
+        """Validate email account configurations."""
         if not self.email_accounts:
             errors.append("No email accounts configured. Enable at least one account.")
 
@@ -301,28 +290,36 @@ class Config:
             if account.imap_port <= 0:
                 errors.append(f"Invalid IMAP port for {account.provider} account")
 
-        if self.alerts.webhook_enabled:
-            if not self.alerts.webhook_url:
-                errors.append("Webhook enabled but no URL provided")
-            elif not self._is_https_url(self.alerts.webhook_url):
-                errors.append("Webhook URL must use HTTPS")
-            else:
-                is_safe, err_msg = is_safe_webhook_url(self.alerts.webhook_url)
-                if not is_safe:
-                    errors.append(f"Webhook URL SSRF check failed: {err_msg}")
+    def _validate_webhook_alerts(self, errors: list) -> None:
+        """Validate webhook alerts settings."""
+        if not self.alerts.webhook_enabled:
+            return
+        if not self.alerts.webhook_url:
+            errors.append("Webhook enabled but no URL provided")
+        elif not self._is_https_url(self.alerts.webhook_url):
+            errors.append("Webhook URL must use HTTPS")
+        else:
+            is_safe, err_msg = is_safe_webhook_url(self.alerts.webhook_url)
+            if not is_safe:
+                errors.append(f"Webhook URL SSRF check failed: {err_msg}")
 
-        if self.alerts.slack_enabled:
-            if not self.alerts.slack_webhook:
-                errors.append("Slack alerts enabled but no webhook URL provided")
-            elif not self._is_https_url(self.alerts.slack_webhook):
-                errors.append("Slack webhook URL must use HTTPS")
-            elif urlparse(self.alerts.slack_webhook).netloc != "hooks.slack.com":
-                errors.append("Slack webhook URL must be a valid Slack hooks endpoint")
-            else:
-                is_safe, err_msg = is_safe_webhook_url(self.alerts.slack_webhook)
-                if not is_safe:
-                    errors.append(f"Slack webhook URL SSRF check failed: {err_msg}")
+    def _validate_slack_alerts(self, errors: list) -> None:
+        """Validate Slack alerts settings."""
+        if not self.alerts.slack_enabled:
+            return
+        if not self.alerts.slack_webhook:
+            errors.append("Slack alerts enabled but no webhook URL provided")
+        elif not self._is_https_url(self.alerts.slack_webhook):
+            errors.append("Slack webhook URL must use HTTPS")
+        elif urlparse(self.alerts.slack_webhook).netloc != "hooks.slack.com":
+            errors.append("Slack webhook URL must be a valid Slack hooks endpoint")
+        else:
+            is_safe, err_msg = is_safe_webhook_url(self.alerts.slack_webhook)
+            if not is_safe:
+                errors.append(f"Slack webhook URL SSRF check failed: {err_msg}")
 
+    def _validate_system_config(self, errors: list) -> None:
+        """Validate system and general configurations."""
         if self.system.max_attachment_size_mb <= 0:
             errors.append("MAX_ATTACHMENT_SIZE_MB must be greater than zero")
 
@@ -347,6 +344,24 @@ class Config:
                 f"Threat thresholds must satisfy LOW < MEDIUM < HIGH. "
                 f"Got: LOW={self.alerts.threat_low}, MEDIUM={self.alerts.threat_medium}, HIGH={self.alerts.threat_high}"
             )
+
+    def validate(self) -> bool:
+        """
+        Validate configuration.
+
+        Returns:
+            True if configuration is valid
+
+        Raises:
+            ConfigurationError: If configuration is invalid, contains list of errors
+
+        """
+        errors = []
+
+        self._validate_email_accounts(errors)
+        self._validate_webhook_alerts(errors)
+        self._validate_slack_alerts(errors)
+        self._validate_system_config(errors)
 
         if errors:
             raise ConfigurationError(errors)

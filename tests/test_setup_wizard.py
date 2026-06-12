@@ -343,6 +343,16 @@ OUTLOOK_APP_PASSWORD=password
             "Outlook specific troubleshooting tip not printed on connection failure.",
         )
 
+    def _is_redacted_error(self, msg: str, password: str) -> bool:
+        """Check if error message is properly redacted and safe."""
+        if "Error during connection test" not in msg:
+            return False
+        if "***" not in msg:
+            return False
+        if password in msg:
+            return False
+        return True
+
     @patch("builtins.print")
     @patch("src.utils.setup_wizard.IMAPConnection")
     def test_connection_test_exception(self, mock_imap_conn, mock_print):
@@ -368,11 +378,7 @@ OUTLOOK_APP_PASSWORD=password
         for call in mock_print.call_args_list:
             if call.args and isinstance(call.args[0], str):
                 msg = call.args[0]
-                if (
-                    "Error during connection test" in msg
-                    and "***" in msg
-                    and "mypassword_123" not in msg
-                ):
+                if self._is_redacted_error(msg, "mypassword_123"):
                     found_redacted = True
                 if expected_tip in msg:
                     found_tip = True

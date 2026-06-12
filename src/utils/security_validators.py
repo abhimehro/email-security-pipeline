@@ -13,7 +13,7 @@ import logging
 import re
 import socket
 import ssl
-from typing import Tuple
+from typing import Tuple, Optional
 from urllib.parse import urlparse
 
 # Security limits to prevent various attacks
@@ -186,6 +186,62 @@ def calculate_max_email_size(max_total_attachment_bytes: int) -> int:
         return DEFAULT_MAX_EMAIL_SIZE
 
 
+def _is_ip_address_safe(ip, ip_str: str, hostname: str) -> Tuple[bool, str]:
+    """Check if individual IP address is safe and not pointing to internal/private/reserved ranges."""
+    checks = {
+        "loopback": ip.is_loopback,
+        "private IP": ip.is_private,
+        "link-local": ip.is_link_local,
+        "multicast": ip.is_multicast,
+        "reserved": ip.is_reserved,
+        "unspecified": ip.is_unspecified,
+    }
+    for name, is_bad in checks.items():
+        if is_bad:
+            return False, f"'{hostname}' resolves to {name} ({ip_str})"
+
+    # Check specific IPv4 scenarios not covered entirely by the above
+    if ip.version == 4 and (int(ip) >> 24 == 0):
+        return False, f"'{hostname}' resolves to zero-net ({ip_str})"
+
+    return True, ""
+
+
+def _parse_and_validate_url(url: str) -> Tuple[Optional[object], str]:
+    """Parse and perform basic validation on URL scheme and hostname."""
+    if not url:
+        return None, "URL is empty"
+
+    try:
+        parsed = urlparse(url)
+    except Exception as e:
+        return None, f"Failed to parse URL: {e}"
+
+    if parsed.scheme != "https":
+        return None, f"URL scheme must be https, got: {parsed.scheme}"
+
+    if not parsed.hostname:
+        return None, "URL must contain a valid hostname"
+
+    return parsed, ""
+
+
+def _resolve_hostname_ips(hostname: str, port: Optional[int]) -> Tuple[list, str]:
+    """Resolve the hostname to all available IP addresses."""
+    try:
+        # Resolve the hostname to all available IP addresses
+        # AF_UNSPEC allows both IPv4 and IPv6
+        addr_info = socket.getaddrinfo(
+            hostname, port or 80, socket.AF_UNSPEC, socket.SOCK_STREAM
+        )
+        return addr_info, ""
+    except socket.gaierror as e:
+        # If it doesn't resolve, it can't be requested anyway
+        return [], f"Could not resolve hostname '{hostname}': {e}"
+    except Exception as e:
+        return [], f"Error resolving hostname '{hostname}': {e}"
+
+
 def is_safe_webhook_url(url: str) -> Tuple[bool, str]:
     """
     Validate a webhook URL to prevent SSRF (Server-Side Request Forgery).
@@ -207,33 +263,13 @@ def is_safe_webhook_url(url: str) -> Tuple[bool, str]:
         Tuple of (is_safe: bool, error_message: str)
 
     """
-    if not url:
-        return False, "URL is empty"
+    parsed, err_msg = _parse_and_validate_url(url)
+    if err_msg or not parsed:
+        return False, err_msg
 
-    try:
-        parsed = urlparse(url)
-    except Exception as e:
-        return False, f"Failed to parse URL: {e}"
-
-    # Explicitly enforce HTTPS for webhook destinations
-    if parsed.scheme != "https":
-        return False, f"URL scheme must be https, got: {parsed.scheme}"
-
-    hostname = parsed.hostname
-    if not hostname:
-        return False, "URL must contain a valid hostname"
-
-    try:
-        # Resolve the hostname to all available IP addresses
-        # AF_UNSPEC allows both IPv4 and IPv6
-        addr_info = socket.getaddrinfo(
-            hostname, parsed.port or 80, socket.AF_UNSPEC, socket.SOCK_STREAM
-        )
-    except socket.gaierror as e:
-        # If it doesn't resolve, it can't be requested anyway
-        return False, f"Could not resolve hostname '{hostname}': {e}"
-    except Exception as e:
-        return False, f"Error resolving hostname '{hostname}': {e}"
+    addr_info, err_msg = _resolve_hostname_ips(parsed.hostname, parsed.port)
+    if err_msg:
+        return False, err_msg
 
     for res in addr_info:
         # The 4th element of the tuple returned by getaddrinfo is the sockaddr.
@@ -245,24 +281,8 @@ def is_safe_webhook_url(url: str) -> Tuple[bool, str]:
         except ValueError:
             return False, f"Resolved to an invalid IP address: {ip_str}"
 
-        # SECURITY: Explicitly block various internal/private/reserved ranges
-        if ip.is_loopback:
-            return False, f"'{hostname}' resolves to loopback ({ip_str})"
-        if ip.is_private:
-            return False, f"'{hostname}' resolves to private IP ({ip_str})"
-        if ip.is_link_local:
-            return False, f"'{hostname}' resolves to link-local ({ip_str})"
-        if ip.is_multicast:
-            return False, f"'{hostname}' resolves to multicast ({ip_str})"
-        if ip.is_reserved:
-            return False, f"'{hostname}' resolves to reserved ({ip_str})"
-        if ip.is_unspecified:
-            return False, f"'{hostname}' resolves to unspecified ({ip_str})"
-
-        # Check specific IPv4 scenarios not covered entirely by the above
-        if ip.version == 4:
-            # 0.0.0.0/8
-            if int(ip) >> 24 == 0:
-                return False, f"'{hostname}' resolves to zero-net ({ip_str})"
+        is_safe, err_msg = _is_ip_address_safe(ip, ip_str, parsed.hostname)
+        if not is_safe:
+            return False, err_msg
 
     return True, ""
