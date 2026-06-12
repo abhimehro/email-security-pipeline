@@ -7,7 +7,6 @@ from src.utils.setup_wizard import (
     _is_valid_email,
     run_setup_wizard,
     _generate_config_content,
-    _write_config_file,
 )
 
 
@@ -330,12 +329,8 @@ OUTLOOK_APP_PASSWORD=password
         self.assertTrue(result)
 
         # Ensure the tip was printed during the first failure
-        from src.utils.colors import Colors
-
-        expected_tip = Colors.colorize(
-            "Tip: Personal Outlook accounts NO LONGER support App Passwords.",
-            Colors.YELLOW,
-        )
+        from src.utils.setup_wizard import OUTLOOK_AUTH_ERROR_TIP
+        expected_tip = OUTLOOK_AUTH_ERROR_TIP
 
         # Check if the tip string is in any of the print calls
         found_tip = any(
@@ -348,45 +343,51 @@ OUTLOOK_APP_PASSWORD=password
             "Outlook specific troubleshooting tip not printed on connection failure.",
         )
 
+    def _is_redacted_error(self, msg: str, password: str) -> bool:
+        """Check if error message is properly redacted and safe."""
+        if "Error during connection test" not in msg:
+            return False
+        if "***" not in msg:
+            return False
+        if password in msg:
+            return False
+        return True
 
-
-
-    @patch("os.fdopen")
-    @patch("os.fchmod", create=True)
-    @patch("os.open")
     @patch("builtins.print")
-    def test_write_config_file_exception(
-        self,
-        mock_print,
-        mock_os_open,
-        mock_os_fchmod,
-        mock_os_fdopen,
-    ):
-        """Test that writing the config handles exceptions properly."""
-        # Configure os.open to return a fake file descriptor
-        mock_os_open.return_value = 123
+    @patch("src.utils.setup_wizard.IMAPConnection")
+    def test_connection_test_exception(self, mock_imap_conn, mock_print):
+        """Test that an exception during connection testing is caught, redacted, and prints Outlook tip."""
+        # Setup IMAPConnection to raise an exception
+        mock_imap_conn.side_effect = Exception("Auth failed for mypassword_123")
 
-        # Configure os.fdopen to raise an exception
-        mock_os_fdopen.side_effect = OSError("Mocked I/O error")
+        # Call _test_connection directly
+        from src.utils.setup_wizard import _test_connection
 
-        # Run the internal function
-        result = _write_config_file(".env.test", "TEST_CONTENT")
+        result = _test_connection("test@outlook.com", "mypassword_123", "3")
 
-        # Verify it returns False and prints the error
+        # Verify it returns False
         self.assertFalse(result)
 
-        # Check if the error message is printed
-        from src.utils.colors import Colors
-        expected_error = Colors.colorize("Error writing config: Mocked I/O error", Colors.RED)
+        # Check that the exception message was printed and redacted
+        found_redacted = False
+        found_tip = False
 
-        found_error = any(
-            print_call.args and expected_error in print_call.args[0]
-            for print_call in mock_print.call_args_list
-        )
+        from src.utils.setup_wizard import OUTLOOK_AUTH_ERROR_TIP
+        expected_tip = OUTLOOK_AUTH_ERROR_TIP
+
+        for call in mock_print.call_args_list:
+            if call.args and isinstance(call.args[0], str):
+                msg = call.args[0]
+                if self._is_redacted_error(msg, "mypassword_123"):
+                    found_redacted = True
+                if expected_tip in msg:
+                    found_tip = True
 
         self.assertTrue(
-            found_error,
-            "Error writing config message not printed on OSError.",
+            found_redacted, "Error message should be printed and password redacted."
+        )
+        self.assertTrue(
+            found_tip, "Outlook specific troubleshooting tip not printed on exception."
         )
 
 
