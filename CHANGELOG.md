@@ -41,6 +41,7 @@
 
 **Closed issues:**
 
+- \[repo-automation\] Daily Status Report - 2026-06-12 [\#1086](https://github.com/abhimehro/email-security-pipeline/issues/1086)
 - Daily QA Check - email-security-pipeline - 2026-06-11 [\#1083](https://github.com/abhimehro/email-security-pipeline/issues/1083)
 - \[repo-automation\] Daily Status Report - 2026-06-11 [\#1080](https://github.com/abhimehro/email-security-pipeline/issues/1080)
 - Daily QA & Agentic Review — 2026-06-11 [\#1069](https://github.com/abhimehro/email-security-pipeline/issues/1069)
@@ -385,6 +386,7 @@
 
 **Merged pull requests:**
 
+- chore\(actions\): consolidate workflow automation [\#1085](https://github.com/abhimehro/email-security-pipeline/pull/1085) ([abhimehro](https://github.com/abhimehro))
 - ⚡ Bolt: Optimize regex performance by removing re.IGNORECASE penalty [\#1084](https://github.com/abhimehro/email-security-pipeline/pull/1084) ([abhimehro](https://github.com/abhimehro))
 - 🎨 Palette: De-emphasize secondary terminal hints [\#1082](https://github.com/abhimehro/email-security-pipeline/pull/1082) ([abhimehro](https://github.com/abhimehro))
 - perf\(alert\): optimize alert dispatch throughput \(salvages \#1071\) [\#1081](https://github.com/abhimehro/email-security-pipeline/pull/1081) ([abhimehro](https://github.com/abhimehro))
