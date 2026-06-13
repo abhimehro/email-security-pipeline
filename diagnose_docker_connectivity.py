@@ -8,42 +8,53 @@ import imaplib
 import os
 import ssl
 
+from dataclasses import dataclass
 from dotenv import load_dotenv
 
 
-def test_connection(label, host, port, email, password, use_ssl=True, verify_ssl=True):
+@dataclass
+class ConnectionConfig:
+    label: str
+    host: str
+    port: int
+    email: str
+    password: str
+    use_ssl: bool = True
+    verify_ssl: bool = True
+
+def test_connection(config: ConnectionConfig):
     """Test IMAP connection with detailed diagnostics."""
     print(f"\n{'='*60}")
-    print(f"Testing: {label}")
-    print(f"Host: {host}:{port}")
-    print(f"Email: {email}")
-    print(f"SSL: {use_ssl}, Verify: {verify_ssl}")
+    print(f"Testing: {config.label}")
+    print(f"Host: {config.host}:{config.port}")
+    print(f"Email: {config.email}")
+    print(f"SSL: {config.use_ssl}, Verify: {config.verify_ssl}")
     print(f"{'='*60}")
 
     try:
-        if use_ssl:
-            if verify_ssl:
+        if config.use_ssl:
+            if config.verify_ssl:
                 context = ssl.create_default_context()
             else:
                 context = ssl._create_unverified_context()  # nosec B323
                 print("⚠️  SSL verification DISABLED")
 
-            print(f"Connecting to {host}:{port} with SSL...")
-            imap = imaplib.IMAP4_SSL(host, port, ssl_context=context, timeout=30)
+            print(f"Connecting to {config.host}:{config.port} with SSL...")
+            imap = imaplib.IMAP4_SSL(config.host, config.port, ssl_context=context, timeout=30)
         else:
-            print(f"Connecting to {host}:{port} without SSL...")
-            imap = imaplib.IMAP4(host, port, timeout=30)
+            print(f"Connecting to {config.host}:{config.port} without SSL...")
+            imap = imaplib.IMAP4(config.host, config.port, timeout=30)
             print("Upgrading to TLS...")
-            if verify_ssl:
+            if config.verify_ssl:
                 context = ssl.create_default_context()
             else:
                 context = ssl._create_unverified_context()  # nosec B323
             imap.starttls(ssl_context=context)
 
         print("✓ Connection established")
-        print(f"Logging in as {email}...")
+        print(f"Logging in as {config.email}...")
 
-        imap.login(email, password)
+        imap.login(config.email, config.password)
         print("✅ SUCCESS - Authentication successful!")
 
         # Try to list folders
@@ -82,7 +93,7 @@ def main():
         gmail_password = os.getenv("GMAIL_APP_PASSWORD", "")
 
         if gmail_email and gmail_password:
-            test_connection(
+            test_connection(ConnectionConfig(
                 "Gmail",
                 os.getenv("GMAIL_IMAP_SERVER", "imap.gmail.com"),
                 int(os.getenv("GMAIL_IMAP_PORT", "993")),
@@ -90,7 +101,7 @@ def main():
                 gmail_password,
                 use_ssl=True,
                 verify_ssl=True,
-            )
+            ))
         else:
             print("\n⚠️  Gmail credentials not configured")
 
@@ -104,7 +115,7 @@ def main():
         if proton_email and proton_password:
             # First try with verification disabled (as configured)
             verify = os.getenv("PROTON_VERIFY_SSL", "true").lower() != "false"
-            test_connection(
+            test_connection(ConnectionConfig(
                 "Proton Mail Bridge (as configured)",
                 proton_server,
                 proton_port,
@@ -112,11 +123,12 @@ def main():
                 proton_password,
                 use_ssl=True,
                 verify_ssl=verify,
-            )
+
+            ))
 
             # Also try without SSL entirely (STARTTLS fallback)
             print("\n--- Trying Proton without SSL (STARTTLS) ---")
-            test_connection(
+            test_connection(ConnectionConfig(
                 "Proton Mail Bridge (STARTTLS fallback)",
                 proton_server,
                 proton_port,
@@ -124,7 +136,8 @@ def main():
                 proton_password,
                 use_ssl=False,
                 verify_ssl=False,
-            )
+
+            ))
         else:
             print("\n⚠️  Proton credentials not configured")
 
