@@ -277,7 +277,9 @@ class AlertSystem:
         results = await asyncio.gather(*tasks, return_exceptions=True)
         return self._process_dispatch_results(channel_names, results)
 
-    def _process_dispatch_results(self, channel_names: List[str], results: List) -> List[str]:
+    def _process_dispatch_results(
+        self, channel_names: List[str], results: List
+    ) -> List[str]:
         """Process results from gather and return a list of failed channel names."""
         failed = []
         for channel, result in zip(channel_names, results):
