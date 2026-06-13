@@ -1,6 +1,7 @@
 import getpass
 import os
 import re
+import sys
 from pathlib import Path
 
 # Check if Colors is available in the expected path, otherwise mock it
@@ -64,7 +65,8 @@ def _styled_input(prompt: str) -> str:
         raise
     finally:
         if Colors.ENABLED:
-            print(Colors.RESET, end="", flush=True)
+            sys.stdout.write(Colors.RESET)
+            sys.stdout.flush()
 
     return val
 
@@ -262,7 +264,8 @@ def _prompt_for_password(provider_name: str) -> str:
             raise
         finally:
             if Colors.ENABLED:
-                print(Colors.RESET, end="")
+                sys.stdout.write(Colors.RESET)
+                sys.stdout.flush()
 
     app_secret = _get_input()
     while not app_secret:

@@ -188,3 +188,7 @@
 ## 2025-02-12 - De-emphasize Secondary Interaction Hints
 **Learning:** Secondary hints like "(Press Ctrl+C to stop)" command too much visual attention when styled with the primary foreground color, competing with the actual status message (e.g. "Waiting" or "Checking for emails").
 **Action:** Always de-emphasize secondary keyboard shortcuts and terminal hints using a muted color (like `Colors.GREY`) to maintain focus on the primary action and reduce visual clutter.
+
+## 2027-04-10 - Explicit sys.stdout.write for Resetting Formatting
+**Learning:** Using `print(Colors.RESET, end="")` to clear terminal formatting after interactive inputs (`input()`, `getpass()`) can sometimes fail or buffer inconsistently in constrained environments or CI logs, leaving the user's terminal permanently styled (e.g., bold).
+**Action:** Always use `sys.stdout.write(Colors.RESET)` followed by `sys.stdout.flush()` instead of `print()` when resetting terminal colors inside interactive input blocks or `finally` handlers to guarantee immediate and reliable unbuffered formatting resets.

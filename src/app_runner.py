@@ -27,7 +27,8 @@ class AppRunner:
             raise
         finally:
             if Colors.ENABLED:
-                print(Colors.RESET, end="", flush=True)
+                sys.stdout.write(Colors.RESET)
+                sys.stdout.flush()
 
         return val
 
@@ -155,7 +156,7 @@ class AppRunner:
     def print_help(self) -> None:
         """Print usage instructions for the CLI."""
         print(Colors.colorize("Usage:", Colors.BOLD))
-        print("  python src/main.py [CONFIG_FILE]\n")
+        print(f"  {Colors.colorize('python src/main.py [CONFIG_FILE]', Colors.CYAN)}\n")
         print(Colors.colorize("Arguments:", Colors.BOLD))
         print(
             "  CONFIG_FILE    Path to the environment configuration file (default: .env)\n"
