@@ -207,5 +207,74 @@ class TestJSONFormatter(unittest.TestCase):
         self.assertEqual(data["message"], "Test message")
 
 
+
+    def test_unserializable_extra_fields(self):
+        """Test that non-serializable objects in extra fields are converted to strings."""
+        class UnserializableObject:
+            def __str__(self):
+                return "<UnserializableObject instance>"
+
+        record = logging.LogRecord(
+            name="test_logger",
+            level=logging.INFO,
+            pathname="test.py",
+            lineno=42,
+            msg="Testing object serialization",
+            args=(),
+            exc_info=None,
+        )
+
+        record.extra_fields = {
+            "custom_obj": UnserializableObject(),
+            "normal_field": "test"
+        }
+
+        result = self.formatter.format(record)
+        data = json.loads(result)
+
+        self.assertEqual(data["custom_obj"], "<UnserializableObject instance>")
+        self.assertEqual(data["normal_field"], "test")
+
+    def test_message_with_args(self):
+        """Test that messages with formatting arguments are correctly interpolated."""
+        record = logging.LogRecord(
+            name="test_logger",
+            level=logging.INFO,
+            pathname="test.py",
+            lineno=42,
+            msg="User %s logged in from %s",
+            args=("admin", "192.168.1.1"),
+            exc_info=None,
+        )
+
+        result = self.formatter.format(record)
+        data = json.loads(result)
+
+        self.assertEqual(data["message"], "User admin logged in from 192.168.1.1")
+
+    def test_custom_datefmt(self):
+        """Test that custom date formats are respected."""
+        formatter = JSONFormatter(datefmt="%Y-%m-%d")
+        record = logging.LogRecord(
+            name="test_logger",
+            level=logging.INFO,
+            pathname="test.py",
+            lineno=42,
+            msg="Testing date format",
+            args=(),
+            exc_info=None,
+        )
+
+        # Set a fixed timestamp
+        record.created = 1609459200  # 2021-01-01 00:00:00 UTC
+
+        result = formatter.format(record)
+        data = json.loads(result)
+
+        # We can't guarantee the exact timezone of the environment running the test,
+        # but we can check it matches the format "YYYY-MM-DD"
+        self.assertRegex(data["timestamp"], r"^\d{4}-\d{2}-\d{2}$")
+
+
 if __name__ == "__main__":
     unittest.main()
