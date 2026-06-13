@@ -18,6 +18,7 @@ from src.modules.email_ingestion import (
     EmailAccountConfig,
     EmailData,
     EmailIngestionManager,
+    EmailIngestionConfig,
 )
 
 
@@ -69,7 +70,7 @@ class TestMultiAccountProcessing(unittest.TestCase):
         where each connection is isolated and properly managed.
         """
         accounts = [self.account1, self.account2]
-        manager = EmailIngestionManager(accounts, rate_limit_delay=0)
+        manager = EmailIngestionManager(accounts, config=EmailIngestionConfig(rate_limit_delay=0))
 
         with patch("src.modules.email_ingestion.IMAPClient") as mock_client_class:
             # Create mock clients
@@ -96,7 +97,7 @@ class TestMultiAccountProcessing(unittest.TestCase):
         We must respect this to avoid interfering with incident response.
         """
         accounts = [self.account1, self.account3_disabled, self.account2]
-        manager = EmailIngestionManager(accounts, rate_limit_delay=0)
+        manager = EmailIngestionManager(accounts, config=EmailIngestionConfig(rate_limit_delay=0))
 
         with patch("src.modules.email_ingestion.IMAPClient") as mock_client_class:
             mock_clients = []
@@ -132,7 +133,7 @@ class TestMultiAccountProcessing(unittest.TestCase):
         could cause missed threats or unnecessary alerts.
         """
         accounts = [self.account1, self.account2]
-        manager = EmailIngestionManager(accounts, rate_limit_delay=0)
+        manager = EmailIngestionManager(accounts, config=EmailIngestionConfig(rate_limit_delay=0))
 
         # Account1 has 2 folders, Account2 has 1 folder
         self.assertEqual(len(self.account1.folders), 2)
@@ -174,7 +175,7 @@ class TestMultiAccountProcessing(unittest.TestCase):
         tenant isolation at every layer, with explicit account_id tracking.
         """
         accounts = [self.account1, self.account2]
-        manager = EmailIngestionManager(accounts, rate_limit_delay=0)
+        manager = EmailIngestionManager(accounts, config=EmailIngestionConfig(rate_limit_delay=0))
 
         # Create mock emails tagged with their source account
         email1 = EmailData(
@@ -262,7 +263,7 @@ class TestMultiAccountProcessing(unittest.TestCase):
         """
         accounts = [self.account1, self.account2]
         rate_limit_delay = 0.05  # 50ms delay for testing
-        manager = EmailIngestionManager(accounts, rate_limit_delay=rate_limit_delay)
+        manager = EmailIngestionManager(accounts, config=EmailIngestionConfig(rate_limit_delay=rate_limit_delay))
 
         # Verify rate_limit_delay is configured
         self.assertEqual(manager.rate_limit_delay, rate_limit_delay)
@@ -285,7 +286,7 @@ class TestMultiAccountProcessing(unittest.TestCase):
         debugging why all monitoring stopped due to one misconfigured account.
         """
         accounts = [self.account1, self.account2]
-        manager = EmailIngestionManager(accounts, rate_limit_delay=0)
+        manager = EmailIngestionManager(accounts, config=EmailIngestionConfig(rate_limit_delay=0))
 
         # Setup: client1 works, client2 has error
         mock_client1 = MagicMock()
@@ -354,7 +355,7 @@ class TestMultiAccountProcessing(unittest.TestCase):
 
         # List order implies priority
         accounts = [high_priority, low_priority]
-        manager = EmailIngestionManager(accounts, rate_limit_delay=0)
+        manager = EmailIngestionManager(accounts, config=EmailIngestionConfig(rate_limit_delay=0))
 
         with patch("src.modules.email_ingestion.IMAPClient") as mock_client_class:
             mock_clients = [MagicMock(), MagicMock()]
@@ -377,7 +378,7 @@ class TestMultiAccountProcessing(unittest.TestCase):
         timely threat detection across all monitored accounts.
         """
         accounts = [self.account1, self.account2]
-        manager = EmailIngestionManager(accounts, rate_limit_delay=0)
+        manager = EmailIngestionManager(accounts, config=EmailIngestionConfig(rate_limit_delay=0))
 
         # Create many mock emails for account1
         many_emails = [
@@ -444,7 +445,7 @@ class TestParallelAccountProcessing(unittest.TestCase):
         PATTERN RECOGNITION: max_parallel_accounts should be stored on the manager
         so callers can inspect the configured concurrency level.
         """
-        manager = EmailIngestionManager([], max_parallel_accounts=5)
+        manager = EmailIngestionManager([], config=EmailIngestionConfig(max_parallel_accounts=5))
         self.assertEqual(manager.max_parallel_accounts, 5)
 
     def test_max_parallel_accounts_defaults_to_three(self):
@@ -457,10 +458,10 @@ class TestParallelAccountProcessing(unittest.TestCase):
         SECURITY STORY: Passing 0 or a negative value must not disable processing.
         We clamp the value to 1 so at least sequential processing always occurs.
         """
-        manager = EmailIngestionManager([], max_parallel_accounts=0)
+        manager = EmailIngestionManager([], config=EmailIngestionConfig(max_parallel_accounts=0))
         self.assertEqual(manager.max_parallel_accounts, 1)
 
-        manager2 = EmailIngestionManager([], max_parallel_accounts=-99)
+        manager2 = EmailIngestionManager([], config=EmailIngestionConfig(max_parallel_accounts=-99))
         self.assertEqual(manager2.max_parallel_accounts, 1)
 
     def test_fetch_all_emails_uses_thread_pool(self):
@@ -472,7 +473,7 @@ class TestParallelAccountProcessing(unittest.TestCase):
         """
         account1 = self._make_account("a@x.com")
         account2 = self._make_account("b@x.com")
-        manager = EmailIngestionManager([account1, account2], max_parallel_accounts=2)
+        manager = EmailIngestionManager([account1, account2], config=EmailIngestionConfig(max_parallel_accounts=2))
         manager.logger = MagicMock()
 
         mock_email = MagicMock()
@@ -500,7 +501,7 @@ class TestParallelAccountProcessing(unittest.TestCase):
         ~30s total with parallelism vs ~90s sequential.
         """
         accounts = [self._make_account(f"u{i}@x.com") for i in range(3)]
-        manager = EmailIngestionManager(accounts, max_parallel_accounts=3)
+        manager = EmailIngestionManager(accounts, config=EmailIngestionConfig(max_parallel_accounts=3))
         manager.logger = MagicMock()
 
         call_times = []
@@ -539,9 +540,7 @@ class TestParallelAccountProcessing(unittest.TestCase):
         """
         account_ok = self._make_account("ok@x.com")
         account_bad = self._make_account("bad@x.com")
-        manager = EmailIngestionManager(
-            [account_ok, account_bad], max_parallel_accounts=2
-        )
+        manager = EmailIngestionManager([account_ok, account_bad], config=EmailIngestionConfig(max_parallel_accounts=2))
         manager.logger = MagicMock()
 
         good_email = MagicMock()

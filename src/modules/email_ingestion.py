@@ -317,48 +317,22 @@ class EmailIngestionManager:
     """
 
 
-    @classmethod
-    def _build_config(cls, config: Optional[EmailIngestionConfig], args: tuple, kwargs: dict) -> EmailIngestionConfig:
-        if config is None:
-            config = EmailIngestionConfig()
-
-        if args:
-            attr_names = [
-                'rate_limit_delay', 'max_attachment_bytes', 'max_total_attachment_bytes',
-                'max_attachment_count', 'max_body_size_bytes', 'max_parallel_accounts'
-            ]
-            if len(args) > len(attr_names):
-                raise TypeError(f"EmailIngestionManager.__init__() takes from 1 to {len(attr_names)+2} positional arguments but {len(args)+2} were given")
-            for attr_name, arg_val in zip(attr_names, args):
-                setattr(config, attr_name, arg_val)
-
-        for key, value in kwargs.items():
-            if hasattr(config, key):
-                setattr(config, key, value)
-            else:
-                raise TypeError(f"EmailIngestionManager.__init__() got an unexpected keyword argument '{key}'")
-
-        return config
-
     def __init__(
         self,
         accounts: List[EmailAccountConfig],
-        *args,
         config: Optional[EmailIngestionConfig] = None,
-        **kwargs
     ):
         """
         Initialize ingestion manager.
 
         Args:
             accounts: List of email account configurations
-            config: Configuration object. If individual parameters are passed via kwargs
-                    for backward compatibility, they will override the config object.
-            **kwargs: Backward compatibility for individual configuration parameters.
+            config: Configuration object.
         """
         self.accounts = accounts
 
-        config = self._build_config(config, args, kwargs)
+        if config is None:
+            config = EmailIngestionConfig()
 
         self.rate_limit_delay = config.rate_limit_delay
         self.max_attachment_bytes = config.max_attachment_bytes
