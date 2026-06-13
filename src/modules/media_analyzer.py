@@ -250,15 +250,21 @@ class MediaAuthenticityAnalyzer:
 
             def process_attachment(attachment):
                 meta_res = self._analyze_attachment_metadata(attachment)
-
                 deepfake_res = None
-                # Before starting the expensive deepfake check, verify if another thread
-                # has already triggered the early-exit condition.
-                if self.config.deepfake_detection_enabled and not shared_state["stop_deepfake"] and meta_res["score"] < 5.0:
-                    filename = attachment.get("filename", "")
-                    data = attachment.get("data", b"")
-                    content_type = attachment.get("content_type", "")
-                    deepfake_res = self._analyze_deepfake_threat(filename, data, content_type)
+
+                if not self.config.deepfake_detection_enabled:
+                    return meta_res, deepfake_res
+
+                if shared_state["stop_deepfake"]:
+                    return meta_res, deepfake_res
+
+                if meta_res["score"] >= 5.0:
+                    return meta_res, deepfake_res
+
+                filename = attachment.get("filename", "")
+                data = attachment.get("data", b"")
+                content_type = attachment.get("content_type", "")
+                deepfake_res = self._analyze_deepfake_threat(filename, data, content_type)
 
                 return meta_res, deepfake_res
 
@@ -272,17 +278,19 @@ class MediaAuthenticityAnalyzer:
                 file_type_warnings.extend(meta_results["file_type_warnings"])
                 suspicious_attachments.extend(meta_results["suspicious_attachments"])
 
-                # Check the exact original cumulative threat score
-                # If we cross the threshold now, we signal to cancel remaining deepfake tasks
                 if threat_score >= 5.0:
                     shared_state["stop_deepfake"] = True
-                elif deepfake_results:
-                    threat_score += deepfake_results["score"]
-                    potential_deepfakes.extend(deepfake_results["indicators"])
-                    size_anomalies.extend(deepfake_results["errors"])
+                    continue
 
-                    if threat_score >= 5.0:
-                        shared_state["stop_deepfake"] = True
+                if not deepfake_results:
+                    continue
+
+                threat_score += deepfake_results["score"]
+                potential_deepfakes.extend(deepfake_results["indicators"])
+                size_anomalies.extend(deepfake_results["errors"])
+
+                if threat_score >= 5.0:
+                    shared_state["stop_deepfake"] = True
 
         # Calculate risk level
         risk_level = self._calculate_risk_level(threat_score)
