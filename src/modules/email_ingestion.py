@@ -340,16 +340,24 @@ class EmailIngestionManager:
 
         # Map positional arguments if they were passed
         if args:
-            if len(args) > 0: config.rate_limit_delay = args[0]
-            if len(args) > 1: config.max_attachment_bytes = args[1]
-            if len(args) > 2: config.max_total_attachment_bytes = args[2]
-            if len(args) > 3: config.max_attachment_count = args[3]
-            if len(args) > 4: config.max_body_size_bytes = args[4]
-            if len(args) > 5: config.max_parallel_accounts = args[5]
+            attr_names = [
+                'rate_limit_delay',
+                'max_attachment_bytes',
+                'max_total_attachment_bytes',
+                'max_attachment_count',
+                'max_body_size_bytes',
+                'max_parallel_accounts'
+            ]
+            if len(args) > len(attr_names):
+                raise TypeError(f"EmailIngestionManager.__init__() takes from 1 to {len(attr_names)+2} positional arguments but {len(args)+2} were given")
+            for attr_name, arg_val in zip(attr_names, args):
+                setattr(config, attr_name, arg_val)
 
         for key, value in kwargs.items():
             if hasattr(config, key):
                 setattr(config, key, value)
+            else:
+                raise TypeError(f"EmailIngestionManager.__init__() got an unexpected keyword argument '{key}'")
 
 
         self.rate_limit_delay = config.rate_limit_delay
