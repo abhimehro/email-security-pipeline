@@ -63,5 +63,69 @@ class TestMainErrorHandling(unittest.TestCase):
             pipeline.metrics.record_error.assert_called_once_with("analysis_error")
 
 
+
+    @patch("src.main.sys.exit")
+    @patch("builtins.print")
+    def test_start_configuration_error(self, mock_print, mock_exit):
+        """Test that start() handles ConfigurationError correctly."""
+        from src.utils.config import ConfigurationError
+        with patch("src.main.Config") as mock_config, patch(
+            "src.main.EmailIngestionManager"
+        ), patch("src.main.SpamAnalyzer"), patch("src.main.NLPThreatAnalyzer"), patch(
+            "src.main.MediaAuthenticityAnalyzer"
+        ), patch(
+            "src.main.AlertSystem"
+        ):
+            # Setup mock config to avoid logging init errors
+            mock_config_instance = mock_config.return_value
+            mock_config_instance.system.log_file = "logs/test.log"
+            mock_config_instance.system.log_level = "INFO"
+            mock_config_instance.system.log_format = "text"
+            mock_config_instance.system.log_rotation_size_mb = 10
+            mock_config_instance.system.log_rotation_keep_files = 5
+
+            pipeline = EmailSecurityPipeline(".env")
+            pipeline.config.validate.side_effect = ConfigurationError(["Test config error"])
+            pipeline.stop = MagicMock()
+            mock_exit.side_effect = SystemExit(1)
+
+            with self.assertRaises(SystemExit):
+                pipeline.start()
+
+            pipeline.stop.assert_called_once()
+            mock_exit.assert_called_once_with(1)
+
+    @patch("src.main.sys.exit")
+    def test_start_general_exception(self, mock_exit):
+        """Test that start() handles general Exception correctly."""
+        with patch("src.main.Config") as mock_config, patch(
+            "src.main.EmailIngestionManager"
+        ), patch("src.main.SpamAnalyzer"), patch("src.main.NLPThreatAnalyzer"), patch(
+            "src.main.MediaAuthenticityAnalyzer"
+        ), patch(
+            "src.main.AlertSystem"
+        ):
+            # Setup mock config to avoid logging init errors
+            mock_config_instance = mock_config.return_value
+            mock_config_instance.system.log_file = "logs/test.log"
+            mock_config_instance.system.log_level = "INFO"
+            mock_config_instance.system.log_format = "text"
+            mock_config_instance.system.log_rotation_size_mb = 10
+            mock_config_instance.system.log_rotation_keep_files = 5
+
+            pipeline = EmailSecurityPipeline(".env")
+            pipeline.config.validate.side_effect = Exception("General error")
+            pipeline.logger = MagicMock()
+            pipeline.stop = MagicMock()
+            mock_exit.side_effect = SystemExit(1)
+
+            with self.assertRaises(SystemExit):
+                pipeline.start()
+
+            pipeline.logger.error.assert_called_once()
+            pipeline.stop.assert_called_once()
+            mock_exit.assert_called_once_with(1)
+
+
 if __name__ == "__main__":
     unittest.main()
