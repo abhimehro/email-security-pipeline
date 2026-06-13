@@ -9,6 +9,7 @@ import os
 import tarfile
 import tempfile
 import zipfile
+import concurrent.futures
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from typing import List, Optional, Tuple
@@ -241,29 +242,47 @@ class MediaAuthenticityAnalyzer:
         size_anomalies = []
         potential_deepfakes = []
 
-        for attachment in email_data.attachments:
-            # Analyze metadata and basic file properties
-            meta_results = self._analyze_attachment_metadata(attachment)
+        # Optimization: Use ThreadPoolExecutor to process attachments concurrently.
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            # We use a mutable list to track if the threshold has been crossed globally.
+            # Because of the GIL, list operations are thread-safe enough for this heuristic check.
+            shared_state = {"stop_deepfake": False}
 
-            # Aggregate results
-            threat_score += meta_results["score"]
-            size_anomalies.extend(meta_results["size_anomalies"])
-            file_type_warnings.extend(meta_results["file_type_warnings"])
-            suspicious_attachments.extend(meta_results["suspicious_attachments"])
+            def process_attachment(attachment):
+                meta_res = self._analyze_attachment_metadata(attachment)
 
-            # Check for potential deepfakes
-            # Only proceed if the file hasn't already been flagged as dangerous/suspicious (score >= 5.0)
-            if self.config.deepfake_detection_enabled and threat_score < 5.0:
-                filename = attachment.get("filename", "")
-                data = attachment.get("data", b"")
-                content_type = attachment.get("content_type", "")
+                deepfake_res = None
+                # Before starting the expensive deepfake check, verify if another thread
+                # has already triggered the early-exit condition.
+                if self.config.deepfake_detection_enabled and not shared_state["stop_deepfake"] and meta_res["score"] < 5.0:
+                    filename = attachment.get("filename", "")
+                    data = attachment.get("data", b"")
+                    content_type = attachment.get("content_type", "")
+                    deepfake_res = self._analyze_deepfake_threat(filename, data, content_type)
 
-                deepfake_results = self._analyze_deepfake_threat(
-                    filename, data, content_type
-                )
-                threat_score += deepfake_results["score"]
-                potential_deepfakes.extend(deepfake_results["indicators"])
-                size_anomalies.extend(deepfake_results["errors"])
+                return meta_res, deepfake_res
+
+            # Using executor.map preserves the original deterministic order of results
+            # and allows exceptions to propagate naturally, avoiding fail-open vulnerabilities.
+            results = executor.map(process_attachment, email_data.attachments)
+
+            for meta_results, deepfake_results in results:
+                threat_score += meta_results["score"]
+                size_anomalies.extend(meta_results["size_anomalies"])
+                file_type_warnings.extend(meta_results["file_type_warnings"])
+                suspicious_attachments.extend(meta_results["suspicious_attachments"])
+
+                # Check the exact original cumulative threat score
+                # If we cross the threshold now, we signal to cancel remaining deepfake tasks
+                if threat_score >= 5.0:
+                    shared_state["stop_deepfake"] = True
+                elif deepfake_results:
+                    threat_score += deepfake_results["score"]
+                    potential_deepfakes.extend(deepfake_results["indicators"])
+                    size_anomalies.extend(deepfake_results["errors"])
+
+                    if threat_score >= 5.0:
+                        shared_state["stop_deepfake"] = True
 
         # Calculate risk level
         risk_level = self._calculate_risk_level(threat_score)
