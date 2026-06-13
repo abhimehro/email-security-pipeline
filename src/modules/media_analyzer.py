@@ -6,7 +6,6 @@ Analyzes attachments for synthetic content and deepfakes.
 import io
 import logging
 import os
-import threading
 import tarfile
 import tempfile
 import zipfile
@@ -213,7 +212,6 @@ class MediaAuthenticityAnalyzer:
         self.config = config
         self.logger = logging.getLogger("MediaAuthenticityAnalyzer")
         self.face_cascade = None
-        self._face_cascade_lock = threading.Lock()
         # Optimization: Reuse thread pool for deepfake detection to avoid overhead
         self._deepfake_executor = ThreadPoolExecutor()
 
@@ -1252,55 +1250,54 @@ class MediaAuthenticityAnalyzer:
             gray_frames: List of grayscale frames (numpy arrays)
 
         """
-        with self._face_cascade_lock:
-            score = 0.0
-            issues = []
+        score = 0.0
+        issues = []
 
-            # Load Haar cascade for face detection (lazy loading with caching)
-            if self.face_cascade is None:
-                # Note: In a real environment, ensure the XML file is available or bundled.
-                # We try to load from default OpenCV path or a local path.
-                cascade_path = cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
-                self.face_cascade = cv2.CascadeClassifier(cascade_path)
+        # Load Haar cascade for face detection (lazy loading with caching)
+        if self.face_cascade is None:
+            # Note: In a real environment, ensure the XML file is available or bundled.
+            # We try to load from default OpenCV path or a local path.
+            cascade_path = cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
+            self.face_cascade = cv2.CascadeClassifier(cascade_path)
 
-            if self.face_cascade.empty():
-                self.logger.warning("Haar cascade not found. Skipping facial analysis.")
-                return 0.0, []
+        if self.face_cascade.empty():
+            self.logger.warning("Haar cascade not found. Skipping facial analysis.")
+            return 0.0, []
 
-            faces_found = 0
-            blurry_faces = 0
+        faces_found = 0
+        blurry_faces = 0
 
-            # Optimization: Check a small subset of frames to reduce CPU load.
-            # Heuristic: we sample the first 5 frames assuming persistent issues are likely
-            # to appear early in the clip. Increase this sample size for more thorough analysis.
-            step = max(1, len(gray_frames) // 5)
-            frames_to_check = gray_frames[::step][:5]
+        # Optimization: Check a small subset of frames to reduce CPU load.
+        # Heuristic: we sample the first 5 frames assuming persistent issues are likely
+        # to appear early in the clip. Increase this sample size for more thorough analysis.
+        step = max(1, len(gray_frames) // 5)
+        frames_to_check = gray_frames[::step][:5]
 
-            for gray in frames_to_check:
-                faces = self.face_cascade.detectMultiScale(gray, 1.1, 4)
+        for gray in frames_to_check:
+            faces = self.face_cascade.detectMultiScale(gray, 1.1, 4)
 
-                for x, y, w, h in faces:
-                    faces_found += 1
-                    face_roi = gray[y : y + h, x : x + w]
+            for x, y, w, h in faces:
+                faces_found += 1
+                face_roi = gray[y : y + h, x : x + w]
 
-                    # Check for blurriness using Laplacian variance
-                    # Optimization: Using cv2.meanStdDev is significantly faster (~3x)
-                    # than falling back to NumPy's .var() method for variance calculation.
-                    variance = (
-                        cv2.meanStdDev(cv2.Laplacian(face_roi, cv2.CV_64F))[1][0][0] ** 2
-                    )
-                    if variance < 100:  # Threshold for blurriness
-                        blurry_faces += 1
+                # Check for blurriness using Laplacian variance
+                # Optimization: Using cv2.meanStdDev is significantly faster (~3x)
+                # than falling back to NumPy's .var() method for variance calculation.
+                variance = (
+                    cv2.meanStdDev(cv2.Laplacian(face_roi, cv2.CV_64F))[1][0][0] ** 2
+                )
+                if variance < 100:  # Threshold for blurriness
+                    blurry_faces += 1
 
-            if faces_found > 0:
-                blur_ratio = blurry_faces / faces_found
-                if blur_ratio > 0.5:
-                    score += 1.0
-                    issues.append(
-                        f"Inconsistent facial clarity detected ({int(blur_ratio*100)}% blurry faces)"
-                    )
+        if faces_found > 0:
+            blur_ratio = blurry_faces / faces_found
+            if blur_ratio > 0.5:
+                score += 1.0
+                issues.append(
+                    f"Inconsistent facial clarity detected ({int(blur_ratio*100)}% blurry faces)"
+                )
 
-            return score, issues
+        return score, issues
 
     def _check_audio_visual_sync(
         self, video_path: str, frames: List[np.ndarray]
