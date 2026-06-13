@@ -79,7 +79,9 @@ class CountdownTimer:
         except (EOFError, KeyboardInterrupt):
             # Clean up line on interrupt
             warning = Colors.colorize("⚠", Colors.YELLOW)
-            clean_msg = self.message.replace(Colors.colorize(" (Press Ctrl+C to stop)", Colors.GREY), "").replace(" (Press Ctrl+C to stop)", "")
+            clean_msg = self.message.replace(
+                Colors.colorize(" (Press Ctrl+C to stop)", Colors.GREY), ""
+            ).replace(" (Press Ctrl+C to stop)", "")
             # Ensure we print the cancellation message correctly
             sys.stdout.write(f"\r\033[K{warning} {clean_msg} (Cancelled)\n")
             sys.stdout.flush()
@@ -193,7 +195,9 @@ class Spinner:
 
     def _get_final_message_components(self, exc_type) -> tuple[str, str]:
         """Determine the final symbol and message to display."""
-        clean_msg = self.message.replace(Colors.colorize(" (Press Ctrl+C to stop)", Colors.GREY), "").replace(" (Press Ctrl+C to stop)", "")
+        clean_msg = self.message.replace(
+            Colors.colorize(" (Press Ctrl+C to stop)", Colors.GREY), ""
+        ).replace(" (Press Ctrl+C to stop)", "")
         is_cancelled = exc_type is not None and issubclass(
             exc_type, (EOFError, KeyboardInterrupt)
         )
@@ -204,14 +208,18 @@ class Spinner:
 
         if is_failed:
             msg = (
-                self.fail_msg.replace(Colors.colorize(" (Press Ctrl+C to stop)", Colors.GREY), "").replace(" (Press Ctrl+C to stop)", "")
+                self.fail_msg.replace(
+                    Colors.colorize(" (Press Ctrl+C to stop)", Colors.GREY), ""
+                ).replace(" (Press Ctrl+C to stop)", "")
                 if self.fail_msg
                 else clean_msg
             )
             return "✘", msg
 
         if self.success_msg:
-            return "✔", self.success_msg.replace(Colors.colorize(" (Press Ctrl+C to stop)", Colors.GREY), "").replace(" (Press Ctrl+C to stop)", "")
+            return "✔", self.success_msg.replace(
+                Colors.colorize(" (Press Ctrl+C to stop)", Colors.GREY), ""
+            ).replace(" (Press Ctrl+C to stop)", "")
 
         if self.persist:
             return "✔", clean_msg
