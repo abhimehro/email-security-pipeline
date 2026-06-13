@@ -278,26 +278,11 @@ def test_styled_input_colors_disabled(mock_app_runner):
         mock_flush.assert_not_called()
 
 
+@pytest.mark.parametrize("exception", [EOFError, KeyboardInterrupt])
 @patch("src.app_runner.Colors.ENABLED", True)
 @patch("src.app_runner.Colors.RESET", "[RESET]")
-def test_styled_input_eof_error(mock_app_runner):
-    with patch("builtins.input", side_effect=EOFError), \
-         patch("builtins.print") as mock_print, \
-         patch("src.app_runner.sys.stdout.write") as mock_write, \
-         patch("src.app_runner.sys.stdout.flush") as mock_flush:
-
-        with pytest.raises(KeyboardInterrupt):
-            mock_app_runner._styled_input("Prompt:")
-
-        mock_print.assert_called_once_with()
-        mock_write.assert_called_once_with("[RESET]")
-        mock_flush.assert_called_once()
-
-
-@patch("src.app_runner.Colors.ENABLED", True)
-@patch("src.app_runner.Colors.RESET", "[RESET]")
-def test_styled_input_keyboard_interrupt(mock_app_runner):
-    with patch("builtins.input", side_effect=KeyboardInterrupt), \
+def test_styled_input_interruptions(mock_app_runner, exception):
+    with patch("builtins.input", side_effect=exception), \
          patch("builtins.print") as mock_print, \
          patch("src.app_runner.sys.stdout.write") as mock_write, \
          patch("src.app_runner.sys.stdout.flush") as mock_flush:
