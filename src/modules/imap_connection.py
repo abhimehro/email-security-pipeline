@@ -468,9 +468,7 @@ class IMAPConnection:
                 "authenticate",
             ]
             # Use shared pattern compiler for consistent escaping/grouping and safety checks
-            self.__class__._AUTH_KEYWORD_PATTERN = compile_patterns(
-                auth_keywords
-            )
+            self.__class__._AUTH_KEYWORD_PATTERN = compile_patterns(auth_keywords)
 
         if not self.__class__._AUTH_KEYWORD_PATTERN.search(error_msg_lower):
             return None
