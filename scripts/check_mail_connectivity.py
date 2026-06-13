@@ -6,6 +6,7 @@ No messages are fetched or sent; we only attempt to open sockets and issue
 minimal capability/NOOP commands.
 """
 
+from dataclasses import dataclass
 import imaplib
 import os
 import smtplib
@@ -39,6 +40,17 @@ except ImportError:
 
 
 load_dotenv()
+
+
+@dataclass
+class ConnectionConfig:
+    provider_name: str
+    host: str
+    port: int
+    use_ssl: bool
+    user: str
+    password: str
+    help_text: str = None
 
 
 def print_header(text):
@@ -95,188 +107,158 @@ def print_summary(results):
     print()
 
 
-def check_imap(
-    provider_name: str,
-    host: str,
-    port: int,
-    use_ssl: bool,
-    user: str,
-    password: str,
-    help_text: str = None,
-):
-    print_pending("IMAP", host, port, use_ssl)
+def _run_connection_check(protocol, config, connection_callback):
+    print_pending(protocol, config.host, config.port, config.use_ssl)
     result = {
-        "provider": provider_name,
-        "protocol": "IMAP",
-        "host": host,
-        "port": port,
+        "provider": config.provider_name,
+        "protocol": protocol,
+        "host": config.host,
+        "port": config.port,
         "success": False,
         "error": None,
     }
     try:
-        if use_ssl:
+        connection_callback()
+        print_status(protocol, config.host, config.port, config.use_ssl, True)
+        result["success"] = True
+    except Exception as e:
+        print_status(protocol, config.host, config.port, config.use_ssl, False, str(e))
+        result["error"] = str(e)
+        if config.help_text:
+            print(f"    {Colors.colorize('💡 Tip:', Colors.YELLOW)} {config.help_text}")
+    return result
+
+
+def check_imap(config: ConnectionConfig):
+    def connect():
+        if config.use_ssl:
             ctx = ssl.create_default_context()
-            with imaplib.IMAP4_SSL(host, port, ssl_context=ctx) as imap:
-                imap.login(user, password)
+            with imaplib.IMAP4_SSL(config.host, config.port, ssl_context=ctx) as imap:
+                imap.login(config.user, config.password)
                 imap.noop()
-                print_status("IMAP", host, port, use_ssl, True)
-                result["success"] = True
         else:
-            with imaplib.IMAP4(host, port) as imap:
+            with imaplib.IMAP4(config.host, config.port) as imap:
                 imap.starttls()
-                imap.login(user, password)
+                imap.login(config.user, config.password)
                 imap.noop()
-                print_status("IMAP", host, port, use_ssl, True)
-                result["success"] = True
-    except Exception as e:
-        print_status("IMAP", host, port, use_ssl, False, str(e))
-        result["error"] = str(e)
-        if help_text:
-            print(f"    {Colors.colorize('💡 Tip:', Colors.YELLOW)} {help_text}")
 
-    return result
+    return _run_connection_check("IMAP", config, connect)
 
 
-def check_smtp(
-    provider_name: str,
-    host: str,
-    port: int,
-    use_ssl: bool,
-    user: str,
-    password: str,
-    help_text: str = None,
-):
-    print_pending("SMTP", host, port, use_ssl)
-    result = {
-        "provider": provider_name,
-        "protocol": "SMTP",
-        "host": host,
-        "port": port,
-        "success": False,
-        "error": None,
-    }
-    try:
-        if use_ssl:
+def check_smtp(config: ConnectionConfig):
+    def connect():
+        if config.use_ssl:
             ctx = ssl.create_default_context()
-            with smtplib.SMTP_SSL(host, port, context=ctx) as smtp:
-                smtp.login(user, password)
+            with smtplib.SMTP_SSL(config.host, config.port, context=ctx) as smtp:
+                smtp.login(config.user, config.password)
                 smtp.noop()
-                print_status("SMTP", host, port, use_ssl, True)
-                result["success"] = True
         else:
-            with smtplib.SMTP(host, port) as smtp:
+            with smtplib.SMTP(config.host, config.port) as smtp:
                 smtp.starttls()
-                smtp.login(user, password)
+                smtp.login(config.user, config.password)
                 smtp.noop()
-                print_status("SMTP", host, port, use_ssl, True)
-                result["success"] = True
-    except Exception as e:
-        print_status("SMTP", host, port, use_ssl, False, str(e))
-        result["error"] = str(e)
-        if help_text:
-            print(f"    {Colors.colorize('💡 Tip:', Colors.YELLOW)} {help_text}")
 
-    return result
+    return _run_connection_check("SMTP", config, connect)
+
+
+def check_provider(
+    results,
+    env_prefix,
+    display_name,
+    help_text,
+    imap_default_host,
+    imap_default_port,
+    imap_ssl,
+    smtp_default_host,
+    smtp_default_port,
+    smtp_ssl,
+):
+    if os.getenv(f"{env_prefix}_ENABLED", "false").lower() == "true":
+        print_header(display_name)
+
+        email = os.getenv(f"{env_prefix}_EMAIL", "")
+        password = os.getenv(f"{env_prefix}_APP_PASSWORD", "")
+
+        results.append(
+            check_imap(
+                ConnectionConfig(
+                    display_name.split()[0],
+                    os.getenv(f"{env_prefix}_IMAP_SERVER", imap_default_host),
+                    int(os.getenv(f"{env_prefix}_IMAP_PORT", str(imap_default_port))),
+                    imap_ssl,
+                    email,
+                    password,
+                    help_text=help_text,
+                )
+            )
+        )
+        results.append(
+            check_smtp(
+                ConnectionConfig(
+                    display_name.split()[0],
+                    os.getenv(f"{env_prefix}_SMTP_SERVER", smtp_default_host),
+                    int(os.getenv(f"{env_prefix}_SMTP_PORT", str(smtp_default_port))),
+                    smtp_ssl,
+                    email,
+                    password,
+                    help_text=help_text,
+                )
+            )
+        )
+        return True
+    return False
 
 
 def main():
     print(f"\n{Colors.BOLD}🔍 Checking Email Connectivity...{Colors.RESET}")
-
-    any_enabled = False
     results = []
 
-    # Gmail
-    if os.getenv("GMAIL_ENABLED", "false").lower() == "true":
-        any_enabled = True
-        print_header("Gmail")
+    gmail_help = (
+        "Check if 'App Password' is correct and IMAP is enabled in Gmail settings."
+    )
+    outlook_help = "Personal Outlook accounts NO LONGER support App Passwords. Use Microsoft 365 Business accounts only."
+    proton_help = "Ensure Proton Mail Bridge is running and serving localhost."
 
-        gmail_help = (
-            "Check if 'App Password' is correct and IMAP is enabled in Gmail settings."
-        )
-
-        results.append(
-            check_imap(
+    any_enabled = any(
+        [
+            check_provider(
+                results,
+                "GMAIL",
                 "Gmail",
-                os.getenv("GMAIL_IMAP_SERVER", "imap.gmail.com"),
-                int(os.getenv("GMAIL_IMAP_PORT", "993")),
+                gmail_help,
+                "imap.gmail.com",
+                993,
                 True,
-                os.getenv("GMAIL_EMAIL", ""),
-                os.getenv("GMAIL_APP_PASSWORD", ""),
-                help_text=gmail_help,
-            )
-        )
-        results.append(
-            check_smtp(
-                "Gmail",
-                os.getenv("GMAIL_SMTP_SERVER", "smtp.gmail.com"),
-                int(os.getenv("GMAIL_SMTP_PORT", "465")),
+                "smtp.gmail.com",
+                465,
                 True,
-                os.getenv("GMAIL_EMAIL", ""),
-                os.getenv("GMAIL_APP_PASSWORD", ""),
-                help_text=gmail_help,
-            )
-        )
-
-    # Outlook (Business/Enterprise)
-    if os.getenv("OUTLOOK_ENABLED", "false").lower() == "true":
-        any_enabled = True
-        print_header("Outlook (Microsoft 365 Business)")
-
-        outlook_help = "Personal Outlook accounts NO LONGER support App Passwords. Use Microsoft 365 Business accounts only."
-
-        results.append(
-            check_imap(
-                "Outlook",
-                os.getenv("OUTLOOK_IMAP_SERVER", "outlook.office365.com"),
-                int(os.getenv("OUTLOOK_IMAP_PORT", "993")),
+            ),
+            check_provider(
+                results,
+                "OUTLOOK",
+                "Outlook (Microsoft 365 Business)",
+                outlook_help,
+                "outlook.office365.com",
+                993,
                 True,
-                os.getenv("OUTLOOK_EMAIL", ""),
-                os.getenv("OUTLOOK_APP_PASSWORD", ""),
-                help_text=outlook_help,
-            )
-        )
-        # Outlook SMTP typically uses STARTTLS on 587
-        results.append(
-            check_smtp(
-                "Outlook",
-                os.getenv("OUTLOOK_SMTP_SERVER", "smtp.office365.com"),
-                int(os.getenv("OUTLOOK_SMTP_PORT", "587")),
-                False,  # Outlook SMTP usually uses STARTTLS
-                os.getenv("OUTLOOK_EMAIL", ""),
-                os.getenv("OUTLOOK_APP_PASSWORD", ""),
-                help_text=outlook_help,
-            )
-        )
-
-    # Proton via Bridge
-    if os.getenv("PROTON_ENABLED", "false").lower() == "true":
-        any_enabled = True
-        print_header("Proton Bridge")
-
-        proton_help = "Ensure Proton Mail Bridge is running and serving localhost."
-
-        results.append(
-            check_imap(
-                "Proton",
-                os.getenv("PROTON_IMAP_SERVER", "127.0.0.1"),
-                int(os.getenv("PROTON_IMAP_PORT", "1143")),
+                "smtp.office365.com",
+                587,
                 False,
-                os.getenv("PROTON_EMAIL", ""),
-                os.getenv("PROTON_APP_PASSWORD", ""),
-                help_text=proton_help,
-            )
-        )
-        results.append(
-            check_smtp(
-                "Proton",
-                os.getenv("PROTON_SMTP_SERVER", "127.0.0.1"),
-                int(os.getenv("PROTON_SMTP_PORT", "1025")),
+            ),
+            check_provider(
+                results,
+                "PROTON",
+                "Proton Bridge",
+                proton_help,
+                "127.0.0.1",
+                1143,
                 False,
-                os.getenv("PROTON_EMAIL", ""),
-                os.getenv("PROTON_APP_PASSWORD", ""),
-                help_text=proton_help,
-            )
-        )
+                "127.0.0.1",
+                1025,
+                False,
+            ),
+        ]
+    )
 
     if results:
         print_summary(results)
