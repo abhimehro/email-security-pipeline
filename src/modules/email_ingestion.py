@@ -14,6 +14,7 @@ by re-exporting all public APIs.
 PATTERN RECOGNITION: This follows the Facade pattern - it provides a simple
 interface to a complex subsystem (IMAP + parsing + security).
 """
+from dataclasses import dataclass
 
 import imaplib
 import logging
@@ -295,6 +296,18 @@ class IMAPClient:
         return EmailParser._decode_bytes(data, charset)
 
 
+@dataclass
+class EmailIngestionConfig:
+    """Configuration for EmailIngestionManager."""
+
+    rate_limit_delay: int = 1
+    max_attachment_bytes: int = 25 * 1024 * 1024
+    max_total_attachment_bytes: int = 100 * 1024 * 1024
+    max_attachment_count: int = 10
+    max_body_size_bytes: int = 1024 * 1024
+    max_parallel_accounts: int = 3
+
+
 class EmailIngestionManager:
     """
     Manages email ingestion from multiple accounts.
@@ -303,36 +316,30 @@ class EmailIngestionManager:
     IMAPClient instances and orchestrates email fetching across accounts.
     """
 
+
     def __init__(
         self,
         accounts: List[EmailAccountConfig],
-        rate_limit_delay: int = 1,
-        max_attachment_bytes: int = 25 * 1024 * 1024,
-        max_total_attachment_bytes: int = 100 * 1024 * 1024,
-        max_attachment_count: int = 10,
-        max_body_size_bytes: int = 1024 * 1024,
-        max_parallel_accounts: int = 3,
+        config: Optional[EmailIngestionConfig] = None,
     ):
         """
         Initialize ingestion manager.
 
         Args:
             accounts: List of email account configurations
-            rate_limit_delay: Delay between operations
-            max_attachment_bytes: Maximum attachment bytes retained for analysis
-            max_total_attachment_bytes: Maximum total size of all attachments per email
-            max_attachment_count: Maximum number of attachments per email
-            max_body_size_bytes: Maximum size of email body text/html in bytes
-            max_parallel_accounts: Maximum number of accounts to process simultaneously
-
+            config: Configuration object.
         """
         self.accounts = accounts
-        self.rate_limit_delay = rate_limit_delay
-        self.max_attachment_bytes = max_attachment_bytes
-        self.max_total_attachment_bytes = max_total_attachment_bytes
-        self.max_attachment_count = max_attachment_count
-        self.max_body_size = max_body_size_bytes
-        self.max_parallel_accounts = max(1, max_parallel_accounts)
+
+        if config is None:
+            config = EmailIngestionConfig()
+
+        self.rate_limit_delay = config.rate_limit_delay
+        self.max_attachment_bytes = config.max_attachment_bytes
+        self.max_total_attachment_bytes = config.max_total_attachment_bytes
+        self.max_attachment_count = config.max_attachment_count
+        self.max_body_size = config.max_body_size_bytes
+        self.max_parallel_accounts = max(1, config.max_parallel_accounts)
         self.clients: Dict[str, IMAPClient] = {}
         self.logger = logging.getLogger("EmailIngestionManager")
 
