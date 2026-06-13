@@ -248,29 +248,12 @@ class MediaAuthenticityAnalyzer:
             # Because of the GIL, list operations are thread-safe enough for this heuristic check.
             shared_state = {"stop_deepfake": False}
 
-            def process_attachment(attachment):
-                meta_res = self._analyze_attachment_metadata(attachment)
-                deepfake_res = None
-
-                if not self.config.deepfake_detection_enabled:
-                    return meta_res, deepfake_res
-
-                if shared_state["stop_deepfake"]:
-                    return meta_res, deepfake_res
-
-                if meta_res["score"] >= 5.0:
-                    return meta_res, deepfake_res
-
-                filename = attachment.get("filename", "")
-                data = attachment.get("data", b"")
-                content_type = attachment.get("content_type", "")
-                deepfake_res = self._analyze_deepfake_threat(filename, data, content_type)
-
-                return meta_res, deepfake_res
-
             # Using executor.map preserves the original deterministic order of results
             # and allows exceptions to propagate naturally, avoiding fail-open vulnerabilities.
-            results = executor.map(process_attachment, email_data.attachments)
+            results = executor.map(
+                lambda att: self._process_attachment_parallel(att, shared_state),
+                email_data.attachments
+            )
 
             for meta_results, deepfake_results in results:
                 threat_score += meta_results["score"]
@@ -308,6 +291,29 @@ class MediaAuthenticityAnalyzer:
             potential_deepfakes=potential_deepfakes,
             risk_level=risk_level,
         )
+
+    def _process_attachment_parallel(self, attachment: dict, shared_state: dict) -> tuple:
+        """
+        Process a single attachment for metadata and deepfake analysis in parallel.
+        """
+        meta_res = self._analyze_attachment_metadata(attachment)
+        deepfake_res = None
+
+        if not self.config.deepfake_detection_enabled:
+            return meta_res, deepfake_res
+
+        if shared_state["stop_deepfake"]:
+            return meta_res, deepfake_res
+
+        if meta_res["score"] >= 5.0:
+            return meta_res, deepfake_res
+
+        filename = attachment.get("filename", "")
+        data = attachment.get("data", b"")
+        content_type = attachment.get("content_type", "")
+        deepfake_res = self._analyze_deepfake_threat(filename, data, content_type)
+
+        return meta_res, deepfake_res
 
     def _analyze_attachment_metadata(self, attachment: dict) -> dict:
         """
