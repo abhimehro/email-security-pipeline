@@ -309,8 +309,7 @@ class SpamAnalyzer:
         # Check for image-only emails (common in spam)
         if html_body and len(text_body.strip()) < 50:
             # Only check HTML for img tags, case-insensitive
-            # Optimization: string.count() is a C-optimized fast path, significantly faster than regex findall
-            img_count = html_body.lower().count("<img")
+            img_count = len(self.IMG_TAG_PATTERN.findall(html_body.lower()))
             if img_count > 2:
                 score += 1.0
                 indicators.append("Image-heavy email with little text")
