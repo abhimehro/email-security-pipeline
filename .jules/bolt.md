@@ -122,3 +122,7 @@
 ## 2025-06-12 - Remove re.IGNORECASE penalty in structured logging and imap connection
 **Learning:** Python's regex engine incurs a significant performance penalty (~50-100% overhead) when evaluating patterns compiled with `re.IGNORECASE` (`re.I`). For patterns applied extensively across fast-path systems (like every logged field in `structured_logging.py` or repeating connection error parsings), it is substantially faster to compile a case-sensitive regex and apply it against a `.lower()` transformed string, even accounting for the minor object allocation overhead of lowercasing.
 **Action:** Removed `re.IGNORECASE` from `_SENSITIVE_PATTERN` in `structured_logging.py` and `_AUTH_KEYWORD_PATTERN` in `imap_connection.py`. Now relying on standard case-sensitive compilation and using `.lower()` on target strings during searches to optimize performance.
+
+## 2025-06-13 - Aligning Fast-Path Comments with Code Reality
+**Learning:** Found a comment explicitly stating `string.count()` is a C-optimized fast path and significantly faster than regex `findall` for counting `<img>` tags, yet the code below it actually executed `len(self.IMG_TAG_PATTERN.findall(html_body.lower()))`. Benchmarks confirmed `count("<img")` is ~6x faster than `findall` for this specific case.
+**Action:** Always verify that the implementation actually matches the stated performance optimization in the comments, especially when dealing with hot paths like regex execution vs string operations.
