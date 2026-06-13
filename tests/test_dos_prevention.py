@@ -40,6 +40,40 @@ class TestDoSPrevention(unittest.TestCase):
         self.assertEqual(len(email_data.body_text), 1024)
         self.assertTrue(email_data.body_text.startswith("A" * 1024))
 
+    def test_body_truncation_short(self):
+        # Create a short email body
+        short_body = "Short email body"
+
+        msg = EmailMessage()
+        msg.set_content(short_body)
+        msg["Subject"] = "Test Subject"
+        msg["From"] = "sender@example.com"
+        msg["To"] = "recipient@example.com"
+
+        raw_email = msg.as_bytes()
+
+        email_data = self.client.parse_email("126", raw_email, "INBOX")
+
+        self.assertIsNotNone(email_data)
+        self.assertEqual(email_data.body_text, short_body + "\n")
+
+    def test_body_truncation_empty(self):
+        # Create an empty email body
+        empty_body = ""
+
+        msg = EmailMessage()
+        msg.set_content(empty_body)
+        msg["Subject"] = "Test Subject"
+        msg["From"] = "sender@example.com"
+        msg["To"] = "recipient@example.com"
+
+        raw_email = msg.as_bytes()
+
+        email_data = self.client.parse_email("127", raw_email, "INBOX")
+
+        self.assertIsNotNone(email_data)
+        self.assertEqual(email_data.body_text, "\n")
+
     def test_html_body_truncation(self):
         # Create large HTML body
         large_html = "<html><body>" + ("B" * 10000) + "</body></html>"
