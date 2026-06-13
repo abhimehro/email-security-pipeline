@@ -175,21 +175,12 @@ def check_smtp(config: ConnectionConfig):
     return result
 
 
-def main():
-    print(f"\n{Colors.BOLD}🔍 Checking Email Connectivity...{Colors.RESET}")
-
-    any_enabled = False
-    results = []
-
-    # Gmail
+def check_gmail(results):
     if os.getenv("GMAIL_ENABLED", "false").lower() == "true":
-        any_enabled = True
         print_header("Gmail")
-
         gmail_help = (
             "Check if 'App Password' is correct and IMAP is enabled in Gmail settings."
         )
-
         results.append(
             check_imap(
                 ConnectionConfig(
@@ -216,14 +207,14 @@ def main():
                 )
             )
         )
+        return True
+    return False
 
-    # Outlook (Business/Enterprise)
+
+def check_outlook(results):
     if os.getenv("OUTLOOK_ENABLED", "false").lower() == "true":
-        any_enabled = True
         print_header("Outlook (Microsoft 365 Business)")
-
         outlook_help = "Personal Outlook accounts NO LONGER support App Passwords. Use Microsoft 365 Business accounts only."
-
         results.append(
             check_imap(
                 ConnectionConfig(
@@ -251,14 +242,14 @@ def main():
                 )
             )
         )
+        return True
+    return False
 
-    # Proton via Bridge
+
+def check_proton(results):
     if os.getenv("PROTON_ENABLED", "false").lower() == "true":
-        any_enabled = True
         print_header("Proton Bridge")
-
         proton_help = "Ensure Proton Mail Bridge is running and serving localhost."
-
         results.append(
             check_imap(
                 ConnectionConfig(
@@ -285,6 +276,19 @@ def main():
                 )
             )
         )
+        return True
+    return False
+
+
+def main():
+    print(f"\n{Colors.BOLD}🔍 Checking Email Connectivity...{Colors.RESET}")
+    results = []
+
+    gmail_enabled = check_gmail(results)
+    outlook_enabled = check_outlook(results)
+    proton_enabled = check_proton(results)
+
+    any_enabled = gmail_enabled or outlook_enabled or proton_enabled
 
     if results:
         print_summary(results)
