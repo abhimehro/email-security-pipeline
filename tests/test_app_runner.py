@@ -242,41 +242,60 @@ def test_set_secure_permissions_oserror(mock_app_runner):
         assert excinfo.value.code == 1
         mock_exit.assert_called_once_with(1)
 
-@pytest.mark.parametrize("colors_enabled", [True, False])
-@patch("src.app_runner.Colors.BOLD", "[BOLD]")
-@patch("src.app_runner.Colors.RESET", "[RESET]")
-def test_styled_input_colors(mock_app_runner, colors_enabled):
-    with patch("src.app_runner.Colors.ENABLED", colors_enabled), \
-         patch("builtins.input", return_value=" test_input ") as mock_input, \
+@pytest.fixture
+def mock_io():
+    with patch("builtins.input") as mock_input, \
          patch("builtins.print") as mock_print, \
          patch("src.app_runner.sys.stdout.write") as mock_write, \
          patch("src.app_runner.sys.stdout.flush") as mock_flush:
+        yield mock_input, mock_print, mock_write, mock_flush
 
-        result = mock_app_runner._styled_input("Prompt:")
 
-        assert result == "test_input"
-        mock_input.assert_called_once_with("Prompt:[BOLD]" if colors_enabled else "Prompt:")
-        mock_print.assert_not_called()
-        if colors_enabled:
-            mock_write.assert_called_once_with("[RESET]")
-            mock_flush.assert_called_once()
-        else:
-            mock_write.assert_not_called()
-            mock_flush.assert_not_called()
+@patch("src.app_runner.Colors.ENABLED", True)
+@patch("src.app_runner.Colors.BOLD", "[BOLD]")
+@patch("src.app_runner.Colors.RESET", "[RESET]")
+def test_styled_input_colors_enabled(mock_app_runner, mock_io):
+    mock_input, mock_print, mock_write, mock_flush = mock_io
+    mock_input.return_value = " test_input "
+    mock_flush.reset_mock()
+
+    result = mock_app_runner._styled_input("Prompt:")
+
+    assert result == "test_input"
+    mock_input.assert_called_once_with("Prompt:[BOLD]")
+    mock_print.assert_not_called()
+    mock_write.assert_called_once_with("[RESET]")
+    mock_flush.assert_called_once()
+
+
+@patch("src.app_runner.Colors.ENABLED", False)
+@patch("src.app_runner.Colors.BOLD", "[BOLD]")
+@patch("src.app_runner.Colors.RESET", "[RESET]")
+def test_styled_input_colors_disabled(mock_app_runner, mock_io):
+    mock_input, mock_print, mock_write, mock_flush = mock_io
+    mock_input.return_value = " test_input "
+    mock_flush.reset_mock()
+
+    result = mock_app_runner._styled_input("Prompt:")
+
+    assert result == "test_input"
+    mock_input.assert_called_once_with("Prompt:")
+    mock_print.assert_not_called()
+    mock_write.assert_not_called()
+    mock_flush.assert_not_called()
 
 
 @pytest.mark.parametrize("exception", [EOFError, KeyboardInterrupt])
 @patch("src.app_runner.Colors.ENABLED", True)
 @patch("src.app_runner.Colors.RESET", "[RESET]")
-def test_styled_input_interruptions(mock_app_runner, exception):
-    with patch("builtins.input", side_effect=exception), \
-         patch("builtins.print") as mock_print, \
-         patch("src.app_runner.sys.stdout.write") as mock_write, \
-         patch("src.app_runner.sys.stdout.flush") as mock_flush:
+def test_styled_input_interruptions(mock_app_runner, exception, mock_io):
+    mock_input, mock_print, mock_write, mock_flush = mock_io
+    mock_input.side_effect = exception
+    mock_flush.reset_mock()
 
-        with pytest.raises(KeyboardInterrupt):
-            mock_app_runner._styled_input("Prompt:")
+    with pytest.raises(KeyboardInterrupt):
+        mock_app_runner._styled_input("Prompt:")
 
-        mock_print.assert_called_once_with()
-        mock_write.assert_called_once_with("[RESET]")
-        mock_flush.assert_called_once()
+    mock_print.assert_called_once_with()
+    mock_write.assert_called_once_with("[RESET]")
+    mock_flush.assert_called_once()
