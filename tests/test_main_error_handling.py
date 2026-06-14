@@ -62,13 +62,12 @@ class TestMainErrorHandling(unittest.TestCase):
             self.assertTrue(pipeline.logger.error.call_args[1].get("exc_info"))
             pipeline.metrics.record_error.assert_called_once_with("analysis_error")
 
-
-
     @patch("src.main.sys.exit")
     @patch("builtins.print")
     def test_start_configuration_error(self, mock_print, mock_exit):
         """Test that start() handles ConfigurationError correctly."""
         from src.utils.config import ConfigurationError
+
         with patch("src.main.Config") as mock_config, patch(
             "src.main.EmailIngestionManager"
         ), patch("src.main.SpamAnalyzer"), patch("src.main.NLPThreatAnalyzer"), patch(
@@ -85,7 +84,9 @@ class TestMainErrorHandling(unittest.TestCase):
             mock_config_instance.system.log_rotation_keep_files = 5
 
             pipeline = EmailSecurityPipeline(".env")
-            pipeline.config.validate.side_effect = ConfigurationError(["Test config error"])
+            pipeline.config.validate.side_effect = ConfigurationError(
+                ["Test config error"]
+            )
             pipeline.stop = MagicMock()
             mock_exit.side_effect = SystemExit(1)
 

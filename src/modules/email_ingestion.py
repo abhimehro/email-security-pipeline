@@ -14,6 +14,7 @@ by re-exporting all public APIs.
 PATTERN RECOGNITION: This follows the Facade pattern - it provides a simple
 interface to a complex subsystem (IMAP + parsing + security).
 """
+
 from dataclasses import dataclass
 
 import imaplib
@@ -315,7 +316,6 @@ class EmailIngestionManager:
     PATTERN RECOGNITION: This is a Coordinator - it manages multiple
     IMAPClient instances and orchestrates email fetching across accounts.
     """
-
 
     def __init__(
         self,

@@ -9,7 +9,6 @@ This file makes test imports robust by explicitly adding the repo root to
 `sys.path` during test collection.
 """
 
-
 import sys
 from pathlib import Path
 

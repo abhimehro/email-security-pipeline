@@ -330,6 +330,7 @@ OUTLOOK_APP_PASSWORD=password
 
         # Ensure the tip was printed during the first failure
         from src.utils.setup_wizard import OUTLOOK_AUTH_ERROR_TIP
+
         expected_tip = OUTLOOK_AUTH_ERROR_TIP
 
         # Check if the tip string is in any of the print calls
@@ -373,6 +374,7 @@ OUTLOOK_APP_PASSWORD=password
         found_tip = False
 
         from src.utils.setup_wizard import OUTLOOK_AUTH_ERROR_TIP
+
         expected_tip = OUTLOOK_AUTH_ERROR_TIP
 
         for call in mock_print.call_args_list:

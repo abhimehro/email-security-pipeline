@@ -8,6 +8,7 @@ from src.modules.spam_analyzer import SpamAnalyzer
 from src.modules.nlp_analyzer import NLPThreatAnalyzer
 from src.utils.config import AnalysisConfig
 
+
 class TestCachingIntegration(unittest.TestCase):
     def setUp(self):
         self.config = MagicMock(spec=AnalysisConfig)
@@ -28,6 +29,7 @@ class TestCachingIntegration(unittest.TestCase):
 
         # Override torch check so ML model is seemingly enabled
         import src.modules.nlp_analyzer
+
         original_torch = src.modules.nlp_analyzer.torch
         src.modules.nlp_analyzer.torch = MagicMock()
 
@@ -41,7 +43,9 @@ class TestCachingIntegration(unittest.TestCase):
         self.nlp_analyzer = NLPThreatAnalyzer(self.config)
 
         # Avoid real transformer logic by mocking _analyze_core_impl directly, so cache executes
-        self.nlp_analyzer._analyze_core_impl = MagicMock(return_value={"threat_score": 0.9, "label": "phishing"})
+        self.nlp_analyzer._analyze_core_impl = MagicMock(
+            return_value={"threat_score": 0.9, "label": "phishing"}
+        )
 
         self.original_torch = original_torch
         self.original_automodel = original_automodel
@@ -49,11 +53,16 @@ class TestCachingIntegration(unittest.TestCase):
 
     def tearDown(self):
         import src.modules.nlp_analyzer
+
         src.modules.nlp_analyzer.torch = self.original_torch
-        src.modules.nlp_analyzer.AutoModelForSequenceClassification = self.original_automodel
+        src.modules.nlp_analyzer.AutoModelForSequenceClassification = (
+            self.original_automodel
+        )
         src.modules.nlp_analyzer.AutoTokenizer = self.original_tokenizer
 
-    def _create_email_data(self, subject: str, body: str, sender: str = "test@example.com") -> EmailData:
+    def _create_email_data(
+        self, subject: str, body: str, sender: str = "test@example.com"
+    ) -> EmailData:
         email = EmailData(
             message_id="test-id",
             subject=subject,
@@ -80,7 +89,7 @@ class TestCachingIntegration(unittest.TestCase):
         email_data = self._create_email_data(
             subject="URGENT: Verify Your Account Now!!!",
             body="Your account will be SUSPENDED unless you click here immediately: http://evil-phishing-site.com/login?verify=now Act now or lose access forever! Limited time offer!",
-            sender="security@definitely-not-your-bank.com"
+            sender="security@definitely-not-your-bank.com",
         )
 
         # Trigger analyzers to populate their caches
@@ -90,8 +99,16 @@ class TestCachingIntegration(unittest.TestCase):
         self.nlp_analyzer.analyze(email_data)
 
         # Verify both caches are populated by the integration flow
-        self.assertGreater(len(self.spam_analyzer.url_cache), 0, "SpamAnalyzer url_cache should be populated")
-        self.assertGreater(len(self.nlp_analyzer._cache), 0, "NLPThreatAnalyzer _cache should be populated")
+        self.assertGreater(
+            len(self.spam_analyzer.url_cache),
+            0,
+            "SpamAnalyzer url_cache should be populated",
+        )
+        self.assertGreater(
+            len(self.nlp_analyzer._cache),
+            0,
+            "NLPThreatAnalyzer _cache should be populated",
+        )
 
         # Verify that repeating the analysis hits the cache
         self.nlp_analyzer._analyze_core_impl.reset_mock()
@@ -103,12 +120,21 @@ class TestCachingIntegration(unittest.TestCase):
         self.nlp_analyzer._cache.clear()
 
         # Verify both caches are cleared
-        self.assertEqual(len(self.spam_analyzer.url_cache), 0, "SpamAnalyzer url_cache should be empty after clear")
-        self.assertEqual(len(self.nlp_analyzer._cache), 0, "NLPThreatAnalyzer _cache should be empty after clear")
+        self.assertEqual(
+            len(self.spam_analyzer.url_cache),
+            0,
+            "SpamAnalyzer url_cache should be empty after clear",
+        )
+        self.assertEqual(
+            len(self.nlp_analyzer._cache),
+            0,
+            "NLPThreatAnalyzer _cache should be empty after clear",
+        )
 
         # Verify that after clearing, analysis calls the implementation again
         self.nlp_analyzer.analyze(email_data)
         self.nlp_analyzer._analyze_core_impl.assert_called_once()
+
 
 if __name__ == "__main__":
     unittest.main()

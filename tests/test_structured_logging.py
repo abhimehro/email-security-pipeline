@@ -206,10 +206,9 @@ class TestJSONFormatter(unittest.TestCase):
         data = json.loads(result)
         self.assertEqual(data["message"], "Test message")
 
-
-
     def test_unserializable_extra_fields(self):
         """Test that non-serializable objects in extra fields are converted to strings."""
+
         class UnserializableObject:
             def __str__(self):
                 return "<UnserializableObject instance>"
@@ -226,7 +225,7 @@ class TestJSONFormatter(unittest.TestCase):
 
         record.extra_fields = {
             "custom_obj": UnserializableObject(),
-            "normal_field": "test"
+            "normal_field": "test",
         }
 
         result = self.formatter.format(record)

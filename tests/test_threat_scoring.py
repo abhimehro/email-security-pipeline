@@ -91,7 +91,6 @@ class TestCalculateRiskLevel:
 
     def test_nan_score_is_low(self):
         """NaN >= threshold is False in Python, so it falls through to 'low'."""
-        import math
         assert calculate_risk_level(float('nan'), 5.0, 10.0) == "low"
 
     def test_inf_score_is_high(self):
@@ -118,4 +117,4 @@ class TestCalculateRiskLevel:
     def test_invalid_type_raises_typeerror(self):
         import pytest
         with pytest.raises(TypeError):
-            calculate_risk_level(None, 5.0, 10.0) # type: ignore
+            calculate_risk_level(None, 5.0, 10.0)  # type: ignore

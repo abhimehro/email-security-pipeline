@@ -250,8 +250,10 @@ class TestEmailIngestionManagerRecovery(unittest.TestCase):
                 use_ssl=True,
             ),
         ]
-        self.manager = EmailIngestionManager(self.accounts, config=EmailIngestionConfig(rate_limit_delay=0  # No delay for testing
-        ))
+        self.manager = EmailIngestionManager(
+            self.accounts,
+            config=EmailIngestionConfig(rate_limit_delay=0),  # No delay for testing
+        )
 
     def test_partial_account_initialization_failure(self):
         """

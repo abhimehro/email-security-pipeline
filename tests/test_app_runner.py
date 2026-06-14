@@ -242,6 +242,7 @@ def test_set_secure_permissions_oserror(mock_app_runner):
         assert excinfo.value.code == 1
         mock_exit.assert_called_once_with(1)
 
+
 @patch("src.app_runner.Colors.ENABLED", True)
 @patch("src.app_runner.Colors.BOLD", "[BOLD]")
 @patch("src.app_runner.Colors.RESET", "[RESET]")
