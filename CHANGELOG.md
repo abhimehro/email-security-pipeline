@@ -41,6 +41,7 @@
 
 **Closed issues:**
 
+- Daily QA & Agentic Review — 2026-06-13 [\#1110](https://github.com/abhimehro/email-security-pipeline/issues/1110)
 - Daily QA & Agentic Review — 2026-06-12 [\#1089](https://github.com/abhimehro/email-security-pipeline/issues/1089)
 - \[repo-automation\] Daily Status Report - 2026-06-12 [\#1086](https://github.com/abhimehro/email-security-pipeline/issues/1086)
 - Daily QA Check - email-security-pipeline - 2026-06-11 [\#1083](https://github.com/abhimehro/email-security-pipeline/issues/1083)
@@ -387,6 +388,7 @@
 
 **Merged pull requests:**
 
+- perf\(media\): parallelize attachment metadata and deepfake analysis \(salvages \#1103\) [\#1108](https://github.com/abhimehro/email-security-pipeline/pull/1108) ([abhimehro](https://github.com/abhimehro))
 - T2: Apply Black formatting to resolve styling violations in src/ [\#1106](https://github.com/abhimehro/email-security-pipeline/pull/1106) ([abhimehro](https://github.com/abhimehro))
 - ⚡ Bolt: Optimize image tag counting in spam analysis [\#1105](https://github.com/abhimehro/email-security-pipeline/pull/1105) ([abhimehro](https://github.com/abhimehro))
 - 🧪 \[test improvement\] Add boundary and float edge case coverage to calculate\_risk\_level [\#1104](https://github.com/abhimehro/email-security-pipeline/pull/1104) ([abhimehro](https://github.com/abhimehro))
