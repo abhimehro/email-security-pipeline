@@ -389,6 +389,7 @@
 **Merged pull requests:**
 
 - perf\(media\): parallelize attachment metadata and deepfake analysis \(salvages \#1103\) [\#1108](https://github.com/abhimehro/email-security-pipeline/pull/1108) ([abhimehro](https://github.com/abhimehro))
+- refactor\(connectivity\): group IMAP/SMTP params in ConnectionConfig \(salvages \#1096\) [\#1107](https://github.com/abhimehro/email-security-pipeline/pull/1107) ([abhimehro](https://github.com/abhimehro))
 - T2: Apply Black formatting to resolve styling violations in src/ [\#1106](https://github.com/abhimehro/email-security-pipeline/pull/1106) ([abhimehro](https://github.com/abhimehro))
 - ⚡ Bolt: Optimize image tag counting in spam analysis [\#1105](https://github.com/abhimehro/email-security-pipeline/pull/1105) ([abhimehro](https://github.com/abhimehro))
 - 🧪 \[test improvement\] Add boundary and float edge case coverage to calculate\_risk\_level [\#1104](https://github.com/abhimehro/email-security-pipeline/pull/1104) ([abhimehro](https://github.com/abhimehro))
