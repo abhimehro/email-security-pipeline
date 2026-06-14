@@ -12,7 +12,7 @@ import smtplib
 import ssl
 import sys
 from dataclasses import dataclass
-from typing import Optional
+from typing import List, Optional
 
 from dotenv import load_dotenv
 
@@ -176,29 +176,23 @@ def check_smtp(config: ConnectionConfig):
     return result
 
 
-def main():
-    print(f"\n{Colors.BOLD}🔍 Checking Email Connectivity...{Colors.RESET}")
-
-    any_enabled = False
+def _check_gmail() -> List[dict]:
     results = []
-
-    # Gmail
     if os.getenv("GMAIL_ENABLED", "false").lower() == "true":
-        any_enabled = True
         print_header("Gmail")
-
         gmail_help = (
             "Check if 'App Password' is correct and IMAP is enabled in Gmail settings."
         )
-
+        email = os.getenv("GMAIL_EMAIL", "")
+        password = os.getenv("GMAIL_APP_PASSWORD", "")
         results.append(
             check_imap(ConnectionConfig(
                 "Gmail",
                 os.getenv("GMAIL_IMAP_SERVER", "imap.gmail.com"),
                 int(os.getenv("GMAIL_IMAP_PORT", "993")),
                 True,
-                os.getenv("GMAIL_EMAIL", ""),
-                os.getenv("GMAIL_APP_PASSWORD", ""),
+                email,
+                password,
                 help_text=gmail_help,
             ))
         )
@@ -208,27 +202,29 @@ def main():
                 os.getenv("GMAIL_SMTP_SERVER", "smtp.gmail.com"),
                 int(os.getenv("GMAIL_SMTP_PORT", "465")),
                 True,
-                os.getenv("GMAIL_EMAIL", ""),
-                os.getenv("GMAIL_APP_PASSWORD", ""),
+                email,
+                password,
                 help_text=gmail_help,
             ))
         )
+    return results
 
-    # Outlook (Business/Enterprise)
+
+def _check_outlook() -> List[dict]:
+    results = []
     if os.getenv("OUTLOOK_ENABLED", "false").lower() == "true":
-        any_enabled = True
         print_header("Outlook (Microsoft 365 Business)")
-
         outlook_help = "Personal Outlook accounts NO LONGER support App Passwords. Use Microsoft 365 Business accounts only."
-
+        email = os.getenv("OUTLOOK_EMAIL", "")
+        password = os.getenv("OUTLOOK_APP_PASSWORD", "")
         results.append(
             check_imap(ConnectionConfig(
                 "Outlook",
                 os.getenv("OUTLOOK_IMAP_SERVER", "outlook.office365.com"),
                 int(os.getenv("OUTLOOK_IMAP_PORT", "993")),
                 True,
-                os.getenv("OUTLOOK_EMAIL", ""),
-                os.getenv("OUTLOOK_APP_PASSWORD", ""),
+                email,
+                password,
                 help_text=outlook_help,
             ))
         )
@@ -239,27 +235,29 @@ def main():
                 os.getenv("OUTLOOK_SMTP_SERVER", "smtp.office365.com"),
                 int(os.getenv("OUTLOOK_SMTP_PORT", "587")),
                 False,  # Outlook SMTP usually uses STARTTLS
-                os.getenv("OUTLOOK_EMAIL", ""),
-                os.getenv("OUTLOOK_APP_PASSWORD", ""),
+                email,
+                password,
                 help_text=outlook_help,
             ))
         )
+    return results
 
-    # Proton via Bridge
+
+def _check_proton() -> List[dict]:
+    results = []
     if os.getenv("PROTON_ENABLED", "false").lower() == "true":
-        any_enabled = True
         print_header("Proton Bridge")
-
         proton_help = "Ensure Proton Mail Bridge is running and serving localhost."
-
+        email = os.getenv("PROTON_EMAIL", "")
+        password = os.getenv("PROTON_APP_PASSWORD", "")
         results.append(
             check_imap(ConnectionConfig(
                 "Proton",
                 os.getenv("PROTON_IMAP_SERVER", "127.0.0.1"),
                 int(os.getenv("PROTON_IMAP_PORT", "1143")),
                 False,
-                os.getenv("PROTON_EMAIL", ""),
-                os.getenv("PROTON_APP_PASSWORD", ""),
+                email,
+                password,
                 help_text=proton_help,
             ))
         )
@@ -269,16 +267,26 @@ def main():
                 os.getenv("PROTON_SMTP_SERVER", "127.0.0.1"),
                 int(os.getenv("PROTON_SMTP_PORT", "1025")),
                 False,
-                os.getenv("PROTON_EMAIL", ""),
-                os.getenv("PROTON_APP_PASSWORD", ""),
+                email,
+                password,
                 help_text=proton_help,
             ))
         )
+    return results
+
+
+def main():
+    print(f"\n{Colors.BOLD}🔍 Checking Email Connectivity...{Colors.RESET}")
+
+    results = []
+    results.extend(_check_gmail())
+    results.extend(_check_outlook())
+    results.extend(_check_proton())
 
     if results:
         print_summary(results)
 
-    if not any_enabled:
+    if not results:
         print(
             f"\n{Colors.colorize('⚠️  No email providers enabled in .env', Colors.YELLOW)}"
         )
