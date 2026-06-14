@@ -41,6 +41,8 @@
 
 **Closed issues:**
 
+- Daily QA & Agentic Review — 2026-06-13 [\#1110](https://github.com/abhimehro/email-security-pipeline/issues/1110)
+- Daily QA & Agentic Review — 2026-06-12 [\#1089](https://github.com/abhimehro/email-security-pipeline/issues/1089)
 - \[repo-automation\] Daily Status Report - 2026-06-12 [\#1086](https://github.com/abhimehro/email-security-pipeline/issues/1086)
 - Daily QA Check - email-security-pipeline - 2026-06-11 [\#1083](https://github.com/abhimehro/email-security-pipeline/issues/1083)
 - \[repo-automation\] Daily Status Report - 2026-06-11 [\#1080](https://github.com/abhimehro/email-security-pipeline/issues/1080)
@@ -386,6 +388,21 @@
 
 **Merged pull requests:**
 
+- perf\(media\): parallelize attachment metadata and deepfake analysis \(salvages \#1103\) [\#1108](https://github.com/abhimehro/email-security-pipeline/pull/1108) ([abhimehro](https://github.com/abhimehro))
+- T2: Apply Black formatting to resolve styling violations in src/ [\#1106](https://github.com/abhimehro/email-security-pipeline/pull/1106) ([abhimehro](https://github.com/abhimehro))
+- ⚡ Bolt: Optimize image tag counting in spam analysis [\#1105](https://github.com/abhimehro/email-security-pipeline/pull/1105) ([abhimehro](https://github.com/abhimehro))
+- 🧪 \[test improvement\] Add boundary and float edge case coverage to calculate\_risk\_level [\#1104](https://github.com/abhimehro/email-security-pipeline/pull/1104) ([abhimehro](https://github.com/abhimehro))
+- 🧪 Add integration test for cache clearing [\#1102](https://github.com/abhimehro/email-security-pipeline/pull/1102) ([abhimehro](https://github.com/abhimehro))
+- 🧹 Refactor EmailIngestionManager to use configuration object [\#1100](https://github.com/abhimehro/email-security-pipeline/pull/1100) ([abhimehro](https://github.com/abhimehro))
+- ⚡ Bolt: Optimize synchronous delay in batch fetching loop [\#1099](https://github.com/abhimehro/email-security-pipeline/pull/1099) ([abhimehro](https://github.com/abhimehro))
+- 🧹 Refactor check\_mail\_connectivity to use ConnectionConfig dataclass [\#1097](https://github.com/abhimehro/email-security-pipeline/pull/1097) ([abhimehro](https://github.com/abhimehro))
+- 🧪 Add error handling tests for pipeline startup [\#1095](https://github.com/abhimehro/email-security-pipeline/pull/1095) ([abhimehro](https://github.com/abhimehro))
+- 🧹 \[Code Health\] Remove unused future import in conftest.py [\#1094](https://github.com/abhimehro/email-security-pipeline/pull/1094) ([abhimehro](https://github.com/abhimehro))
+- 🧹 Remove unused 're' import in imap\_connection.py [\#1093](https://github.com/abhimehro/email-security-pipeline/pull/1093) ([abhimehro](https://github.com/abhimehro))
+- 🧪 \[testing improvement\] Add edge-case test coverage for JSONFormatter [\#1092](https://github.com/abhimehro/email-security-pipeline/pull/1092) ([abhimehro](https://github.com/abhimehro))
+- 🧹 Refactor: Reduce parameter count in test\_connection [\#1091](https://github.com/abhimehro/email-security-pipeline/pull/1091) ([abhimehro](https://github.com/abhimehro))
+- 🧪 Add missing edge case tests in dos\_prevention [\#1090](https://github.com/abhimehro/email-security-pipeline/pull/1090) ([abhimehro](https://github.com/abhimehro))
+- test\(setup\_wizard\): connection exception redaction coverage \(salvages \#1075\) [\#1088](https://github.com/abhimehro/email-security-pipeline/pull/1088) ([abhimehro](https://github.com/abhimehro))
 - chore\(actions\): consolidate workflow automation [\#1085](https://github.com/abhimehro/email-security-pipeline/pull/1085) ([abhimehro](https://github.com/abhimehro))
 - ⚡ Bolt: Optimize regex performance by removing re.IGNORECASE penalty [\#1084](https://github.com/abhimehro/email-security-pipeline/pull/1084) ([abhimehro](https://github.com/abhimehro))
 - 🎨 Palette: De-emphasize secondary terminal hints [\#1082](https://github.com/abhimehro/email-security-pipeline/pull/1082) ([abhimehro](https://github.com/abhimehro))

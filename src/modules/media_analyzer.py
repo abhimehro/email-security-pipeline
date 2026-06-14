@@ -9,6 +9,7 @@ import os
 import tarfile
 import tempfile
 import zipfile
+import concurrent.futures
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from typing import List, Optional, Tuple
@@ -241,29 +242,38 @@ class MediaAuthenticityAnalyzer:
         size_anomalies = []
         potential_deepfakes = []
 
-        for attachment in email_data.attachments:
-            # Analyze metadata and basic file properties
-            meta_results = self._analyze_attachment_metadata(attachment)
+        # Optimization: Use ThreadPoolExecutor to process attachments concurrently.
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            # We use a mutable list to track if the threshold has been crossed globally.
+            # Because of the GIL, list operations are thread-safe enough for this heuristic check.
+            shared_state = {"stop_deepfake": False}
 
-            # Aggregate results
-            threat_score += meta_results["score"]
-            size_anomalies.extend(meta_results["size_anomalies"])
-            file_type_warnings.extend(meta_results["file_type_warnings"])
-            suspicious_attachments.extend(meta_results["suspicious_attachments"])
+            # Using executor.map preserves the original deterministic order of results
+            # and allows exceptions to propagate naturally, avoiding fail-open vulnerabilities.
+            results = executor.map(
+                lambda att: self._process_attachment_parallel(att, shared_state),
+                email_data.attachments
+            )
 
-            # Check for potential deepfakes
-            # Only proceed if the file hasn't already been flagged as dangerous/suspicious (score >= 5.0)
-            if self.config.deepfake_detection_enabled and threat_score < 5.0:
-                filename = attachment.get("filename", "")
-                data = attachment.get("data", b"")
-                content_type = attachment.get("content_type", "")
+            for meta_results, deepfake_results in results:
+                threat_score += meta_results["score"]
+                size_anomalies.extend(meta_results["size_anomalies"])
+                file_type_warnings.extend(meta_results["file_type_warnings"])
+                suspicious_attachments.extend(meta_results["suspicious_attachments"])
 
-                deepfake_results = self._analyze_deepfake_threat(
-                    filename, data, content_type
-                )
+                if threat_score >= 5.0:
+                    shared_state["stop_deepfake"] = True
+                    continue
+
+                if not deepfake_results:
+                    continue
+
                 threat_score += deepfake_results["score"]
                 potential_deepfakes.extend(deepfake_results["indicators"])
                 size_anomalies.extend(deepfake_results["errors"])
+
+                if threat_score >= 5.0:
+                    shared_state["stop_deepfake"] = True
 
         # Calculate risk level
         risk_level = self._calculate_risk_level(threat_score)
@@ -281,6 +291,29 @@ class MediaAuthenticityAnalyzer:
             potential_deepfakes=potential_deepfakes,
             risk_level=risk_level,
         )
+
+    def _process_attachment_parallel(self, attachment: dict, shared_state: dict) -> tuple:
+        """
+        Process a single attachment for metadata and deepfake analysis in parallel.
+        """
+        meta_res = self._analyze_attachment_metadata(attachment)
+        deepfake_res = None
+
+        if not self.config.deepfake_detection_enabled:
+            return meta_res, deepfake_res
+
+        if shared_state["stop_deepfake"]:
+            return meta_res, deepfake_res
+
+        if meta_res["score"] >= 5.0:
+            return meta_res, deepfake_res
+
+        filename = attachment.get("filename", "")
+        data = attachment.get("data", b"")
+        content_type = attachment.get("content_type", "")
+        deepfake_res = self._analyze_deepfake_threat(filename, data, content_type)
+
+        return meta_res, deepfake_res
 
     def _analyze_attachment_metadata(self, attachment: dict) -> dict:
         """
@@ -585,10 +618,8 @@ class MediaAuthenticityAnalyzer:
                 files_to_check = file_list[: self.MAX_ZIP_FILE_COUNT]
 
                 for contained_file in files_to_check:
-                    member_score, member_warnings = (
-                        self._inspect_zip_member_and_check_traversal(
-                            zf, contained_file, filename, depth
-                        )
+                    member_score, member_warnings = self._inspect_zip_member_and_check_traversal(
+                        zf, contained_file, filename, depth
                     )
                     score += member_score
                     warnings.extend(member_warnings)
@@ -621,9 +652,7 @@ class MediaAuthenticityAnalyzer:
         warnings = []
         if contained_file.startswith("/") or ".." in contained_file:
             score += 5.0
-            safe_contained_file = sanitize_for_logging(
-                sanitize_filename(contained_file)
-            )
+            safe_contained_file = sanitize_for_logging(sanitize_filename(contained_file))
             warnings.append(
                 f"Zip file {filename} contains path traversal attempt: {safe_contained_file}"
             )
@@ -631,7 +660,9 @@ class MediaAuthenticityAnalyzer:
         member_score, member_warnings = self._inspect_archive_member(
             filename,
             contained_file,
-            lambda: self._handle_nested_zip_member(zf, contained_file, filename, depth),
+            lambda: self._handle_nested_zip_member(
+                zf, contained_file, filename, depth
+            ),
         )
         score += member_score
         warnings.extend(member_warnings)
@@ -804,9 +835,7 @@ class MediaAuthenticityAnalyzer:
                     # THEN check for path traversal attempts
                     if member.name.startswith("/") or ".." in member.name:
                         score += 5.0
-                        safe_member_name = sanitize_for_logging(
-                            sanitize_filename(member.name)
-                        )
+                        safe_member_name = sanitize_for_logging(sanitize_filename(member.name))
                         warnings.append(
                             f"Tar file {filename} contains path traversal attempt: {safe_member_name}"
                         )
