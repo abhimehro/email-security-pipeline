@@ -251,38 +251,30 @@ def mock_io():
         yield mock_input, mock_print, mock_write, mock_flush
 
 
-@patch("src.app_runner.Colors.ENABLED", True)
+@pytest.mark.parametrize("colors_enabled,expected_prompt", [
+    (True, "Prompt:[BOLD]"),
+    (False, "Prompt:"),
+])
 @patch("src.app_runner.Colors.BOLD", "[BOLD]")
 @patch("src.app_runner.Colors.RESET", "[RESET]")
-def test_styled_input_colors_enabled(mock_app_runner, mock_io):
-    mock_input, mock_print, mock_write, mock_flush = mock_io
-    mock_input.return_value = " test_input "
-    mock_flush.reset_mock()
+def test_styled_input_colors(mock_app_runner, mock_io, colors_enabled, expected_prompt):
+    with patch("src.app_runner.Colors.ENABLED", colors_enabled):
+        mock_input, mock_print, mock_write, mock_flush = mock_io
+        mock_input.return_value = " test_input "
+        mock_flush.reset_mock()
 
-    result = mock_app_runner._styled_input("Prompt:")
+        result = mock_app_runner._styled_input("Prompt:")
 
-    assert result == "test_input"
-    mock_input.assert_called_once_with("Prompt:[BOLD]")
-    mock_print.assert_not_called()
-    mock_write.assert_called_once_with("[RESET]")
-    mock_flush.assert_called_once()
+        assert result == "test_input"
+        mock_input.assert_called_once_with(expected_prompt)
+        mock_print.assert_not_called()
 
-
-@patch("src.app_runner.Colors.ENABLED", False)
-@patch("src.app_runner.Colors.BOLD", "[BOLD]")
-@patch("src.app_runner.Colors.RESET", "[RESET]")
-def test_styled_input_colors_disabled(mock_app_runner, mock_io):
-    mock_input, mock_print, mock_write, mock_flush = mock_io
-    mock_input.return_value = " test_input "
-    mock_flush.reset_mock()
-
-    result = mock_app_runner._styled_input("Prompt:")
-
-    assert result == "test_input"
-    mock_input.assert_called_once_with("Prompt:")
-    mock_print.assert_not_called()
-    mock_write.assert_not_called()
-    mock_flush.assert_not_called()
+        if colors_enabled:
+            mock_write.assert_called_once_with("[RESET]")
+            mock_flush.assert_called_once()
+        else:
+            mock_write.assert_not_called()
+            mock_flush.assert_not_called()
 
 
 @pytest.mark.parametrize("exception", [EOFError, KeyboardInterrupt])
