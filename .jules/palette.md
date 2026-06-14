@@ -188,3 +188,6 @@
 ## 2025-02-12 - De-emphasize Secondary Interaction Hints
 **Learning:** Secondary hints like "(Press Ctrl+C to stop)" command too much visual attention when styled with the primary foreground color, competing with the actual status message (e.g. "Waiting" or "Checking for emails").
 **Action:** Always de-emphasize secondary keyboard shortcuts and terminal hints using a muted color (like `Colors.GREY`) to maintain focus on the primary action and reduce visual clutter.
+## 2025-06-14 - Reliable Terminal Color Resets
+**Learning:** Using `print(Colors.RESET, end="")` in Python can buffer output in constrained terminal environments, causing subsequent text to inherit unintended styling (e.g., leaked bold/colors) when the program is interrupted or exits.
+**Action:** When handling interactive inputs and terminal styling, explicitly use `sys.stdout.write(Colors.RESET)` followed immediately by `sys.stdout.flush()` to ensure reliable, immediate color resets, rather than relying on `print` buffering behavior.

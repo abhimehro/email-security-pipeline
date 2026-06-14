@@ -27,7 +27,9 @@ class AppRunner:
             raise
         finally:
             if Colors.ENABLED:
-                print(Colors.RESET, end="", flush=True)
+                import sys
+                sys.stdout.write(Colors.RESET)
+                sys.stdout.flush()
 
         return val
 
