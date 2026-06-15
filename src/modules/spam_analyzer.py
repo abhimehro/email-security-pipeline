@@ -184,19 +184,21 @@ class SpamAnalyzer:
         indicators.extend(subject_indicators)
 
         # Extract URLs once for both body analysis and URL checking
-        # Optimization: Process parts separately to avoid large string concatenation
-        extracted_urls = self.URL_EXTRACTION_PATTERN.findall(
-            email_data.body_text.lower()
-        )
-        if email_data.body_html:
+        # Optimization: Pre-compute lowercased bodies once to avoid redundant memory
+        # allocations and expensive lower() calls across multiple analysis methods.
+        text_lower = email_data.body_text.lower()
+        html_lower = email_data.body_html.lower() if email_data.body_html else ""
+
+        extracted_urls = self.URL_EXTRACTION_PATTERN.findall(text_lower)
+        if html_lower:
             extracted_urls.extend(
-                self.URL_EXTRACTION_PATTERN.findall(email_data.body_html.lower())
+                self.URL_EXTRACTION_PATTERN.findall(html_lower)
             )
         link_count = len(extracted_urls)
 
         # Analyze body content
         body_score, body_indicators = self._analyze_body(
-            email_data.body_text, email_data.body_html, link_count
+            email_data.body_text, email_data.body_html, text_lower, html_lower, link_count
         )
         score += body_score
         indicators.extend(body_indicators)
@@ -274,15 +276,16 @@ class SpamAnalyzer:
 
         return score, indicators
 
-    def _count_spam_keywords(self, text: str) -> int:
+    def _count_spam_keywords(self, text_lower: str) -> int:
         """Helper to count spam keywords with a fast substring pre-check."""
-        text_lower = text.lower()
+        if not text_lower:
+            return 0
         if not any(kw in text_lower for kw in self.SPAM_KEYWORD_LITERALS):
             return 0
         return len(self.COMBINED_SPAM_PATTERN.findall(text_lower))
 
     def _analyze_body(
-        self, text_body: str, html_body: str, link_count: int
+        self, text_body: str, html_body: str, text_lower: str, html_lower: str, link_count: int
     ) -> Tuple[float, List[str]]:
         """Analyze email body for spam indicators."""
         score = 0.0
@@ -292,10 +295,11 @@ class SpamAnalyzer:
         # Check spam keywords in text body
         # Optimization: len(findall) executes entirely in C and is ~15-20% faster than sum(finditer)
         # Further optimization: Delegated to `_count_spam_keywords` to avoid CodeScene complexity alerts.
-        keyword_matches += self._count_spam_keywords(text_body)
+        keyword_matches += self._count_spam_keywords(text_lower)
 
         # Check spam keywords in html body
-        keyword_matches += self._count_spam_keywords(html_body)
+        if html_lower:
+            keyword_matches += self._count_spam_keywords(html_lower)
 
         if keyword_matches > 0:
             score += keyword_matches * 0.5
@@ -309,20 +313,20 @@ class SpamAnalyzer:
         # Check for image-only emails (common in spam)
         if html_body and len(text_body.strip()) < 50:
             # Only check HTML for img tags, case-insensitive
-            img_count = len(self.IMG_TAG_PATTERN.findall(html_body.lower()))
+            img_count = len(self.IMG_TAG_PATTERN.findall(html_lower))
             if img_count > 2:
                 score += 1.0
                 indicators.append("Image-heavy email with little text")
 
         # Check for hidden text (common spam technique)
         if html_body:
-            hidden_score, hidden_indicators = self._check_hidden_text(html_body)
+            hidden_score, hidden_indicators = self._check_hidden_text(html_lower)
             score += hidden_score
             indicators.extend(hidden_indicators)
 
         return score, indicators
 
-    def _check_hidden_text(self, html_body: str) -> Tuple[float, List[str]]:
+    def _check_hidden_text(self, html_lower: str) -> Tuple[float, List[str]]:
         """Helper to check for hidden text in HTML body."""
         score = 0.0
         indicators = []
@@ -330,7 +334,6 @@ class SpamAnalyzer:
         # Optimization: Fast substring pre-check avoids executing complex regex on clean HTML.
         # Using the C-level 'in' operator on a lowercased string is significantly faster
         # (~20x) than re.compile(..., re.IGNORECASE) despite memory allocation overhead.
-        html_lower = html_body.lower()
         if "font-size:" in html_lower or "color:" in html_lower:
             if self.HIDDEN_TEXT_PATTERN.search(html_lower):
                 score += 2.0
