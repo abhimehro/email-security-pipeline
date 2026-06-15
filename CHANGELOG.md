@@ -41,6 +41,7 @@
 
 **Closed issues:**
 
+- Daily QA & Agentic Review — 2026-06-14 [\#1113](https://github.com/abhimehro/email-security-pipeline/issues/1113)
 - Daily QA & Agentic Review — 2026-06-13 [\#1110](https://github.com/abhimehro/email-security-pipeline/issues/1110)
 - Daily QA & Agentic Review — 2026-06-12 [\#1089](https://github.com/abhimehro/email-security-pipeline/issues/1089)
 - \[repo-automation\] Daily Status Report - 2026-06-12 [\#1086](https://github.com/abhimehro/email-security-pipeline/issues/1086)
@@ -388,6 +389,9 @@
 
 **Merged pull requests:**
 
+- ⚡ Bolt: Avoid redundant lower\(\) calls in SpamAnalyzer [\#1114](https://github.com/abhimehro/email-security-pipeline/pull/1114) ([abhimehro](https://github.com/abhimehro))
+- 🎨 Palette: Make terminal color resets robust [\#1112](https://github.com/abhimehro/email-security-pipeline/pull/1112) ([abhimehro](https://github.com/abhimehro))
+- Jules Daily QA & Agentic Review: Formatting and Linting Fixes [\#1111](https://github.com/abhimehro/email-security-pipeline/pull/1111) ([abhimehro](https://github.com/abhimehro))
 - perf\(media\): parallelize attachment metadata and deepfake analysis \(salvages \#1103\) [\#1108](https://github.com/abhimehro/email-security-pipeline/pull/1108) ([abhimehro](https://github.com/abhimehro))
 - refactor\(connectivity\): group IMAP/SMTP params in ConnectionConfig \(salvages \#1096\) [\#1107](https://github.com/abhimehro/email-security-pipeline/pull/1107) ([abhimehro](https://github.com/abhimehro))
 - T2: Apply Black formatting to resolve styling violations in src/ [\#1106](https://github.com/abhimehro/email-security-pipeline/pull/1106) ([abhimehro](https://github.com/abhimehro))
