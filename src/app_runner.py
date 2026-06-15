@@ -204,7 +204,7 @@ class AppRunner:
             # Fallback to copy only if wizard wasn't run or failed
             if not Path(self.config_file).exists():
                 prompt = Colors.colorize("? ", Colors.CYAN) + Colors.colorize(
-                    f"Create '{self.config_file}' from template without wizard? [Y/n] ",
+                    f"Create '{self.config_file}' from template without wizard? {Colors.colorize('[Y/n]', Colors.GREY)} ",
                     Colors.BOLD,
                 )
                 response = self._styled_input(prompt).lower()
@@ -323,7 +323,7 @@ class AppRunner:
         )
 
         prompt = Colors.colorize("? ", Colors.CYAN) + Colors.colorize(
-            "Run setup wizard? [Y/n] ", Colors.BOLD
+            f"Run setup wizard? {Colors.colorize('[Y/n]', Colors.GREY)} ", Colors.BOLD
         )
         response = self._styled_input(prompt).lower()
         if response in ("", "y", "yes"):
@@ -335,7 +335,7 @@ class AppRunner:
     def _prompt_create_from_template(self) -> None:
         """Prompt the user to create a configuration file from the template."""
         prompt = Colors.colorize("? ", Colors.CYAN) + Colors.colorize(
-            f"Create '{self.config_file}' from template without wizard? [Y/n] ",
+            f"Create '{self.config_file}' from template without wizard? {Colors.colorize('[Y/n]', Colors.GREY)} ",
             Colors.BOLD,
         )
         response = self._styled_input(prompt).lower()

@@ -191,3 +191,7 @@
 ## 2025-06-14 - Reliable Terminal Color Resets
 **Learning:** Using `print(Colors.RESET, end="")` in Python can buffer output in constrained terminal environments, causing subsequent text to inherit unintended styling (e.g., leaked bold/colors) when the program is interrupted or exits.
 **Action:** When handling interactive inputs and terminal styling, explicitly use `sys.stdout.write(Colors.RESET)` followed immediately by `sys.stdout.flush()` to ensure reliable, immediate color resets, rather than relying on `print` buffering behavior.
+
+## 2025-06-15 - De-emphasize CLI Terminal Hints
+**Learning:** Terminal inputs with explicit options like [Y/n] or [1-4] often compete for visual attention when styled identically to the main question prompt (e.g. bold).
+**Action:** Always wrap trailing hint options in a muted color (like `Colors.GREY`) to clearly separate the primary question from the available inputs and reduce visual clutter.
