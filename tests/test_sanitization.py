@@ -38,9 +38,9 @@ class TestSanitization(unittest.TestCase):
         # Emails with multiple '@' symbols should treat everything after the first '@' as the domain
         self.assertEqual(redact_email("user@domain@extra.com"), "u***@domain@extra.com")
 
-
     def test_redact_email_exception_fallback(self):
         """Test email redaction fallback when exception occurs."""
+
         class FakeEmail(str):
             def split(self, *args, **kwargs):
                 raise Exception("Mocked split error")

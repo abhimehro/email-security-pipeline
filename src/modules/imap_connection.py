@@ -265,6 +265,7 @@ class IMAPConnection:
             batch_size = 50
 
             import time as time_module
+
             for i in range(0, len(email_ids), batch_size):
                 batch_start = time_module.time()
 

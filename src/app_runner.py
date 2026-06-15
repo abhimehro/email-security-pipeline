@@ -379,41 +379,6 @@ class AppRunner:
             os.close(fd)
             raise
 
-    def _set_secure_permissions(self, fd: int) -> None:
-        """Set restrictive permissions (0o600) on a file descriptor with fallback."""
-        try:
-            os.fchmod(fd, 0o600)
-            return
-        except (AttributeError, OSError, NotImplementedError):
-            pass
-
-        try:
-            os.chmod(fd, 0o600)
-            return
-        except (AttributeError, OSError, NotImplementedError, TypeError):
-            pass
-
-        try:
-            stat_fd = os.fstat(fd)
-        except OSError:
-            sys.exit(1)
-
-        try:
-            stat_path = os.lstat(self.config_file)
-        except OSError:
-            sys.exit(1)
-
-        if stat_fd.st_ino != stat_path.st_ino or stat_fd.st_dev != stat_path.st_dev:
-            sys.exit(1)
-
-        chmod_kwargs = (
-            {"follow_symlinks": False}
-            if hasattr(os, "supports_follow_symlinks")
-            and os.chmod in os.supports_follow_symlinks
-            else {}
-        )
-        os.chmod(self.config_file, 0o600, **chmod_kwargs)
-
     def start_pipeline(self) -> None:
         """Instantiate and start the main pipeline."""
         from src.main import EmailSecurityPipeline

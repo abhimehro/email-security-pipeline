@@ -60,12 +60,16 @@ class EmailSecurityPipeline:
             self.config.email_accounts,
             config=EmailIngestionConfig(
                 rate_limit_delay=self.config.system.rate_limit_delay,
-                max_attachment_bytes=self.config.system.max_attachment_size_mb * 1024 * 1024,
-                max_total_attachment_bytes=self.config.system.max_total_attachment_size_mb * 1024 * 1024,
+                max_attachment_bytes=self.config.system.max_attachment_size_mb
+                * 1024
+                * 1024,
+                max_total_attachment_bytes=self.config.system.max_total_attachment_size_mb
+                * 1024
+                * 1024,
                 max_attachment_count=self.config.system.max_attachment_count,
                 max_body_size_bytes=self.config.system.max_body_size_kb * 1024,
                 max_parallel_accounts=self.config.system.max_parallel_accounts,
-            )
+            ),
         )
 
         self.spam_analyzer = SpamAnalyzer(self.config.analysis)
