@@ -198,7 +198,7 @@ class SpamAnalyzer:
 
         # Analyze body content
         body_score, body_indicators = self._analyze_body(
-            email_data.body_text, email_data.body_html, text_lower, html_lower, link_count
+            text_lower, html_lower, link_count
         )
         score += body_score
         indicators.extend(body_indicators)
@@ -285,7 +285,7 @@ class SpamAnalyzer:
         return len(self.COMBINED_SPAM_PATTERN.findall(text_lower))
 
     def _analyze_body(
-        self, text_body: str, html_body: str, text_lower: str, html_lower: str, link_count: int
+        self, text_lower: str, html_lower: str, link_count: int
     ) -> Tuple[float, List[str]]:
         """Analyze email body for spam indicators."""
         score = 0.0
@@ -311,7 +311,7 @@ class SpamAnalyzer:
             indicators.append(f"Excessive links ({link_count})")
 
         # Check for image-only emails (common in spam)
-        if html_body and len(text_body.strip()) < 50:
+        if html_lower and len(text_lower.strip()) < 50:
             # Only check HTML for img tags, case-insensitive
             img_count = len(self.IMG_TAG_PATTERN.findall(html_lower))
             if img_count > 2:
@@ -319,7 +319,7 @@ class SpamAnalyzer:
                 indicators.append("Image-heavy email with little text")
 
         # Check for hidden text (common spam technique)
-        if html_body:
+        if html_lower:
             hidden_score, hidden_indicators = self._check_hidden_text(html_lower)
             score += hidden_score
             indicators.extend(hidden_indicators)
