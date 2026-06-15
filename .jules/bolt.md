@@ -126,3 +126,6 @@
 ## 2025-06-13 - Aligning Fast-Path Comments with Code Reality
 **Learning:** Found a comment explicitly stating `string.count()` is a C-optimized fast path and significantly faster than regex `findall` for counting `<img>` tags, yet the code below it actually executed `len(self.IMG_TAG_PATTERN.findall(html_body.lower()))`. Benchmarks confirmed `count("<img")` is ~6x faster than `findall` for this specific case.
 **Action:** Always verify that the implementation actually matches the stated performance optimization in the comments, especially when dealing with hot paths like regex execution vs string operations.
+## 2025-06-15 - Redundant String Allocations
+**Learning:** Calling `.lower()` on large blocks of text (like `email_data.body_text` and `email_data.body_html`) repeatedly across different helper methods (e.g., `_analyze_body`, `_check_hidden_text`, `_count_spam_keywords`) creates significant memory allocation and CPU overhead in Python, as each call creates a full copy of the string.
+**Action:** Pre-compute lowercased versions of large text blocks once at the top level of the analysis method and pass them down to helper functions to avoid redundant allocations.
