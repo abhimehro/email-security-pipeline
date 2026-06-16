@@ -267,7 +267,7 @@ class AppRunner:
             )
         )
         command = f'cp .env.example "{self.config_file}"'
-        print(f"You can run: {Colors.colorize(command, Colors.CYAN)}")
+        print(Colors.colorize("You can run: ", Colors.YELLOW) + Colors.colorize(command, Colors.CYAN))
         sys.exit(1)
 
     def validate_config(self) -> None:
