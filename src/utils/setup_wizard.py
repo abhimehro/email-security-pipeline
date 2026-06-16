@@ -174,7 +174,7 @@ def _select_provider() -> str:
             prompt = (
                 "\n"
                 + Colors.colorize("? ", Colors.CYAN)
-                + Colors.colorize("Select provider [1-4]: ", Colors.BOLD)
+                + Colors.colorize(f"Select provider {Colors.colorize('[1-4]', Colors.GREY)}: ", Colors.BOLD)
             )
             choice = _styled_input(prompt)
             if choice in ("1", "2", "3", "4"):
@@ -312,7 +312,7 @@ def _get_credentials(choice: str, provider_name: str) -> tuple[str, str]:
             )
 
             prompt = Colors.colorize("? ", Colors.CYAN) + Colors.colorize(
-                "Retry? [Y/n] ", Colors.BOLD
+                f"Retry? {Colors.colorize('[Y/n]', Colors.GREY)} ", Colors.BOLD
             )
             retry = _styled_input(prompt).lower()
             if retry not in ("", "y", "yes"):
