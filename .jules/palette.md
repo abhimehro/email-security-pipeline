@@ -195,3 +195,7 @@
 ## 2025-06-15 - De-emphasize CLI Terminal Hints
 **Learning:** Terminal inputs with explicit options like [Y/n] or [1-4] often compete for visual attention when styled identically to the main question prompt (e.g. bold).
 **Action:** Always wrap trailing hint options in a muted color (like `Colors.GREY`) to clearly separate the primary question from the available inputs and reduce visual clutter.
+
+## 2025-06-17 - Prevent ANSI Style Reset Leakage in Nested Colorization
+**Learning:** When using Python string interpolation to nest ANSI color codes (e.g., `f"{bold_color}Question {grey_color}[Y/n]{reset} ?"`) within an outer wrapper, the inner string's `RESET` code will prematurely clear all styles applied by the outer wrapper, causing any subsequent prompt text or user input to lose its intended styling.
+**Action:** When building colored terminal prompts with inline hints, always concatenate consecutive styled segments (e.g., `colorize(Q, BOLD) + colorize(hint, GREY) + colorize("?", BOLD)`) instead of nesting them within an outer f-string to ensure styles remain isolated and user input starts with the correct styling.
