@@ -523,8 +523,8 @@ def run_setup_wizard(
             return False
 
         print("\n" + Colors.colorize("Next Steps:", Colors.BOLD))
-        print("1. Review .env to ensure settings are correct.")
-        print("2. Run the pipeline!")
+        print(f"1. Review {Colors.colorize(config_file, Colors.BOLD)} to ensure settings are correct.")
+        print(f"2. Run the pipeline: {Colors.colorize('python src/main.py', Colors.CYAN)}")
 
         return True
 
