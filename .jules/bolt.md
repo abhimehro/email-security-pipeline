@@ -129,3 +129,7 @@
 ## 2025-06-15 - Redundant String Allocations
 **Learning:** Calling `.lower()` on large blocks of text (like `email_data.body_text` and `email_data.body_html`) repeatedly across different helper methods (e.g., `_analyze_body`, `_check_hidden_text`, `_count_spam_keywords`) creates significant memory allocation and CPU overhead in Python, as each call creates a full copy of the string.
 **Action:** Pre-compute lowercased versions of large text blocks once at the top level of the analysis method and pass them down to helper functions to avoid redundant allocations.
+
+## 2025-06-16 - Explicit flags when bypassing default regex options
+**Learning:** When using pattern compiler utilities (e.g., `compile_patterns`) that default to `re.IGNORECASE`, pre-lowercasing text to avoid the `re.I` performance penalty is useless if you don't also explicitly pass `flags=0`. The helper will silently compile the lowercased strings with `re.I`, completely undoing the intended optimization.
+**Action:** Added `flags=0` to `COMBINED_SPAM_PATTERN` and `CORPORATE_TITLES_PATTERN` in `src/modules/spam_analyzer.py` to ensure the compiled regex engine actually evaluates without the ~50-100% `re.I` overhead.
