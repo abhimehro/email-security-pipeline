@@ -157,7 +157,7 @@ class AppRunner:
     def print_help(self) -> None:
         """Print usage instructions for the CLI."""
         print(Colors.colorize("Usage:", Colors.BOLD))
-        print("  python src/main.py [CONFIG_FILE]\n")
+        print(f"  {Colors.colorize('python src/main.py [CONFIG_FILE]', Colors.CYAN)}\n")
         print(Colors.colorize("Arguments:", Colors.BOLD))
         print(
             "  CONFIG_FILE    Path to the environment configuration file (default: .env)\n"
@@ -231,10 +231,10 @@ class AppRunner:
                         )
                         sys.exit(0)
                     except Exception as e:
-                        print(f"Error creating file: {e}")
+                        print(Colors.colorize(f"Error creating file: {e}", Colors.RED))
                         sys.exit(1)
                 else:
-                    print("Please create a .env file based on .env.example")
+                    print(Colors.colorize("Please create a .env file based on .env.example", Colors.YELLOW))
                     sys.exit(1)
         except KeyboardInterrupt:
             warning = Colors.colorize("⚠", Colors.YELLOW)
@@ -336,10 +336,10 @@ class AppRunner:
                 self._create_config_from_template()
                 sys.exit(0)
             except Exception as e:
-                print(f"Error creating file: {e}")
+                print(Colors.colorize(f"Error creating file: {e}", Colors.RED))
                 sys.exit(1)
         else:
-            print("Please create a .env file based on .env.example")
+            print(Colors.colorize("Please create a .env file based on .env.example", Colors.YELLOW))
             sys.exit(1)
 
     def _create_config_from_template(self) -> None:

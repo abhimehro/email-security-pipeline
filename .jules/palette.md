@@ -203,3 +203,7 @@
 ## 2027-02-18 - Visually Distinguish Actionable CLI Commands
 **Learning:** When providing next steps or remediation instructions in the CLI, unstyled commands blend into the surrounding text, forcing users to parse where the instruction ends and the command begins.
 **Action:** Always visually distinguish actionable CLI commands (e.g., `python src/main.py`) using a distinct color like `Colors.CYAN` to separate them from standard instructional text. This reduces cognitive load and allows users to instantly identify what they need to execute.
+
+## 2027-02-18 - Styling consistency in error paths
+**Learning:** Error paths and fallback instructions (like template creation failures) are often overlooked during UI polish passes, leading to unstyled output that breaks the overall visual consistency of the CLI.
+**Action:** When auditing CLI applications for UX, explicitly check error handling paths (`except` blocks) and fallback states (`else` branches of interactive prompts) to ensure that error messages are styled with `Colors.RED` and instructions are styled with `Colors.YELLOW`, maintaining visual hierarchy even during failures.
