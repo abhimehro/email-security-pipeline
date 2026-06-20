@@ -394,6 +394,10 @@
 
 **Merged pull requests:**
 
+- chore\(deps\): bump ruby/setup-ruby from 1.308.0 to 1.313.0 [\#1131](https://github.com/abhimehro/email-security-pipeline/pull/1131) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps\): bump release-drafter/release-drafter from 7.2.1 to 7.4.0 [\#1129](https://github.com/abhimehro/email-security-pipeline/pull/1129) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps\): bump github/gh-aw from 0.55.0 to 0.80.5 [\#1128](https://github.com/abhimehro/email-security-pipeline/pull/1128) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps\): bump actions/setup-python from c8813ba1bc76ebf779b911ad8ffccbf2e449cb48 to 0cb1a84326b90186fcd211036c65b42819794c87 [\#1127](https://github.com/abhimehro/email-security-pipeline/pull/1127) ([dependabot[bot]](https://github.com/apps/dependabot))
 - 🎨 Palette: Distinguish actionable commands in CLI UX [\#1123](https://github.com/abhimehro/email-security-pipeline/pull/1123) ([abhimehro](https://github.com/abhimehro))
 - ⚡ Bolt: \[Performance optimization: Explicit flags=0 for pre-lowercased regex\] [\#1122](https://github.com/abhimehro/email-security-pipeline/pull/1122) ([abhimehro](https://github.com/abhimehro))
 - 🎨 Palette: Prevent ANSI style leakage in interactive terminal prompts [\#1120](https://github.com/abhimehro/email-security-pipeline/pull/1120) ([abhimehro](https://github.com/abhimehro))
