@@ -41,6 +41,10 @@
 
 **Closed issues:**
 
+- Daily QA & Agentic Review — 2026-06-19 [\#1126](https://github.com/abhimehro/email-security-pipeline/issues/1126)
+- Daily QA & Agentic Review — 2026-06-18 [\#1124](https://github.com/abhimehro/email-security-pipeline/issues/1124)
+- Daily QA & Agentic Review — 2026-06-17 [\#1121](https://github.com/abhimehro/email-security-pipeline/issues/1121)
+- Daily QA & Agentic Review — 2026-06-16 [\#1119](https://github.com/abhimehro/email-security-pipeline/issues/1119)
 - Daily QA & Agentic Review — 2026-06-15 [\#1116](https://github.com/abhimehro/email-security-pipeline/issues/1116)
 - Daily QA & Agentic Review — 2026-06-14 [\#1113](https://github.com/abhimehro/email-security-pipeline/issues/1113)
 - Daily QA & Agentic Review — 2026-06-13 [\#1110](https://github.com/abhimehro/email-security-pipeline/issues/1110)
@@ -390,6 +394,10 @@
 
 **Merged pull requests:**
 
+- 🎨 Palette: Distinguish actionable commands in CLI UX [\#1123](https://github.com/abhimehro/email-security-pipeline/pull/1123) ([abhimehro](https://github.com/abhimehro))
+- ⚡ Bolt: \[Performance optimization: Explicit flags=0 for pre-lowercased regex\] [\#1122](https://github.com/abhimehro/email-security-pipeline/pull/1122) ([abhimehro](https://github.com/abhimehro))
+- 🎨 Palette: Prevent ANSI style leakage in interactive terminal prompts [\#1120](https://github.com/abhimehro/email-security-pipeline/pull/1120) ([abhimehro](https://github.com/abhimehro))
+- 🎨 Palette: Actionable Commands in Terminal Errors [\#1118](https://github.com/abhimehro/email-security-pipeline/pull/1118) ([abhimehro](https://github.com/abhimehro))
 - ⚡ Bolt: \[Performance optimization: Fast String Count Over Regex Findall\] [\#1117](https://github.com/abhimehro/email-security-pipeline/pull/1117) ([abhimehro](https://github.com/abhimehro))
 - 🎨 Palette: De-emphasize input options in terminal prompts [\#1115](https://github.com/abhimehro/email-security-pipeline/pull/1115) ([abhimehro](https://github.com/abhimehro))
 - ⚡ Bolt: Avoid redundant lower\(\) calls in SpamAnalyzer [\#1114](https://github.com/abhimehro/email-security-pipeline/pull/1114) ([abhimehro](https://github.com/abhimehro))
