@@ -120,7 +120,7 @@ class SpamAnalyzer:
     ]
 
     # Pre-compiled combined pattern for performance
-    COMBINED_URL_PATTERN = compile_patterns(SUSPICIOUS_URL_PATTERNS, re.I)
+    COMBINED_URL_PATTERN = compile_patterns(SUSPICIOUS_URL_PATTERNS, flags=0)
 
     # Class-level constants for sender analysis optimization
     # Optimization: Tuple representation avoids list creation overhead per call
@@ -363,7 +363,7 @@ class SpamAnalyzer:
 
             try:
                 parsed = urlparse(url)
-                domain = parsed.netloc
+                domain = parsed.netloc.lower()
 
                 current_url_score = 0.0
                 append_count = 0
