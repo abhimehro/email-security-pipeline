@@ -35,7 +35,7 @@ jobs:
             COMMAND="/cs-agent skill:${COMMAND#/cs-agent }"
           fi
           echo "Final command: $COMMAND"
-          echo "command=$COMMAND" >> "$GITHUB_OUTPUT"
+          echo "command=$COMMAND" >> $GITHUB_OUTPUT
 
       - name: Configure OpenCode Google auth
         env:
@@ -45,18 +45,19 @@ jobs:
 
           if [ -z "${GOOGLE_KEY}" ]; then
             echo "::error::Secret GOOGLE_API_KEY is empty in this workflow run."
-            echo "::error::Add it under Settings -> Secrets and variables -> Actions -> Secrets (not Variables)."
+            echo "::error::Add it under Settings → Secrets and variables → Actions → Secrets (not Variables)."
             exit 1
           fi
 
           GOOGLE_KEY="$(printf '%s' "${GOOGLE_KEY}" | tr -d '\n\r')"
           mkdir -p "${HOME}/.local/share/opencode"
-          jq -n --arg key "${GOOGLE_KEY}" '{"google":{"type":"api","key":$key}}' > "${HOME}/.local/share/opencode/auth.json"
+          jq -n --arg key "${GOOGLE_KEY}" '{"google":{"type":"api","key":$key}}' \
+            > "${HOME}/.local/share/opencode/auth.json"
           chmod 600 "${HOME}/.local/share/opencode/auth.json"
 
-          echo "GOOGLE_GENERATIVE_AI_API_KEY=${GOOGLE_KEY}" >> "$GITHUB_ENV"
-          echo "GOOGLE_API_KEY=${GOOGLE_KEY}" >> "$GITHUB_ENV"
-          echo "GEMINI_API_KEY=${GOOGLE_KEY}" >> "$GITHUB_ENV"
+          echo "GOOGLE_GENERATIVE_AI_API_KEY=${GOOGLE_KEY}" >> "${GITHUB_ENV}"
+          echo "GOOGLE_API_KEY=${GOOGLE_KEY}" >> "${GITHUB_ENV}"
+          echo "GEMINI_API_KEY=${GOOGLE_KEY}" >> "${GITHUB_ENV}"
 
       - name: Build OpenCode auth JSON for agent config
         id: opencode-auth
@@ -70,10 +71,10 @@ jobs:
             echo "json<<EOF"
             echo "${AUTH_JSON}"
             echo "EOF"
-          } >> "$GITHUB_OUTPUT"
+          } >> "${GITHUB_OUTPUT}"
 
-      # trunk-ignore(pinact/parse-error)
-      - uses: codescene-oss/pr-refactoring-agent@d462590c445fff1171a7d29ea9124e98f760525d # v1.0.1
+      # Pin bc0d8b91: fixes spurious skill:github-pr-comment prepend (v1.0.0/v1.0.1 still broken).
+      - uses: codescene-oss/pr-refactoring-agent@841e34c7ddd7a8ec887d632ac51432d6c71e2fe1 # untagged-fix-commit
         env:
           GOOGLE_GENERATIVE_AI_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
           GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
