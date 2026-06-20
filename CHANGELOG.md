@@ -394,6 +394,8 @@
 
 **Merged pull requests:**
 
+- chore\(deps\): bump actions/cache from 4.2.3 to 5.0.5 [\#1135](https://github.com/abhimehro/email-security-pipeline/pull/1135) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps\): bump pnpm/action-setup from 6.0.8 to 6.0.9 [\#1134](https://github.com/abhimehro/email-security-pipeline/pull/1134) ([dependabot[bot]](https://github.com/apps/dependabot))
 - chore: fix missing EOF newlines in github workflows [\#1133](https://github.com/abhimehro/email-security-pipeline/pull/1133) ([abhimehro](https://github.com/abhimehro))
 - ⚡ Bolt: Remove re.IGNORECASE penalty from Suspicious URL checks [\#1132](https://github.com/abhimehro/email-security-pipeline/pull/1132) ([abhimehro](https://github.com/abhimehro))
 - chore\(deps\): bump ruby/setup-ruby from 1.308.0 to 1.313.0 [\#1131](https://github.com/abhimehro/email-security-pipeline/pull/1131) ([dependabot[bot]](https://github.com/apps/dependabot))
