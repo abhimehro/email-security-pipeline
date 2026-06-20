@@ -225,9 +225,9 @@ class AppRunner:
                         with os.fdopen(fd, "wb") as dst:
                             dst.write(content)
 
-                        print(f"Created '{self.config_file}' from '.env.example'.")
+                        print(Colors.colorize(f"✔ Created '{self.config_file}' from '.env.example'.", Colors.GREEN))
                         print(
-                            "IMPORTANT: Please edit .env with your actual credentials before proceeding."
+                            Colors.colorize("IMPORTANT: Please edit .env with your actual credentials before proceeding.", Colors.YELLOW)
                         )
                         sys.exit(0)
                     except Exception as e:
@@ -365,9 +365,9 @@ class AppRunner:
             with os.fdopen(fd, "wb") as dst:
                 dst.write(content)
 
-            print(f"Created '{self.config_file}' from '.env.example'.")
+            print(Colors.colorize(f"✔ Created '{self.config_file}' from '.env.example'.", Colors.GREEN))
             print(
-                "IMPORTANT: Please edit .env with your actual credentials before proceeding."
+                Colors.colorize("IMPORTANT: Please edit .env with your actual credentials before proceeding.", Colors.YELLOW)
             )
         except Exception:
             os.close(fd)
