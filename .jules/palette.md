@@ -207,3 +207,6 @@
 ## 2027-02-18 - Styling consistency in error paths
 **Learning:** Error paths and fallback instructions (like template creation failures) are often overlooked during UI polish passes, leading to unstyled output that breaks the overall visual consistency of the CLI.
 **Action:** When auditing CLI applications for UX, explicitly check error handling paths (`except` blocks) and fallback states (`else` branches of interactive prompts) to ensure that error messages are styled with `Colors.RED` and instructions are styled with `Colors.YELLOW`, maintaining visual hierarchy even during failures.
+## 2025-06-25 - Consistency in Terminal Error Styling
+**Learning:** For CLI status indicators (like loading spinners), applying semantic color (like Red) only to the status symbol (✘) while leaving the final message unstyled breaks the visual hierarchy during error paths.
+**Action:** Apply consistent semantic coloring to the entire final status message (e.g., Red for errors, Green for success, Yellow for warnings) to ensure plain-text default styling does not undermine the error state visualization.

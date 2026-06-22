@@ -249,7 +249,10 @@ class Spinner:
             color = self._get_color_for_symbol(symbol)
             colored_symbol = Colors.colorize(symbol, color)
 
-            sys.stdout.write(f"\r\033[K{colored_symbol} {msg}{time_str}\n")
+            # Apply the same semantic color to the message for visual consistency
+            colored_msg = Colors.colorize(msg, color)
+
+            sys.stdout.write(f"\r\033[K{colored_symbol} {colored_msg}{time_str}\n")
             sys.stdout.flush()
             sys.stdout.write(CURSOR_SHOW)
             sys.stdout.flush()
