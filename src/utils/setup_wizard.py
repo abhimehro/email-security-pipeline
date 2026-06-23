@@ -65,6 +65,7 @@ def _styled_input(prompt: str) -> str:
     finally:
         if Colors.ENABLED:
             import sys
+
             sys.stdout.write(Colors.RESET)
             sys.stdout.flush()
 
@@ -174,7 +175,9 @@ def _select_provider() -> str:
             prompt = (
                 "\n"
                 + Colors.colorize("? ", Colors.CYAN)
-                + Colors.colorize("Select provider ", Colors.BOLD) + Colors.colorize("[1-4]", Colors.GREY) + Colors.colorize(": ", Colors.BOLD)
+                + Colors.colorize("Select provider ", Colors.BOLD)
+                + Colors.colorize("[1-4]", Colors.GREY)
+                + Colors.colorize(": ", Colors.BOLD)
             )
             choice = _styled_input(prompt)
             if choice in ("1", "2", "3", "4"):
@@ -265,6 +268,7 @@ def _prompt_for_password(provider_name: str) -> str:
         finally:
             if Colors.ENABLED:
                 import sys
+
                 sys.stdout.write(Colors.RESET)
                 sys.stdout.flush()
 
@@ -311,7 +315,12 @@ def _get_credentials(choice: str, provider_name: str) -> tuple[str, str]:
                 f"  {Colors.colorize('n:', Colors.BOLD)} Proceed anyway {Colors.colorize('(Skip verification)', Colors.YELLOW)}"
             )
 
-            prompt = Colors.colorize("? ", Colors.CYAN) + Colors.colorize("Retry? ", Colors.BOLD) + Colors.colorize("[Y/n]", Colors.GREY) + Colors.colorize(" ", Colors.BOLD)
+            prompt = (
+                Colors.colorize("? ", Colors.CYAN)
+                + Colors.colorize("Retry? ", Colors.BOLD)
+                + Colors.colorize("[Y/n]", Colors.GREY)
+                + Colors.colorize(" ", Colors.BOLD)
+            )
             retry = _styled_input(prompt).lower()
             if retry not in ("", "y", "yes"):
                 print(
@@ -456,7 +465,7 @@ def _write_config_file(config_file: str, new_content: str) -> bool:
         )
         return True
     except Exception as e:
-        print(Colors.colorize(f"Error writing config: {e}", Colors.RED))
+        print(Colors.colorize(f"✘ Error writing config: {e}", Colors.RED))
         return False
 
 
@@ -510,7 +519,7 @@ def run_setup_wizard(
             with open(template_file, "r") as f:
                 template_content = f.read()
         except Exception as e:
-            print(Colors.colorize(f"Error reading template: {e}", Colors.RED))
+            print(Colors.colorize(f"✘ Error reading template: {e}", Colors.RED))
             return False
 
         # 4. Generate Config
@@ -523,8 +532,12 @@ def run_setup_wizard(
             return False
 
         print("\n" + Colors.colorize("Next Steps:", Colors.BOLD))
-        print(f"1. Review {Colors.colorize(config_file, Colors.BOLD)} to ensure settings are correct.")
-        print(f"2. Run the pipeline: {Colors.colorize('python src/main.py', Colors.CYAN)}")
+        print(
+            f"1. Review {Colors.colorize(config_file, Colors.BOLD)} to ensure settings are correct."
+        )
+        print(
+            f"2. Run the pipeline: {Colors.colorize('python src/main.py', Colors.CYAN)}"
+        )
 
         return True
 

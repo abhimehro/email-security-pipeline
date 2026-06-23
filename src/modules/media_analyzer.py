@@ -252,7 +252,7 @@ class MediaAuthenticityAnalyzer:
             # and allows exceptions to propagate naturally, avoiding fail-open vulnerabilities.
             results = executor.map(
                 lambda att: self._process_attachment_parallel(att, shared_state),
-                email_data.attachments
+                email_data.attachments,
             )
 
             for meta_results, deepfake_results in results:
@@ -292,7 +292,9 @@ class MediaAuthenticityAnalyzer:
             risk_level=risk_level,
         )
 
-    def _process_attachment_parallel(self, attachment: dict, shared_state: dict) -> tuple:
+    def _process_attachment_parallel(
+        self, attachment: dict, shared_state: dict
+    ) -> tuple:
         """
         Process a single attachment for metadata and deepfake analysis in parallel.
         """
@@ -618,8 +620,10 @@ class MediaAuthenticityAnalyzer:
                 files_to_check = file_list[: self.MAX_ZIP_FILE_COUNT]
 
                 for contained_file in files_to_check:
-                    member_score, member_warnings = self._inspect_zip_member_and_check_traversal(
-                        zf, contained_file, filename, depth
+                    member_score, member_warnings = (
+                        self._inspect_zip_member_and_check_traversal(
+                            zf, contained_file, filename, depth
+                        )
                     )
                     score += member_score
                     warnings.extend(member_warnings)
@@ -652,7 +656,9 @@ class MediaAuthenticityAnalyzer:
         warnings = []
         if contained_file.startswith("/") or ".." in contained_file:
             score += 5.0
-            safe_contained_file = sanitize_for_logging(sanitize_filename(contained_file))
+            safe_contained_file = sanitize_for_logging(
+                sanitize_filename(contained_file)
+            )
             warnings.append(
                 f"Zip file {filename} contains path traversal attempt: {safe_contained_file}"
             )
@@ -660,9 +666,7 @@ class MediaAuthenticityAnalyzer:
         member_score, member_warnings = self._inspect_archive_member(
             filename,
             contained_file,
-            lambda: self._handle_nested_zip_member(
-                zf, contained_file, filename, depth
-            ),
+            lambda: self._handle_nested_zip_member(zf, contained_file, filename, depth),
         )
         score += member_score
         warnings.extend(member_warnings)
@@ -835,7 +839,9 @@ class MediaAuthenticityAnalyzer:
                     # THEN check for path traversal attempts
                     if member.name.startswith("/") or ".." in member.name:
                         score += 5.0
-                        safe_member_name = sanitize_for_logging(sanitize_filename(member.name))
+                        safe_member_name = sanitize_for_logging(
+                            sanitize_filename(member.name)
+                        )
                         warnings.append(
                             f"Tar file {filename} contains path traversal attempt: {safe_member_name}"
                         )

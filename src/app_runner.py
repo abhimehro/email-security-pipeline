@@ -28,6 +28,7 @@ class AppRunner:
         finally:
             if Colors.ENABLED:
                 import sys
+
                 sys.stdout.write(Colors.RESET)
                 sys.stdout.flush()
 
@@ -203,7 +204,15 @@ class AppRunner:
 
             # Fallback to copy only if wizard wasn't run or failed
             if not Path(self.config_file).exists():
-                prompt = Colors.colorize("? ", Colors.CYAN) + Colors.colorize(f"Create '{self.config_file}' from template without wizard? ", Colors.BOLD) + Colors.colorize("[Y/n]", Colors.GREY) + Colors.colorize(" ", Colors.BOLD)
+                prompt = (
+                    Colors.colorize("? ", Colors.CYAN)
+                    + Colors.colorize(
+                        f"Create '{self.config_file}' from template without wizard? ",
+                        Colors.BOLD,
+                    )
+                    + Colors.colorize("[Y/n]", Colors.GREY)
+                    + Colors.colorize(" ", Colors.BOLD)
+                )
                 response = self._styled_input(prompt).lower()
                 if response in ("", "y", "yes"):
                     try:
@@ -225,16 +234,26 @@ class AppRunner:
                         with os.fdopen(fd, "wb") as dst:
                             dst.write(content)
 
-                        print(Colors.colorize(f"✔ Created '{self.config_file}' from '.env.example'.", Colors.GREEN))
                         print(
-                            Colors.colorize("IMPORTANT: Please edit .env with your actual credentials before proceeding.", Colors.YELLOW)
+                            Colors.colorize(
+                                f"✔ Created '{self.config_file}' from '.env.example'.",
+                                Colors.GREEN,
+                            )
+                        )
+                        print(
+                            Colors.colorize(
+                                "IMPORTANT: Please edit .env with your actual credentials before proceeding.",
+                                Colors.YELLOW,
+                            )
                         )
                         sys.exit(0)
                     except Exception as e:
-                        print(Colors.colorize(f"Error creating file: {e}", Colors.RED))
+                        print(
+                            Colors.colorize(f"✘ Error creating file: {e}", Colors.RED)
+                        )
                         sys.exit(1)
                 else:
-                    print(Colors.colorize("Please create a .env file based on .env.example", Colors.YELLOW))
+                    self._print_fallback_instructions()
                     sys.exit(1)
         except KeyboardInterrupt:
             warning = Colors.colorize("⚠", Colors.YELLOW)
@@ -257,15 +276,21 @@ class AppRunner:
                 Colors.RED,
             )
         )
+        self._print_fallback_instructions()
+        sys.exit(1)
+
+    def _print_fallback_instructions(self) -> None:
+        """Helper to consistently print fallback instructions and command across error paths."""
         print(
             Colors.colorize(
-                "Please create the configuration file based on .env.example",
-                Colors.YELLOW,
+                "Please create a .env file based on .env.example", Colors.YELLOW
             )
         )
         command = f'cp .env.example "{self.config_file}"'
-        print(Colors.colorize("You can run: ", Colors.YELLOW) + Colors.colorize(command, Colors.CYAN))
-        sys.exit(1)
+        print(
+            Colors.colorize("You can run: ", Colors.YELLOW)
+            + Colors.colorize(command, Colors.CYAN)
+        )
 
     def validate_config(self) -> None:
         """Validate the configuration to ensure default credentials aren't used."""
@@ -319,7 +344,12 @@ class AppRunner:
             )
         )
 
-        prompt = Colors.colorize("? ", Colors.CYAN) + Colors.colorize("Run setup wizard? ", Colors.BOLD) + Colors.colorize("[Y/n]", Colors.GREY) + Colors.colorize(" ", Colors.BOLD)
+        prompt = (
+            Colors.colorize("? ", Colors.CYAN)
+            + Colors.colorize("Run setup wizard? ", Colors.BOLD)
+            + Colors.colorize("[Y/n]", Colors.GREY)
+            + Colors.colorize(" ", Colors.BOLD)
+        )
         response = self._styled_input(prompt).lower()
         if response in ("", "y", "yes"):
             if run_setup_wizard(self.config_file):
@@ -329,17 +359,25 @@ class AppRunner:
 
     def _prompt_create_from_template(self) -> None:
         """Prompt the user to create a configuration file from the template."""
-        prompt = Colors.colorize("? ", Colors.CYAN) + Colors.colorize(f"Create '{self.config_file}' from template without wizard? ", Colors.BOLD) + Colors.colorize("[Y/n]", Colors.GREY) + Colors.colorize(" ", Colors.BOLD)
+        prompt = (
+            Colors.colorize("? ", Colors.CYAN)
+            + Colors.colorize(
+                f"Create '{self.config_file}' from template without wizard? ",
+                Colors.BOLD,
+            )
+            + Colors.colorize("[Y/n]", Colors.GREY)
+            + Colors.colorize(" ", Colors.BOLD)
+        )
         response = self._styled_input(prompt).lower()
         if response in ("", "y", "yes"):
             try:
                 self._create_config_from_template()
                 sys.exit(0)
             except Exception as e:
-                print(Colors.colorize(f"Error creating file: {e}", Colors.RED))
+                print(Colors.colorize(f"✘ Error creating file: {e}", Colors.RED))
                 sys.exit(1)
         else:
-            print(Colors.colorize("Please create a .env file based on .env.example", Colors.YELLOW))
+            self._print_fallback_instructions()
             sys.exit(1)
 
     def _create_config_from_template(self) -> None:
@@ -365,9 +403,16 @@ class AppRunner:
             with os.fdopen(fd, "wb") as dst:
                 dst.write(content)
 
-            print(Colors.colorize(f"✔ Created '{self.config_file}' from '.env.example'.", Colors.GREEN))
             print(
-                Colors.colorize("IMPORTANT: Please edit .env with your actual credentials before proceeding.", Colors.YELLOW)
+                Colors.colorize(
+                    f"✔ Created '{self.config_file}' from '.env.example'.", Colors.GREEN
+                )
+            )
+            print(
+                Colors.colorize(
+                    "IMPORTANT: Please edit .env with your actual credentials before proceeding.",
+                    Colors.YELLOW,
+                )
             )
         except Exception:
             os.close(fd)
