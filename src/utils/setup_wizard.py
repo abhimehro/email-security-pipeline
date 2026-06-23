@@ -180,9 +180,8 @@ def _select_provider() -> str:
             if choice in ("1", "2", "3", "4"):
                 return choice
             print(
-                Colors.colorize(
-                    "Invalid choice. Please enter 1, 2, 3, or 4.", Colors.YELLOW
-                )
+                Colors.colorize("✘ Invalid choice. ", Colors.RED)
+                + Colors.colorize("Please enter 1, 2, 3, or 4.", Colors.YELLOW)
             )
         except EOFError:
             return "4"
@@ -199,15 +198,16 @@ def _prompt_for_email(provider_name: str) -> str:
         )
         email = _styled_input(prompt)
         if not email:
-            print(Colors.colorize("Email is required.", Colors.YELLOW))
+            print(Colors.colorize("✘ Email is required.", Colors.RED))
             continue
 
         if _is_valid_email(email):
             return email
 
         print(
-            Colors.colorize(
-                "Invalid email format. Please enter a valid email address (e.g., user@example.com).",
+            Colors.colorize("✘ Invalid email format. ", Colors.RED)
+            + Colors.colorize(
+                "Please enter a valid email address (e.g., user@example.com).",
                 Colors.YELLOW,
             )
         )
@@ -270,7 +270,7 @@ def _prompt_for_password(provider_name: str) -> str:
 
     app_secret = _get_input()
     while not app_secret:
-        print(Colors.colorize("Password is required.", Colors.YELLOW))
+        print(Colors.colorize("✘ Password is required.", Colors.RED))
         app_secret = _get_input()
 
     return app_secret
