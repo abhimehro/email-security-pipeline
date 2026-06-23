@@ -41,6 +41,7 @@
 
 **Closed issues:**
 
+- Daily QA & Agentic Review — 2026-06-22 [\#1141](https://github.com/abhimehro/email-security-pipeline/issues/1141)
 - Daily QA & Agentic Review — 2026-06-21 [\#1139](https://github.com/abhimehro/email-security-pipeline/issues/1139)
 - Daily QA & Agentic Review — 2026-06-20 [\#1137](https://github.com/abhimehro/email-security-pipeline/issues/1137)
 - Daily QA & Agentic Review — 2026-06-19 [\#1126](https://github.com/abhimehro/email-security-pipeline/issues/1126)
@@ -396,6 +397,9 @@
 
 **Merged pull requests:**
 
+- chore\(deps\): bump ruby/setup-ruby from 1.313.0 to 1.314.0 [\#1143](https://github.com/abhimehro/email-security-pipeline/pull/1143) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps\): bump github/gh-aw from 0.80.5 to 0.80.9 [\#1142](https://github.com/abhimehro/email-security-pipeline/pull/1142) ([dependabot[bot]](https://github.com/apps/dependabot))
+- 🎨 Palette: Separate error messages and instructions visually in setup wizard [\#1140](https://github.com/abhimehro/email-security-pipeline/pull/1140) ([abhimehro](https://github.com/abhimehro))
 - 🎨 Palette: Apply consistent color styling to spinner error and cancellation messages [\#1138](https://github.com/abhimehro/email-security-pipeline/pull/1138) ([abhimehro](https://github.com/abhimehro))
 - 🎨 Palette: Add styling to configuration template creation output [\#1136](https://github.com/abhimehro/email-security-pipeline/pull/1136) ([abhimehro](https://github.com/abhimehro))
 - chore\(deps\): bump actions/cache from 4.2.3 to 5.0.5 [\#1135](https://github.com/abhimehro/email-security-pipeline/pull/1135) ([dependabot[bot]](https://github.com/apps/dependabot))
