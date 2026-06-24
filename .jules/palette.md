@@ -210,3 +210,7 @@
 ## 2025-06-25 - Consistency in Terminal Error Styling
 **Learning:** For CLI status indicators (like loading spinners), applying semantic color (like Red) only to the status symbol (✘) while leaving the final message unstyled breaks the visual hierarchy during error paths.
 **Action:** Apply consistent semantic coloring to the entire final status message (e.g., Red for errors, Green for success, Yellow for warnings) to ensure plain-text default styling does not undermine the error state visualization.
+
+## 2027-02-18 - Actionable Error Paths UX Consistency
+**Learning:** Consistently providing actionable instructions across all error/fallback paths, not just non-interactive ones, significantly improves user experience. In CLI tools, omitting these instructions in certain failure branches forces users to guess the next steps. Using consistent visual hierarchy (e.g. `✘` for errors, `Colors.CYAN` for commands) reduces cognitive load.
+**Action:** When auditing CLI fallback flows, extract the remediation output logic into reusable helpers to guarantee that whether a user skips a wizard, encounters a file write error, or runs non-interactively, they always receive the exact same visually-distinct actionable command (like `cp .env.example .env`). Ensure consistent `✘` prefixes on critical file operation errors.

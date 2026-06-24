@@ -90,7 +90,9 @@ class SpamAnalyzer:
     # ⚡ BOLT: Removed re.I. We will use .lower() on the text instead.
     # re.IGNORECASE carries a ~50-100% performance penalty during regex execution.
     # We explicitly lower() the keywords to guarantee matching behavior.
-    COMBINED_SPAM_PATTERN = compile_patterns([kw.lower() for kw in SPAM_KEYWORDS], flags=0)
+    COMBINED_SPAM_PATTERN = compile_patterns(
+        [kw.lower() for kw in SPAM_KEYWORDS], flags=0
+    )
 
     LINK_PATTERN = re.compile(r"https?://")
     URL_EXTRACTION_PATTERN = re.compile(r'https?://[^\s<>"]+')
@@ -148,7 +150,9 @@ class SpamAnalyzer:
 
     # Optimization: Pre-compiled regex reduces Python-level iteration compared to an any()-based loop
     # while preserving the original substring-matching behavior (no word boundaries)
-    CORPORATE_TITLES_PATTERN = compile_patterns([kw.lower() for kw in CORPORATE_TITLES], flags=0)
+    CORPORATE_TITLES_PATTERN = compile_patterns(
+        [kw.lower() for kw in CORPORATE_TITLES], flags=0
+    )
 
     def __init__(self, config):
         """
@@ -191,9 +195,7 @@ class SpamAnalyzer:
 
         extracted_urls = self.URL_EXTRACTION_PATTERN.findall(text_lower)
         if html_lower:
-            extracted_urls.extend(
-                self.URL_EXTRACTION_PATTERN.findall(html_lower)
-            )
+            extracted_urls.extend(self.URL_EXTRACTION_PATTERN.findall(html_lower))
         link_count = len(extracted_urls)
 
         # Analyze body content
