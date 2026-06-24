@@ -41,6 +41,7 @@
 
 **Closed issues:**
 
+- Daily QA & Agentic Review — 2026-06-23 [\#1145](https://github.com/abhimehro/email-security-pipeline/issues/1145)
 - Daily QA & Agentic Review — 2026-06-22 [\#1141](https://github.com/abhimehro/email-security-pipeline/issues/1141)
 - Daily QA & Agentic Review — 2026-06-21 [\#1139](https://github.com/abhimehro/email-security-pipeline/issues/1139)
 - Daily QA & Agentic Review — 2026-06-20 [\#1137](https://github.com/abhimehro/email-security-pipeline/issues/1137)
@@ -397,6 +398,7 @@
 
 **Merged pull requests:**
 
+- 🎨 Palette: Standardize actionable error paths and styling [\#1144](https://github.com/abhimehro/email-security-pipeline/pull/1144) ([abhimehro](https://github.com/abhimehro))
 - chore\(deps\): bump ruby/setup-ruby from 1.313.0 to 1.314.0 [\#1143](https://github.com/abhimehro/email-security-pipeline/pull/1143) ([dependabot[bot]](https://github.com/apps/dependabot))
 - chore\(deps\): bump github/gh-aw from 0.80.5 to 0.80.9 [\#1142](https://github.com/abhimehro/email-security-pipeline/pull/1142) ([dependabot[bot]](https://github.com/apps/dependabot))
 - 🎨 Palette: Separate error messages and instructions visually in setup wizard [\#1140](https://github.com/abhimehro/email-security-pipeline/pull/1140) ([abhimehro](https://github.com/abhimehro))
