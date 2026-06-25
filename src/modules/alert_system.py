@@ -17,7 +17,12 @@ from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 import requests
 
 from ..utils.colors import Colors
-from ..utils.sanitization import ANSI_ESCAPE_PATTERN, _TRANSLATOR, sanitize_for_csv
+from ..utils.sanitization import (
+    ANSI_ESCAPE_PATTERN,
+    _TRANSLATOR,
+    _WHITESPACE_TRANS,
+    sanitize_for_csv,
+)
 from ..utils.security_validators import is_safe_webhook_url
 from .email_data import EmailData
 from .media_analyzer import MediaAnalysisResult
@@ -1066,7 +1071,11 @@ class AlertSystem:
             return ""
 
         # Replace newlines and tabs with spaces
-        sanitized = text.translate(str.maketrans("\n\r\t", "   "))
+        sanitized = (
+            text.translate(_WHITESPACE_TRANS)
+            if "\n" in text or "\r" in text or "\t" in text
+            else text
+        )
 
         if "\x1b" in sanitized:
             sanitized = ANSI_ESCAPE_PATTERN.sub("", sanitized)
