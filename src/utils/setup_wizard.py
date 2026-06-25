@@ -374,7 +374,7 @@ def _write_config_file(config_file: str, new_content: str) -> bool:
     if "\0" in config_file:
         print(
             Colors.colorize(
-                f"Error: Invalid configuration file path '{config_file}'.", Colors.RED
+                f"✘ Error: Invalid configuration file path '{config_file}'.", Colors.RED
             )
         )
         return False
@@ -389,7 +389,7 @@ def _write_config_file(config_file: str, new_content: str) -> bool:
     ):
         print(
             Colors.colorize(
-                f"Error: Unsafe configuration file path '{config_file}'. Use a filename only.",
+                f"✘ Error: Unsafe configuration file path '{config_file}'. Use a filename only.",
                 Colors.RED,
             )
         )
@@ -439,7 +439,7 @@ def _write_config_file(config_file: str, new_content: str) -> bool:
                         os.chmod(config_path_str, 0o600, **chmod_kwargs)
                     else:
                         print(
-                            f"\n{Colors.colorize('Error:', Colors.RED)} "
+                            f"\n{Colors.colorize('✘ Error:', Colors.RED)} "
                             f"TOCTOU detected on '{config_path}'."
                         )
                         import sys
@@ -447,7 +447,7 @@ def _write_config_file(config_file: str, new_content: str) -> bool:
                         sys.exit(1)
                 except OSError as exc:
                     print(
-                        f"\n{Colors.colorize('Error setting permissions:', Colors.RED)} "
+                        f"\n{Colors.colorize('✘ Error setting permissions:', Colors.RED)} "
                         f"{exc}"
                     )
                     import sys
@@ -480,7 +480,7 @@ def run_setup_wizard(
     if not Path(template_file).exists():
         print(
             Colors.colorize(
-                f"Error: Template file '{template_file}' not found.", Colors.RED
+                f"✘ Error: Template file '{template_file}' not found.", Colors.RED
             )
         )
         return False

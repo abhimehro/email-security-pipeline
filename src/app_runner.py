@@ -272,7 +272,7 @@ class AppRunner:
         # to honor the NoReturn type annotation and make the failure mode explicit.
         print(
             Colors.colorize(
-                f"✘ Error: Configuration file '{self.config_file}' not found",
+                f"✘ Configuration file '{self.config_file}' not found",
                 Colors.RED,
             )
         )
