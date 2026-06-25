@@ -9,6 +9,9 @@ import unicodedata
 # Pre-compile regex for performance
 ANSI_ESCAPE_PATTERN = re.compile(r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])")
 
+# Pre-compile whitespace translation table for performance
+_WHITESPACE_TRANS = str.maketrans("\n\r\t", "   ")
+
 # Unicode categories to exclude from logging
 # Cc: Control (including ASCII 0-31, 127, 0x80-0x9F)
 # Cf: Format (including BiDi controls, Zero Width Space, Soft Hyphen)
