@@ -251,6 +251,7 @@ class AppRunner:
                         print(
                             Colors.colorize(f"✘ Error creating file: {e}", Colors.RED)
                         )
+                        self._print_fallback_instructions()
                         sys.exit(1)
                 else:
                     self._print_fallback_instructions()
@@ -375,6 +376,7 @@ class AppRunner:
                 sys.exit(0)
             except Exception as e:
                 print(Colors.colorize(f"✘ Error creating file: {e}", Colors.RED))
+                self._print_fallback_instructions()
                 sys.exit(1)
         else:
             self._print_fallback_instructions()
