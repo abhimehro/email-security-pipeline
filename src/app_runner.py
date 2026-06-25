@@ -54,7 +54,7 @@ class AppRunner:
         if "\0" in raw_config_file:
             print(
                 Colors.colorize(
-                    f"Error: Invalid configuration file path '{raw_config_file}'.",
+                    f"✘ Error: Invalid configuration file path '{raw_config_file}'.",
                     Colors.RED,
                 )
             )
@@ -69,7 +69,7 @@ class AppRunner:
         except ValueError:
             print(
                 Colors.colorize(
-                    f"Error: Configuration file path must stay within '{base_dir}'.",
+                    f"✘ Error: Configuration file path must stay within '{base_dir}'.",
                     Colors.RED,
                 )
             )
@@ -251,6 +251,7 @@ class AppRunner:
                         print(
                             Colors.colorize(f"✘ Error creating file: {e}", Colors.RED)
                         )
+                        self._print_fallback_instructions()
                         sys.exit(1)
                 else:
                     self._print_fallback_instructions()
@@ -303,7 +304,7 @@ class AppRunner:
                 print(
                     "\n"
                     + Colors.colorize(
-                        "❌ Configuration Error: Default credentials detected",
+                        "✘ Configuration Error: Default credentials detected",
                         Colors.RED,
                     )
                 )
@@ -319,7 +320,7 @@ class AppRunner:
                     print(f"  • {Colors.colorize(error, Colors.YELLOW)}")
 
                 print(
-                    f"\nPlease edit {Colors.colorize(self.config_file, Colors.BOLD)} with your actual credentials."
+                    f"\n{Colors.colorize('Please edit ', Colors.YELLOW)}{Colors.colorize(self.config_file, Colors.BOLD)}{Colors.colorize(' with your actual credentials.', Colors.YELLOW)}"
                 )
                 sys.exit(1)
 
@@ -375,6 +376,7 @@ class AppRunner:
                 sys.exit(0)
             except Exception as e:
                 print(Colors.colorize(f"✘ Error creating file: {e}", Colors.RED))
+                self._print_fallback_instructions()
                 sys.exit(1)
         else:
             self._print_fallback_instructions()
