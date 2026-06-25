@@ -83,7 +83,8 @@ class CountdownTimer:
                 Colors.colorize(" (Press Ctrl+C to stop)", Colors.GREY), ""
             ).replace(" (Press Ctrl+C to stop)", "")
             # Ensure we print the cancellation message correctly
-            sys.stdout.write(f"\r\033[K{warning} {clean_msg} (Cancelled)\n")
+            colored_msg = Colors.colorize(f"{clean_msg} (Cancelled)", Colors.YELLOW)
+            sys.stdout.write(f"\r\033[K{warning} {colored_msg}\n")
             sys.stdout.flush()
             raise KeyboardInterrupt()
         finally:

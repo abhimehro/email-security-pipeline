@@ -439,16 +439,15 @@ def _write_config_file(config_file: str, new_content: str) -> bool:
                         os.chmod(config_path_str, 0o600, **chmod_kwargs)
                     else:
                         print(
-                            f"\n{Colors.colorize('✘ Error:', Colors.RED)} "
-                            f"TOCTOU detected on '{config_path}'."
+                            f"\n{Colors.colorize('✘ Error: TOCTOU detected on ', Colors.RED)}"
+                            f"{Colors.colorize(str(config_path), Colors.BOLD)}"
                         )
                         import sys
 
                         sys.exit(1)
                 except OSError as exc:
                     print(
-                        f"\n{Colors.colorize('✘ Error setting permissions:', Colors.RED)} "
-                        f"{exc}"
+                        f"\n{Colors.colorize('✘ Error setting permissions: ' + str(exc), Colors.RED)}"
                     )
                     import sys
 
