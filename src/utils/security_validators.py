@@ -266,7 +266,7 @@ def is_safe_webhook_url(url: str) -> Tuple[bool, str]:
     if parsed.scheme != "https":
         return False, f"URL scheme must be https, got: {parsed.scheme}"
 
-    hostname = parsed.hostname
+    hostname = parsed.hostname.lower() if parsed.hostname else None
     if not hostname:
         return False, "URL must contain a valid hostname"
 

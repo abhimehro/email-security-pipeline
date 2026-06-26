@@ -310,7 +310,7 @@ class Config:
                 errors.append("Slack alerts enabled but no webhook URL provided")
             elif not self._is_https_url(self.alerts.slack_webhook):
                 errors.append("Slack webhook URL must use HTTPS")
-            elif urlparse(self.alerts.slack_webhook).netloc != "hooks.slack.com":
+            elif urlparse(self.alerts.slack_webhook).netloc.lower() != "hooks.slack.com":
                 errors.append("Slack webhook URL must be a valid Slack hooks endpoint")
             else:
                 is_safe, err_msg = is_safe_webhook_url(self.alerts.slack_webhook)
