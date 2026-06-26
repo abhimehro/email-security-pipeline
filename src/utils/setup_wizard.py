@@ -201,7 +201,10 @@ def _prompt_for_email(provider_name: str) -> str:
         )
         email = _styled_input(prompt)
         if not email:
-            print(Colors.colorize("✘ Email is required.", Colors.RED))
+            print(
+                Colors.colorize("✘ Email is required. ", Colors.RED)
+                + Colors.colorize("Please provide an email address.", Colors.YELLOW)
+            )
             continue
 
         if _is_valid_email(email):
@@ -274,7 +277,10 @@ def _prompt_for_password(provider_name: str) -> str:
 
     app_secret = _get_input()
     while not app_secret:
-        print(Colors.colorize("✘ Password is required.", Colors.RED))
+        print(
+            Colors.colorize("✘ Password is required. ", Colors.RED)
+            + Colors.colorize("Please provide a password.", Colors.YELLOW)
+        )
         app_secret = _get_input()
 
     return app_secret
