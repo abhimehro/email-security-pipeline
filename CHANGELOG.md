@@ -400,6 +400,9 @@
 
 **Merged pull requests:**
 
+- chore\(deps\): bump release-drafter/release-drafter from 7.4.0 to 7.5.1 [\#1156](https://github.com/abhimehro/email-security-pipeline/pull/1156) ([dependabot[bot]](https://github.com/apps/dependabot))
+- 🎨 Palette: Improve error message clarity with actionable steps [\#1154](https://github.com/abhimehro/email-security-pipeline/pull/1154) ([abhimehro](https://github.com/abhimehro))
+- fix\(security\): lowercase URL host/netloc + UI error semantics \(salvages \#1152\) [\#1153](https://github.com/abhimehro/email-security-pipeline/pull/1153) ([abhimehro](https://github.com/abhimehro))
 - ⚡ Bolt: \[Performance Optimization: Fast-path whitespace translation in text sanitization\] [\#1151](https://github.com/abhimehro/email-security-pipeline/pull/1151) ([abhimehro](https://github.com/abhimehro))
 - 🎨 Palette: Actionable Error Paths UX Consistency [\#1149](https://github.com/abhimehro/email-security-pipeline/pull/1149) ([abhimehro](https://github.com/abhimehro))
 - chore\(deps\): bump actions/setup-python from 0cb1a84326b90186fcd211036c65b42819794c87 to ece7cb06caefa5fff74198d8649806c4678c61a1 [\#1147](https://github.com/abhimehro/email-security-pipeline/pull/1147) ([dependabot[bot]](https://github.com/apps/dependabot))
