@@ -217,3 +217,6 @@
 ## 2027-02-18 - Actionable Error Paths UX Consistency
 **Learning:** Consistently providing actionable instructions across all error/fallback paths, not just non-interactive ones, significantly improves user experience. In CLI tools, omitting these instructions in certain failure branches forces users to guess the next steps. Using consistent visual hierarchy (e.g. `✘` for errors, `Colors.CYAN` for commands) reduces cognitive load.
 **Action:** When auditing CLI fallback flows, extract the remediation output logic into reusable helpers to guarantee that whether a user skips a wizard, encounters a file write error, or runs non-interactively, they always receive the exact same visually-distinct actionable command (like `cp .env.example .env`). Ensure consistent `✘` prefixes on critical file operation errors.
+## 2025-06-25 - Enhance Input Validation Error Styling
+**Learning:** In interactive CLI wizards, single-line error messages without actionable remediation advice often leave users stuck, and unstyled instructions blend into the error text.
+**Action:** Always format input validation errors by separating the error description (styled in `Colors.RED` with a `✘` prefix) from the actionable remediation advice (styled in `Colors.YELLOW`). This improves clarity and guides the user toward successful input.
