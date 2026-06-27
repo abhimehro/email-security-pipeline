@@ -5,17 +5,19 @@ Main orchestrator that coordinates all analysis modules.
 """
 
 import logging
-from concurrent.futures import ThreadPoolExecutor, TimeoutError
 import sys
 import time
+from concurrent.futures import ThreadPoolExecutor, TimeoutError
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
 
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
+from src.app_runner import AppRunner
 from src.modules.alert_system import AlertSystem, generate_threat_report
-from src.modules.email_ingestion import EmailIngestionManager, EmailIngestionConfig
+from src.modules.email_ingestion import (EmailIngestionConfig,
+                                         EmailIngestionManager)
 from src.modules.media_analyzer import MediaAuthenticityAnalyzer
 from src.modules.nlp_analyzer import NLPThreatAnalyzer
 from src.modules.spam_analyzer import SpamAnalyzer
@@ -26,8 +28,6 @@ from src.utils.metrics import Metrics
 from src.utils.sanitization import sanitize_for_logging
 from src.utils.structured_logging import JSONFormatter
 from src.utils.ui import CountdownTimer, Spinner
-
-from src.app_runner import AppRunner
 
 
 class EmailSecurityPipeline:

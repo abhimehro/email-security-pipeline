@@ -1,13 +1,9 @@
 import os
 import unittest
-
 from unittest.mock import MagicMock, mock_open, patch
 
-from src.utils.setup_wizard import (
-    _is_valid_email,
-    run_setup_wizard,
-    _generate_config_content,
-)
+from src.utils.setup_wizard import (_generate_config_content, _is_valid_email,
+                                    run_setup_wizard)
 
 
 class TestSetupWizard(unittest.TestCase):

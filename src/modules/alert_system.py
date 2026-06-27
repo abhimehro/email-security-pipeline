@@ -17,12 +17,8 @@ from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 import requests
 
 from ..utils.colors import Colors
-from ..utils.sanitization import (
-    ANSI_ESCAPE_PATTERN,
-    _TRANSLATOR,
-    _WHITESPACE_TRANS,
-    sanitize_for_csv,
-)
+from ..utils.sanitization import (_TRANSLATOR, _WHITESPACE_TRANS,
+                                  ANSI_ESCAPE_PATTERN, sanitize_for_csv)
 from ..utils.security_validators import is_safe_webhook_url
 from .email_data import EmailData
 from .media_analyzer import MediaAnalysisResult

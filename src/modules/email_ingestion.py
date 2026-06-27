@@ -15,20 +15,16 @@ PATTERN RECOGNITION: This follows the Facade pattern - it provides a simple
 interface to a complex subsystem (IMAP + parsing + security).
 """
 
-from dataclasses import dataclass
-
 import imaplib
 import logging
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Tuple
 
 from ..utils.config import EmailAccountConfig
 from ..utils.sanitization import redact_email, sanitize_for_logging
-from ..utils.security_validators import (
-    calculate_max_email_size,
-    create_secure_ssl_context,
-)
-
+from ..utils.security_validators import (calculate_max_email_size,
+                                         create_secure_ssl_context)
 # Import from refactored modules
 from .email_data import EmailData
 from .email_parser import EmailParser

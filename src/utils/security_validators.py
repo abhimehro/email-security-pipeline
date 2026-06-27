@@ -13,7 +13,7 @@ import logging
 import re
 import socket
 import ssl
-from typing import Tuple, Any, List, Optional
+from typing import Any, List, Optional, Tuple
 from urllib.parse import urlparse
 
 # Security limits to prevent various attacks

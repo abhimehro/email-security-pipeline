@@ -249,7 +249,9 @@ def test_set_secure_permissions_oserror(mock_app_runner):
 @patch("builtins.input", return_value=" test_input ")
 @patch("sys.stdout.write")
 @patch("sys.stdout.flush")
-def test_styled_input_colors_enabled(mock_flush, mock_write, mock_input, mock_app_runner):
+def test_styled_input_colors_enabled(
+    mock_flush, mock_write, mock_input, mock_app_runner
+):
     result = mock_app_runner._styled_input("Prompt:")
 
     assert result == "test_input"
@@ -264,7 +266,9 @@ def test_styled_input_colors_enabled(mock_flush, mock_write, mock_input, mock_ap
 @patch("builtins.input", return_value=" test_input ")
 @patch("sys.stdout.write")
 @patch("sys.stdout.flush")
-def test_styled_input_colors_disabled(mock_flush, mock_write, mock_input, mock_app_runner):
+def test_styled_input_colors_disabled(
+    mock_flush, mock_write, mock_input, mock_app_runner
+):
     result = mock_app_runner._styled_input("Prompt:")
 
     assert result == "test_input"
@@ -293,7 +297,9 @@ def test_styled_input_eof_error(mock_print, mock_flush, mock_write, mock_app_run
 @patch("sys.stdout.write")
 @patch("sys.stdout.flush")
 @patch("builtins.print")
-def test_styled_input_keyboard_interrupt(mock_print, mock_flush, mock_write, mock_app_runner):
+def test_styled_input_keyboard_interrupt(
+    mock_print, mock_flush, mock_write, mock_app_runner
+):
     with patch("builtins.input", side_effect=KeyboardInterrupt):
         with pytest.raises(KeyboardInterrupt):
             mock_app_runner._styled_input("Prompt:")

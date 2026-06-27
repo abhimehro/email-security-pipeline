@@ -1,11 +1,11 @@
 import unittest
 from datetime import datetime
-from unittest.mock import MagicMock
 from email.message import Message
+from unittest.mock import MagicMock
 
 from src.modules.email_data import EmailData
-from src.modules.spam_analyzer import SpamAnalyzer
 from src.modules.nlp_analyzer import NLPThreatAnalyzer
+from src.modules.spam_analyzer import SpamAnalyzer
 from src.utils.config import AnalysisConfig
 
 

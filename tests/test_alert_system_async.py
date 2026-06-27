@@ -15,7 +15,7 @@ import threading
 import time
 import unittest
 from datetime import datetime
-from unittest.mock import MagicMock, patch, AsyncMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
 from src.modules.alert_system import AlertSystem, ThreatReport
 from src.utils.config import AlertConfig

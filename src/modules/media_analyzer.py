@@ -3,13 +3,13 @@ Layer 3: Media Authenticity Verification
 Analyzes attachments for synthetic content and deepfakes.
 """
 
+import concurrent.futures
 import io
 import logging
 import os
 import tarfile
 import tempfile
 import zipfile
-import concurrent.futures
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from typing import List, Optional, Tuple
