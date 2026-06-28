@@ -220,3 +220,7 @@
 ## 2025-06-25 - Enhance Input Validation Error Styling
 **Learning:** In interactive CLI wizards, single-line error messages without actionable remediation advice often leave users stuck, and unstyled instructions blend into the error text.
 **Action:** Always format input validation errors by separating the error description (styled in `Colors.RED` with a `✘` prefix) from the actionable remediation advice (styled in `Colors.YELLOW`). This improves clarity and guides the user toward successful input.
+
+## 2027-02-18 - Consolidate Loading State Text
+**Learning:** In CLI flows, printing a static status message (e.g., `print("Verifying...")`) followed immediately by instantiating a `Spinner` (e.g., `Spinner("Connecting...")`) for the actual async work creates visual stutter and terminal clutter. The user sees two similar messages back-to-back.
+**Action:** Avoid redundant loading messages by consolidating static print statements and immediate subsequent `Spinner` initializations into a single `Spinner` containing the most user-relevant descriptive text.
