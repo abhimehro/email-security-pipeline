@@ -20,8 +20,8 @@ from unittest.mock import MagicMock, patch
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src.modules.email_ingestion import EmailIngestionManager
-from src.utils.sanitization import sanitize_for_logging, redact_email
 from src.utils.config import EmailAccountConfig
+from src.utils.sanitization import redact_email, sanitize_for_logging
 
 
 def _make_account(email="user@example.com", enabled=True, folders=None):

@@ -18,6 +18,7 @@ import email
 import logging
 import mimetypes
 import uuid
+from dataclasses import dataclass
 from datetime import datetime
 from email.header import decode_header, make_header
 from email.message import Message
@@ -26,13 +27,9 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 
 from ..utils.config import EmailAccountConfig
 from ..utils.sanitization import sanitize_for_logging
-from ..utils.security_validators import (
-    MAX_MIME_PARTS,
-    MAX_SUBJECT_LENGTH,
-    sanitize_filename,
-)
+from ..utils.security_validators import (MAX_MIME_PARTS, MAX_SUBJECT_LENGTH,
+                                         sanitize_filename)
 from .email_data import EmailData
-from dataclasses import dataclass
 
 
 @dataclass

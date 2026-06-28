@@ -243,8 +243,8 @@ class TestAttachmentSizeLimits(unittest.TestCase):
         Very large attachments (e.g. 10MB) must be truncated correctly
         without crashing the parser when processing huge base64 chunks.
         """
-        import io
         import base64
+        import io
 
         large_size = 10 * 1024 * 1024
 

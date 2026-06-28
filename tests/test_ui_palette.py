@@ -144,9 +144,10 @@ class TestPaletteUI(TestCase):
                 self.assertIn("Error", writes)
 
     def test_main_print_configuration_summary_uses_colorize(self):
+        from io import StringIO
+
         from src.main import EmailSecurityPipeline
         from src.utils.config import Config
-        from io import StringIO
 
         # Create a mock config
         config = Config()

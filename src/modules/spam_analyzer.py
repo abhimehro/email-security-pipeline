@@ -5,13 +5,14 @@ Traditional spam scoring based on headers, content patterns, and URLs.
 
 import logging
 import re
+from collections import Counter
 from dataclasses import dataclass
 from typing import Dict, List, Tuple, Union
-from collections import Counter
 from urllib.parse import urlparse
 
 from ..utils.caching import TTLCache
-from ..utils.pattern_compiler import compile_named_group_pattern, compile_patterns
+from ..utils.pattern_compiler import (compile_named_group_pattern,
+                                      compile_patterns)
 from ..utils.threat_scoring import calculate_risk_level
 from .email_data import EmailData
 

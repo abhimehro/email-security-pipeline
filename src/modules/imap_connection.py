@@ -22,10 +22,8 @@ from typing import Any, Dict, List, Optional, Tuple
 from ..utils.config import EmailAccountConfig
 from ..utils.pattern_compiler import compile_patterns
 from ..utils.sanitization import redact_email, sanitize_for_logging
-from ..utils.security_validators import (
-    calculate_max_email_size,
-    create_secure_ssl_context,
-)
+from ..utils.security_validators import (calculate_max_email_size,
+                                         create_secure_ssl_context)
 
 logger = logging.getLogger(__name__)
 
