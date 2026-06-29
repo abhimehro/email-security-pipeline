@@ -323,58 +323,44 @@ OUTLOOK_APP_PASSWORD=password
             run_setup_wizard(config_file=".env", template_file=".env.example")
         )
 
-    def _setup_mock_dependencies(self):
-        patcher_exists = patch("pathlib.Path.exists", return_value=True)
-        patcher_input = patch("builtins.input")
-        patcher_getpass = patch("getpass.getpass")
-        patcher_imap_conn = patch("src.utils.setup_wizard.IMAPConnection")
-
-        patcher_exists.start()
-        mock_input = patcher_input.start()
-        mock_getpass = patcher_getpass.start()
-        mock_imap_conn = patcher_imap_conn.start()
-
-        self.addCleanup(patcher_exists.stop)
-        self.addCleanup(patcher_input.stop)
-        self.addCleanup(patcher_getpass.stop)
-        self.addCleanup(patcher_imap_conn.stop)
-
-        return mock_input, mock_getpass, mock_imap_conn
-
     def test_template_read_error(self):
-        mock_input, mock_getpass, mock_imap_conn = self._setup_mock_dependencies()
+        mocks = self._setup_full_mock_dependencies()
+        _, mock_read_file, _, _, _, _, mock_getpass, mock_input, mock_imap_conn = mocks
+
         mock_input.side_effect = ["1", "test@gmail.com", "y"]
         mock_getpass.return_value = "password"
         mock_imap_conn.return_value.connect.return_value = True
 
-        with patch("builtins.open", side_effect=Exception("Read error")):
+        mock_read_file.return_value.read.side_effect = Exception("Read error")
+        self.assertFalse(
+            run_setup_wizard(config_file=".env", template_file=".env.example")
+        )
+
+    def test_write_config_error(self):
+        mocks = self._setup_full_mock_dependencies()
+        _, _, _, _, _, _, mock_getpass, mock_input, mock_imap_conn = mocks
+
+        mock_input.side_effect = ["1", "test@gmail.com", "y"]
+        mock_getpass.return_value = "password"
+        mock_imap_conn.return_value.connect.return_value = True
+
+        with patch("src.utils.setup_wizard._write_config_file", return_value=False):
             self.assertFalse(
                 run_setup_wizard(config_file=".env", template_file=".env.example")
             )
 
-    def test_write_config_error(self):
-        mock_input, mock_getpass, mock_imap_conn = self._setup_mock_dependencies()
-        mock_input.side_effect = ["1", "test@gmail.com", "y"]
-        mock_getpass.return_value = "password"
-        mock_imap_conn.return_value.connect.return_value = True
-
-        with patch("builtins.open", mock_open(read_data="template")):
-            with patch("src.utils.setup_wizard._write_config_file", return_value=False):
-                self.assertFalse(
-                    run_setup_wizard(config_file=".env", template_file=".env.example")
-                )
-
     def test_skip_verification(self):
-        mock_input, mock_getpass, mock_imap_conn = self._setup_mock_dependencies()
+        mocks = self._setup_full_mock_dependencies()
+        _, _, _, _, _, _, mock_getpass, mock_input, mock_imap_conn = mocks
+
         mock_input.side_effect = ["1", "test@gmail.com", "n"]
         mock_getpass.return_value = "password"
         mock_imap_conn.return_value.connect.return_value = False
 
-        with patch("builtins.open", mock_open(read_data="template")):
-            with patch("src.utils.setup_wizard._write_config_file", return_value=True):
-                self.assertTrue(
-                    run_setup_wizard(config_file=".env", template_file=".env.example")
-                )
+        with patch("src.utils.setup_wizard._write_config_file", return_value=True):
+            self.assertTrue(
+                run_setup_wizard(config_file=".env", template_file=".env.example")
+            )
 
 
 if __name__ == "__main__":
