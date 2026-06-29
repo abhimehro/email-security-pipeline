@@ -215,6 +215,18 @@ class MediaAuthenticityAnalyzer:
         # Optimization: Reuse thread pool for deepfake detection to avoid overhead
         self._deepfake_executor = ThreadPoolExecutor()
 
+    def _is_path_traversal_attempt(self, path: str) -> bool:
+        normalized_path = path.replace("\\", "/")
+        return (
+            normalized_path.startswith("/")
+            or ".." in normalized_path
+            or (
+                len(normalized_path) >= 2
+                and normalized_path[1] == ":"
+                and normalized_path[0].isalpha()
+            )
+        )
+
     def analyze(self, email_data: EmailData) -> MediaAnalysisResult:
         """
         Analyze email attachments for threats.
@@ -654,16 +666,7 @@ class MediaAuthenticityAnalyzer:
     ) -> Tuple[float, List[str]]:
         score = 0.0
         warnings = []
-        normalized_contained_file = contained_file.replace("\\", "/")
-        if (
-            normalized_contained_file.startswith("/")
-            or ".." in normalized_contained_file
-            or (
-                len(normalized_contained_file) >= 2
-                and normalized_contained_file[1] == ":"
-                and normalized_contained_file[0].isalpha()
-            )
-        ):
+        if self._is_path_traversal_attempt(contained_file):
             score += 5.0
             safe_contained_file = sanitize_for_logging(
                 sanitize_filename(contained_file)
@@ -846,16 +849,7 @@ class MediaAuthenticityAnalyzer:
                         continue
 
                     # THEN check for path traversal attempts
-                    normalized_member_name = member.name.replace("\\", "/")
-                    if (
-                        normalized_member_name.startswith("/")
-                        or ".." in normalized_member_name
-                        or (
-                            len(normalized_member_name) >= 2
-                            and normalized_member_name[1] == ":"
-                            and normalized_member_name[0].isalpha()
-                        )
-                    ):
+                    if self._is_path_traversal_attempt(member.name):
                         score += 5.0
                         safe_member_name = sanitize_for_logging(
                             sanitize_filename(member.name)
