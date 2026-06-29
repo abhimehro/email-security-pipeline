@@ -631,8 +631,8 @@ class MediaAuthenticityAnalyzer:
                     if score >= 5.0:
                         return score, warnings
 
-        except zipfile.BadZipFile:
-            pass
+        except zipfile.BadZipFile as e:
+            self.logger.warning(f"Bad zip file {filename}: {e}")
         except Exception as e:
             self.logger.warning(f"Error inspecting zip {filename}: {e}")
 
