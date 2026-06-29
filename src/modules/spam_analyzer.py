@@ -11,8 +11,7 @@ from typing import Dict, List, Tuple, Union
 from urllib.parse import urlparse
 
 from ..utils.caching import TTLCache
-from ..utils.pattern_compiler import (compile_named_group_pattern,
-                                      compile_patterns)
+from ..utils.pattern_compiler import compile_named_group_pattern, compile_patterns
 from ..utils.threat_scoring import calculate_risk_level
 from .email_data import EmailData
 
@@ -84,7 +83,7 @@ class SpamAnalyzer:
 
     # Master pattern with named groups for per-keyword attribution
     MASTER_SPAM_PATTERN, MASTER_SPAM_MAP = compile_named_group_pattern(
-        SPAM_KEYWORDS, re.I, "spam_kw"
+        [kw.lower() for kw in SPAM_KEYWORDS], 0, "spam_kw"
     )
 
     # Simple combined pattern (no named groups) for fast detection/counting
