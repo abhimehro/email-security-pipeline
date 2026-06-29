@@ -27,8 +27,11 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 
 from ..utils.config import EmailAccountConfig
 from ..utils.sanitization import sanitize_for_logging
-from ..utils.security_validators import (MAX_MIME_PARTS, MAX_SUBJECT_LENGTH,
-                                         sanitize_filename)
+from ..utils.security_validators import (
+    MAX_MIME_PARTS,
+    MAX_SUBJECT_LENGTH,
+    sanitize_filename,
+)
 from .email_data import EmailData
 
 
