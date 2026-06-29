@@ -17,22 +17,15 @@ class TestArchivePathTraversal(unittest.TestCase):
         self.config.media_analysis_timeout = 60
         self.analyzer = MediaAuthenticityAnalyzer(self.config)
 
-    def _create_archive_and_analyze(self, archive_type: str, member_name: str, content: bytes = b"MZ"):
-        archive_buffer = io.BytesIO()
-        if archive_type == "zip":
-            with zipfile.ZipFile(archive_buffer, "w") as zf:
-                zf.writestr(member_name, content)
-        elif archive_type == "tar":
-            with tarfile.open(fileobj=archive_buffer, mode="w") as tf:
-                info = tarfile.TarInfo(name=member_name)
-                info.size = len(content)
-                tf.addfile(info, io.BytesIO(content))
-
-        archive_data = archive_buffer.getvalue()
-
-        content_type = "application/zip" if archive_type == "zip" else "application/x-tar"
-        filename = f"test.{archive_type}"
-
+    def _run_analyzer_on_archive(
+        self, archive_name: str, content_type: str, archive_data: bytes
+    ):
+        attachment = {
+            "filename": archive_name,
+            "content_type": content_type,
+            "size": len(archive_data),
+            "data": archive_data,
+        }
         email_data = EmailData(
             message_id="123",
             subject="Test",
@@ -42,56 +35,107 @@ class TestArchivePathTraversal(unittest.TestCase):
             body_text="",
             body_html="",
             headers={},
-            attachments=[{
-                "filename": filename,
-                "content_type": content_type,
-                "size": len(archive_data),
-                "data": archive_data,
-            }],
+            attachments=[attachment],
             raw_email=None,
             account_email="",
             folder="",
         )
-        return self.analyzer.analyze(email_data), filename
-
-    def _check_sanitization_warning(self, result, filename, disallowed_chars=None, disallowed_after=None):
-        prefix = f"Archive {filename} contains dangerous file:"
-        matching_warnings = [w for w in result.suspicious_attachments if prefix in w]
-        self.assertTrue(len(matching_warnings) > 0, "Expected to find a warning about the dangerous file")
-
-        warning = matching_warnings[0]
-        disallowed_chars = disallowed_chars or []
-        for char in disallowed_chars:
-            self.assertNotIn(char, warning)
-
-        disallowed_after = disallowed_after or []
-        if disallowed_after:
-            after_part = warning.split("dangerous file: ")[1]
-            for char in disallowed_after:
-                self.assertNotIn(char, after_part)
+        return self.analyzer.analyze(email_data)
 
     def test_zip_path_traversal_sanitization(self):
         """Test that malicious path components in zip member names are sanitized in warnings."""
-        result, filename = self._create_archive_and_analyze("zip", "../../etc/passwd/malicious.exe")
+
+        # Create a zip file in memory containing a malicious filename
+        zip_buffer = io.BytesIO()
+        with zipfile.ZipFile(zip_buffer, "w") as zf:
+            # Dangerous extension so it generates a warning
+            malicious_name = "../../etc/passwd/malicious.exe"
+            zf.writestr(malicious_name, b"MZ")  # Fake exe header
+
+        zip_data = zip_buffer.getvalue()
+
+        result = self._run_analyzer_on_archive("test.zip", "application/zip", zip_data)
+
+        # Check warnings
         self.assertTrue(result.threat_score >= 5.0)
-        self._check_sanitization_warning(result, filename, disallowed_chars=["../"], disallowed_after=["/"])
+        found_warning = False
+        for warning in result.suspicious_attachments:
+            if "Archive test.zip contains dangerous file:" in warning:
+                # The filename should be sanitized (e.g., etcpasswdmalicious.exe)
+                # It should absolutely NOT contain ../ or /
+                self.assertNotIn("../", warning)
+                self.assertNotIn("/", warning.split("dangerous file: ")[1])
+                found_warning = True
+
+        self.assertTrue(
+            found_warning, "Expected to find a warning about the dangerous file"
+        )
 
     def test_tar_path_traversal_sanitization(self):
         """Test that malicious path components in tar member names are sanitized in warnings."""
-        result, filename = self._create_archive_and_analyze("tar", "../../etc/shadow/virus.exe")
+
+        # Create a tar file in memory
+        tar_buffer = io.BytesIO()
+        with tarfile.open(fileobj=tar_buffer, mode="w") as tf:
+            malicious_name = "../../etc/shadow/virus.exe"
+            content = b"MZ"
+            info = tarfile.TarInfo(name=malicious_name)
+            info.size = len(content)
+            tf.addfile(info, io.BytesIO(content))
+
+        tar_data = tar_buffer.getvalue()
+
+        result = self._run_analyzer_on_archive(
+            "test.tar", "application/x-tar", tar_data
+        )
+
+        # Check warnings
         self.assertTrue(result.threat_score >= 5.0)
-        self._check_sanitization_warning(result, filename, disallowed_chars=["../", "\n"])
+        found_warning = False
+        for warning in result.suspicious_attachments:
+            if "Archive test.tar contains dangerous file:" in warning:
+                self.assertNotIn("../", warning)
+                self.assertNotIn("\n", warning)
+                found_warning = True
+
+        self.assertTrue(
+            found_warning, "Expected to find a warning about the dangerous file"
+        )
 
     def test_tar_backward_slash_absolute(self):
-        result, _ = self._create_archive_and_analyze("tar", "\\etc\\shadow")
+        tar_buffer = io.BytesIO()
+        with tarfile.open(fileobj=tar_buffer, mode="w") as tf:
+            malicious_name = "\\etc\\shadow"
+            content = b"MZ"
+            info = tarfile.TarInfo(name=malicious_name)
+            info.size = len(content)
+            tf.addfile(info, io.BytesIO(content))
+
+        result = self._run_analyzer_on_archive(
+            "test.tar", "application/x-tar", tar_buffer.getvalue()
+        )
         self.assertTrue(result.threat_score >= 5.0)
 
     def test_zip_backward_slash_absolute(self):
-        result, _ = self._create_archive_and_analyze("zip", "\\etc\\shadow")
+        zip_buffer = io.BytesIO()
+        with zipfile.ZipFile(zip_buffer, "w") as zf:
+            malicious_name = "\\etc\\shadow"
+            zf.writestr(malicious_name, b"MZ")
+
+        result = self._run_analyzer_on_archive(
+            "test.zip", "application/zip", zip_buffer.getvalue()
+        )
         self.assertTrue(result.threat_score >= 5.0)
 
     def test_zip_windows_drive(self):
-        result, _ = self._create_archive_and_analyze("zip", "C:/Windows/System32/cmd.exe")
+        zip_buffer = io.BytesIO()
+        with zipfile.ZipFile(zip_buffer, "w") as zf:
+            malicious_name = "C:/Windows/System32/cmd.exe"
+            zf.writestr(malicious_name, b"MZ")
+
+        result = self._run_analyzer_on_archive(
+            "test.zip", "application/zip", zip_buffer.getvalue()
+        )
         self.assertTrue(result.threat_score >= 5.0)
 
 
