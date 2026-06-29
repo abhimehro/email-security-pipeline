@@ -21,27 +21,24 @@ class TestJSONFormatter(unittest.TestCase):
         """Set up test fixtures."""
         self.formatter = JSONFormatter()
 
-    def _create_record(
-        self,
-        level=logging.INFO,
-        msg="Test message",
-        args=(),
-        exc_info=None,
-        func="test_function",
-        **kwargs
-    ):
-        record = logging.LogRecord(
-            name="test_logger",
-            level=level,
-            pathname="test.py",
-            lineno=42,
-            msg=msg,
-            args=args,
-            exc_info=exc_info,
-            func=func,
-        )
+    def _create_record(self, **kwargs):
+        defaults = {
+            "name": "test_logger",
+            "level": logging.INFO,
+            "pathname": "test.py",
+            "lineno": 42,
+            "msg": "Test message",
+            "args": (),
+            "exc_info": None,
+            "func": "test_function",
+        }
+        defaults.update(kwargs)
+        record = logging.LogRecord(**defaults)
+
+        # apply any extra keys that LogRecord.__init__ didn't use but are in kwargs (e.g. created)
         for k, v in kwargs.items():
-            setattr(record, k, v)
+            if k not in defaults or k == "created":
+                setattr(record, k, v)
         return record
 
     def test_basic_json_format(self):
