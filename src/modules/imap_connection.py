@@ -12,6 +12,7 @@ SECURITY STORY: IMAP connections are security-critical because:
 """
 
 import imaplib
+import re
 import logging
 import socket
 import ssl
@@ -26,6 +27,8 @@ from ..utils.security_validators import (
     calculate_max_email_size,
     create_secure_ssl_context,
 )
+
+_SIZE_PATTERN = re.compile(r"RFC822\.SIZE\s+(\d+)")
 
 logger = logging.getLogger(__name__)
 
@@ -388,7 +391,8 @@ class IMAPConnection:
             # SECURITY: Use 'replace' to maintain visibility of encoding issues
             content = info.decode("ascii", errors="replace")
 
-            if "RFC822.SIZE" not in content:
+            match = _SIZE_PATTERN.search(content)
+            if not match:
                 return None
 
             # Extract sequence number
@@ -396,10 +400,7 @@ class IMAPConnection:
             seq = parts[0]
 
             # Extract size
-            size_idx = content.find("RFC822.SIZE") + 11
-            remaining = content[size_idx:].strip()
-            size_str = remaining.split(")")[0].strip()
-            size = int(size_str)
+            size = int(match.group(1))
 
             return seq, size
 
