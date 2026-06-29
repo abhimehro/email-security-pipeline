@@ -292,32 +292,41 @@ class Config:
                 errors.append(f"Invalid IMAP port for {account.provider} account")
         return errors
 
+    def _validate_webhook_config(self, errors: List[str]) -> None:
+        """Validate generic webhook configurations."""
+        if not self.alerts.webhook_enabled:
+            return
+        if not self.alerts.webhook_url:
+            errors.append("Webhook enabled but no URL provided")
+        elif not self._is_https_url(self.alerts.webhook_url):
+            errors.append("Webhook URL must use HTTPS")
+        else:
+            is_safe, err_msg = is_safe_webhook_url(self.alerts.webhook_url)
+            if not is_safe:
+                errors.append(f"Webhook URL SSRF check failed: {err_msg}")
+
+    def _validate_slack_webhook_config(self, errors: List[str]) -> None:
+        """Validate Slack webhook configurations."""
+        if not self.alerts.slack_enabled:
+            return
+        if not self.alerts.slack_webhook:
+            errors.append("Slack alerts enabled but no webhook URL provided")
+        elif not self._is_https_url(self.alerts.slack_webhook):
+            errors.append("Slack webhook URL must use HTTPS")
+        elif (
+            (urlparse(self.alerts.slack_webhook).hostname or "").lower() != "hooks.slack.com"
+        ):
+            errors.append("Slack webhook URL must be a valid Slack hooks endpoint")
+        else:
+            is_safe, err_msg = is_safe_webhook_url(self.alerts.slack_webhook)
+            if not is_safe:
+                errors.append(f"Slack webhook URL SSRF check failed: {err_msg}")
+
     def _validate_alerts(self) -> List[str]:
         """Validate alert configurations."""
         errors = []
-        if self.alerts.webhook_enabled:
-            if not self.alerts.webhook_url:
-                errors.append("Webhook enabled but no URL provided")
-            elif not self._is_https_url(self.alerts.webhook_url):
-                errors.append("Webhook URL must use HTTPS")
-            else:
-                is_safe, err_msg = is_safe_webhook_url(self.alerts.webhook_url)
-                if not is_safe:
-                    errors.append(f"Webhook URL SSRF check failed: {err_msg}")
-
-        if self.alerts.slack_enabled:
-            if not self.alerts.slack_webhook:
-                errors.append("Slack alerts enabled but no webhook URL provided")
-            elif not self._is_https_url(self.alerts.slack_webhook):
-                errors.append("Slack webhook URL must use HTTPS")
-            elif (
-                (urlparse(self.alerts.slack_webhook).hostname or "").lower() != "hooks.slack.com"
-            ):
-                errors.append("Slack webhook URL must be a valid Slack hooks endpoint")
-            else:
-                is_safe, err_msg = is_safe_webhook_url(self.alerts.slack_webhook)
-                if not is_safe:
-                    errors.append(f"Slack webhook URL SSRF check failed: {err_msg}")
+        self._validate_webhook_config(errors)
+        self._validate_slack_webhook_config(errors)
 
         if not (
             self.alerts.threat_low < self.alerts.threat_medium < self.alerts.threat_high
