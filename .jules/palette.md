@@ -224,3 +224,6 @@
 ## 2027-02-18 - Consolidate Loading State Text
 **Learning:** In CLI flows, printing a static status message (e.g., `print("Verifying...")`) followed immediately by instantiating a `Spinner` (e.g., `Spinner("Connecting...")`) for the actual async work creates visual stutter and terminal clutter. The user sees two similar messages back-to-back.
 **Action:** Avoid redundant loading messages by consolidating static print statements and immediate subsequent `Spinner` initializations into a single `Spinner` containing the most user-relevant descriptive text.
+## 2027-02-18 - Actionable Error Paths UX Consistency
+**Learning:** Consistently providing actionable instructions across all error/fallback paths, not just non-interactive ones, significantly improves user experience. In CLI tools, omitting these instructions in certain failure branches forces users to guess the next steps. Using consistent visual hierarchy (e.g. `✘` for errors, `Colors.CYAN` for commands) reduces cognitive load.
+**Action:** When auditing CLI fallback flows, extract the remediation output logic into reusable helpers to guarantee that whether a user skips a wizard, encounters a file write error, or runs non-interactively, they always receive the exact same visually-distinct actionable command (like `cp .env.example .env`). Ensure consistent `✘` prefixes on critical file operation errors.
