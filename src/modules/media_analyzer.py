@@ -654,7 +654,15 @@ class MediaAuthenticityAnalyzer:
     ) -> Tuple[float, List[str]]:
         score = 0.0
         warnings = []
-        if contained_file.startswith("/") or ".." in contained_file:
+        if (
+            contained_file.startswith(("/", "\\"))
+            or ".." in contained_file
+            or (
+                len(contained_file) >= 2
+                and contained_file[0].isalpha()
+                and contained_file[1] == ":"
+            )
+        ):
             score += 5.0
             safe_contained_file = sanitize_for_logging(
                 sanitize_filename(contained_file)
@@ -837,7 +845,15 @@ class MediaAuthenticityAnalyzer:
                         continue
 
                     # THEN check for path traversal attempts
-                    if member.name.startswith("/") or ".." in member.name:
+                    if (
+                        member.name.startswith(("/", "\\"))
+                        or ".." in member.name
+                        or (
+                            len(member.name) >= 2
+                            and member.name[0].isalpha()
+                            and member.name[1] == ":"
+                        )
+                    ):
                         score += 5.0
                         safe_member_name = sanitize_for_logging(
                             sanitize_filename(member.name)

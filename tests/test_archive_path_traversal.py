@@ -121,6 +121,99 @@ class TestArchivePathTraversal(unittest.TestCase):
             found_warning, "Expected to find a warning about the dangerous file"
         )
 
+    def test_tar_backward_slash_absolute(self):
+        tar_buffer = io.BytesIO()
+        with tarfile.open(fileobj=tar_buffer, mode="w") as tf:
+            malicious_name = "\\etc\\shadow"
+            content = b"MZ"
+            info = tarfile.TarInfo(name=malicious_name)
+            info.size = len(content)
+            tf.addfile(info, io.BytesIO(content))
+
+        email_data = EmailData(
+            message_id="123",
+            subject="Test",
+            sender="test@test.com",
+            recipient="test@test.com",
+            date="2023-01-01",
+            body_text="",
+            body_html="",
+            headers={},
+            attachments=[
+                {
+                    "filename": "test.tar",
+                    "content_type": "application/x-tar",
+                    "size": len(tar_buffer.getvalue()),
+                    "data": tar_buffer.getvalue(),
+                }
+            ],
+            raw_email=None,
+            account_email="",
+            folder="",
+        )
+        result = self.analyzer.analyze(email_data)
+        self.assertTrue(result.threat_score >= 5.0)
+
+    def test_zip_backward_slash_absolute(self):
+        zip_buffer = io.BytesIO()
+        with zipfile.ZipFile(zip_buffer, "w") as zf:
+            malicious_name = "\\etc\\shadow"
+            zf.writestr(malicious_name, b"MZ")
+
+        email_data = EmailData(
+            message_id="123",
+            subject="Test",
+            sender="test@test.com",
+            recipient="test@test.com",
+            date="2023-01-01",
+            body_text="",
+            body_html="",
+            headers={},
+            attachments=[
+                {
+                    "filename": "test.zip",
+                    "content_type": "application/zip",
+                    "size": len(zip_buffer.getvalue()),
+                    "data": zip_buffer.getvalue(),
+                }
+            ],
+            raw_email=None,
+            account_email="",
+            folder="",
+        )
+        result = self.analyzer.analyze(email_data)
+        self.assertTrue(result.threat_score >= 5.0)
+
+    def test_zip_windows_drive(self):
+        zip_buffer = io.BytesIO()
+        with zipfile.ZipFile(zip_buffer, "w") as zf:
+            malicious_name = "C:/Windows/System32/cmd.exe"
+            zf.writestr(malicious_name, b"MZ")
+
+        email_data = EmailData(
+            message_id="123",
+            subject="Test",
+            sender="test@test.com",
+            recipient="test@test.com",
+            date="2023-01-01",
+            body_text="",
+            body_html="",
+            headers={},
+            attachments=[
+                {
+                    "filename": "test.zip",
+                    "content_type": "application/zip",
+                    "size": len(zip_buffer.getvalue()),
+                    "data": zip_buffer.getvalue(),
+                }
+            ],
+            raw_email=None,
+            account_email="",
+            folder="",
+        )
+        result = self.analyzer.analyze(email_data)
+        self.assertTrue(result.threat_score >= 5.0)
+
 
 if __name__ == "__main__":
     unittest.main()
