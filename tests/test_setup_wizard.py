@@ -409,15 +409,31 @@ OUTLOOK_APP_PASSWORD=password
             run_setup_wizard(config_file=".env", template_file=".env.example")
         )
 
-    @patch("src.utils.setup_wizard.IMAPConnection")
-    @patch("builtins.input")
-    @patch("getpass.getpass")
-    @patch("pathlib.Path.exists")
-    def test_template_read_error(
-        self, mock_exists, mock_getpass, mock_input, mock_imap_conn
-    ):
-        mock_exists.return_value = True
-        mock_input.side_effect = ["1", "test@gmail.com"]
+    def _setup_mock_dependencies(self):
+        # A common setup helper to avoid repeating decorators across multiple tests
+        patcher_exists = patch("pathlib.Path.exists", return_value=True)
+        patcher_input = patch("builtins.input")
+        patcher_getpass = patch("getpass.getpass")
+        patcher_imap_conn = patch("src.utils.setup_wizard.IMAPConnection")
+
+        mock_exists = patcher_exists.start()
+        mock_input = patcher_input.start()
+        mock_getpass = patcher_getpass.start()
+        mock_imap_conn = patcher_imap_conn.start()
+
+        self.addCleanup(patcher_exists.stop)
+        self.addCleanup(patcher_input.stop)
+        self.addCleanup(patcher_getpass.stop)
+        self.addCleanup(patcher_imap_conn.stop)
+
+        return mock_input, mock_getpass, mock_imap_conn
+
+    def test_template_read_error(self):
+        mock_input, mock_getpass, mock_imap_conn = self._setup_mock_dependencies()
+        # The password is provided by getpass, not input.
+        # For get_credentials, input is called for choice (1), then email.
+        # Then getpass is called for password.
+        mock_input.side_effect = ["1", "test@gmail.com", "y"]
         mock_getpass.return_value = "password"
         mock_imap_conn.return_value.connect.return_value = True
 
@@ -426,15 +442,9 @@ OUTLOOK_APP_PASSWORD=password
                 run_setup_wizard(config_file=".env", template_file=".env.example")
             )
 
-    @patch("src.utils.setup_wizard.IMAPConnection")
-    @patch("builtins.input")
-    @patch("getpass.getpass")
-    @patch("pathlib.Path.exists")
-    def test_write_config_error(
-        self, mock_exists, mock_getpass, mock_input, mock_imap_conn
-    ):
-        mock_exists.return_value = True
-        mock_input.side_effect = ["1", "test@gmail.com"]
+    def test_write_config_error(self):
+        mock_input, mock_getpass, mock_imap_conn = self._setup_mock_dependencies()
+        mock_input.side_effect = ["1", "test@gmail.com", "y"]
         mock_getpass.return_value = "password"
         mock_imap_conn.return_value.connect.return_value = True
 
@@ -444,14 +454,8 @@ OUTLOOK_APP_PASSWORD=password
                     run_setup_wizard(config_file=".env", template_file=".env.example")
                 )
 
-    @patch("src.utils.setup_wizard.IMAPConnection")
-    @patch("builtins.input")
-    @patch("getpass.getpass")
-    @patch("pathlib.Path.exists")
-    def test_skip_verification(
-        self, mock_exists, mock_getpass, mock_input, mock_imap_conn
-    ):
-        mock_exists.return_value = True
+    def test_skip_verification(self):
+        mock_input, mock_getpass, mock_imap_conn = self._setup_mock_dependencies()
         mock_input.side_effect = ["1", "test@gmail.com", "n"]
         mock_getpass.return_value = "password"
         mock_imap_conn.return_value.connect.return_value = False
