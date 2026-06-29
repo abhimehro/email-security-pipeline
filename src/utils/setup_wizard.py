@@ -80,7 +80,7 @@ def _test_connection(email: str, app_password: str, provider_choice: str) -> boo
     if not (EmailAccountConfig and IMAPConnection and Spinner):
         return True  # Cannot verify, assume valid to proceed
 
-    print("\n" + Colors.colorize("Verifying credentials...", Colors.CYAN))
+    print()  # Add visual spacing before verification
 
     # Defaults based on provider
     if provider_choice == "1":  # Gmail
@@ -114,7 +114,7 @@ def _test_connection(email: str, app_password: str, provider_choice: str) -> boo
 
     try:
         success = False
-        with Spinner("Connecting to IMAP server...") as spinner:
+        with Spinner("Verifying credentials...") as spinner:
             # Suppress logging during check to avoid clutter
             import logging
 
