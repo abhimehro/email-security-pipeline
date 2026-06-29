@@ -274,6 +274,40 @@ class TestJSONFormatter(unittest.TestCase):
         # but we can check it matches the format "YYYY-MM-DD"
         self.assertRegex(data["timestamp"], r"^\d{4}-\d{2}-\d{2}$")
 
+    def test_empty_message_and_args(self):
+        """Test formatting with an empty message and no args."""
+        record = logging.LogRecord(
+            name="test_logger",
+            level=logging.INFO,
+            pathname="test.py",
+            lineno=42,
+            msg="",
+            args=(),
+            exc_info=None,
+        )
+
+        result = self.formatter.format(record)
+        data = json.loads(result)
+        self.assertEqual(data["message"], "")
+
+    def test_malformed_extra_fields(self):
+        """Test formatting with non-string keys in extra_fields."""
+        record = logging.LogRecord(
+            name="test_logger",
+            level=logging.INFO,
+            pathname="test.py",
+            lineno=42,
+            msg="Testing malformed extra fields",
+            args=(),
+            exc_info=None,
+        )
+        record.extra_fields = {123: "numeric key", None: "none key"}
+
+        result = self.formatter.format(record)
+        data = json.loads(result)
+        self.assertEqual(data["123"], "numeric key")
+        self.assertEqual(data["null"], "none key")
+
 
 if __name__ == "__main__":
     unittest.main()
