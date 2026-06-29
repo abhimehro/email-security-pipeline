@@ -649,18 +649,22 @@ class MediaAuthenticityAnalyzer:
             )
         return score, warnings
 
+    def _is_path_traversal(self, path: str) -> bool:
+        """Check if a path attempts path traversal."""
+        normalized_path = path.replace("\\", "/")
+        is_absolute = normalized_path.startswith("/") or (
+            len(normalized_path) >= 2
+            and normalized_path[0].isalpha()
+            and normalized_path[1] == ":"
+        )
+        return is_absolute or ".." in normalized_path
+
     def _inspect_zip_member_and_check_traversal(
         self, zf: zipfile.ZipFile, contained_file: str, filename: str, depth: int
     ) -> Tuple[float, List[str]]:
         score = 0.0
         warnings = []
-        normalized_file = contained_file.replace("\\", "/")
-        is_absolute = normalized_file.startswith("/") or (
-            len(normalized_file) >= 2
-            and normalized_file[0].isalpha()
-            and normalized_file[1] == ":"
-        )
-        if is_absolute or ".." in normalized_file:
+        if self._is_path_traversal(contained_file):
             score += 5.0
             safe_contained_file = sanitize_for_logging(
                 sanitize_filename(contained_file)
@@ -843,13 +847,7 @@ class MediaAuthenticityAnalyzer:
                         continue
 
                     # THEN check for path traversal attempts
-                    normalized_name = member.name.replace("\\", "/")
-                    is_absolute = normalized_name.startswith("/") or (
-                        len(normalized_name) >= 2
-                        and normalized_name[0].isalpha()
-                        and normalized_name[1] == ":"
-                    )
-                    if is_absolute or ".." in normalized_name:
+                    if self._is_path_traversal(member.name):
                         score += 5.0
                         safe_member_name = sanitize_for_logging(
                             sanitize_filename(member.name)
