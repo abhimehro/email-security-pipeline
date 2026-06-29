@@ -2,8 +2,11 @@ import os
 import unittest
 from unittest.mock import MagicMock, mock_open, patch
 
-from src.utils.setup_wizard import (_generate_config_content, _is_valid_email,
-                                    run_setup_wizard)
+from src.utils.setup_wizard import (
+    _generate_config_content,
+    _is_valid_email,
+    run_setup_wizard,
+)
 
 
 class TestSetupWizard(unittest.TestCase):
@@ -387,6 +390,111 @@ OUTLOOK_APP_PASSWORD=password
         self.assertTrue(
             found_tip, "Outlook specific troubleshooting tip not printed on exception."
         )
+
+    @patch("builtins.input")
+    @patch("pathlib.Path.exists")
+    def test_keyboard_interrupt(self, mock_exists, mock_input):
+        mock_exists.return_value = True
+        mock_input.side_effect = KeyboardInterrupt()
+        result = run_setup_wizard(config_file=".env", template_file=".env.example")
+        self.assertFalse(result)
+
+    @patch("builtins.input")
+    @patch("pathlib.Path.exists")
+    def test_eof_error(self, mock_exists, mock_input):
+        mock_exists.return_value = True
+        mock_input.side_effect = ["1", EOFError()]
+        result = run_setup_wizard(config_file=".env", template_file=".env.example")
+        self.assertFalse(result)
+
+    @patch("builtins.open")
+    @patch("builtins.input")
+    @patch("getpass.getpass")
+    @patch("pathlib.Path.exists")
+    @patch("src.utils.setup_wizard.IMAPConnection")
+    def test_template_read_error(
+        self, mock_imap_conn, mock_exists, mock_getpass, mock_input, mock_open_func
+    ):
+        mock_exists.return_value = True
+        mock_input.side_effect = ["1", "test@gmail.com"]
+        mock_getpass.return_value = "password"
+        mock_conn_instance = mock_imap_conn.return_value
+        mock_conn_instance.connect.return_value = True
+        mock_open_func.side_effect = Exception("Read error")
+        result = run_setup_wizard(config_file=".env", template_file=".env.example")
+        self.assertFalse(result)
+
+    @patch("src.utils.setup_wizard._write_config_file")
+    @patch("builtins.open", new_callable=mock_open, read_data="template")
+    @patch("builtins.input")
+    @patch("getpass.getpass")
+    @patch("pathlib.Path.exists")
+    @patch("src.utils.setup_wizard.IMAPConnection")
+    def test_write_config_error(
+        self,
+        mock_imap_conn,
+        mock_exists,
+        mock_getpass,
+        mock_input,
+        mock_open_func,
+        mock_write,
+    ):
+        mock_exists.return_value = True
+        mock_input.side_effect = ["1", "test@gmail.com"]
+        mock_getpass.return_value = "password"
+        mock_conn_instance = mock_imap_conn.return_value
+        mock_conn_instance.connect.return_value = True
+        mock_write.return_value = False
+        result = run_setup_wizard(config_file=".env", template_file=".env.example")
+        self.assertFalse(result)
+
+    @patch("src.utils.setup_wizard._write_config_file")
+    @patch("builtins.open", new_callable=mock_open, read_data="template")
+    @patch("builtins.input")
+    @patch("getpass.getpass")
+    @patch("pathlib.Path.exists")
+    @patch("src.utils.setup_wizard.IMAPConnection")
+    def test_skip_verification(
+        self,
+        mock_imap_conn,
+        mock_exists,
+        mock_getpass,
+        mock_input,
+        mock_open_func,
+        mock_write,
+    ):
+        mock_exists.return_value = True
+        mock_input.side_effect = ["1", "test@gmail.com", "n"]
+        mock_getpass.return_value = "password"
+        mock_conn_instance = mock_imap_conn.return_value
+        mock_conn_instance.connect.return_value = False
+        mock_write.return_value = True
+        result = run_setup_wizard(config_file=".env", template_file=".env.example")
+        self.assertTrue(result)
+
+    @patch("src.utils.setup_wizard._write_config_file")
+    @patch("builtins.open", new_callable=mock_open, read_data="template")
+    @patch("builtins.input")
+    @patch("getpass.getpass")
+    @patch("pathlib.Path.exists")
+    @patch("src.utils.setup_wizard.IMAPConnection")
+    def test_missing_credentials(
+        self,
+        mock_imap_conn,
+        mock_exists,
+        mock_getpass,
+        mock_input,
+        mock_open_func,
+        mock_write,
+    ):
+        mock_exists.return_value = True
+        mock_input.side_effect = ["1", EOFError()]
+        mock_getpass.return_value = "password"
+        mock_conn_instance = mock_imap_conn.return_value
+        mock_conn_instance.connect.return_value = False
+        mock_write.return_value = True
+        result = run_setup_wizard(config_file=".env", template_file=".env.example")
+        self.assertFalse(result)
 
 
 if __name__ == "__main__":
