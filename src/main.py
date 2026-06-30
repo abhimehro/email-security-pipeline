@@ -217,17 +217,13 @@ class EmailSecurityPipeline:
             spinner.success("Pipeline stopped gracefully")
         self.logger.info("Pipeline stopped")
 
-    def _monitoring_loop(self):
-        """Main monitoring loop."""
-        iteration = 0
-
-        while self.running:
-            iteration += 1
-            self._run_monitoring_cycle(iteration)
-
-    def _fetch_and_analyze_emails(self):
-        """Fetch and analyze emails."""
-        emails = self._fetch_emails_with_spinner()
+    def _fetch_and_analyze_emails(self) -> int:
+        with Spinner("Checking for new emails...", persist=False) as spinner:
+            emails = self.ingestion_manager.fetch_all_emails(
+                self.config.system.max_emails_per_batch
+            )
+            if emails:
+                spinner.success(f"Found {len(emails)} new emails")
 
         if not emails:
             self.logger.info("No new emails to analyze")
@@ -235,47 +231,41 @@ class EmailSecurityPipeline:
             self.logger.info(f"Analyzing {len(emails)} emails")
             total_emails = len(emails)
             for i, email_data in enumerate(emails, 1):
-                self._analyze_email(
-                    email_data, log_prefix=f"[{i}/{total_emails}] "
-                )
+                self._analyze_email(email_data, log_prefix=f"[{i}/{total_emails}] ")
 
-    def _run_monitoring_cycle(self, iteration: int):
-        """Run a single monitoring cycle."""
-        self.logger.info(f"=== Monitoring Cycle {iteration} ===")
+        return len(emails)
 
-        try:
-            self._fetch_and_analyze_emails()
+    def _monitoring_loop(self):
+        """Main monitoring loop."""
+        iteration = 0
 
-            # Log metrics summary periodically (every 10 iterations)
-            if self.metrics and iteration % 10 == 0:
-                self._log_metrics_summary()
+        while self.running:
+            iteration += 1
+            self.logger.info(f"=== Monitoring Cycle {iteration} ===")
 
-            # Wait before next check
-            if self.running:
-                self.logger.info(
-                    f"Waiting {self.config.system.check_interval} seconds "
-                    f"until next check..."
-                )
-                CountdownTimer.wait(
-                    self.config.system.check_interval,
-                    Colors.colorize("Waiting for next check", Colors.GREY),
-                )
+            try:
+                self._fetch_and_analyze_emails()
 
-        except Exception as e:
-            self.logger.error(f"Error in monitoring loop: {e}", exc_info=True)
-            if self.metrics:
-                self.metrics.record_error("monitoring_loop_error")
-            CountdownTimer.wait(30, Colors.colorize("Retrying in", Colors.RED))
+                # Log metrics summary periodically (every 10 iterations)
+                if self.metrics and iteration % 10 == 0:
+                    self._log_metrics_summary()
 
-    def _fetch_emails_with_spinner(self):
-        """Fetch emails with a visual spinner status."""
-        with Spinner("Checking for new emails...", persist=False) as spinner:
-            emails = self.ingestion_manager.fetch_all_emails(
-                self.config.system.max_emails_per_batch
-            )
-            if emails:
-                spinner.success(f"Found {len(emails)} new emails")
-            return emails
+                # Wait before next check
+                if self.running:
+                    self.logger.info(
+                        f"Waiting {self.config.system.check_interval} seconds "
+                        f"until next check..."
+                    )
+                    CountdownTimer.wait(
+                        self.config.system.check_interval,
+                        Colors.colorize("Waiting for next check", Colors.GREY),
+                    )
+
+            except Exception as e:
+                self.logger.error(f"Error in monitoring loop: {e}", exc_info=True)
+                if self.metrics:
+                    self.metrics.record_error("monitoring_loop_error")
+                CountdownTimer.wait(30, Colors.colorize("Retrying in", Colors.RED))
 
     def _run_analysis_layers(self, email_data):
         """Run all independent analysis layers concurrently."""

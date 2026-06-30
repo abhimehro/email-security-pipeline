@@ -305,109 +305,53 @@ OUTLOOK_APP_PASSWORD=password
         self.assertTrue(found_redacted)
         self.assertTrue(found_tip)
 
-    def test_wizard_edge_cases(self):
-        """Test wizard edge cases."""
-        from unittest.mock import patch, MagicMock
-        from contextlib import ExitStack
+    def _run_edge_case(
+        self, inputs, connect_success, read_effect, write_success, expected
+    ):
+        with patch("pathlib.Path.exists", return_value=True), patch(
+            "builtins.open"
+        ) as mock_open_func, patch("os.open", return_value=123), patch(
+            "os.fchmod", create=True
+        ), patch(
+            "os.fdopen"
+        ), patch(
+            "getpass.getpass", return_value="password"
+        ), patch(
+            "builtins.input", side_effect=inputs
+        ), patch(
+            "src.utils.setup_wizard.IMAPConnection"
+        ) as mock_imap, patch(
+            "src.utils.setup_wizard._write_config_file", return_value=write_success
+        ):
 
-        with ExitStack() as stack:
-            stack.enter_context(patch("pathlib.Path.exists", return_value=True))
-            mock_open_func = stack.enter_context(patch("builtins.open"))
-            stack.enter_context(patch("os.open", return_value=123))
-            stack.enter_context(patch("os.fchmod", create=True))
-            mock_os_fdopen = stack.enter_context(patch("os.fdopen"))
-            stack.enter_context(patch("getpass.getpass", return_value="password"))
-            mock_input = stack.enter_context(patch("builtins.input"))
-            mock_imap_conn = stack.enter_context(patch("src.utils.setup_wizard.IMAPConnection"))
-            mock_write_config = stack.enter_context(patch("src.utils.setup_wizard._write_config_file"))
+            mock_imap.return_value.connect.return_value = connect_success
 
-            mock_os_fdopen.return_value.__enter__.return_value = MagicMock()
-
-            self._run_wizard_scenarios({
-                "input": mock_input,
-                "imap": mock_imap_conn,
-                "write": mock_write_config,
-                "open": mock_open_func,
-            })
-
-    def _run_wizard_scenarios(self, mocks: dict):
-        """Run all wizard edge cases scenarios."""
-        mock_input = mocks["input"]
-        mock_imap_conn = mocks["imap"]
-        mock_write_config = mocks["write"]
-        mock_open_func = mocks["open"]
-
-        scenarios = [
-            # 1. KeyboardInterrupt
-            {
-                "inputs": [KeyboardInterrupt()],
-                "connect_success": True,
-                "read_effect": None,
-                "write_success": True,
-                "expected": False,
-            },
-            # 2. EOFError
-            {
-                "inputs": ["1", EOFError()],
-                "connect_success": True,
-                "read_effect": None,
-                "write_success": True,
-                "expected": False,
-            },
-            # 3. Template Read Error
-            {
-                "inputs": ["1", "test@gmail.com", "y"],
-                "connect_success": True,
-                "read_effect": Exception("Read error"),
-                "write_success": True,
-                "expected": False,
-            },
-            # 4. Write Config Error
-            {
-                "inputs": ["1", "test@gmail.com", "y"],
-                "connect_success": True,
-                "read_effect": None,
-                "write_success": False,
-                "expected": False,
-            },
-            # 5. Skip verification
-            {
-                "inputs": ["1", "test@gmail.com", "n"],
-                "connect_success": False,
-                "read_effect": None,
-                "write_success": True,
-                "expected": True,
-            },
-        ]
-
-        for scenario in scenarios:
-            with self.subTest(scenario=scenario):
-                # Reset all mocks
-                mock_input.reset_mock()
-                mock_imap_conn.reset_mock()
-                mock_open_func.reset_mock()
-                mock_write_config.reset_mock()
-
-                # Setup mock behaviors
-                mock_input.side_effect = scenario["inputs"]
-                mock_imap_conn.return_value.connect.return_value = scenario[
-                    "connect_success"
-                ]
-                mock_write_config.return_value = scenario["write_success"]
-
-                if scenario["read_effect"]:
-                    mock_open_func.side_effect = scenario["read_effect"]
-                else:
-                    mock_open_func.side_effect = None
-                    mock_open_func.return_value.__enter__.return_value.read.return_value = self.example_content
-
-                # Execute
-                result = run_setup_wizard(
-                    config_file=".env", template_file=".env.example"
+            if read_effect:
+                mock_open_func.side_effect = read_effect
+            else:
+                mock_open_func.return_value.__enter__.return_value.read.return_value = (
+                    self.example_content
                 )
 
-                # Assert
-                self.assertEqual(result, scenario["expected"])
+            result = run_setup_wizard(config_file=".env", template_file=".env.example")
+            self.assertEqual(result, expected)
+
+    def test_keyboard_interrupt(self):
+        self._run_edge_case([KeyboardInterrupt()], True, None, True, False)
+
+    def test_eof_error(self):
+        self._run_edge_case(["1", EOFError()], True, None, True, False)
+
+    def test_template_read_error(self):
+        self._run_edge_case(
+            ["1", "test@gmail.com", "y"], True, Exception("Read error"), True, False
+        )
+
+    def test_write_config_error(self):
+        self._run_edge_case(["1", "test@gmail.com", "y"], True, None, False, False)
+
+    def test_skip_verification(self):
+        self._run_edge_case(["1", "test@gmail.com", "n"], False, None, True, True)
 
 
 if __name__ == "__main__":

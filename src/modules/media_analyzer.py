@@ -201,20 +201,6 @@ class MediaAuthenticityAnalyzer:
         "flac": (".flac",),
     }
 
-    def _is_path_traversal_attempt(self, path: str) -> bool:
-        """Check if a path string contains traversal attempts or absolute paths."""
-        if path.startswith(("/", "\\")):
-            return True
-        if ".." in path:
-            return True
-
-        # Simplifies the Windows drive check to avoid "Complex Conditional" flag
-        # We only check the first two chars if the string is long enough
-        if len(path) < 2:
-            return False
-
-        return path[0].isalpha() and path[1] == ":"
-
     def __init__(self, config):
         """
         Initialize media analyzer.
@@ -645,8 +631,8 @@ class MediaAuthenticityAnalyzer:
                     if score >= 5.0:
                         return score, warnings
 
-        except zipfile.BadZipFile as e:
-            self.logger.warning(f"Bad zip file {filename}: {e}")
+        except zipfile.BadZipFile:
+            pass
         except Exception as e:
             self.logger.warning(f"Error inspecting zip {filename}: {e}")
 
@@ -668,7 +654,7 @@ class MediaAuthenticityAnalyzer:
     ) -> Tuple[float, List[str]]:
         score = 0.0
         warnings = []
-        if self._is_path_traversal_attempt(contained_file):
+        if contained_file.startswith("/") or ".." in contained_file:
             score += 5.0
             safe_contained_file = sanitize_for_logging(
                 sanitize_filename(contained_file)
@@ -851,7 +837,7 @@ class MediaAuthenticityAnalyzer:
                         continue
 
                     # THEN check for path traversal attempts
-                    if self._is_path_traversal_attempt(member.name):
+                    if member.name.startswith("/") or ".." in member.name:
                         score += 5.0
                         safe_member_name = sanitize_for_logging(
                             sanitize_filename(member.name)
@@ -875,54 +861,12 @@ class MediaAuthenticityAnalyzer:
                     if score >= 5.0:
                         return score, warnings
 
-        except tarfile.TarError as e:
-            self.logger.warning(f"Error inspecting tar {filename}: {e}")
+        except tarfile.TarError:
+            pass
         except Exception as e:
             self.logger.warning(f"Error inspecting tar {filename}: {e}")
 
         return score, warnings
-
-    def _inspect_tar_member(
-        self,
-        tf: tarfile.TarFile,
-        member: tarfile.TarInfo,
-        filename: str,
-        depth: int,
-    ) -> Tuple[float, List[str]]:
-        """Inspect a single tar member."""
-        # SECURITY: Sanitize member name to prevent path traversal and log injection
-        safe_member_name = sanitize_for_logging(
-            sanitize_filename(member.name)
-        )
-        member_lower = safe_member_name.lower()
-
-        # Check for dangerous extensions FIRST
-        if member_lower.endswith(self.DANGEROUS_EXTENSIONS):
-            score = 5.0
-            warnings = [
-                f"Archive {filename} contains dangerous file: {safe_member_name}"
-            ]
-            return score, warnings
-
-        # THEN check for path traversal attempts
-        if member.name.startswith("/") or ".." in member.name:
-            score = 5.0
-            safe_member_name_for_traversal = sanitize_for_logging(
-                sanitize_filename(member.name)
-            )
-            warnings = [
-                f"Tar file {filename} contains path traversal attempt: {safe_member_name_for_traversal}"
-            ]
-            return score, warnings
-
-        # Standard archive member inspection
-        return self._inspect_archive_member(
-            filename,
-            member.name,
-            lambda: self._handle_nested_tar_member(
-                tf, member, filename, depth
-            ),
-        )
 
     def _handle_nested_tar_member(
         self,

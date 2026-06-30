@@ -103,6 +103,6 @@ class JSONFormatter(logging.Formatter):
         """
         # Check if key contains any sensitive field name
         # Optimization: compiled regex search is faster than any() generator loop for substring matching
-        if self._SENSITIVE_PATTERN.search(str(key).lower()):
+        if self._SENSITIVE_PATTERN.search(key.lower()):
             return "[REDACTED]"
         return value
