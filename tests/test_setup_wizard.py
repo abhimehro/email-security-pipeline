@@ -305,62 +305,103 @@ OUTLOOK_APP_PASSWORD=password
         self.assertTrue(found_redacted)
         self.assertTrue(found_tip)
 
-    @patch("builtins.input")
     @patch("pathlib.Path.exists")
-    def test_keyboard_interrupt(self, mock_exists, mock_input):
-        mock_exists.return_value = True
-        mock_input.side_effect = KeyboardInterrupt()
-        self.assertFalse(
-            run_setup_wizard(config_file=".env", template_file=".env.example")
-        )
-
+    @patch("builtins.open")
+    @patch("os.open")
+    @patch("os.fchmod", create=True)
+    @patch("os.fdopen")
+    @patch("getpass.getpass")
     @patch("builtins.input")
-    @patch("pathlib.Path.exists")
-    def test_eof_error(self, mock_exists, mock_input):
+    @patch("src.utils.setup_wizard.IMAPConnection")
+    @patch("src.utils.setup_wizard._write_config_file")
+    def test_wizard_edge_cases(
+        self,
+        mock_write_config,
+        mock_imap_conn,
+        mock_input,
+        mock_getpass,
+        mock_os_fdopen,
+        mock_os_fchmod,
+        mock_os_open,
+        mock_open_func,
+        mock_exists,
+    ):
         mock_exists.return_value = True
-        mock_input.side_effect = ["1", EOFError()]
-        self.assertFalse(
-            run_setup_wizard(config_file=".env", template_file=".env.example")
-        )
-
-    def test_template_read_error(self):
-        mocks = self._setup_full_mock_dependencies()
-        _, mock_read_file, _, _, _, _, mock_getpass, mock_input, mock_imap_conn = mocks
-
-        mock_input.side_effect = ["1", "test@gmail.com", "y"]
+        mock_os_open.return_value = 123
+        mock_os_fdopen.return_value.__enter__.return_value = MagicMock()
         mock_getpass.return_value = "password"
-        mock_imap_conn.return_value.connect.return_value = True
 
-        mock_read_file.return_value.read.side_effect = Exception("Read error")
-        self.assertFalse(
-            run_setup_wizard(config_file=".env", template_file=".env.example")
-        )
+        scenarios = [
+            # 1. KeyboardInterrupt
+            {
+                "inputs": [KeyboardInterrupt()],
+                "connect_success": True,
+                "read_effect": None,
+                "write_success": True,
+                "expected": False,
+            },
+            # 2. EOFError
+            {
+                "inputs": ["1", EOFError()],
+                "connect_success": True,
+                "read_effect": None,
+                "write_success": True,
+                "expected": False,
+            },
+            # 3. Template Read Error
+            {
+                "inputs": ["1", "test@gmail.com", "y"],
+                "connect_success": True,
+                "read_effect": Exception("Read error"),
+                "write_success": True,
+                "expected": False,
+            },
+            # 4. Write Config Error
+            {
+                "inputs": ["1", "test@gmail.com", "y"],
+                "connect_success": True,
+                "read_effect": None,
+                "write_success": False,
+                "expected": False,
+            },
+            # 5. Skip verification
+            {
+                "inputs": ["1", "test@gmail.com", "n"],
+                "connect_success": False,
+                "read_effect": None,
+                "write_success": True,
+                "expected": True,
+            },
+        ]
 
-    def test_write_config_error(self):
-        mocks = self._setup_full_mock_dependencies()
-        _, _, _, _, _, _, mock_getpass, mock_input, mock_imap_conn = mocks
+        for scenario in scenarios:
+            with self.subTest(scenario=scenario):
+                # Reset all mocks
+                mock_input.reset_mock()
+                mock_imap_conn.reset_mock()
+                mock_open_func.reset_mock()
+                mock_write_config.reset_mock()
 
-        mock_input.side_effect = ["1", "test@gmail.com", "y"]
-        mock_getpass.return_value = "password"
-        mock_imap_conn.return_value.connect.return_value = True
+                # Setup mock behaviors
+                mock_input.side_effect = scenario["inputs"]
+                mock_imap_conn.return_value.connect.return_value = scenario[
+                    "connect_success"
+                ]
+                mock_write_config.return_value = scenario["write_success"]
 
-        with patch("src.utils.setup_wizard._write_config_file", return_value=False):
-            self.assertFalse(
-                run_setup_wizard(config_file=".env", template_file=".env.example")
-            )
+                if scenario["read_effect"]:
+                    mock_open_func.side_effect = scenario["read_effect"]
+                else:
+                    mock_open_func.side_effect = None
+                    mock_open_func.return_value.__enter__.return_value.read.return_value = self.example_content
 
-    def test_skip_verification(self):
-        mocks = self._setup_full_mock_dependencies()
-        _, _, _, _, _, _, mock_getpass, mock_input, mock_imap_conn = mocks
+                # Execute
+                result = run_setup_wizard(
+                    config_file=".env", template_file=".env.example"
+                )
 
-        mock_input.side_effect = ["1", "test@gmail.com", "n"]
-        mock_getpass.return_value = "password"
-        mock_imap_conn.return_value.connect.return_value = False
-
-        with patch("src.utils.setup_wizard._write_config_file", return_value=True):
-            self.assertTrue(
-                run_setup_wizard(config_file=".env", template_file=".env.example")
-            )
+                # Assert
+                self.assertEqual(result, scenario["expected"])
 
 
 if __name__ == "__main__":
