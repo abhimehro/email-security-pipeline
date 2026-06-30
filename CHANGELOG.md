@@ -404,6 +404,7 @@
 
 **Merged pull requests:**
 
+- 🛡️ Sentinel: \[HIGH\] Fix Webhook Token Leak & Validation Bypass via parsed.netloc [\#1189](https://github.com/abhimehro/email-security-pipeline/pull/1189) ([abhimehro](https://github.com/abhimehro))
 - 🧹 Fix ignored exceptions in media\_analyzer [\#1186](https://github.com/abhimehro/email-security-pipeline/pull/1186) ([abhimehro](https://github.com/abhimehro))
 - 🔒 Fix: Sanitize absolute paths and backward slashes in archive member path traversal checks [\#1185](https://github.com/abhimehro/email-security-pipeline/pull/1185) ([abhimehro](https://github.com/abhimehro))
 - 🧪 Add edge case tests for JSONFormatter format method [\#1184](https://github.com/abhimehro/email-security-pipeline/pull/1184) ([abhimehro](https://github.com/abhimehro))
