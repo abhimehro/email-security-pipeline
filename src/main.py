@@ -217,6 +217,47 @@ class EmailSecurityPipeline:
             spinner.success("Pipeline stopped gracefully")
         self.logger.info("Pipeline stopped")
 
+    def _process_monitoring_cycle(self, iteration: int):
+        """Process a single monitoring iteration."""
+        # Fetch emails
+        with Spinner("Checking for new emails...", persist=False) as spinner:
+            emails = self.ingestion_manager.fetch_all_emails(
+                self.config.system.max_emails_per_batch
+            )
+            if emails:
+                spinner.success(f"Found {len(emails)} new emails")
+            else:
+                # Persist=False is used, so it typically disappears,
+                # but just in case we can be explicit, though it's optional.
+                pass
+
+        if not emails:
+            self.logger.info("No new emails to analyze")
+        else:
+            self.logger.info(f"Analyzing {len(emails)} emails")
+
+            # Analyze each email
+            total_emails = len(emails)
+            for i, email_data in enumerate(emails, 1):
+                self._analyze_email(
+                    email_data, log_prefix=f"[{i}/{total_emails}] "
+                )
+
+        # Log metrics summary periodically (every 10 iterations)
+        if self.metrics and iteration % 10 == 0:
+            self._log_metrics_summary()
+
+        # Wait before next check
+        if self.running:
+            self.logger.info(
+                f"Waiting {self.config.system.check_interval} seconds "
+                f"until next check..."
+            )
+            CountdownTimer.wait(
+                self.config.system.check_interval,
+                Colors.colorize("Waiting for next check", Colors.GREY),
+            )
+
     def _monitoring_loop(self):
         """Main monitoring loop."""
         iteration = 0
@@ -226,44 +267,7 @@ class EmailSecurityPipeline:
             self.logger.info(f"=== Monitoring Cycle {iteration} ===")
 
             try:
-                # Fetch emails
-                with Spinner("Checking for new emails...", persist=False) as spinner:
-                    emails = self.ingestion_manager.fetch_all_emails(
-                        self.config.system.max_emails_per_batch
-                    )
-                    if emails:
-                        spinner.success(f"Found {len(emails)} new emails")
-                    else:
-                        # Persist=False is used, so it typically disappears,
-                        # but just in case we can be explicit, though it's optional.
-                        pass
-
-                if not emails:
-                    self.logger.info("No new emails to analyze")
-                else:
-                    self.logger.info(f"Analyzing {len(emails)} emails")
-
-                    # Analyze each email
-                    total_emails = len(emails)
-                    for i, email_data in enumerate(emails, 1):
-                        self._analyze_email(
-                            email_data, log_prefix=f"[{i}/{total_emails}] "
-                        )
-
-                # Log metrics summary periodically (every 10 iterations)
-                if self.metrics and iteration % 10 == 0:
-                    self._log_metrics_summary()
-
-                # Wait before next check
-                if self.running:
-                    self.logger.info(
-                        f"Waiting {self.config.system.check_interval} seconds "
-                        f"until next check..."
-                    )
-                    CountdownTimer.wait(
-                        self.config.system.check_interval,
-                        Colors.colorize("Waiting for next check", Colors.GREY),
-                    )
+                self._process_monitoring_cycle(iteration)
 
             except Exception as e:
                 self.logger.error(f"Error in monitoring loop: {e}", exc_info=True)

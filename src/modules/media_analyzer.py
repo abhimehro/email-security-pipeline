@@ -790,6 +790,48 @@ class MediaAuthenticityAnalyzer:
 
         return score, warnings
 
+    def _validate_tar_member(
+        self,
+        filename: str,
+        member: tarfile.TarInfo,
+        tf: tarfile.TarFile,
+        depth: int,
+    ) -> Tuple[float, List[str]]:
+        """Validate a single tar archive member."""
+        score = 0.0
+        warnings = []
+
+        # SECURITY: Sanitize member name to prevent path traversal and log injection
+        safe_member_name = sanitize_for_logging(sanitize_filename(member.name))
+        member_lower = safe_member_name.lower()
+
+        # Check for dangerous extensions FIRST
+        if member_lower.endswith(self.DANGEROUS_EXTENSIONS):
+            score += 5.0
+            warnings.append(
+                f"Archive {filename} contains dangerous file: {safe_member_name}"
+            )
+            return score, warnings
+
+        # THEN check for path traversal attempts
+        if member.name.startswith("/") or ".." in member.name:
+            score += 5.0
+            warnings.append(
+                f"Tar file {filename} contains path traversal attempt: {safe_member_name}"
+            )
+            return score, warnings
+
+        # Standard archive member inspection
+        member_score, member_warnings = self._inspect_archive_member(
+            filename,
+            member.name,
+            lambda: self._handle_nested_tar_member(tf, member, filename, depth),
+        )
+        score += member_score
+        warnings.extend(member_warnings)
+
+        return score, warnings
+
     def _inspect_tar_contents(
         self, filename: str, data: bytes, depth: int = 0
     ) -> Tuple[float, List[str]]:
@@ -820,40 +862,8 @@ class MediaAuthenticityAnalyzer:
                 )
 
                 for member in members[: self.MAX_ZIP_FILE_COUNT]:
-                    # SECURITY: Sanitize member name to prevent path traversal and log injection
-                    safe_member_name = sanitize_for_logging(
-                        sanitize_filename(member.name)
-                    )
-                    member_lower = safe_member_name.lower()
-
-                    # Check for dangerous extensions FIRST
-                    if member_lower.endswith(self.DANGEROUS_EXTENSIONS):
-                        score += 5.0
-                        warnings.append(
-                            f"Archive {filename} contains dangerous file: {safe_member_name}"
-                        )
-                        if score >= 5.0:
-                            return score, warnings
-                        continue
-
-                    # THEN check for path traversal attempts
-                    if member.name.startswith("/") or ".." in member.name:
-                        score += 5.0
-                        safe_member_name = sanitize_for_logging(
-                            sanitize_filename(member.name)
-                        )
-                        warnings.append(
-                            f"Tar file {filename} contains path traversal attempt: {safe_member_name}"
-                        )
-                        continue
-
-                    # Standard archive member inspection
-                    member_score, member_warnings = self._inspect_archive_member(
-                        filename,
-                        member.name,
-                        lambda: self._handle_nested_tar_member(
-                            tf, member, filename, depth
-                        ),
+                    member_score, member_warnings = self._validate_tar_member(
+                        filename, member, tf, depth
                     )
                     score += member_score
                     warnings.extend(member_warnings)
