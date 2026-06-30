@@ -225,39 +225,26 @@ class EmailSecurityPipeline:
             iteration += 1
             self._run_monitoring_cycle(iteration)
 
+    def _fetch_and_analyze_emails(self):
+        """Fetch and analyze emails."""
+        emails = self._fetch_emails_with_spinner()
+
+        if not emails:
+            self.logger.info("No new emails to analyze")
+        else:
+            self.logger.info(f"Analyzing {len(emails)} emails")
+            total_emails = len(emails)
+            for i, email_data in enumerate(emails, 1):
+                self._analyze_email(
+                    email_data, log_prefix=f"[{i}/{total_emails}] "
+                )
+
     def _run_monitoring_cycle(self, iteration: int):
         """Run a single monitoring cycle."""
         self.logger.info(f"=== Monitoring Cycle {iteration} ===")
 
         try:
-            # Fetch emails
-            emails = self._fetch_emails_with_spinner()
-
-            if not emails:
-                self.logger.info("No new emails to analyze")
-            else:
-                self.logger.info(f"Analyzing {len(emails)} emails")
-
-                # Analyze each email
-                total_emails = len(emails)
-                for i, email_data in enumerate(emails, 1):
-                    self._analyze_email(
-                        email_data, log_prefix=f"[{i}/{total_emails}] "
-                    )
-                    if emails:
-                        spinner.success(f"Found {len(emails)} new emails")
-
-                if not emails:
-                    self.logger.info("No new emails to analyze")
-                else:
-                    self.logger.info(f"Analyzing {len(emails)} emails")
-
-                    # Analyze each email
-                    total_emails = len(emails)
-                    for i, email_data in enumerate(emails, 1):
-                        self._analyze_email(
-                            email_data, log_prefix=f"[{i}/{total_emails}] "
-                        )
+            self._fetch_and_analyze_emails()
 
             # Log metrics summary periodically (every 10 iterations)
             if self.metrics and iteration % 10 == 0:
