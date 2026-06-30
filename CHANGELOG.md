@@ -404,20 +404,7 @@
 
 **Merged pull requests:**
 
-- 🛡️ Sentinel: \[HIGH\] Fix Webhook Token Leak & Validation Bypass via parsed.netloc [\#1189](https://github.com/abhimehro/email-security-pipeline/pull/1189) ([abhimehro](https://github.com/abhimehro))
-- 🧹 Fix ignored exceptions in media\_analyzer [\#1186](https://github.com/abhimehro/email-security-pipeline/pull/1186) ([abhimehro](https://github.com/abhimehro))
-- 🔒 Fix: Sanitize absolute paths and backward slashes in archive member path traversal checks [\#1185](https://github.com/abhimehro/email-security-pipeline/pull/1185) ([abhimehro](https://github.com/abhimehro))
-- 🧪 Add edge case tests for JSONFormatter format method [\#1184](https://github.com/abhimehro/email-security-pipeline/pull/1184) ([abhimehro](https://github.com/abhimehro))
-- 🧪 Add missing error test in email\_ingestion close\_all\_connections [\#1183](https://github.com/abhimehro/email-security-pipeline/pull/1183) ([abhimehro](https://github.com/abhimehro))
 - chore\(deps\): bump github/gh-aw/actions/setup from 0.80.9 to 0.81.6 [\#1182](https://github.com/abhimehro/email-security-pipeline/pull/1182) ([dependabot[bot]](https://github.com/apps/dependabot))
-- chore\(deps\): bump github/gh-aw/actions/setup-cli from 0.80.9 to 0.81.6 [\#1181](https://github.com/abhimehro/email-security-pipeline/pull/1181) ([dependabot[bot]](https://github.com/apps/dependabot))
-- 🧹 \[code health improvement\] Remove silent KeyboardInterrupt catch in ui spinner [\#1177](https://github.com/abhimehro/email-security-pipeline/pull/1177) ([abhimehro](https://github.com/abhimehro))
-- 🧪 Add truncation edge cases for sanitize\_for\_logging [\#1176](https://github.com/abhimehro/email-security-pipeline/pull/1176) ([abhimehro](https://github.com/abhimehro))
-- 🧪 Add missing tests for ui.py [\#1174](https://github.com/abhimehro/email-security-pipeline/pull/1174) ([abhimehro](https://github.com/abhimehro))
-- 🧹 Replace silent exception handling with logging in email ingestion [\#1173](https://github.com/abhimehro/email-security-pipeline/pull/1173) ([abhimehro](https://github.com/abhimehro))
-- 🧪 test: verify deterministic behavior on inverted thresholds [\#1172](https://github.com/abhimehro/email-security-pipeline/pull/1172) ([abhimehro](https://github.com/abhimehro))
-- 🧹 Remove unnecessary empty else block in src/main.py [\#1171](https://github.com/abhimehro/email-security-pipeline/pull/1171) ([abhimehro](https://github.com/abhimehro))
-- 🧹 fix: log BadZipFile exception instead of ignoring it [\#1170](https://github.com/abhimehro/email-security-pipeline/pull/1170) ([abhimehro](https://github.com/abhimehro))
 - ⚡ Bolt: Optimize MASTER\_SPAM\_PATTERN by removing re.IGNORECASE penalty [\#1166](https://github.com/abhimehro/email-security-pipeline/pull/1166) ([abhimehro](https://github.com/abhimehro))
 - 🎨 Palette: Consolidate verification feedback into Spinner [\#1164](https://github.com/abhimehro/email-security-pipeline/pull/1164) ([abhimehro](https://github.com/abhimehro))
 - 🎨 Palette: format codebase with black and isort [\#1161](https://github.com/abhimehro/email-security-pipeline/pull/1161) ([abhimehro](https://github.com/abhimehro))

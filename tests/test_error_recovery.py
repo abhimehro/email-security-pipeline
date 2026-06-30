@@ -15,9 +15,13 @@ from unittest.mock import MagicMock, patch
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.modules.email_ingestion import (EmailAccountConfig, EmailData,
-                                         EmailIngestionConfig,
-                                         EmailIngestionManager, IMAPClient)
+from src.modules.email_ingestion import (
+    EmailAccountConfig,
+    EmailData,
+    EmailIngestionConfig,
+    EmailIngestionManager,
+    IMAPClient,
+)
 from src.modules.media_analyzer import MediaAuthenticityAnalyzer
 from src.utils.config import AnalysisConfig
 

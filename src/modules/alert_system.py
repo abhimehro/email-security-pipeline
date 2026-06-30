@@ -980,11 +980,11 @@ class AlertSystem:
 
             # 3. Redact Slack Webhooks
             # Format: /services/T000/B000/TOKEN
-            hostname = (parsed.hostname or "").lower()
+            netloc = parsed.netloc.lower()
             if (
-                not hostname
-                or hostname == "hooks.slack.com"
-                or hostname.endswith(".slack.com")
+                not netloc
+                or netloc == "hooks.slack.com"
+                or netloc.endswith(".slack.com")
             ) and parsed.path.startswith("/services/"):
                 parts = parsed.path.split("/")
                 # parts[0] is empty, parts[1] is 'services'
@@ -999,7 +999,7 @@ class AlertSystem:
             # 4. Redact Discord Webhooks
             # Format: /api/webhooks/ID/TOKEN
             if (
-                not hostname or hostname == "discord.com" or hostname.endswith(".discord.com")
+                not netloc or netloc == "discord.com" or netloc.endswith(".discord.com")
             ) and parsed.path.startswith("/api/webhooks/"):
                 parts = parsed.path.split("/")
                 # parts[-1] is likely the token
