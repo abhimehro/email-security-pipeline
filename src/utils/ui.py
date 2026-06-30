@@ -136,10 +136,6 @@ class Spinner:
         self.fail_msg = message
 
     def _spin(self):
-        # Accessibility: Sleep briefly to ensure the screen reader announces
-        # the initial message before the loop starts rapidly redrawing.
-        time.sleep(0.1)
-
         while self.busy:
             elapsed = time.time() - getattr(self, "start_time", time.time())
             time_str = (
@@ -186,6 +182,13 @@ class Spinner:
         # clearing and redrawing it with carriage returns.
         sys.stdout.write(msg)
         sys.stdout.flush()
+
+        # Sleep briefly to ensure the screen reader announces it before the loop
+        # Catch and skip so we just enter the spinner loop which handles cancellation gracefully
+        try:
+            time.sleep(0.1)
+        except (EOFError, KeyboardInterrupt):
+            pass
 
         self.busy = True
         self.thread = threading.Thread(target=self._spin)

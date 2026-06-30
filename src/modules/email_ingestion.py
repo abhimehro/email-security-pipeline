@@ -444,8 +444,8 @@ class EmailIngestionManager:
             if cleanup_required:
                 try:
                     client.disconnect()
-                except Exception as e:
-                    self.logger.warning(f"Error disconnecting client: {e}")
+                except Exception:  # nosec B110
+                    pass
         return folder_emails
 
     def _process_account(

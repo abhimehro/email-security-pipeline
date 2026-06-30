@@ -92,8 +92,6 @@ def sanitize_for_logging(text: str, max_length: int = 255) -> str:
     text = text.translate(_TRANSLATOR)
 
     # 5. Truncate if necessary to prevent log flooding
-    if max_length <= 0:
-        return "..."
     if len(text) > max_length:
         text = text[:max_length] + "..."
 
