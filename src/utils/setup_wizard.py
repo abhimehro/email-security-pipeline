@@ -179,12 +179,20 @@ def _select_provider() -> str:
                 + Colors.colorize("[1-4]", Colors.GREY)
                 + Colors.colorize(": ", Colors.BOLD)
             )
-            choice = _styled_input(prompt)
-            if choice in ("1", "2", "3", "4"):
-                return choice
+            choice = _styled_input(prompt).lower()
+            if choice in ("1", "gmail"):
+                return "1"
+            if choice in ("2", "proton", "proton mail", "protonmail"):
+                return "2"
+            if choice in ("3", "outlook"):
+                return "3"
+            if choice in ("4", "skip"):
+                return "4"
+            if choice in ("q", "quit", "exit"):
+                raise KeyboardInterrupt()
             print(
                 Colors.colorize("✘ Invalid choice. ", Colors.RED)
-                + Colors.colorize("Please enter 1, 2, 3, or 4.", Colors.YELLOW)
+                + Colors.colorize("Please enter a number (1-4) or provider name.", Colors.YELLOW)
             )
         except EOFError:
             return "4"
