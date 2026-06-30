@@ -41,6 +41,7 @@
 
 **Closed issues:**
 
+- Daily QA & Agentic Review - 2026-06-29 [\#1169](https://github.com/abhimehro/email-security-pipeline/issues/1169)
 - Daily QA & Agentic Review - 2026-06-28 [\#1165](https://github.com/abhimehro/email-security-pipeline/issues/1165)
 - Daily QA & Agentic Review - 2026-06-27 [\#1162](https://github.com/abhimehro/email-security-pipeline/issues/1162)
 - Daily QA & Agentic Review - 2026-06-26 [\#1159](https://github.com/abhimehro/email-security-pipeline/issues/1159)
@@ -403,6 +404,7 @@
 
 **Merged pull requests:**
 
+- chore\(deps\): bump github/gh-aw/actions/setup from 0.80.9 to 0.81.6 [\#1182](https://github.com/abhimehro/email-security-pipeline/pull/1182) ([dependabot[bot]](https://github.com/apps/dependabot))
 - ⚡ Bolt: Optimize MASTER\_SPAM\_PATTERN by removing re.IGNORECASE penalty [\#1166](https://github.com/abhimehro/email-security-pipeline/pull/1166) ([abhimehro](https://github.com/abhimehro))
 - 🎨 Palette: Consolidate verification feedback into Spinner [\#1164](https://github.com/abhimehro/email-security-pipeline/pull/1164) ([abhimehro](https://github.com/abhimehro))
 - 🎨 Palette: format codebase with black and isort [\#1161](https://github.com/abhimehro/email-security-pipeline/pull/1161) ([abhimehro](https://github.com/abhimehro))
