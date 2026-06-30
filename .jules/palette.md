@@ -224,3 +224,7 @@
 ## 2027-02-18 - Consolidate Loading State Text
 **Learning:** In CLI flows, printing a static status message (e.g., `print("Verifying...")`) followed immediately by instantiating a `Spinner` (e.g., `Spinner("Connecting...")`) for the actual async work creates visual stutter and terminal clutter. The user sees two similar messages back-to-back.
 **Action:** Avoid redundant loading messages by consolidating static print statements and immediate subsequent `Spinner` initializations into a single `Spinner` containing the most user-relevant descriptive text.
+
+## 2025-02-18 - Forgiving CLI Text Inputs
+**Learning:** Terminal applications often rely heavily on rigid numeric inputs for menus. When a user naturally attempts to type the contextual option instead (e.g., "gmail" or "quit" instead of "1"), blocking them with an "Invalid Choice" error creates unnecessary friction and hurts the user experience.
+**Action:** When building text-based menus, accept reasonable string synonyms (and explicit exit commands like "q" or "quit") alongside numeric keys to make the UI much more resilient and natural.
