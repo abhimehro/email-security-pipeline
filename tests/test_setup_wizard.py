@@ -305,31 +305,37 @@ OUTLOOK_APP_PASSWORD=password
         self.assertTrue(found_redacted)
         self.assertTrue(found_tip)
 
-    @patch("pathlib.Path.exists")
-    @patch("builtins.open")
-    @patch("os.open")
-    @patch("os.fchmod", create=True)
-    @patch("os.fdopen")
-    @patch("getpass.getpass")
-    @patch("builtins.input")
-    @patch("src.utils.setup_wizard.IMAPConnection")
-    @patch("src.utils.setup_wizard._write_config_file")
-    def test_wizard_edge_cases(
-        self,
-        mock_write_config,
-        mock_imap_conn,
-        mock_input,
-        mock_getpass,
-        mock_os_fdopen,
-        mock_os_fchmod,
-        mock_os_open,
-        mock_open_func,
-        mock_exists,
-    ):
-        mock_exists.return_value = True
-        mock_os_open.return_value = 123
-        mock_os_fdopen.return_value.__enter__.return_value = MagicMock()
-        mock_getpass.return_value = "password"
+    def test_wizard_edge_cases(self):
+        """Test wizard edge cases."""
+        from unittest.mock import patch, MagicMock
+        from contextlib import ExitStack
+
+        with ExitStack() as stack:
+            stack.enter_context(patch("pathlib.Path.exists", return_value=True))
+            mock_open_func = stack.enter_context(patch("builtins.open"))
+            stack.enter_context(patch("os.open", return_value=123))
+            stack.enter_context(patch("os.fchmod", create=True))
+            mock_os_fdopen = stack.enter_context(patch("os.fdopen"))
+            stack.enter_context(patch("getpass.getpass", return_value="password"))
+            mock_input = stack.enter_context(patch("builtins.input"))
+            mock_imap_conn = stack.enter_context(patch("src.utils.setup_wizard.IMAPConnection"))
+            mock_write_config = stack.enter_context(patch("src.utils.setup_wizard._write_config_file"))
+
+            mock_os_fdopen.return_value.__enter__.return_value = MagicMock()
+
+            self._run_wizard_scenarios({
+                "input": mock_input,
+                "imap": mock_imap_conn,
+                "write": mock_write_config,
+                "open": mock_open_func,
+            })
+
+    def _run_wizard_scenarios(self, mocks: dict):
+        """Run all wizard edge cases scenarios."""
+        mock_input = mocks["input"]
+        mock_imap_conn = mocks["imap"]
+        mock_write_config = mocks["write"]
+        mock_open_func = mocks["open"]
 
         scenarios = [
             # 1. KeyboardInterrupt
