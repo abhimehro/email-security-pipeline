@@ -45,3 +45,7 @@
 **Vulnerability:** CodeScene flagged `_inspect_zip_contents` as a Complex Method due to the added path traversal check logic.
 **Learning:** Adding new checks to existing loops inside complex methods can trigger CodeScene "Complex Method" hotspot warnings, breaking CI checks.
 **Prevention:** Extract complex nested logic or multiple conditional checks into separate helper methods to keep the cyclomatic complexity of individual functions low.
+## 2025-11-08 - Use parsed.hostname over parsed.netloc for Webhook Security Checks
+**Vulnerability:** A logic flaw in `src/modules/alert_system.py` and `src/utils/config.py` used `parsed.netloc.lower() == "hooks.slack.com"` for webhook redaction and SSRF validation. `netloc` includes explicit ports and user credentials. An attacker could craft a webhook URL like `https://hooks.slack.com:443/services/...` to bypass these checks.
+**Learning:** `urllib.parse.urlparse().netloc` returns the entire authority component (credentials + domain + port). Using it for exact domain matching enables bypasses when ports or user info are added. Furthermore, `netloc` is not reliably lowercased for unknown or uppercase protocols.
+**Prevention:** Always use `(urlparse(url).hostname or "").lower()` when verifying or matching domains for security constraints, as `.hostname` extracts only the domain name component safely without credentials or ports.
