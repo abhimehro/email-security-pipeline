@@ -233,10 +233,6 @@ class EmailSecurityPipeline:
                     )
                     if emails:
                         spinner.success(f"Found {len(emails)} new emails")
-                    else:
-                        # Persist=False is used, so it typically disappears,
-                        # but just in case we can be explicit, though it's optional.
-                        pass
 
                 if not emails:
                     self.logger.info("No new emails to analyze")
