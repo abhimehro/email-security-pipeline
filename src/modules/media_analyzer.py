@@ -875,8 +875,8 @@ class MediaAuthenticityAnalyzer:
                     if score >= 5.0:
                         return score, warnings
 
-        except tarfile.TarError:
-            pass
+        except tarfile.TarError as e:
+            self.logger.warning(f"Error inspecting tar {filename}: {e}")
         except Exception as e:
             self.logger.warning(f"Error inspecting tar {filename}: {e}")
 
