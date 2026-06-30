@@ -145,3 +145,7 @@
 ## $(date +%Y-%m-%d) - Pre-Compiled Regex Lowercase Optimization
 **Learning:** The `re.IGNORECASE` flag carries a significant performance penalty in Python. Optimizing regex matching by lowercasing the pattern strings ahead of time and compiling with `flags=0`, then evaluating against explicitly lowercased input text (e.g., `text.lower()`), is measurably faster. Automated reviewers may incorrectly flag this optimization as breaking case-insensitivity, failing to trace the data flow (e.g., missing that `subject_lower = subject.lower()` is used).
 **Action:** Always independently verify claims from automated code reviews using `cat` or `grep` to confirm if text normalization (like `.lower()`) is already handled upstream before reverting a valid performance optimization.
+
+## 2025-06-25 - Prevent Ignored Exception Anti-Pattern
+**Learning:** Silently ignoring exceptions using a bare `pass` statement (e.g., `except zipfile.BadZipFile: pass`) masks potential issues and reduces the observability of the system. While it prevents the application from crashing, it makes debugging incredibly difficult when failures inevitably occur.
+**Action:** Replace silent `pass` statements in exception handlers with appropriate logging (e.g., `self.logger.warning(...)`) to ensure operational visibility while still allowing the system to handle the error gracefully without failing outright.

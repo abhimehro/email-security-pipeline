@@ -88,5 +88,25 @@ class TestSanitization(unittest.TestCase):
         self.assertTrue(len(sanitized) <= 13)  # 10 + 3 dots
 
 
+
+    def test_truncation_edge_cases(self):
+        """Test string truncation boundary and edge cases."""
+        text = "1234567890"
+
+        # Exact length
+        self.assertEqual(sanitize_for_logging(text, max_length=10), "1234567890")
+
+        # One char over
+        self.assertEqual(sanitize_for_logging(text + "1", max_length=10), "1234567890...")
+
+        # One char under
+        self.assertEqual(sanitize_for_logging(text[:-1], max_length=10), "123456789")
+
+        # Zero max_length
+        self.assertEqual(sanitize_for_logging(text, max_length=0), "...")
+
+        # Negative max_length
+        self.assertEqual(sanitize_for_logging(text, max_length=-1), "...")
+
 if __name__ == "__main__":
     unittest.main()
