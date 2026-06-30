@@ -244,6 +244,20 @@ class EmailSecurityPipeline:
                     self._analyze_email(
                         email_data, log_prefix=f"[{i}/{total_emails}] "
                     )
+                    if emails:
+                        spinner.success(f"Found {len(emails)} new emails")
+
+                if not emails:
+                    self.logger.info("No new emails to analyze")
+                else:
+                    self.logger.info(f"Analyzing {len(emails)} emails")
+
+                    # Analyze each email
+                    total_emails = len(emails)
+                    for i, email_data in enumerate(emails, 1):
+                        self._analyze_email(
+                            email_data, log_prefix=f"[{i}/{total_emails}] "
+                        )
 
             # Log metrics summary periodically (every 10 iterations)
             if self.metrics and iteration % 10 == 0:
