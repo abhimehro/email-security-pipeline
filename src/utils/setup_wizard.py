@@ -170,6 +170,13 @@ def _select_provider() -> str:
         f"  {Colors.colorize('4.', Colors.BOLD)} Skip {Colors.colorize('(Manually edit .env)', Colors.GREY)}"
     )
 
+    choices_map = {
+        "1": "1", "gmail": "1",
+        "2": "2", "proton": "2", "proton mail": "2", "protonmail": "2",
+        "3": "3", "outlook": "3",
+        "4": "4", "skip": "4"
+    }
+
     while True:
         try:
             prompt = (
@@ -180,16 +187,10 @@ def _select_provider() -> str:
                 + Colors.colorize(": ", Colors.BOLD)
             )
             choice = _styled_input(prompt).lower()
-            if choice in ("1", "gmail"):
-                return "1"
-            if choice in ("2", "proton", "proton mail", "protonmail"):
-                return "2"
-            if choice in ("3", "outlook"):
-                return "3"
-            if choice in ("4", "skip"):
-                return "4"
             if choice in ("q", "quit", "exit"):
                 raise KeyboardInterrupt()
+            if choice in choices_map:
+                return choices_map[choice]
             print(
                 Colors.colorize("✘ Invalid choice. ", Colors.RED)
                 + Colors.colorize("Please enter a number (1-4) or provider name.", Colors.YELLOW)
