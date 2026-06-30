@@ -288,6 +288,25 @@ class TestEmailIngestionManagerClose(unittest.TestCase):
             m.disconnect.assert_called_once()
         self.assertEqual(manager.clients, {})
 
+    def test_disconnect_exception_is_logged(self):
+        """Single client raising an exception on disconnect() doesn't crash."""
+        m1 = MagicMock()
+        m1.disconnect.side_effect = Exception("test exception")
+
+        manager = EmailIngestionManager([])
+        manager.logger = MagicMock()
+        manager.clients = {"a@x.com": m1}
+
+        # Should not crash
+        manager.close_all_connections()
+
+        m1.disconnect.assert_called_once()
+        self.assertEqual(manager.clients, {})
+        manager.logger.warning.assert_called_once()
+        self.assertIn(
+            "Error closing connection", manager.logger.warning.call_args[0][0]
+        )
+
     def test_one_disconnect_raises_others_still_called(self):
         """When one client raises on disconnect(), the others are still disconnected.
 

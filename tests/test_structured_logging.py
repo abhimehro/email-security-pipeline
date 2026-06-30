@@ -21,18 +21,29 @@ class TestJSONFormatter(unittest.TestCase):
         """Set up test fixtures."""
         self.formatter = JSONFormatter()
 
+    def _create_record(self, **kwargs):
+        defaults = {
+            "name": "test_logger",
+            "level": logging.INFO,
+            "pathname": "test.py",
+            "lineno": 42,
+            "msg": "Test message",
+            "args": (),
+            "exc_info": None,
+            "func": "test_function",
+        }
+        defaults.update(kwargs)
+        record = logging.LogRecord(**defaults)
+
+        # apply any extra keys that LogRecord.__init__ didn't use but are in kwargs (e.g. created)
+        for k, v in kwargs.items():
+            if k not in defaults or k == "created":
+                setattr(record, k, v)
+        return record
+
     def test_basic_json_format(self):
         """Test that logs are formatted as valid JSON."""
-        record = logging.LogRecord(
-            name="test_logger",
-            level=logging.INFO,
-            pathname="test.py",
-            lineno=42,
-            msg="Test message",
-            args=(),
-            exc_info=None,
-            func="test_function",
-        )
+        record = self._create_record()
 
         result = self.formatter.format(record)
 
@@ -55,14 +66,8 @@ class TestJSONFormatter(unittest.TestCase):
         except ValueError:
             exc_info = sys.exc_info()
 
-        record = logging.LogRecord(
-            name="test_logger",
-            level=logging.ERROR,
-            pathname="test.py",
-            lineno=42,
-            msg="Error occurred",
-            args=(),
-            exc_info=exc_info,
+        record = self._create_record(
+            level=logging.ERROR, msg="Error occurred", exc_info=exc_info
         )
 
         result = self.formatter.format(record)
@@ -75,15 +80,7 @@ class TestJSONFormatter(unittest.TestCase):
 
     def test_extra_fields(self):
         """Test that extra fields are included in output."""
-        record = logging.LogRecord(
-            name="test_logger",
-            level=logging.INFO,
-            pathname="test.py",
-            lineno=42,
-            msg="Processing email",
-            args=(),
-            exc_info=None,
-        )
+        record = self._create_record(msg="Processing email")
 
         # Add extra fields
         record.extra_fields = {
@@ -102,15 +99,7 @@ class TestJSONFormatter(unittest.TestCase):
 
     def test_sensitive_field_redaction(self):
         """Test that sensitive fields are redacted."""
-        record = logging.LogRecord(
-            name="test_logger",
-            level=logging.INFO,
-            pathname="test.py",
-            lineno=42,
-            msg="Processing config",
-            args=(),
-            exc_info=None,
-        )
+        record = self._create_record(msg="Processing config")
 
         # Add fields with sensitive names
         record.extra_fields = {
@@ -137,15 +126,7 @@ class TestJSONFormatter(unittest.TestCase):
 
     def test_case_insensitive_redaction(self):
         """Test that redaction works regardless of case."""
-        record = logging.LogRecord(
-            name="test_logger",
-            level=logging.INFO,
-            pathname="test.py",
-            lineno=42,
-            msg="Test",
-            args=(),
-            exc_info=None,
-        )
+        record = self._create_record(msg="Test")
 
         record.extra_fields = {
             "PASSWORD": "secret",
@@ -172,15 +153,7 @@ class TestJSONFormatter(unittest.TestCase):
         ]
 
         for level_int, level_name in levels:
-            record = logging.LogRecord(
-                name="test_logger",
-                level=level_int,
-                pathname="test.py",
-                lineno=42,
-                msg="Test message",
-                args=(),
-                exc_info=None,
-            )
+            record = self._create_record(level=level_int)
 
             result = self.formatter.format(record)
             data = json.loads(result)
@@ -189,15 +162,7 @@ class TestJSONFormatter(unittest.TestCase):
 
     def test_no_extra_fields(self):
         """Test that formatter works when no extra fields are present."""
-        record = logging.LogRecord(
-            name="test_logger",
-            level=logging.INFO,
-            pathname="test.py",
-            lineno=42,
-            msg="Test message",
-            args=(),
-            exc_info=None,
-        )
+        record = self._create_record()
 
         # Don't add extra_fields attribute
         result = self.formatter.format(record)
@@ -213,15 +178,7 @@ class TestJSONFormatter(unittest.TestCase):
             def __str__(self):
                 return "<UnserializableObject instance>"
 
-        record = logging.LogRecord(
-            name="test_logger",
-            level=logging.INFO,
-            pathname="test.py",
-            lineno=42,
-            msg="Testing object serialization",
-            args=(),
-            exc_info=None,
-        )
+        record = self._create_record(msg="Testing object serialization")
 
         record.extra_fields = {
             "custom_obj": UnserializableObject(),
@@ -236,14 +193,8 @@ class TestJSONFormatter(unittest.TestCase):
 
     def test_message_with_args(self):
         """Test that messages with formatting arguments are correctly interpolated."""
-        record = logging.LogRecord(
-            name="test_logger",
-            level=logging.INFO,
-            pathname="test.py",
-            lineno=42,
-            msg="User %s logged in from %s",
-            args=("admin", "192.168.1.1"),
-            exc_info=None,
+        record = self._create_record(
+            msg="User %s logged in from %s", args=("admin", "192.168.1.1")
         )
 
         result = self.formatter.format(record)
@@ -254,18 +205,7 @@ class TestJSONFormatter(unittest.TestCase):
     def test_custom_datefmt(self):
         """Test that custom date formats are respected."""
         formatter = JSONFormatter(datefmt="%Y-%m-%d")
-        record = logging.LogRecord(
-            name="test_logger",
-            level=logging.INFO,
-            pathname="test.py",
-            lineno=42,
-            msg="Testing date format",
-            args=(),
-            exc_info=None,
-        )
-
-        # Set a fixed timestamp
-        record.created = 1609459200  # 2021-01-01 00:00:00 UTC
+        record = self._create_record(msg="Testing date format", created=1609459200)
 
         result = formatter.format(record)
         data = json.loads(result)
@@ -273,6 +213,24 @@ class TestJSONFormatter(unittest.TestCase):
         # We can't guarantee the exact timezone of the environment running the test,
         # but we can check it matches the format "YYYY-MM-DD"
         self.assertRegex(data["timestamp"], r"^\d{4}-\d{2}-\d{2}$")
+
+    def test_empty_message_and_args(self):
+        """Test formatting with an empty message and no args."""
+        record = self._create_record(msg="")
+
+        result = self.formatter.format(record)
+        data = json.loads(result)
+        self.assertEqual(data["message"], "")
+
+    def test_malformed_extra_fields(self):
+        """Test formatting with non-string keys in extra_fields."""
+        record = self._create_record(msg="Testing malformed extra fields")
+        record.extra_fields = {123: "numeric key", None: "none key"}
+
+        result = self.formatter.format(record)
+        data = json.loads(result)
+        self.assertEqual(data["123"], "numeric key")
+        self.assertEqual(data["null"], "none key")
 
 
 if __name__ == "__main__":
