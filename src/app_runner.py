@@ -141,6 +141,7 @@ class AppRunner:
                         Colors.RED,
                     )
                 )
+                self._print_fallback_instructions()
                 sys.exit(1)
 
             # Use follow_symlinks=False to prevent symlink attacks
@@ -153,6 +154,7 @@ class AppRunner:
                     Colors.RED,
                 )
             )
+            self._print_fallback_instructions()
             sys.exit(1)
 
     def print_help(self) -> None:
