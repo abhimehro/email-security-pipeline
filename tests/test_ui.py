@@ -5,6 +5,7 @@ from unittest.mock import MagicMock, patch
 from src.utils.ui import CountdownTimer, Spinner
 from src.utils.colors import Colors
 
+
 class TestUI(unittest.TestCase):
     @patch("sys.stdout", new_callable=StringIO)
     @patch("time.sleep")
@@ -33,7 +34,9 @@ class TestUI(unittest.TestCase):
     @patch("sys.stdout")
     @patch("threading.Thread")
     @patch("time.sleep", side_effect=[KeyboardInterrupt, None])
-    def test_spinner_start_tty_sleep_interrupt(self, mock_sleep, mock_thread, mock_stdout):
+    def test_spinner_start_tty_sleep_interrupt(
+        self, mock_sleep, mock_thread, mock_stdout
+    ):
         """Test that KeyboardInterrupt during initial sleep is caught and ignored."""
         spinner = Spinner("Testing")
         # _start_tty_spinner handles KeyboardInterrupt during time.sleep(0.1)
@@ -47,6 +50,7 @@ class TestUI(unittest.TestCase):
         spinner = Spinner("Testing")
         color = spinner._get_color_for_symbol("?")
         self.assertEqual(color, Colors.WHITE)
+
 
 if __name__ == "__main__":
     unittest.main()

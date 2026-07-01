@@ -85,7 +85,6 @@ class TestCalculateRiskLevel:
     def test_negative_score_is_low(self):
         assert calculate_risk_level(-1.0, 2.0, 5.0) == "low"
 
-
     def test_inverted_thresholds(self):
         """When low_threshold > high_threshold, high_threshold check takes precedence."""
         assert calculate_risk_level(7.5, 10.0, 5.0) == "high"

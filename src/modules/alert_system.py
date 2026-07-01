@@ -999,7 +999,9 @@ class AlertSystem:
             # 4. Redact Discord Webhooks
             # Format: /api/webhooks/ID/TOKEN
             if (
-                not hostname or hostname == "discord.com" or hostname.endswith(".discord.com")
+                not hostname
+                or hostname == "discord.com"
+                or hostname.endswith(".discord.com")
             ) and parsed.path.startswith("/api/webhooks/"):
                 parts = parsed.path.split("/")
                 # parts[-1] is likely the token
