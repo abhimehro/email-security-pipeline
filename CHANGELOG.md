@@ -408,6 +408,7 @@
 - chore: Daily QA Review - Apply Black Formatting [\#1201](https://github.com/abhimehro/email-security-pipeline/pull/1201) ([abhimehro](https://github.com/abhimehro))
 - chore\(deps\): bump ruby/setup-ruby from 1.314.0 to 1.315.0 [\#1198](https://github.com/abhimehro/email-security-pipeline/pull/1198) ([dependabot[bot]](https://github.com/apps/dependabot))
 - Fix mypy type annotation error in \_validate\_alerts [\#1196](https://github.com/abhimehro/email-security-pipeline/pull/1196) ([abhimehro](https://github.com/abhimehro))
+- Potential fix for code scanning alert no. 7845: Workflow does not contain permissions [\#1195](https://github.com/abhimehro/email-security-pipeline/pull/1195) ([abhimehro](https://github.com/abhimehro))
 - fix\(ui\): forgiving CLI provider selection \(salvages \#1191\) [\#1194](https://github.com/abhimehro/email-security-pipeline/pull/1194) ([abhimehro](https://github.com/abhimehro))
 - test: NLP transformer core \(salvages \#1175\) [\#1193](https://github.com/abhimehro/email-security-pipeline/pull/1193) ([abhimehro](https://github.com/abhimehro))
 - fix\(ui\): Palette fallback instructions \(salvages \#1168\) [\#1192](https://github.com/abhimehro/email-security-pipeline/pull/1192) ([abhimehro](https://github.com/abhimehro))
