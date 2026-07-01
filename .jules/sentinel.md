@@ -49,3 +49,8 @@
 **Vulnerability:** A logic flaw in `src/modules/alert_system.py` and `src/utils/config.py` used `parsed.netloc.lower() == "hooks.slack.com"` for webhook redaction and SSRF validation. `netloc` includes explicit ports and user credentials. An attacker could craft a webhook URL like `https://hooks.slack.com:443/services/...` to bypass these checks.
 **Learning:** `urllib.parse.urlparse().netloc` returns the entire authority component (credentials + domain + port). Using it for exact domain matching enables bypasses when ports or user info are added. Furthermore, `netloc` is not reliably lowercased for unknown or uppercase protocols.
 **Prevention:** Always use `(urlparse(url).hostname or "").lower()` when verifying or matching domains for security constraints, as `.hostname` extracts only the domain name component safely without credentials or ports.
+
+## 2025-07-01 - URL Parsing Vulnerability using netloc
+**Vulnerability:** The application used `urlparse(url).netloc` to extract the domain for spam checks and configuration validation.
+**Learning:** `netloc` includes the credentials and port (e.g., `user:pass@domain:port`), which bypasses simple string-matching spam filters. An attacker could craft a URL like `http://domain.com:80@malicious.com` or `http://malicious.com:80` and bypass the filter.
+**Prevention:** Always use `urllib.parse.urlparse(url).hostname` instead of `.netloc` to accurately extract the domain name for validation. Ensure you handle `None` values (e.g., `(parsed.hostname or "").lower()`).

@@ -275,7 +275,7 @@ class Config:
             parsed = urlparse(value)
         except ValueError:
             return False
-        return parsed.scheme == "https" and bool(parsed.netloc)
+        return parsed.scheme == "https" and bool(parsed.hostname)
 
     def _validate_email_accounts(self) -> List[str]:
         """Validate email account configurations."""
