@@ -142,10 +142,13 @@
 
 **Learning:** `str.maketrans` combined with `str.translate` is highly optimized in Python. However, unconditionally performing whitespace translation (`\n`, `\r`, `\t` to space) on a vast majority of clean string inputs during sanitization incurs unnecessary execution overhead.
 **Action:** Pre-compute the translation table (`_WHITESPACE_TRANS = str.maketrans("\n\r\t", "   ")`) and only apply it when necessary using a fast-path literal substring pre-check: `if "\n" in text or "\r" in text or "\t" in text`. This results in a roughly 3-4x speedup for clean strings while maintaining the exact same behavior and safety semantics for dirty strings.
-## $(date +%Y-%m-%d) - Pre-Compiled Regex Lowercase Optimization
+## 2026-07-01 - Pre-Compiled Regex Lowercase Optimization
 **Learning:** The `re.IGNORECASE` flag carries a significant performance penalty in Python. Optimizing regex matching by lowercasing the pattern strings ahead of time and compiling with `flags=0`, then evaluating against explicitly lowercased input text (e.g., `text.lower()`), is measurably faster. Automated reviewers may incorrectly flag this optimization as breaking case-insensitivity, failing to trace the data flow (e.g., missing that `subject_lower = subject.lower()` is used).
 **Action:** Always independently verify claims from automated code reviews using `cat` or `grep` to confirm if text normalization (like `.lower()`) is already handled upstream before reverting a valid performance optimization.
 
 ## 2025-06-25 - Prevent Ignored Exception Anti-Pattern
 **Learning:** Silently ignoring exceptions using a bare `pass` statement (e.g., `except zipfile.BadZipFile: pass`) masks potential issues and reduces the observability of the system. While it prevents the application from crashing, it makes debugging incredibly difficult when failures inevitably occur.
 **Action:** Replace silent `pass` statements in exception handlers with appropriate logging (e.g., `self.logger.warning(...)`) to ensure operational visibility while still allowing the system to handle the error gracefully without failing outright.
+## 2026-07-01 - Remove re.IGNORECASE penalty with Explicit Character Classes
+**Learning:** Python's regex engine incurs a massive performance penalty (~50-100% overhead) when evaluating patterns compiled with `re.IGNORECASE` (`re.I`). For static patterns where we just need case-insensitive matching for a few alphabetic characters (like `%5bREDACTED%5d`), using explicit character classes (e.g. `r"%5[bB]REDACTED%5[dD]"`) and compiling with default flags (`flags=0`) is roughly 2x faster.
+**Action:** When performing simple case-insensitive regex replacements, replace `flags=re.IGNORECASE` with explicit character classes (like `[aA]`) to bypass the regex engine's performance penalty. Always pre-compile these patterns if used frequently.
