@@ -149,3 +149,7 @@
 ## 2025-06-25 - Prevent Ignored Exception Anti-Pattern
 **Learning:** Silently ignoring exceptions using a bare `pass` statement (e.g., `except zipfile.BadZipFile: pass`) masks potential issues and reduces the observability of the system. While it prevents the application from crashing, it makes debugging incredibly difficult when failures inevitably occur.
 **Action:** Replace silent `pass` statements in exception handlers with appropriate logging (e.g., `self.logger.warning(...)`) to ensure operational visibility while still allowing the system to handle the error gracefully without failing outright.
+
+## 2024-05-18 - Tested NLP transformer methods
+**Learning:** Addressed coverage gap by successfully writing tests for `analyze_with_transformer` and `_analyze_core_impl` ensuring edge cases are covered.
+**Action:** Next time I modify ml pipeline related code, I'll make sure there's testing around it.
