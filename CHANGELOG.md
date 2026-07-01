@@ -41,6 +41,7 @@
 
 **Closed issues:**
 
+- Daily QA & Agentic Review - 2026-06-30 [\#1197](https://github.com/abhimehro/email-security-pipeline/issues/1197)
 - Daily QA & Agentic Review - 2026-06-29 [\#1169](https://github.com/abhimehro/email-security-pipeline/issues/1169)
 - Daily QA & Agentic Review - 2026-06-28 [\#1165](https://github.com/abhimehro/email-security-pipeline/issues/1165)
 - Daily QA & Agentic Review - 2026-06-27 [\#1162](https://github.com/abhimehro/email-security-pipeline/issues/1162)
@@ -404,6 +405,12 @@
 
 **Merged pull requests:**
 
+- chore: Daily QA Review - Apply Black Formatting [\#1201](https://github.com/abhimehro/email-security-pipeline/pull/1201) ([abhimehro](https://github.com/abhimehro))
+- chore\(deps\): bump ruby/setup-ruby from 1.314.0 to 1.315.0 [\#1198](https://github.com/abhimehro/email-security-pipeline/pull/1198) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Fix mypy type annotation error in \_validate\_alerts [\#1196](https://github.com/abhimehro/email-security-pipeline/pull/1196) ([abhimehro](https://github.com/abhimehro))
+- fix\(ui\): forgiving CLI provider selection \(salvages \#1191\) [\#1194](https://github.com/abhimehro/email-security-pipeline/pull/1194) ([abhimehro](https://github.com/abhimehro))
+- test: NLP transformer core \(salvages \#1175\) [\#1193](https://github.com/abhimehro/email-security-pipeline/pull/1193) ([abhimehro](https://github.com/abhimehro))
+- fix\(ui\): Palette fallback instructions \(salvages \#1168\) [\#1192](https://github.com/abhimehro/email-security-pipeline/pull/1192) ([abhimehro](https://github.com/abhimehro))
 - 🛡️ Sentinel: \[HIGH\] Fix Webhook Token Leak & Validation Bypass via parsed.netloc [\#1189](https://github.com/abhimehro/email-security-pipeline/pull/1189) ([abhimehro](https://github.com/abhimehro))
 - 🧹 Fix ignored exceptions in media\_analyzer [\#1186](https://github.com/abhimehro/email-security-pipeline/pull/1186) ([abhimehro](https://github.com/abhimehro))
 - 🔒 Fix: Sanitize absolute paths and backward slashes in archive member path traversal checks [\#1185](https://github.com/abhimehro/email-security-pipeline/pull/1185) ([abhimehro](https://github.com/abhimehro))
@@ -411,6 +418,7 @@
 - 🧪 Add missing error test in email\_ingestion close\_all\_connections [\#1183](https://github.com/abhimehro/email-security-pipeline/pull/1183) ([abhimehro](https://github.com/abhimehro))
 - chore\(deps\): bump github/gh-aw/actions/setup from 0.80.9 to 0.81.6 [\#1182](https://github.com/abhimehro/email-security-pipeline/pull/1182) ([dependabot[bot]](https://github.com/apps/dependabot))
 - chore\(deps\): bump github/gh-aw/actions/setup-cli from 0.80.9 to 0.81.6 [\#1181](https://github.com/abhimehro/email-security-pipeline/pull/1181) ([dependabot[bot]](https://github.com/apps/dependabot))
+- 🧪 \[Testing Improvement\] Add comprehensive tests for `generate_threat_report` [\#1180](https://github.com/abhimehro/email-security-pipeline/pull/1180) ([abhimehro](https://github.com/abhimehro))
 - 🧹 \[code health improvement\] Remove silent KeyboardInterrupt catch in ui spinner [\#1177](https://github.com/abhimehro/email-security-pipeline/pull/1177) ([abhimehro](https://github.com/abhimehro))
 - 🧪 Add truncation edge cases for sanitize\_for\_logging [\#1176](https://github.com/abhimehro/email-security-pipeline/pull/1176) ([abhimehro](https://github.com/abhimehro))
 - 🧪 Add missing tests for ui.py [\#1174](https://github.com/abhimehro/email-security-pipeline/pull/1174) ([abhimehro](https://github.com/abhimehro))
