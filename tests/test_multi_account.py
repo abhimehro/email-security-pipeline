@@ -14,9 +14,12 @@ from unittest.mock import MagicMock, patch
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.modules.email_ingestion import (EmailAccountConfig, EmailData,
-                                         EmailIngestionConfig,
-                                         EmailIngestionManager)
+from src.modules.email_ingestion import (
+    EmailAccountConfig,
+    EmailData,
+    EmailIngestionConfig,
+    EmailIngestionManager,
+)
 
 
 class TestMultiAccountProcessing(unittest.TestCase):

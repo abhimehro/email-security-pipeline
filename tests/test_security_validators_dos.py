@@ -1,9 +1,11 @@
 import unittest
 
-from src.utils.security_validators import (DEFAULT_MAX_EMAIL_SIZE,
-                                           MAX_SUBJECT_LENGTH,
-                                           calculate_max_email_size,
-                                           validate_subject_length)
+from src.utils.security_validators import (
+    DEFAULT_MAX_EMAIL_SIZE,
+    MAX_SUBJECT_LENGTH,
+    calculate_max_email_size,
+    validate_subject_length,
+)
 
 # calculate_max_email_size is expected to add a fixed 5 MB overhead to any
 # positive attachment limit. Mirror that contract here so the tests clearly

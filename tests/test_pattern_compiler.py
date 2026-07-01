@@ -14,9 +14,11 @@ import re
 
 import pytest
 
-from src.utils.pattern_compiler import (check_redos_safety,
-                                        compile_named_group_pattern,
-                                        compile_patterns)
+from src.utils.pattern_compiler import (
+    check_redos_safety,
+    compile_named_group_pattern,
+    compile_patterns,
+)
 
 # ---------------------------------------------------------------------------
 # check_redos_safety
