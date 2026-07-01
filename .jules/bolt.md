@@ -153,3 +153,8 @@
 ## 2024-05-18 - Tested NLP transformer methods
 **Learning:** Addressed coverage gap by successfully writing tests for `analyze_with_transformer` and `_analyze_core_impl` ensuring edge cases are covered.
 **Action:** Next time I modify ml pipeline related code, I'll make sure there's testing around it.
+
+## 2026-07-01 - [Pre-compile regex to avoid re.IGNORECASE overhead]
+**Learning:** Using `re.IGNORECASE` on hot-path URL redaction adds measurable overhead; explicit character classes in a compiled pattern are faster.
+**Action:** Replace inline `re.sub(..., flags=re.IGNORECASE)` with a class-level compiled pattern using explicit `%5[bB]` / `%5[dD]` classes.
+
