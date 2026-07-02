@@ -41,6 +41,7 @@
 
 **Closed issues:**
 
+- Daily QA & Agentic Review - 2026-07-01 [\#1205](https://github.com/abhimehro/email-security-pipeline/issues/1205)
 - Daily QA & Agentic Review - 2026-06-30 [\#1197](https://github.com/abhimehro/email-security-pipeline/issues/1197)
 - Daily QA & Agentic Review - 2026-06-29 [\#1169](https://github.com/abhimehro/email-security-pipeline/issues/1169)
 - Daily QA & Agentic Review - 2026-06-28 [\#1165](https://github.com/abhimehro/email-security-pipeline/issues/1165)
@@ -405,6 +406,10 @@
 
 **Merged pull requests:**
 
+- ⚡ Bolt: Optimize regex performance in alert system by removing re.IGNORECASE penalty [\#1207](https://github.com/abhimehro/email-security-pipeline/pull/1207) ([abhimehro](https://github.com/abhimehro))
+- 🛡️ Sentinel: \[HIGH\] Fix URL Parsing for domain checks [\#1206](https://github.com/abhimehro/email-security-pipeline/pull/1206) ([abhimehro](https://github.com/abhimehro))
+- test: setup wizard edge-case integration tests \(salvages \#1179\) [\#1204](https://github.com/abhimehro/email-security-pipeline/pull/1204) ([abhimehro](https://github.com/abhimehro))
+- perf\(imap\): pre-compile RFC822.SIZE regex \(salvages \#1178\) [\#1203](https://github.com/abhimehro/email-security-pipeline/pull/1203) ([abhimehro](https://github.com/abhimehro))
 - chore: Daily QA Review - Apply Black Formatting [\#1201](https://github.com/abhimehro/email-security-pipeline/pull/1201) ([abhimehro](https://github.com/abhimehro))
 - chore\(deps\): bump ruby/setup-ruby from 1.314.0 to 1.315.0 [\#1198](https://github.com/abhimehro/email-security-pipeline/pull/1198) ([dependabot[bot]](https://github.com/apps/dependabot))
 - Fix mypy type annotation error in \_validate\_alerts [\#1196](https://github.com/abhimehro/email-security-pipeline/pull/1196) ([abhimehro](https://github.com/abhimehro))
