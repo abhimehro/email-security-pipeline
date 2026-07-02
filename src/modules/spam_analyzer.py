@@ -365,7 +365,7 @@ class SpamAnalyzer:
 
             try:
                 parsed = urlparse(url)
-                domain = parsed.netloc.lower()
+                domain = (parsed.hostname or "").lower()
 
                 current_url_score = 0.0
                 append_count = 0
