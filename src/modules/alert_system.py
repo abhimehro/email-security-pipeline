@@ -66,6 +66,9 @@ class AlertSystem:
     RED_KEYWORDS_PATTERN = re.compile(r"HIGH RISK|DANGEROUS|PHISHING")
     YELLOW_KEYWORDS_PATTERN = re.compile(r"SUSPICIOUS|VERIFY|URGENCY|IMPERSONATION")
 
+    # Pre-compiled pattern for fast URL redaction replacement without re.IGNORECASE penalty
+    REDACTED_URL_PATTERN = re.compile(r"%5[bB]REDACTED%5[dD]", flags=0)
+
     # Maximum number of items shown per section in the console threat report.
     # Helps keep the output readable; lists may be truncated in the console view.
     MAX_SPAM_INDICATORS_DISPLAY = 5
@@ -646,11 +649,9 @@ class AlertSystem:
         return rows
 
     def _safe_console_url(self, url: str) -> str:
-        redacted_url = re.sub(
-            r"%5bREDACTED%5d",
+        redacted_url = self.REDACTED_URL_PATTERN.sub(
             "[REDACTED]",
             self._redact_sensitive_url_params(url),
-            flags=re.IGNORECASE,
         )
         return self._sanitize_text(redacted_url, csv_safe=True)
 
