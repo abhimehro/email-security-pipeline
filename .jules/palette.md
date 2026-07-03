@@ -227,3 +227,7 @@
 ## $(date +%Y-%m-%d) - Silent catch in UI elements
 **Learning:** Silently catching `KeyboardInterrupt` in background threads (like a spinner loop initialization) without raising it or setting a stop event can lead to a state where the thread continues spinning even after the user tries to cancel, or it might consume the interrupt and prevent the main thread from handling it properly. While checking for `sys.stdout.isatty()` or other conditions, it is crucial to ensure that accessibility features (like screen readers) do not inadvertently block main-thread signals by catching and ignoring exceptions.
 **Action:** When adding small delays (e.g., `time.sleep()`) for accessibility or UI timing in methods that start background threads, ensure these delays are moved *into* the background thread itself. This prevents the main thread from blocking and eliminates the need to catch and suppress `KeyboardInterrupt` in the setup phase, allowing the main application to handle cancellation signals robustly.
+
+## 2025-06-26 - Unified error styling symbol
+**Learning:** Having multiple variation of the X symbol (`❌` vs `✘`) for errors creates an inconsistent visual experience in the CLI and causes cognitive dissonance. Consistency in iconography is just as important as consistency in colors.
+**Action:** Always use the same `✘` symbol for error states across the CLI, matching the success `✔` symbol, avoiding more complex or colorful emojis like `❌` which may render inconsistently in some terminals.
