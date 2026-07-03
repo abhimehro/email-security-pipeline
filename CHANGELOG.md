@@ -41,6 +41,7 @@
 
 **Closed issues:**
 
+- Daily QA & Agentic Review - 2026-07-02 [\#1209](https://github.com/abhimehro/email-security-pipeline/issues/1209)
 - Daily QA & Agentic Review - 2026-07-01 [\#1205](https://github.com/abhimehro/email-security-pipeline/issues/1205)
 - Daily QA & Agentic Review - 2026-06-30 [\#1197](https://github.com/abhimehro/email-security-pipeline/issues/1197)
 - Daily QA & Agentic Review - 2026-06-29 [\#1169](https://github.com/abhimehro/email-security-pipeline/issues/1169)
@@ -406,6 +407,7 @@
 
 **Merged pull requests:**
 
+- chore\(deps\): bump ruby/setup-ruby from 1.315.0 to 1.316.0 [\#1210](https://github.com/abhimehro/email-security-pipeline/pull/1210) ([dependabot[bot]](https://github.com/apps/dependabot))
 - ⚡ Bolt: Optimize regex performance in alert system by removing re.IGNORECASE penalty [\#1207](https://github.com/abhimehro/email-security-pipeline/pull/1207) ([abhimehro](https://github.com/abhimehro))
 - 🛡️ Sentinel: \[HIGH\] Fix URL Parsing for domain checks [\#1206](https://github.com/abhimehro/email-security-pipeline/pull/1206) ([abhimehro](https://github.com/abhimehro))
 - test: setup wizard edge-case integration tests \(salvages \#1179\) [\#1204](https://github.com/abhimehro/email-security-pipeline/pull/1204) ([abhimehro](https://github.com/abhimehro))
