@@ -407,6 +407,7 @@
 
 **Merged pull requests:**
 
+- Fix opencv-python-headless version inconsistency [\#1212](https://github.com/abhimehro/email-security-pipeline/pull/1212) ([abhimehro](https://github.com/abhimehro))
 - chore\(deps\): bump ruby/setup-ruby from 1.315.0 to 1.316.0 [\#1210](https://github.com/abhimehro/email-security-pipeline/pull/1210) ([dependabot[bot]](https://github.com/apps/dependabot))
 - ⚡ Bolt: Optimize regex performance in alert system by removing re.IGNORECASE penalty [\#1207](https://github.com/abhimehro/email-security-pipeline/pull/1207) ([abhimehro](https://github.com/abhimehro))
 - 🛡️ Sentinel: \[HIGH\] Fix URL Parsing for domain checks [\#1206](https://github.com/abhimehro/email-security-pipeline/pull/1206) ([abhimehro](https://github.com/abhimehro))
