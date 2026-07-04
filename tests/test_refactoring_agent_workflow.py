@@ -93,3 +93,32 @@ def test_prepare_command_extracts_first_cs_agent_line_from_multiline_comment(tmp
         "/cs-agent skill:fix-code-health-degradations\n"
         "EOF\n"
     )
+
+
+def test_prepare_command_fails_when_no_cs_agent_line_present(tmp_path):
+    steps = load_workflow()["jobs"]["refactor"]["steps"]
+    prepare_command_step = next(step for step in steps if step.get("id") == "prepare-command")
+    home_dir = tmp_path / "home"
+    home_dir.mkdir()
+    github_output = tmp_path / "github-output.txt"
+
+    bash = shutil.which("bash")
+    if bash is None:
+        pytest.fail("bash not found in PATH; cannot run workflow shell test")
+
+    result = subprocess.run(  # nosec B603
+        [bash, "-e", "-c", prepare_command_step["run"]],
+        check=False,
+        capture_output=True,
+        text=True,
+        env={
+            "PATH": os.environ.get("PATH", ""),
+            "HOME": str(home_dir),
+            "LANG": "C.UTF-8",
+            "RAW_COMMENT": "This comment has no slash-command at all.",
+            "GITHUB_OUTPUT": str(github_output),
+        },
+    )
+
+    assert result.returncode != 0  # nosec B101
+    assert "::error::" in result.stdout  # nosec B101
