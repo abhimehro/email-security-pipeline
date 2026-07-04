@@ -29,12 +29,16 @@ class MockConfig:
 @functools.total_ordering
 class DummyProb:
     """A dummy class to simulate a PyTorch tensor with an item() method."""
+
     def __init__(self, val):
         self.val = val
+
     def item(self):
         return self.val
+
     def __lt__(self, other):
         return self.val < other.val
+
     def __eq__(self, other):
         return self.val == other.val
 
@@ -48,7 +52,9 @@ class TestAnalyzeWithTransformer(unittest.TestCase):
         """Test that long text is truncated, cache is checked, _analyze_core_impl is called, and result is cached."""
         self.analyzer._cache = MagicMock()
         self.analyzer._cache.get.return_value = None
-        self.analyzer._analyze_core_impl = MagicMock(return_value={"threat_probability": 0.9})
+        self.analyzer._analyze_core_impl = MagicMock(
+            return_value={"threat_probability": 0.9}
+        )
 
         long_text = "A" * 5000
 
@@ -60,7 +66,9 @@ class TestAnalyzeWithTransformer(unittest.TestCase):
 
         text_hash = hashlib.sha256(truncated_text.encode()).hexdigest()
         self.analyzer._cache.get.assert_called_once_with(text_hash)
-        self.analyzer._cache.put.assert_called_once_with(text_hash, {"threat_probability": 0.9})
+        self.analyzer._cache.put.assert_called_once_with(
+            text_hash, {"threat_probability": 0.9}
+        )
 
     def test_analyze_with_transformer_cache_hit(self):
         """Test that _analyze_core_impl is bypassed if result is in cache."""
@@ -90,20 +98,26 @@ class TestAnalyzeCoreImpl(unittest.TestCase):
         """Return error if model is None."""
         self.analyzer.model = None
         self.analyzer.tokenizer = MagicMock()
-        self.assertEqual(self.analyzer._analyze_core_impl("test"), {"error": "Model not loaded"})
+        self.assertEqual(
+            self.analyzer._analyze_core_impl("test"), {"error": "Model not loaded"}
+        )
 
     def test_missing_tokenizer(self):
         """Return error if tokenizer is None."""
         self.analyzer.model = MagicMock()
         self.analyzer.tokenizer = None
-        self.assertEqual(self.analyzer._analyze_core_impl("test"), {"error": "Model not loaded"})
+        self.assertEqual(
+            self.analyzer._analyze_core_impl("test"), {"error": "Model not loaded"}
+        )
 
     @patch("src.modules.nlp_analyzer.torch", None)
     def test_missing_torch(self):
         """Return error if torch is not available."""
         self.analyzer.model = MagicMock()
         self.analyzer.tokenizer = MagicMock()
-        self.assertEqual(self.analyzer._analyze_core_impl("test"), {"error": "Torch not available"})
+        self.assertEqual(
+            self.analyzer._analyze_core_impl("test"), {"error": "Torch not available"}
+        )
 
     @patch("src.modules.nlp_analyzer.torch")
     def test_happy_path(self, mock_torch):
@@ -133,7 +147,9 @@ class TestAnalyzeCoreImpl(unittest.TestCase):
 
         result = self.analyzer._analyze_core_impl("test_text")
 
-        self.analyzer.tokenizer.assert_called_with("test_text", return_tensors="pt", truncation=True, max_length=512)
+        self.analyzer.tokenizer.assert_called_with(
+            "test_text", return_tensors="pt", truncation=True, max_length=512
+        )
         mock_input_val.to.assert_called_with("mock_device")
         self.analyzer.model.assert_called_with(input_ids="moved_input_ids")
         mock_torch.softmax.assert_called_with("mock_logits", dim=-1)
@@ -178,7 +194,10 @@ class TestAnalyzeCoreImpl(unittest.TestCase):
         result = self.analyzer._analyze_core_impl("test")
 
         self.assertEqual(result, {"error": "Tokenizer failed"})
-        self.analyzer.logger.error.assert_called_with("Transformer analysis error: Tokenizer failed")
+        self.analyzer.logger.error.assert_called_with(
+            "Transformer analysis error: Tokenizer failed"
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
