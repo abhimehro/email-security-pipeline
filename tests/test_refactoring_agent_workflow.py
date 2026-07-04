@@ -3,6 +3,7 @@ import shutil
 import subprocess  # nosec B404
 from pathlib import Path
 
+import pytest
 import yaml
 
 
@@ -62,7 +63,9 @@ def test_prepare_command_extracts_first_cs_agent_line_from_multiline_comment(tmp
     home_dir = tmp_path / "home"
     home_dir.mkdir()
 
-    bash = shutil.which("bash") or "/bin/bash"
+    bash = shutil.which("bash")
+    if bash is None:
+        pytest.fail("bash not found in PATH; cannot run workflow shell test")
 
     result = subprocess.run(  # nosec B603
         [bash, "-e", "-c", prepare_command_step["run"]],
@@ -84,6 +87,7 @@ def test_prepare_command_extracts_first_cs_agent_line_from_multiline_comment(tmp
 
     assert result.returncode == 0, result.stderr  # nosec B101
     assert "Final command: /cs-agent skill:fix-code-health-degradations" in result.stdout  # nosec B101
+    assert "second-command-should-be-ignored" not in result.stdout  # nosec B101
     assert github_output.read_text(encoding="utf-8") == (  # nosec B101
         "command<<EOF\n"
         "/cs-agent skill:fix-code-health-degradations\n"
