@@ -409,6 +409,7 @@
 
 **Merged pull requests:**
 
+- Harden refactor workflow command extraction for multiline PR comments [\#1228](https://github.com/abhimehro/email-security-pipeline/pull/1228) ([Copilot](https://github.com/apps/copilot-swe-agent))
 - Harden refactor workflow against transient push races [\#1227](https://github.com/abhimehro/email-security-pipeline/pull/1227) ([Copilot](https://github.com/apps/copilot-swe-agent))
 - 🎨 Palette: Improve CLI UX and Error Styling [\#1225](https://github.com/abhimehro/email-security-pipeline/pull/1225) ([abhimehro](https://github.com/abhimehro))
 - 🧹 \[code health improvement\] Refactor generate\_threat\_report complexity [\#1224](https://github.com/abhimehro/email-security-pipeline/pull/1224) ([abhimehro](https://github.com/abhimehro))
