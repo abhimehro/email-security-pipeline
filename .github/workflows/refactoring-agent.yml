@@ -61,7 +61,7 @@ jobs:
           elif [[ "$ENABLE_GOOGLE" == "true" ]]; then
             MODEL="google/gemini-3.5-flash"
           else
-            MODEL="mistral/devstral-medium-latest"
+            MODEL="mistral/mistral-medium-latest"
           fi
 
           echo "enable_google=${ENABLE_GOOGLE}" >> "$GITHUB_OUTPUT"
