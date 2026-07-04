@@ -109,6 +109,34 @@ class TestGenerateThreatReport(unittest.TestCase):
             self.spam_result_low, self.nlp_result_low, self.media_result_low
         )
 
+    def _create_analysis_result(self, result_type, risk_level, score):
+        if result_type == "spam":
+            return SpamAnalysisResult(
+                score=score,
+                indicators=[],
+                suspicious_urls=[],
+                header_issues=[],
+                risk_level=risk_level,
+            )
+        elif result_type == "nlp":
+            return NLPAnalysisResult(
+                threat_score=score,
+                social_engineering_indicators=[],
+                urgency_markers=[],
+                authority_impersonation=[],
+                psychological_triggers=[],
+                risk_level=risk_level,
+            )
+        else:
+            return MediaAnalysisResult(
+                threat_score=score,
+                suspicious_attachments=[],
+                file_type_warnings=[],
+                size_anomalies=[],
+                potential_deepfakes=[],
+                risk_level=risk_level,
+            )
+
     def test_overall_risk_levels(self):
         scenarios = [
             {
@@ -166,28 +194,14 @@ class TestGenerateThreatReport(unittest.TestCase):
                     else (50.0 if scenario["media_risk"] == "medium" else 2.0)
                 )
 
-                spam_result = SpamAnalysisResult(
-                    score=spam_score,
-                    indicators=[],
-                    suspicious_urls=[],
-                    header_issues=[],
-                    risk_level=scenario["spam_risk"],
+                spam_result = self._create_analysis_result(
+                    "spam", scenario["spam_risk"], spam_score
                 )
-                nlp_result = NLPAnalysisResult(
-                    threat_score=nlp_score,
-                    social_engineering_indicators=[],
-                    urgency_markers=[],
-                    authority_impersonation=[],
-                    psychological_triggers=[],
-                    risk_level=scenario["nlp_risk"],
+                nlp_result = self._create_analysis_result(
+                    "nlp", scenario["nlp_risk"], nlp_score
                 )
-                media_result = MediaAnalysisResult(
-                    threat_score=media_score,
-                    suspicious_attachments=[],
-                    file_type_warnings=[],
-                    size_anomalies=[],
-                    potential_deepfakes=[],
-                    risk_level=scenario["media_risk"],
+                media_result = self._create_analysis_result(
+                    "media", scenario["media_risk"], media_score
                 )
 
                 report = generate_threat_report(

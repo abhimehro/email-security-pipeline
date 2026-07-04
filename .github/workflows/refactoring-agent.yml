@@ -43,41 +43,13 @@ jobs:
         run: |
           set -euo pipefail
 
-          # Default: Google on, Mistral off, unless overridden via repo/org Variables.
-          # (Currently flipped for isolated Mistral testing.)
-          ENABLE_GOOGLE="${ENABLE_GOOGLE_VAR:-false}"
-          ENABLE_MISTRAL="${ENABLE_MISTRAL_VAR:-true}"
-
-          if [[ "$ENABLE_GOOGLE" != "true" && "$ENABLE_MISTRAL" != "true" ]]; then
-            echo "::error::Both ENABLE_GOOGLE and ENABLE_MISTRAL are disabled. Enable at least one via repo Variables."
+          if [ -z "${GOOGLE_KEY}" ]; then
+            echo "::error::Secret GOOGLE_API_KEY is empty in this workflow run."
+            echo "::error::Add it under Settings → Secrets and variables → Actions → Secrets (not Variables)."
             exit 1
           fi
 
-          if [[ -n "${MODEL_OVERRIDE:-}" ]]; then
-            MODEL="$MODEL_OVERRIDE"
-          elif [[ "$ENABLE_GOOGLE" == "true" ]]; then
-            MODEL="google/gemini-3.5-flash"
-          else
-            MODEL="mistral/mistral-large-latest"
-          fi
-
-          echo "enable_google=${ENABLE_GOOGLE}" >> "$GITHUB_OUTPUT"
-          echo "enable_mistral=${ENABLE_MISTRAL}" >> "$GITHUB_OUTPUT"
-          echo "model=${MODEL}" >> "$GITHUB_OUTPUT"
-
-          echo "Google enabled: ${ENABLE_GOOGLE}"
-          echo "Mistral enabled: ${ENABLE_MISTRAL}"
-          echo "Model: ${MODEL}"
-
-      - name: Configure OpenCode auth
-        env:
-          ENABLE_GOOGLE: ${{ steps.providers.outputs.enable_google }}
-          ENABLE_MISTRAL: ${{ steps.providers.outputs.enable_mistral }}
-          GOOGLE_KEY: ${{ secrets.GOOGLE_API_KEY }}
-          MISTRAL_KEY: ${{ secrets.MISTRAL_API_KEY }}
-        run: |
-          set -euo pipefail
-
+          GOOGLE_KEY="$(printf '%s' "${GOOGLE_KEY}" | tr -d '\n\r')"
           mkdir -p "${HOME}/.local/share/opencode"
           jq -n --arg key "${GOOGLE_KEY}" '{"google":{"type":"api","key":$key}}' \
             > "${HOME}/.local/share/opencode/auth.json"
@@ -104,23 +76,14 @@ jobs:
       # Pin bc0d8b91: fixes spurious skill:github-pr-comment prepend (v1.0.0/v1.0.1 still broken).
       - uses: codescene-oss/pr-refactoring-agent@841e34c7ddd7a8ec887d632ac51432d6c71e2fe1 # untagged-fix-commit
         env:
-          GOOGLE_GENERATIVE_AI_API_KEY: ${{ steps.providers.outputs.enable_google == 'true' && secrets.GOOGLE_API_KEY || '' }}
-          GOOGLE_API_KEY: ${{ steps.providers.outputs.enable_google == 'true' && secrets.GOOGLE_API_KEY || '' }}
-          GEMINI_API_KEY: ${{ steps.providers.outputs.enable_google == 'true' && secrets.GOOGLE_API_KEY || '' }}
-          MISTRAL_API_KEY: ${{ steps.providers.outputs.enable_mistral == 'true' && secrets.MISTRAL_API_KEY || '' }}
+          GOOGLE_GENERATIVE_AI_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
         with:
           pr_number: ${{ github.event.issue.number }}
           command: ${{ steps.prepare-command.outputs.command }}
           model: google/gemini-3.5-flash
           version: v1.0.3
           codescene_token: ${{ secrets.CODESCENE_ACCESS_TOKEN }}
-          google_api_key: ${{ steps.providers.outputs.enable_google == 'true' && secrets.GOOGLE_API_KEY || '' }}
+          google_api_key: ${{ secrets.GOOGLE_API_KEY }}
           opencode_auth_json: ${{ steps.opencode-auth.outputs.json }}
-
-      - name: Dump OpenCode logs on failure
-        if: failure()
-        shell: bash
-        run: |
-          echo "::group::OpenCode logs"
-          find "${HOME}/.local/share/opencode/log" -type f -newermt "-15 minutes" -exec sh -c 'echo "--- {} ---"; cat "{}"' \; 2>/dev/null || echo "No log files found"
-          echo "::endgroup::"
