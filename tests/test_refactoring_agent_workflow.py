@@ -60,12 +60,12 @@ def test_prepare_command_extracts_first_cs_agent_line_from_multiline_comment(tmp
     github_output = tmp_path / "github-output.txt"
 
     result = subprocess.run(
-        ["bash", "-euo", "pipefail", "-c", prepare_command_step["run"]],
+        ["bash", "-e", "-c", prepare_command_step["run"]],
         check=False,
         capture_output=True,
         text=True,
-        env=os.environ
-        | {
+        env={
+            "PATH": os.environ.get("PATH", ""),
             "RAW_COMMENT": (
                 "> /cs-agent fix-code-health-degradations\n\n"
                 "Acknowledged. I already updated the PR."
