@@ -157,7 +157,7 @@ class EmailSecurityPipeline:
             self.logger.info("Received shutdown signal")
             self.stop()
         except ConfigurationError as e:
-            print("\n" + Colors.colorize("✖ Configuration Error:", Colors.RED))
+            print("\n" + Colors.colorize("❌ Configuration Error:", Colors.RED))
             for error in e.args[0]:
                 print(f"  • {Colors.colorize(error, Colors.YELLOW)}")
             print(

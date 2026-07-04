@@ -109,80 +109,91 @@ class TestGenerateThreatReport(unittest.TestCase):
             self.spam_result_low, self.nlp_result_low, self.media_result_low
         )
 
-    def test_overall_risk_level_high_from_spam(self):
-        spam_high = SpamAnalysisResult(
-            score=90.0,
-            indicators=[],
-            suspicious_urls=[],
-            header_issues=[],
-            risk_level="high",
-        )
-        report = generate_threat_report(
-            self.email_data, spam_high, self.nlp_result_low, self.media_result_low
-        )
-        self.assertEqual(report.risk_level, "high")
+    def test_overall_risk_levels(self):
+        scenarios = [
+            {
+                "name": "high_from_spam",
+                "spam_risk": "high",
+                "nlp_risk": "low",
+                "media_risk": "low",
+                "expected": "high",
+            },
+            {
+                "name": "high_from_nlp",
+                "spam_risk": "low",
+                "nlp_risk": "high",
+                "media_risk": "low",
+                "expected": "high",
+            },
+            {
+                "name": "high_from_media",
+                "spam_risk": "low",
+                "nlp_risk": "low",
+                "media_risk": "high",
+                "expected": "high",
+            },
+            {
+                "name": "medium",
+                "spam_risk": "medium",
+                "nlp_risk": "low",
+                "media_risk": "low",
+                "expected": "medium",
+            },
+            {
+                "name": "medium_multiple",
+                "spam_risk": "medium",
+                "nlp_risk": "medium",
+                "media_risk": "low",
+                "expected": "medium",
+            },
+        ]
 
-    def test_overall_risk_level_high_from_nlp(self):
-        nlp_high = NLPAnalysisResult(
-            threat_score=90.0,
-            social_engineering_indicators=[],
-            urgency_markers=[],
-            authority_impersonation=[],
-            psychological_triggers=[],
-            risk_level="high",
-        )
-        report = generate_threat_report(
-            self.email_data, self.spam_result_low, nlp_high, self.media_result_low
-        )
-        self.assertEqual(report.risk_level, "high")
+        for scenario in scenarios:
+            with self.subTest(scenario=scenario["name"]):
+                spam_score = (
+                    90.0
+                    if scenario["spam_risk"] == "high"
+                    else (50.0 if scenario["spam_risk"] == "medium" else 10.0)
+                )
+                nlp_score = (
+                    90.0
+                    if scenario["nlp_risk"] == "high"
+                    else (50.0 if scenario["nlp_risk"] == "medium" else 5.0)
+                )
+                media_score = (
+                    90.0
+                    if scenario["media_risk"] == "high"
+                    else (50.0 if scenario["media_risk"] == "medium" else 2.0)
+                )
 
-    def test_overall_risk_level_high_from_media(self):
-        media_high = MediaAnalysisResult(
-            threat_score=90.0,
-            suspicious_attachments=[],
-            file_type_warnings=[],
-            size_anomalies=[],
-            potential_deepfakes=[],
-            risk_level="high",
-        )
-        report = generate_threat_report(
-            self.email_data, self.spam_result_low, self.nlp_result_low, media_high
-        )
-        self.assertEqual(report.risk_level, "high")
+                spam_result = SpamAnalysisResult(
+                    score=spam_score,
+                    indicators=[],
+                    suspicious_urls=[],
+                    header_issues=[],
+                    risk_level=scenario["spam_risk"],
+                )
+                nlp_result = NLPAnalysisResult(
+                    threat_score=nlp_score,
+                    social_engineering_indicators=[],
+                    urgency_markers=[],
+                    authority_impersonation=[],
+                    psychological_triggers=[],
+                    risk_level=scenario["nlp_risk"],
+                )
+                media_result = MediaAnalysisResult(
+                    threat_score=media_score,
+                    suspicious_attachments=[],
+                    file_type_warnings=[],
+                    size_anomalies=[],
+                    potential_deepfakes=[],
+                    risk_level=scenario["media_risk"],
+                )
 
-    def test_overall_risk_level_medium(self):
-        spam_med = SpamAnalysisResult(
-            score=50.0,
-            indicators=[],
-            suspicious_urls=[],
-            header_issues=[],
-            risk_level="medium",
-        )
-        report = generate_threat_report(
-            self.email_data, spam_med, self.nlp_result_low, self.media_result_low
-        )
-        self.assertEqual(report.risk_level, "medium")
-
-    def test_overall_risk_level_medium_multiple(self):
-        spam_med = SpamAnalysisResult(
-            score=50.0,
-            indicators=[],
-            suspicious_urls=[],
-            header_issues=[],
-            risk_level="medium",
-        )
-        nlp_med = NLPAnalysisResult(
-            threat_score=50.0,
-            social_engineering_indicators=[],
-            urgency_markers=[],
-            authority_impersonation=[],
-            psychological_triggers=[],
-            risk_level="medium",
-        )
-        report = generate_threat_report(
-            self.email_data, spam_med, nlp_med, self.media_result_low
-        )
-        self.assertEqual(report.risk_level, "medium")
+                report = generate_threat_report(
+                    self.email_data, spam_result, nlp_result, media_result
+                )
+                self.assertEqual(report.risk_level, scenario["expected"])
 
 
 if __name__ == "__main__":
