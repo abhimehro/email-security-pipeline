@@ -173,7 +173,7 @@ jobs:
           opencode_auth_json: ${{ steps.opencode-auth.outputs.json }}
 
       - name: Fail if both refactor attempts fail
-        if: steps.refactor-attempt-1.outcome == 'failure' && steps.refactor-attempt-2.outcome == 'failure'
+        if: always() && steps.refactor-attempt-1.outcome == 'failure' && steps.refactor-attempt-2.outcome != 'success'
         shell: bash
         run: |
           echo "::error::CodeScene refactoring failed twice. See the attempt logs above."
