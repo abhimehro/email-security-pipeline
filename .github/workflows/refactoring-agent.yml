@@ -49,7 +49,31 @@ jobs:
             exit 1
           fi
 
-          GOOGLE_KEY="$(printf '%s' "${GOOGLE_KEY}" | tr -d '\n\r')"
+          if [[ -n "${MODEL_OVERRIDE:-}" ]]; then
+            MODEL="$MODEL_OVERRIDE"
+          elif [[ "$ENABLE_GOOGLE" == "true" ]]; then
+            MODEL="google/gemini-3.5-flash"
+          else
+            MODEL="mistral/devstral-medium-latest"
+          fi
+
+          echo "enable_google=${ENABLE_GOOGLE}" >> "$GITHUB_OUTPUT"
+          echo "enable_mistral=${ENABLE_MISTRAL}" >> "$GITHUB_OUTPUT"
+          echo "model=${MODEL}" >> "$GITHUB_OUTPUT"
+
+          echo "Google enabled: ${ENABLE_GOOGLE}"
+          echo "Mistral enabled: ${ENABLE_MISTRAL}"
+          echo "Model: ${MODEL}"
+
+      - name: Configure OpenCode auth
+        env:
+          ENABLE_GOOGLE: ${{ steps.providers.outputs.enable_google }}
+          ENABLE_MISTRAL: ${{ steps.providers.outputs.enable_mistral }}
+          GOOGLE_KEY: ${{ secrets.GOOGLE_API_KEY }}
+          MISTRAL_KEY: ${{ secrets.MISTRAL_API_KEY }}
+        run: |
+          set -euo pipefail
+
           mkdir -p "${HOME}/.local/share/opencode"
           jq -n --arg key "${GOOGLE_KEY}" '{"google":{"type":"api","key":$key}}' \
             > "${HOME}/.local/share/opencode/auth.json"
