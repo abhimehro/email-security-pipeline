@@ -9,7 +9,7 @@ WORKFLOW_PATH = (
 )
 
 
-def test_refactoring_agent_serializes_runs_per_pr():
+def test_refactoring_agent_enforces_concurrency_per_pr():
     workflow = WORKFLOW_PATH.read_text(encoding="utf-8")
 
     assert "concurrency:" in workflow

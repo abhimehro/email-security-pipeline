@@ -148,6 +148,8 @@ jobs:
       - name: Wait before retrying failed refactor
         if: steps.refactor-attempt-1.outcome == 'failure'
         shell: bash
+        # Give other PR automation a short window to finish a competing push
+        # before the retry replays the refactor against the updated branch tip.
         run: sleep 15
 
       # A retry handles transient non-fast-forward push failures when another bot
