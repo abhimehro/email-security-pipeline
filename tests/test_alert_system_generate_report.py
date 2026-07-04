@@ -137,6 +137,13 @@ class TestGenerateThreatReport(unittest.TestCase):
                 risk_level=risk_level,
             )
 
+    def _get_scenario_score(self, risk_level, default_score):
+        if risk_level == "high":
+            return 90.0
+        elif risk_level == "medium":
+            return 50.0
+        return default_score
+
     def test_overall_risk_levels(self):
         scenarios = [
             {
@@ -178,21 +185,9 @@ class TestGenerateThreatReport(unittest.TestCase):
 
         for scenario in scenarios:
             with self.subTest(scenario=scenario["name"]):
-                spam_score = (
-                    90.0
-                    if scenario["spam_risk"] == "high"
-                    else (50.0 if scenario["spam_risk"] == "medium" else 10.0)
-                )
-                nlp_score = (
-                    90.0
-                    if scenario["nlp_risk"] == "high"
-                    else (50.0 if scenario["nlp_risk"] == "medium" else 5.0)
-                )
-                media_score = (
-                    90.0
-                    if scenario["media_risk"] == "high"
-                    else (50.0 if scenario["media_risk"] == "medium" else 2.0)
-                )
+                spam_score = self._get_scenario_score(scenario["spam_risk"], 10.0)
+                nlp_score = self._get_scenario_score(scenario["nlp_risk"], 5.0)
+                media_score = self._get_scenario_score(scenario["media_risk"], 2.0)
 
                 spam_result = self._create_analysis_result(
                     "spam", scenario["spam_risk"], spam_score
