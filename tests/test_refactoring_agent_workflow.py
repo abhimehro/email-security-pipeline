@@ -66,6 +66,8 @@ def test_prepare_command_extracts_first_cs_agent_line_from_multiline_comment(tmp
         text=True,
         env={
             "PATH": os.environ.get("PATH", ""),
+            "HOME": os.environ.get("HOME", "/tmp"),
+            "LANG": "C.UTF-8",
             "RAW_COMMENT": (
                 "> /cs-agent fix-code-health-degradations\n\n"
                 "Acknowledged. I already updated the PR."
