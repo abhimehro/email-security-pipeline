@@ -295,6 +295,48 @@ def test_folder_parsing():
         return False
 
 
+def _get_test_account_email(config):
+    """Find the first enabled email account to test."""
+    for acc in config.email_accounts:
+        if acc.enabled:
+            return acc.email
+    return None
+
+
+def _validate_diagnostics_output(stdout: str) -> bool:
+    """Validate the JSON output of the diagnostics script."""
+    try:
+        output = json.loads(stdout)
+        print("✓ Script produced valid JSON output")
+
+        required_keys = [
+            "server_reachable",
+            "port_open",
+            "ssl_valid",
+            "credentials_valid",
+        ]
+        if all(key in output for key in required_keys):
+            print("✓ JSON output contains all required keys")
+            # Basic check on a nested value
+            if "host_resolved" in output.get("server_reachable", {}):
+                print("✓ Nested structure appears correct")
+                print("\n✓ Diagnostics script test PASSED")
+                return True
+            else:
+                print("❌ Nested structure is incorrect")
+                return False
+        else:
+            print(
+                f"❌ JSON output missing required keys. Found: {list(output.keys())}"
+            )
+            return False
+
+    except json.JSONDecodeError:
+        print("❌ Script output is not valid JSON")
+        print(f"   Stdout: {stdout}")
+        return False
+
+
 def test_diagnostics_script():
     """Test the connectivity diagnostics script."""
     print("\n" + "=" * 60)
@@ -310,12 +352,7 @@ def test_diagnostics_script():
             print("⚠️ No email accounts configured, skipping diagnostics script test")
             return True
 
-        # Find the first enabled email account to test
-        test_account_email = None
-        for acc in config.email_accounts:
-            if acc.enabled:
-                test_account_email = acc.email
-                break
+        test_account_email = _get_test_account_email(config)
 
         if not test_account_email:
             print(
@@ -342,36 +379,7 @@ def test_diagnostics_script():
             print(f"   Stderr: {result.stderr}")
             return False
 
-        try:
-            output = json.loads(result.stdout)
-            print("✓ Script produced valid JSON output")
-
-            required_keys = [
-                "server_reachable",
-                "port_open",
-                "ssl_valid",
-                "credentials_valid",
-            ]
-            if all(key in output for key in required_keys):
-                print("✓ JSON output contains all required keys")
-                # Basic check on a nested value
-                if "host_resolved" in output.get("server_reachable", {}):
-                    print("✓ Nested structure appears correct")
-                    print("\n✓ Diagnostics script test PASSED")
-                    return True
-                else:
-                    print("❌ Nested structure is incorrect")
-                    return False
-            else:
-                print(
-                    f"❌ JSON output missing required keys. Found: {list(output.keys())}"
-                )
-                return False
-
-        except json.JSONDecodeError:
-            print("❌ Script output is not valid JSON")
-            print(f"   Stdout: {result.stdout}")
-            return False
+        return _validate_diagnostics_output(result.stdout)
 
     except Exception as e:
         print(f"❌ ERROR: {e}")
