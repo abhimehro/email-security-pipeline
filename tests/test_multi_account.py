@@ -60,6 +60,22 @@ class TestMultiAccountProcessing(unittest.TestCase):
             use_ssl=True,
         )
 
+    def _create_mock_email(self, msg_id, subject, sender, recipient, account_email):
+        return EmailData(
+            message_id=msg_id,
+            subject=subject,
+            sender=sender,
+            recipient=recipient,
+            date=datetime.now(),
+            body_text="Body",
+            body_html="",
+            headers={},
+            attachments=[],
+            raw_email=MagicMock(),
+            account_email=account_email,
+            folder="INBOX",
+        )
+
     def test_multiple_accounts_initialization(self):
         """
         SECURITY STORY: This tests proper initialization of multiple email accounts.
@@ -186,34 +202,20 @@ class TestMultiAccountProcessing(unittest.TestCase):
         )
 
         # Create mock emails tagged with their source account
-        email1 = EmailData(
-            message_id="email-1",
-            subject="Email from Account 1",
-            sender="sender1@example.com",
-            recipient="user1@example.com",
-            date=datetime.now(),
-            body_text="Body 1",
-            body_html="",
-            headers={},
-            attachments=[],
-            raw_email=MagicMock(),
-            account_email="user1@example.com",  # Tagged with account1
-            folder="INBOX",
+        email1 = self._create_mock_email(
+            "email-1",
+            "Email from Account 1",
+            "sender1@example.com",
+            "user1@example.com",
+            "user1@example.com",
         )
 
-        email2 = EmailData(
-            message_id="email-2",
-            subject="Email from Account 2",
-            sender="sender2@different.com",
-            recipient="user2@different.com",
-            date=datetime.now(),
-            body_text="Body 2",
-            body_html="",
-            headers={},
-            attachments=[],
-            raw_email=MagicMock(),
-            account_email="user2@different.com",  # Tagged with account2
-            folder="INBOX",
+        email2 = self._create_mock_email(
+            "email-2",
+            "Email from Account 2",
+            "sender2@different.com",
+            "user2@different.com",
+            "user2@different.com",
         )
 
         # Setup persistent mock clients
@@ -398,19 +400,12 @@ class TestMultiAccountProcessing(unittest.TestCase):
 
         # Create many mock emails for account1
         many_emails = [
-            EmailData(
-                message_id=f"email-{i}",
-                subject=f"Email {i}",
-                sender="sender@example.com",
-                recipient="user1@example.com",
-                date=datetime.now(),
-                body_text="Body",
-                body_html="",
-                headers={},
-                attachments=[],
-                raw_email=MagicMock(),
-                account_email="user1@example.com",
-                folder="INBOX",
+            self._create_mock_email(
+                f"email-{i}",
+                f"Email {i}",
+                "sender@example.com",
+                "user1@example.com",
+                "user1@example.com",
             )
             for i in range(100)  # 100 emails
         ]
