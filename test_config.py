@@ -4,8 +4,11 @@ Configuration Test Script
 Tests the email security pipeline configuration and basic functionality.
 """
 
+import json
+import subprocess
 import sys
 from pathlib import Path
+from typing import Optional
 
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent))
@@ -249,11 +252,6 @@ def test_imap_connections(test_connections=True):
         return False
 
 
-import json
-import subprocess
-from pathlib import Path
-
-
 def test_folder_parsing():
     """Test folder parsing functionality."""
     print("\n" + "=" * 60)
@@ -295,6 +293,61 @@ def test_folder_parsing():
         return False
 
 
+def _get_first_enabled_account(config) -> Optional[str]:
+    """Get the first enabled email account from config."""
+    for acc in config.email_accounts:
+        if acc.enabled:
+            return acc.email
+    return None
+
+
+def _check_script_exists(script_path: str) -> bool:
+    """Check if the diagnostics script exists."""
+    return Path(script_path).exists()
+
+
+def _run_diagnostics_script(script_path: str, email: str) -> subprocess.CompletedProcess:
+    """Run the diagnostics script and return the result."""
+    return subprocess.run(
+        ["python3", script_path, email],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+
+def _validate_script_result(result: subprocess.CompletedProcess) -> bool:
+    """Validate the script execution result."""
+    if result.returncode != 0:
+        print(f"❌ Script failed with return code {result.returncode}")
+        print(f"   Stderr: {result.stderr}")
+        return False
+    return True
+
+
+def _validate_json_output(output) -> bool:
+    """Validate the JSON output from the script."""
+    required_keys = [
+        "server_reachable",
+        "port_open",
+        "ssl_valid",
+        "credentials_valid",
+    ]
+    
+    if not all(key in output for key in required_keys):
+        print(f"❌ JSON output missing required keys. Found: {list(output.keys())}")
+        return False
+    
+    print("✓ JSON output contains all required keys")
+    
+    if "host_resolved" not in output.get("server_reachable", {}):
+        print("❌ Nested structure is incorrect")
+        return False
+    
+    print("✓ Nested structure appears correct")
+    return True
+
+
 def test_diagnostics_script():
     """Test the connectivity diagnostics script."""
     print("\n" + "=" * 60)
@@ -310,63 +363,29 @@ def test_diagnostics_script():
             print("⚠️ No email accounts configured, skipping diagnostics script test")
             return True
 
-        # Find the first enabled email account to test
-        test_account_email = None
-        for acc in config.email_accounts:
-            if acc.enabled:
-                test_account_email = acc.email
-                break
-
+        test_account_email = _get_first_enabled_account(config)
         if not test_account_email:
-            print(
-                "⚠️ No enabled email accounts found, skipping diagnostics script test"
-            )
+            print("⚠️ No enabled email accounts found, skipping diagnostics script test")
             return True
 
         print(f"Testing diagnostics for: {test_account_email}")
 
         script_path = "./scripts/diagnose_connectivity.py"
-        if not Path(script_path).exists():
+        if not _check_script_exists(script_path):
             print(f"❌ ERROR: Diagnostics script not found at {script_path}")
             return False
 
-        result = subprocess.run(
-            ["python3", script_path, test_account_email],
-            capture_output=True,
-            text=True,
-            check=False,
-        )
-
-        if result.returncode != 0:
-            print(f"❌ Script failed with return code {result.returncode}")
-            print(f"   Stderr: {result.stderr}")
+        result = _run_diagnostics_script(script_path, test_account_email)
+        if not _validate_script_result(result):
             return False
 
         try:
             output = json.loads(result.stdout)
             print("✓ Script produced valid JSON output")
-
-            required_keys = [
-                "server_reachable",
-                "port_open",
-                "ssl_valid",
-                "credentials_valid",
-            ]
-            if all(key in output for key in required_keys):
-                print("✓ JSON output contains all required keys")
-                # Basic check on a nested value
-                if "host_resolved" in output.get("server_reachable", {}):
-                    print("✓ Nested structure appears correct")
-                    print("\n✓ Diagnostics script test PASSED")
-                    return True
-                else:
-                    print("❌ Nested structure is incorrect")
-                    return False
-            else:
-                print(
-                    f"❌ JSON output missing required keys. Found: {list(output.keys())}"
-                )
-                return False
+            if _validate_json_output(output):
+                print("\n✓ Diagnostics script test PASSED")
+                return True
+            return False
 
         except json.JSONDecodeError:
             print("❌ Script output is not valid JSON")

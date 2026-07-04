@@ -358,18 +358,24 @@ class NLPThreatAnalyzer:
 
         return score, indicators
 
-    def _detect_social_engineering(
-        self, counts: Dict[str, int]
+    def _detect_patterns_with_weight(
+        self, counts: Dict[str, int], weight: float
     ) -> Tuple[float, List[str]]:
-        """Detect social engineering patterns."""
+        """Generic pattern detection with configurable weight."""
         score = 0.0
         indicators = []
 
         for description, count in counts.items():
-            score += count * 2.0  # High weight for social engineering
+            score += count * weight
             indicators.append(f"{description} ({count} occurrences)")
 
         return score, indicators
+
+    def _detect_social_engineering(
+        self, counts: Dict[str, int]
+    ) -> Tuple[float, List[str]]:
+        """Detect social engineering patterns."""
+        return self._detect_patterns_with_weight(counts, 2.0)
 
     def _detect_urgency(
         self, exclamation_count: int, caps_count: int, counts: Dict[str, int]
@@ -435,14 +441,7 @@ class NLPThreatAnalyzer:
         self, counts: Dict[str, int]
     ) -> Tuple[float, List[str]]:
         """Detect psychological manipulation tactics."""
-        score = 0.0
-        indicators = []
-
-        for description, count in counts.items():
-            score += count * 1.0
-            indicators.append(f"{description} ({count} occurrences)")
-
-        return score, indicators
+        return self._detect_patterns_with_weight(counts, 1.0)
 
     def _calculate_risk_level(self, score: float) -> str:
         """Calculate risk level based on NLP threat score."""

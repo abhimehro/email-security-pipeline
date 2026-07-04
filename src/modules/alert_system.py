@@ -1297,6 +1297,56 @@ class AlertSystem:
         return recommendations
 
 
+def _calculate_overall_risk_level(
+    spam_result: SpamAnalysisResult,
+    nlp_result: NLPAnalysisResult,
+    media_result: MediaAnalysisResult,
+) -> str:
+    """Calculate overall risk level from individual analysis results."""
+    risk_levels = [spam_result.risk_level, nlp_result.risk_level, media_result.risk_level]
+    
+    if "high" in risk_levels:
+        return "high"
+    if "medium" in risk_levels:
+        return "medium"
+    return "low"
+
+
+def _build_spam_analysis_dict(spam_result: SpamAnalysisResult) -> Dict:
+    """Build spam analysis dictionary for threat report."""
+    return {
+        "score": spam_result.score,
+        "risk_level": spam_result.risk_level,
+        "indicators": spam_result.indicators,
+        "suspicious_urls": spam_result.suspicious_urls,
+        "header_issues": spam_result.header_issues,
+    }
+
+
+def _build_nlp_analysis_dict(nlp_result: NLPAnalysisResult) -> Dict:
+    """Build NLP analysis dictionary for threat report."""
+    return {
+        "score": nlp_result.threat_score,
+        "risk_level": nlp_result.risk_level,
+        "social_engineering_indicators": nlp_result.social_engineering_indicators,
+        "urgency_markers": nlp_result.urgency_markers,
+        "authority_impersonation": nlp_result.authority_impersonation,
+        "psychological_triggers": nlp_result.psychological_triggers,
+    }
+
+
+def _build_media_analysis_dict(media_result: MediaAnalysisResult) -> Dict:
+    """Build media analysis dictionary for threat report."""
+    return {
+        "score": media_result.threat_score,
+        "risk_level": media_result.risk_level,
+        "suspicious_attachments": media_result.suspicious_attachments,
+        "file_type_warnings": media_result.file_type_warnings,
+        "size_anomalies": media_result.size_anomalies,
+        "potential_deepfakes": media_result.potential_deepfakes,
+    }
+
+
 def generate_threat_report(
     email_data: EmailData,
     spam_result: SpamAnalysisResult,
@@ -1316,28 +1366,10 @@ def generate_threat_report(
         ThreatReport
 
     """
-    # Calculate overall threat score
     overall_score = (
         spam_result.score + nlp_result.threat_score + media_result.threat_score
     )
-
-    # Determine overall risk level
-    if (
-        spam_result.risk_level == "high"
-        or nlp_result.risk_level == "high"
-        or media_result.risk_level == "high"
-    ):
-        risk_level = "high"
-    elif (
-        spam_result.risk_level == "medium"
-        or nlp_result.risk_level == "medium"
-        or media_result.risk_level == "medium"
-    ):
-        risk_level = "medium"
-    else:
-        risk_level = "low"
-
-    # Generate recommendations
+    risk_level = _calculate_overall_risk_level(spam_result, nlp_result, media_result)
     recommendations = AlertSystem._generate_recommendations(
         spam_result, nlp_result, media_result
     )
@@ -1350,29 +1382,9 @@ def generate_threat_report(
         date=email_data.date.isoformat(),
         overall_threat_score=overall_score,
         risk_level=risk_level,
-        spam_analysis={
-            "score": spam_result.score,
-            "risk_level": spam_result.risk_level,
-            "indicators": spam_result.indicators,
-            "suspicious_urls": spam_result.suspicious_urls,
-            "header_issues": spam_result.header_issues,
-        },
-        nlp_analysis={
-            "score": nlp_result.threat_score,
-            "risk_level": nlp_result.risk_level,
-            "social_engineering_indicators": nlp_result.social_engineering_indicators,
-            "urgency_markers": nlp_result.urgency_markers,
-            "authority_impersonation": nlp_result.authority_impersonation,
-            "psychological_triggers": nlp_result.psychological_triggers,
-        },
-        media_analysis={
-            "score": media_result.threat_score,
-            "risk_level": media_result.risk_level,
-            "suspicious_attachments": media_result.suspicious_attachments,
-            "file_type_warnings": media_result.file_type_warnings,
-            "size_anomalies": media_result.size_anomalies,
-            "potential_deepfakes": media_result.potential_deepfakes,
-        },
+        spam_analysis=_build_spam_analysis_dict(spam_result),
+        nlp_analysis=_build_nlp_analysis_dict(nlp_result),
+        media_analysis=_build_media_analysis_dict(media_result),
         recommendations=recommendations,
         timestamp=datetime.now().isoformat(),
     )
