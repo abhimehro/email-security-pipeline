@@ -54,7 +54,7 @@ class AppRunner:
         if "\0" in raw_config_file:
             print(
                 Colors.colorize(
-                    f"✘ Error: Invalid configuration file path '{raw_config_file}'.",
+                    f"✖ Error: Invalid configuration file path '{raw_config_file}'.",
                     Colors.RED,
                 )
             )
@@ -69,7 +69,7 @@ class AppRunner:
         except ValueError:
             print(
                 Colors.colorize(
-                    f"✘ Error: Configuration file path must stay within '{base_dir}'.",
+                    f"✖ Error: Configuration file path must stay within '{base_dir}'.",
                     Colors.RED,
                 )
             )
@@ -137,7 +137,7 @@ class AppRunner:
             if fd_stat.st_ino != path_stat.st_ino or fd_stat.st_dev != path_stat.st_dev:
                 print(
                     Colors.colorize(
-                        "✘ CRITICAL: TOCTOU detected during permission setting. Aborting.",
+                        "✖ CRITICAL: TOCTOU detected during permission setting. Aborting.",
                         Colors.RED,
                     )
                 )
@@ -150,7 +150,7 @@ class AppRunner:
         except OSError as e:
             print(
                 Colors.colorize(
-                    f"✘ CRITICAL: Failed to set secure permissions: {e}",
+                    f"✖ CRITICAL: Failed to set secure permissions: {e}",
                     Colors.RED,
                 )
             )
@@ -206,58 +206,7 @@ class AppRunner:
 
             # Fallback to copy only if wizard wasn't run or failed
             if not Path(self.config_file).exists():
-                prompt = (
-                    Colors.colorize("? ", Colors.CYAN)
-                    + Colors.colorize(
-                        f"Create '{self.config_file}' from template without wizard? ",
-                        Colors.BOLD,
-                    )
-                    + Colors.colorize("[Y/n]", Colors.GREY)
-                    + Colors.colorize(" ", Colors.BOLD)
-                )
-                response = self._styled_input(prompt).lower()
-                if response in ("", "y", "yes"):
-                    try:
-                        with open(".env.example", "rb") as src:
-                            content = src.read()
-                        old_umask = os.umask(0o077)
-                        try:
-                            fd = os.open(
-                                self.config_file,
-                                os.O_WRONLY
-                                | os.O_CREAT
-                                | os.O_EXCL
-                                | getattr(os, "O_NOFOLLOW", 0),
-                                0o600,
-                            )
-                        finally:
-                            os.umask(old_umask)
-
-                        with os.fdopen(fd, "wb") as dst:
-                            dst.write(content)
-
-                        print(
-                            Colors.colorize(
-                                f"✔ Created '{self.config_file}' from '.env.example'.",
-                                Colors.GREEN,
-                            )
-                        )
-                        print(
-                            Colors.colorize(
-                                "IMPORTANT: Please edit .env with your actual credentials before proceeding.",
-                                Colors.YELLOW,
-                            )
-                        )
-                        sys.exit(0)
-                    except Exception as e:
-                        print(
-                            Colors.colorize(f"✘ Error creating file: {e}", Colors.RED)
-                        )
-                        self._print_fallback_instructions()
-                        sys.exit(1)
-                else:
-                    self._print_fallback_instructions()
-                    sys.exit(1)
+                self._prompt_create_from_template()
         except KeyboardInterrupt:
             warning = Colors.colorize("⚠", Colors.YELLOW)
             message = Colors.colorize(
@@ -275,7 +224,7 @@ class AppRunner:
         # to honor the NoReturn type annotation and make the failure mode explicit.
         print(
             Colors.colorize(
-                f"✘ Configuration file '{self.config_file}' not found",
+                f"✖ Configuration file '{self.config_file}' not found",
                 Colors.RED,
             )
         )
@@ -306,7 +255,7 @@ class AppRunner:
                 print(
                     "\n"
                     + Colors.colorize(
-                        "✘ Configuration Error: Default credentials detected",
+                        "✖ Configuration Error: Default credentials detected",
                         Colors.RED,
                     )
                 )
@@ -350,10 +299,12 @@ class AppRunner:
         prompt = (
             Colors.colorize("? ", Colors.CYAN)
             + Colors.colorize("Run setup wizard? ", Colors.BOLD)
-            + Colors.colorize("[Y/n]", Colors.GREY)
+            + Colors.colorize("[Y/n/q]", Colors.GREY)
             + Colors.colorize(" ", Colors.BOLD)
         )
         response = self._styled_input(prompt).lower()
+        if response in ("q", "quit", "exit"):
+            raise KeyboardInterrupt
         if response in ("", "y", "yes"):
             if run_setup_wizard(self.config_file):
                 sys.exit(0)
@@ -368,16 +319,18 @@ class AppRunner:
                 f"Create '{self.config_file}' from template without wizard? ",
                 Colors.BOLD,
             )
-            + Colors.colorize("[Y/n]", Colors.GREY)
+            + Colors.colorize("[Y/n/q]", Colors.GREY)
             + Colors.colorize(" ", Colors.BOLD)
         )
         response = self._styled_input(prompt).lower()
+        if response in ("q", "quit", "exit"):
+            raise KeyboardInterrupt
         if response in ("", "y", "yes"):
             try:
                 self._create_config_from_template()
                 sys.exit(0)
             except Exception as e:
-                print(Colors.colorize(f"✘ Error creating file: {e}", Colors.RED))
+                print(Colors.colorize(f"✖ Error creating file: {e}", Colors.RED))
                 self._print_fallback_instructions()
                 sys.exit(1)
         else:
