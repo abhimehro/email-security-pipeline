@@ -47,6 +47,7 @@ jobs:
           set -euo pipefail
 
           # Default: Google on, Mistral off, unless overridden via repo/org Variables.
+          # (Currently flipped for isolated Mistral testing.)
           ENABLE_GOOGLE="${ENABLE_GOOGLE_VAR:-false}"
           ENABLE_MISTRAL="${ENABLE_MISTRAL_VAR:-true}"
 
@@ -60,7 +61,7 @@ jobs:
           elif [[ "$ENABLE_GOOGLE" == "true" ]]; then
             MODEL="google/gemini-3.5-flash"
           else
-            MODEL="mistral/devstral-medium-latest"
+            MODEL="mistral/mistral-large-latest"
           fi
 
           echo "enable_google=${ENABLE_GOOGLE}" >> "$GITHUB_OUTPUT"
@@ -125,15 +126,23 @@ jobs:
       # trunk-ignore(pinact/parse-error)
       - uses: codescene-oss/pr-refactoring-agent@841e34c7ddd7a8ec887d632ac51432d6c71e2fe1 # untagged-fix-commit
         env:
-          GOOGLE_GENERATIVE_AI_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
-          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
-          GEMINI_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
-          MISTRAL_API_KEY: ${{ secrets.MISTRAL_API_KEY }}
+          GOOGLE_GENERATIVE_AI_API_KEY: ${{ steps.providers.outputs.enable_google == 'true' && secrets.GOOGLE_API_KEY || '' }}
+          GOOGLE_API_KEY: ${{ steps.providers.outputs.enable_google == 'true' && secrets.GOOGLE_API_KEY || '' }}
+          GEMINI_API_KEY: ${{ steps.providers.outputs.enable_google == 'true' && secrets.GOOGLE_API_KEY || '' }}
+          MISTRAL_API_KEY: ${{ steps.providers.outputs.enable_mistral == 'true' && secrets.MISTRAL_API_KEY || '' }}
         with:
           pr_number: ${{ github.event.issue.number }}
           command: ${{ steps.prepare-command.outputs.command }}
           model: ${{ steps.providers.outputs.model }}
           version: v1.0.7
           codescene_token: ${{ secrets.CODESCENE_ACCESS_TOKEN }}
-          google_api_key: ${{ secrets.GOOGLE_API_KEY }}
+          google_api_key: ${{ steps.providers.outputs.enable_google == 'true' && secrets.GOOGLE_API_KEY || '' }}
           opencode_auth_json: ${{ steps.opencode-auth.outputs.json }}
+
+      - name: Dump OpenCode logs on failure
+        if: failure()
+        shell: bash
+        run: |
+          echo "::group::OpenCode logs"
+          find "${HOME}/.local/share/opencode/log" -type f -newermt "-15 minutes" -exec sh -c 'echo "--- {} ---"; cat "{}"' \; 2>/dev/null || echo "No log files found"
+          echo "::endgroup::"
