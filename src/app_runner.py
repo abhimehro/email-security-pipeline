@@ -137,7 +137,7 @@ class AppRunner:
             if fd_stat.st_ino != path_stat.st_ino or fd_stat.st_dev != path_stat.st_dev:
                 print(
                     Colors.colorize(
-                        "❌ CRITICAL: TOCTOU detected during permission setting. Aborting.",
+                        "✘ CRITICAL: TOCTOU detected during permission setting. Aborting.",
                         Colors.RED,
                     )
                 )
@@ -150,7 +150,7 @@ class AppRunner:
         except OSError as e:
             print(
                 Colors.colorize(
-                    f"❌ CRITICAL: Failed to set secure permissions: {e}",
+                    f"✘ CRITICAL: Failed to set secure permissions: {e}",
                     Colors.RED,
                 )
             )
