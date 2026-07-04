@@ -42,6 +42,9 @@ jobs:
               break
             fi
           done <<< "$RAW_COMMENT"
+          # Trim any trailing whitespace left by greedy .* in the regex
+          shopt -s extglob
+          COMMAND="${COMMAND%%+([[:space:]])}"
           if [[ -z "$COMMAND" ]]; then
             echo "::error::No /cs-agent command found in comment body."
             exit 1

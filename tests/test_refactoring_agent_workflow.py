@@ -65,7 +65,7 @@ def test_prepare_command_extracts_first_cs_agent_line_from_multiline_comment(tmp
     bash = shutil.which("bash") or "/bin/bash"
 
     result = subprocess.run(  # nosec B603
-        [bash, "-c", prepare_command_step["run"]],
+        [bash, "-e", "-c", prepare_command_step["run"]],
         check=False,
         capture_output=True,
         text=True,
