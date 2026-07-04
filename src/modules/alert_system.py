@@ -738,90 +738,64 @@ class AlertSystem:
         self._print_analysis_details(report, WIDTH, risk_color)
         self._print_recommendations(report.recommendations, WIDTH, risk_color)
 
-    def _console_clean_report(self, report: ThreatReport):
-        """Print clean report to console."""
-        # Compact format for clean emails
-        score_val = max(0.0, report.overall_threat_score)
-
-        # Calculate risk relative to the low threshold (the "clean" budget)
+    def _get_visual_bar(self, score_val: float) -> str:
+        """Generate a visual progress bar for the threat score."""
         threshold = self.config.threat_low
         if threshold <= 0:
             threshold = 30
 
         percent_of_threshold = min(score_val / threshold, 1.0)
-
-        # Mini bar: 10 chars
         bar_len = 10
         filled = int(percent_of_threshold * bar_len)
 
-        # Bar construction
-        fill_char = "■"
-        empty_char = "·"
+        filled_part = "■" * filled
+        empty_part = "·" * (bar_len - filled)
 
-        filled_part = fill_char * filled
-        empty_part = empty_char * (bar_len - filled)
-
-        # Color logic
-        bar_color = Colors.GREEN
-        if percent_of_threshold > 0.6:
-            bar_color = Colors.YELLOW
+        bar_color = Colors.YELLOW if percent_of_threshold > 0.6 else Colors.GREEN
 
         colored_filled = Colors.colorize(filled_part, bar_color)
         colored_empty = Colors.colorize(empty_part, Colors.GREY)
 
-        visual_bar = f"[{colored_filled}{colored_empty}]"
+        return f"[{colored_filled}{colored_empty}]"
 
-        # Short timestamp
+    def _format_short_timestamp(self, timestamp: str) -> str:
+        """Format timestamp to HH:MM:SS."""
         try:
-            dt = datetime.fromisoformat(report.timestamp)
-            time_str = dt.strftime("%H:%M:%S")
+            dt = datetime.fromisoformat(timestamp)
+            return dt.strftime("%H:%M:%S")
         except ValueError:
-            time_str = report.timestamp
+            return timestamp
 
-        # Determine available width based on terminal size
-        terminal_width = self._get_terminal_width()
-
-        # Calculate width of fixed parts dynamically
-        # Structure: "✓ CLEAN | HH:MM:SS | Score: XX.X [■■···] | From: " + sender + " | " + subject
+    def _console_clean_report(self, report: ThreatReport):
+        """Print clean report to console."""
+        score_val = max(0.0, report.overall_threat_score)
+        visual_bar = self._get_visual_bar(score_val)
+        time_str = self._format_short_timestamp(report.timestamp)
 
         sep = Colors.colorize("│", Colors.GREY)
-
         clean_str = Colors.colorize("✓ CLEAN", Colors.GREEN)
+
         prefix = f"{clean_str} {sep} {time_str} {sep} Score: {score_val:4.1f} {visual_bar} {sep} From: "
         prefix_len = self._get_visual_length(prefix)
 
         suffix_sep = f" {sep} "
         suffix_sep_len = self._get_visual_length(suffix_sep)
 
-        # Fixed width is prefix + space for suffix separator
-        # We add 1 char buffer
         fixed_width = prefix_len + suffix_sep_len + 1
-
+        terminal_width = self._get_terminal_width()
         available_width = max(20, terminal_width - fixed_width)
 
-        # Allocate width: 35% for sender, 65% for subject
-        sender_target = int(available_width * 0.35)
-        # Minimum reduced to 8 to fit 80-column terminals better
-        sender_width = max(8, sender_target)
+        sender_width = max(8, int(available_width * 0.35))
+        subject_width = max(10, available_width - sender_width)
 
-        subject_width = available_width - sender_width
-        # Ensure subject has at least some space
-        subject_width = max(10, subject_width)
-
-        # Sender truncated
         sanitized_sender = self._sanitize_text(report.sender, csv_safe=True)
         sender = self._truncate_text(sanitized_sender, sender_width)
 
-        # Subject truncated
         sanitized_subject = self._sanitize_text(report.subject, csv_safe=True)
         if not sanitized_subject:
             sanitized_subject = "(No Subject)"
-
         subject = self._truncate_text(sanitized_subject, subject_width)
 
-        # Format:
-        # ✓ CLEAN | HH:MM:SS | Score: XX.X [■■···] | From: Sender                       | Subject
-        clean_str = Colors.colorize("✓ CLEAN", Colors.GREEN)
         print(
             f"{clean_str} "
             f"{sep} {time_str} "
@@ -1316,31 +1290,26 @@ def generate_threat_report(
         ThreatReport
 
     """
-    # Calculate overall threat score
     overall_score = (
         spam_result.score + nlp_result.threat_score + media_result.threat_score
     )
 
-    # Determine overall risk level
-    if (
-        spam_result.risk_level == "high"
-        or nlp_result.risk_level == "high"
-        or media_result.risk_level == "high"
-    ):
-        risk_level = "high"
-    elif (
-        spam_result.risk_level == "medium"
-        or nlp_result.risk_level == "medium"
-        or media_result.risk_level == "medium"
-    ):
-        risk_level = "medium"
-    else:
-        risk_level = "low"
-
-    # Generate recommendations
-    recommendations = AlertSystem._generate_recommendations(
-        spam_result, nlp_result, media_result
+    risk_levels = (
+        spam_result.risk_level,
+        nlp_result.risk_level,
+        media_result.risk_level,
     )
+    risk_level = (
+        "high"
+        if "high" in risk_levels
+        else "medium" if "medium" in risk_levels else "low"
+    )
+
+    nlp_dict = asdict(nlp_result)
+    nlp_dict["score"] = nlp_dict.pop("threat_score")
+
+    media_dict = asdict(media_result)
+    media_dict["score"] = media_dict.pop("threat_score")
 
     return ThreatReport(
         email_id=email_data.message_id,
@@ -1350,29 +1319,11 @@ def generate_threat_report(
         date=email_data.date.isoformat(),
         overall_threat_score=overall_score,
         risk_level=risk_level,
-        spam_analysis={
-            "score": spam_result.score,
-            "risk_level": spam_result.risk_level,
-            "indicators": spam_result.indicators,
-            "suspicious_urls": spam_result.suspicious_urls,
-            "header_issues": spam_result.header_issues,
-        },
-        nlp_analysis={
-            "score": nlp_result.threat_score,
-            "risk_level": nlp_result.risk_level,
-            "social_engineering_indicators": nlp_result.social_engineering_indicators,
-            "urgency_markers": nlp_result.urgency_markers,
-            "authority_impersonation": nlp_result.authority_impersonation,
-            "psychological_triggers": nlp_result.psychological_triggers,
-        },
-        media_analysis={
-            "score": media_result.threat_score,
-            "risk_level": media_result.risk_level,
-            "suspicious_attachments": media_result.suspicious_attachments,
-            "file_type_warnings": media_result.file_type_warnings,
-            "size_anomalies": media_result.size_anomalies,
-            "potential_deepfakes": media_result.potential_deepfakes,
-        },
-        recommendations=recommendations,
+        spam_analysis=asdict(spam_result),
+        nlp_analysis=nlp_dict,
+        media_analysis=media_dict,
+        recommendations=AlertSystem._generate_recommendations(
+            spam_result, nlp_result, media_result
+        ),
         timestamp=datetime.now().isoformat(),
     )
