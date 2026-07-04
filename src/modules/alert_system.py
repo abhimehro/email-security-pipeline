@@ -1316,31 +1316,26 @@ def generate_threat_report(
         ThreatReport
 
     """
-    # Calculate overall threat score
     overall_score = (
         spam_result.score + nlp_result.threat_score + media_result.threat_score
     )
 
-    # Determine overall risk level
-    if (
-        spam_result.risk_level == "high"
-        or nlp_result.risk_level == "high"
-        or media_result.risk_level == "high"
-    ):
-        risk_level = "high"
-    elif (
-        spam_result.risk_level == "medium"
-        or nlp_result.risk_level == "medium"
-        or media_result.risk_level == "medium"
-    ):
-        risk_level = "medium"
-    else:
-        risk_level = "low"
-
-    # Generate recommendations
-    recommendations = AlertSystem._generate_recommendations(
-        spam_result, nlp_result, media_result
+    risk_levels = (
+        spam_result.risk_level,
+        nlp_result.risk_level,
+        media_result.risk_level,
     )
+    risk_level = (
+        "high"
+        if "high" in risk_levels
+        else "medium" if "medium" in risk_levels else "low"
+    )
+
+    nlp_dict = asdict(nlp_result)
+    nlp_dict["score"] = nlp_dict.pop("threat_score")
+
+    media_dict = asdict(media_result)
+    media_dict["score"] = media_dict.pop("threat_score")
 
     return ThreatReport(
         email_id=email_data.message_id,
@@ -1350,29 +1345,11 @@ def generate_threat_report(
         date=email_data.date.isoformat(),
         overall_threat_score=overall_score,
         risk_level=risk_level,
-        spam_analysis={
-            "score": spam_result.score,
-            "risk_level": spam_result.risk_level,
-            "indicators": spam_result.indicators,
-            "suspicious_urls": spam_result.suspicious_urls,
-            "header_issues": spam_result.header_issues,
-        },
-        nlp_analysis={
-            "score": nlp_result.threat_score,
-            "risk_level": nlp_result.risk_level,
-            "social_engineering_indicators": nlp_result.social_engineering_indicators,
-            "urgency_markers": nlp_result.urgency_markers,
-            "authority_impersonation": nlp_result.authority_impersonation,
-            "psychological_triggers": nlp_result.psychological_triggers,
-        },
-        media_analysis={
-            "score": media_result.threat_score,
-            "risk_level": media_result.risk_level,
-            "suspicious_attachments": media_result.suspicious_attachments,
-            "file_type_warnings": media_result.file_type_warnings,
-            "size_anomalies": media_result.size_anomalies,
-            "potential_deepfakes": media_result.potential_deepfakes,
-        },
-        recommendations=recommendations,
+        spam_analysis=asdict(spam_result),
+        nlp_analysis=nlp_dict,
+        media_analysis=media_dict,
+        recommendations=AlertSystem._generate_recommendations(
+            spam_result, nlp_result, media_result
+        ),
         timestamp=datetime.now().isoformat(),
     )
