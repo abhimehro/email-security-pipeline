@@ -34,12 +34,19 @@ def test_refactoring_agent_retries_failed_push_once():
         steps_by_name["Wait before retrying failed refactor"]["if"]
         == "steps.refactor-attempt-1.outcome == 'failure'"
     )
-    assert steps_by_name["Wait before retrying failed refactor"]["run"] == "sleep 15"
+    assert steps_by_name["Wait before retrying failed refactor"]["env"] == {
+        "REFACTOR_RETRY_DELAY_SECONDS": 15
+    }
+    assert (
+        steps_by_name["Wait before retrying failed refactor"]["run"]
+        == 'sleep "${REFACTOR_RETRY_DELAY_SECONDS}"'
+    )
     assert (
         steps_by_id["refactor-attempt-2"]["if"]
         == "steps.refactor-attempt-1.outcome == 'failure'"
     )
+    assert steps_by_id["refactor-attempt-2"]["continue-on-error"] is True
     assert (
         steps_by_name["Fail if both refactor attempts fail"]["if"]
-        == "always() && steps.refactor-attempt-1.outcome == 'failure' && steps.refactor-attempt-2.outcome != 'success'"
+        == "always() && steps.refactor-attempt-1.outcome == 'failure' && steps.refactor-attempt-2.outcome == 'failure'"
     )
