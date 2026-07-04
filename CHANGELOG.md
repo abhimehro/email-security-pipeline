@@ -408,6 +408,13 @@
 
 **Merged pull requests:**
 
+- 🎨 Palette: Improve CLI UX and Error Styling [\#1225](https://github.com/abhimehro/email-security-pipeline/pull/1225) ([abhimehro](https://github.com/abhimehro))
+- 🧹 \[code health improvement\] Refactor generate\_threat\_report complexity [\#1224](https://github.com/abhimehro/email-security-pipeline/pull/1224) ([abhimehro](https://github.com/abhimehro))
+- 🧹 Extract mock email creation in multi-account tests [\#1221](https://github.com/abhimehro/email-security-pipeline/pull/1221) ([abhimehro](https://github.com/abhimehro))
+- 🧹 \[code health\] Refactor complex `analyze` method in NLPAnalyzer [\#1220](https://github.com/abhimehro/email-security-pipeline/pull/1220) ([abhimehro](https://github.com/abhimehro))
+- 🧹 Code Health: Refactor test\_diagnostics\_script to reduce complexity [\#1218](https://github.com/abhimehro/email-security-pipeline/pull/1218) ([abhimehro](https://github.com/abhimehro))
+- 🧹 Code Health: Refactor \_inspect\_tar\_contents to reduce complexity [\#1217](https://github.com/abhimehro/email-security-pipeline/pull/1217) ([abhimehro](https://github.com/abhimehro))
+- 🧹 \[code health improvement\] Refactor `_console_clean_report` [\#1216](https://github.com/abhimehro/email-security-pipeline/pull/1216) ([abhimehro](https://github.com/abhimehro))
 - 🎨 Palette: Unify error status icons [\#1213](https://github.com/abhimehro/email-security-pipeline/pull/1213) ([abhimehro](https://github.com/abhimehro))
 - Fix opencv-python-headless version inconsistency [\#1212](https://github.com/abhimehro/email-security-pipeline/pull/1212) ([abhimehro](https://github.com/abhimehro))
 - chore\(deps\): bump ruby/setup-ruby from 1.315.0 to 1.316.0 [\#1210](https://github.com/abhimehro/email-security-pipeline/pull/1210) ([dependabot[bot]](https://github.com/apps/dependabot))
