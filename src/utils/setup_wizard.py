@@ -2,6 +2,7 @@ import getpass
 import os
 import re
 from pathlib import Path
+from typing import Optional
 
 # Check if Colors is available in the expected path, otherwise mock it
 try:
@@ -171,10 +172,16 @@ def _select_provider() -> str:
     )
 
     choices_map = {
-        "1": "1", "gmail": "1",
-        "2": "2", "proton": "2", "proton mail": "2", "protonmail": "2",
-        "3": "3", "outlook": "3",
-        "4": "4", "skip": "4"
+        "1": "1",
+        "gmail": "1",
+        "2": "2",
+        "proton": "2",
+        "proton mail": "2",
+        "protonmail": "2",
+        "3": "3",
+        "outlook": "3",
+        "4": "4",
+        "skip": "4",
     }
 
     while True:
@@ -193,7 +200,9 @@ def _select_provider() -> str:
                 return choices_map[choice]
             print(
                 Colors.colorize("✘ Invalid choice. ", Colors.RED)
-                + Colors.colorize("Please enter a number (1-4) or provider name.", Colors.YELLOW)
+                + Colors.colorize(
+                    "Please enter a number (1-4) or provider name.", Colors.YELLOW
+                )
             )
         except EOFError:
             return "4"
@@ -483,6 +492,76 @@ def _write_config_file(config_file: str, new_content: str) -> bool:
         return False
 
 
+def _print_welcome() -> None:
+    """Print the welcome message for the setup wizard."""
+    print(
+        "\n"
+        + Colors.colorize(
+            "🧙 Welcome to the Email Security Pipeline Setup Wizard! 🧙", Colors.BOLD
+        )
+    )
+    print(
+        Colors.colorize("Let's get your environment configured quickly.", Colors.GREY)
+    )
+    print(Colors.colorize("(Press Ctrl+C at any time to cancel setup)", Colors.GREY))
+
+
+def _print_next_steps(config_file: str) -> None:
+    """Print the next steps after successful configuration."""
+    print("\n" + Colors.colorize("Next Steps:", Colors.BOLD))
+    print(
+        f"1. Review {Colors.colorize(config_file, Colors.BOLD)} to ensure settings are correct."
+    )
+    print(f"2. Run the pipeline: {Colors.colorize('python src/main.py', Colors.CYAN)}")
+
+
+def _read_template(template_file: str) -> Optional[str]:
+    """Read the configuration template file securely."""
+    try:
+        with open(template_file, "r") as f:
+            return f.read()
+    except Exception as e:
+        print(Colors.colorize(f"✘ Error reading template: {e}", Colors.RED))
+        return None
+
+
+def _execute_wizard_flow(config_file: str, template_file: str) -> bool:
+    """Execute the core flow of the setup wizard."""
+    # 1. Select Provider
+    choice = _select_provider()
+    if choice == "4":
+        return False
+
+    provider_map = {
+        "1": ("GMAIL", "Gmail"),
+        "2": ("PROTON", "Proton Mail"),
+        "3": ("OUTLOOK", "Outlook"),
+    }
+    selected_key, selected_name = provider_map[choice]
+
+    # 2. Get Credentials
+    email, app_secret = _get_credentials(choice, selected_name)
+    if not email or not app_secret:
+        return False
+
+    # 3. Read Template
+    template_content = _read_template(template_file)
+    if not template_content:
+        return False
+
+    # 4. Generate Config
+    new_content = _generate_config_content(
+        template_content, selected_key, email, app_secret
+    )
+
+    # 5. Write Config
+    if not _write_config_file(config_file, new_content):
+        return False
+
+    _print_next_steps(config_file)
+    return True
+
+
 def run_setup_wizard(
     config_file: str = ".env", template_file: str = ".env.example"
 ) -> bool:
@@ -499,61 +578,10 @@ def run_setup_wizard(
         )
         return False
 
-    print(
-        "\n"
-        + Colors.colorize(
-            "🧙 Welcome to the Email Security Pipeline Setup Wizard! 🧙", Colors.BOLD
-        )
-    )
-    print(
-        Colors.colorize("Let's get your environment configured quickly.", Colors.GREY)
-    )
-    print(Colors.colorize("(Press Ctrl+C at any time to cancel setup)", Colors.GREY))
+    _print_welcome()
 
     try:
-        # 1. Select Provider
-        choice = _select_provider()
-        if choice == "4":
-            return False
-
-        provider_map = {
-            "1": ("GMAIL", "Gmail"),
-            "2": ("PROTON", "Proton Mail"),
-            "3": ("OUTLOOK", "Outlook"),
-        }
-        selected_key, selected_name = provider_map[choice]
-
-        # 2. Get Credentials
-        email, app_secret = _get_credentials(choice, selected_name)
-        if not email or not app_secret:
-            return False
-
-        # 3. Read Template
-        try:
-            with open(template_file, "r") as f:
-                template_content = f.read()
-        except Exception as e:
-            print(Colors.colorize(f"✘ Error reading template: {e}", Colors.RED))
-            return False
-
-        # 4. Generate Config
-        new_content = _generate_config_content(
-            template_content, selected_key, email, app_secret
-        )
-
-        # 5. Write Config
-        if not _write_config_file(config_file, new_content):
-            return False
-
-        print("\n" + Colors.colorize("Next Steps:", Colors.BOLD))
-        print(
-            f"1. Review {Colors.colorize(config_file, Colors.BOLD)} to ensure settings are correct."
-        )
-        print(
-            f"2. Run the pipeline: {Colors.colorize('python src/main.py', Colors.CYAN)}"
-        )
-
-        return True
+        return _execute_wizard_flow(config_file, template_file)
 
     except KeyboardInterrupt:
         warning = Colors.colorize("⚠", Colors.YELLOW)
