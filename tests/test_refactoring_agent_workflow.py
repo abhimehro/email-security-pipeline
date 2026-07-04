@@ -1,4 +1,6 @@
+import os
 from pathlib import Path
+import subprocess
 
 import yaml
 
@@ -49,4 +51,33 @@ def test_refactoring_agent_retries_failed_push_once():
     assert (
         steps_by_name["Fail if both refactor attempts fail"]["if"]
         == "always() && steps.refactor-attempt-1.outcome == 'failure' && steps.refactor-attempt-2.outcome == 'failure'"
+    )
+
+
+def test_prepare_command_extracts_first_cs_agent_line_from_multiline_comment(tmp_path):
+    steps = load_workflow()["jobs"]["refactor"]["steps"]
+    prepare_command_step = next(step for step in steps if step.get("id") == "prepare-command")
+    github_output = tmp_path / "github-output.txt"
+
+    result = subprocess.run(
+        ["bash", "-euo", "pipefail", "-c", prepare_command_step["run"]],
+        check=False,
+        capture_output=True,
+        text=True,
+        env=os.environ
+        | {
+            "RAW_COMMENT": (
+                "> /cs-agent fix-code-health-degradations\n\n"
+                "Acknowledged. I already updated the PR."
+            ),
+            "GITHUB_OUTPUT": str(github_output),
+        },
+    )
+
+    assert result.returncode == 0, result.stderr
+    assert "Final command: /cs-agent skill:fix-code-health-degradations" in result.stdout
+    assert github_output.read_text(encoding="utf-8") == (
+        "command<<EOF\n"
+        "/cs-agent skill:fix-code-health-degradations\n"
+        "EOF\n"
     )
