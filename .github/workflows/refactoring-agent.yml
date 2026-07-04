@@ -35,11 +35,13 @@ jobs:
           RAW_COMMENT: ${{ github.event.comment.body }}
         run: |
           set -euo pipefail
-          COMMAND="$(
-            printf '%s\n' "$RAW_COMMENT" |
-              sed -nE 's/^[[:space:]]*>?[[:space:]]*(\/cs-agent([[:space:]].*)?)$/\1/p' |
-              head -n 1
-          )"
+          COMMAND=""
+          while IFS= read -r _line; do
+            if [[ "$_line" =~ ^[[:space:]]*\>?[[:space:]]*(/cs-agent([[:space:]].*)?)[[:space:]]*$ ]]; then
+              COMMAND="${BASH_REMATCH[1]}"
+              break
+            fi
+          done <<< "$RAW_COMMENT"
           if [[ -z "$COMMAND" ]]; then
             echo "::error::No /cs-agent command found in comment body."
             exit 1

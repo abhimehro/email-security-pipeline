@@ -1,6 +1,7 @@
 import os
+import shutil
+import subprocess  # nosec B404
 from pathlib import Path
-import subprocess
 
 import yaml
 
@@ -58,27 +59,32 @@ def test_prepare_command_extracts_first_cs_agent_line_from_multiline_comment(tmp
     steps = load_workflow()["jobs"]["refactor"]["steps"]
     prepare_command_step = next(step for step in steps if step.get("id") == "prepare-command")
     github_output = tmp_path / "github-output.txt"
+    home_dir = tmp_path / "home"
+    home_dir.mkdir()
 
-    result = subprocess.run(
-        ["bash", "-e", "-c", prepare_command_step["run"]],
+    bash = shutil.which("bash") or "/bin/bash"
+
+    result = subprocess.run(  # nosec B603
+        [bash, "-c", prepare_command_step["run"]],
         check=False,
         capture_output=True,
         text=True,
         env={
             "PATH": os.environ.get("PATH", ""),
-            "HOME": os.environ.get("HOME", "/tmp"),
+            "HOME": str(home_dir),
             "LANG": "C.UTF-8",
             "RAW_COMMENT": (
                 "> /cs-agent fix-code-health-degradations\n\n"
-                "Acknowledged. I already updated the PR."
+                "Acknowledged. I already updated the PR.\n\n"
+                "/cs-agent second-command-should-be-ignored"
             ),
             "GITHUB_OUTPUT": str(github_output),
         },
     )
 
-    assert result.returncode == 0, result.stderr
-    assert "Final command: /cs-agent skill:fix-code-health-degradations" in result.stdout
-    assert github_output.read_text(encoding="utf-8") == (
+    assert result.returncode == 0, result.stderr  # nosec B101
+    assert "Final command: /cs-agent skill:fix-code-health-degradations" in result.stdout  # nosec B101
+    assert github_output.read_text(encoding="utf-8") == (  # nosec B101
         "command<<EOF\n"
         "/cs-agent skill:fix-code-health-degradations\n"
         "EOF\n"
