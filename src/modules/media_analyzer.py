@@ -804,94 +804,96 @@ class MediaAuthenticityAnalyzer:
 
         return score, warnings
 
-
-    def _inspect_tar_member_and_check_traversal(
-        self, tf, member, filename: str, depth: int
-    ) -> Tuple[float, List[str]]:
-        score = 0.0
-        warnings = []
-
-        # SECURITY: Sanitize member name to prevent path traversal and log injection
-        safe_member_name = sanitize_for_logging(
-            sanitize_filename(member.name)
-        )
-        member_lower = safe_member_name.lower()
-
-        # Check for dangerous extensions FIRST
-        if member_lower.endswith(self.DANGEROUS_EXTENSIONS):
-            score += 5.0
-            warnings.append(
-                f"Archive {filename} contains dangerous file: {safe_member_name}"
-            )
-            return score, warnings
-
-        if self._is_path_traversal_attempt(member.name):
-            score += 5.0
-            safe_member_name = sanitize_for_logging(
-                sanitize_filename(member.name)
-            )
-            warnings.append(
-                f"Tar file {filename} contains path traversal attempt: {safe_member_name}"
-            )
-            return score, warnings
-
-        member_score, member_warnings = self._inspect_archive_member(
-            filename,
-            member.name,
-            lambda: self._handle_nested_tar_member(tf, member, filename, depth),
-        )
-        score += member_score
-        warnings.extend(member_warnings)
-
-        return score, warnings
-
     def _inspect_tar_contents(
         self, filename: str, data: bytes, depth: int = 0
     ) -> Tuple[float, List[str]]:
         """Inspect contents of tar file for dangerous files, with recursion."""
-        score = 0.0
-        warnings = []
-
         if depth > 2:
-            return score, warnings
+            return 0.0, []
 
         try:
-            with tarfile.open(fileobj=io.BytesIO(data), mode="r:*") as tf:
-                # SECURITY: Apply PEP-706 data filter if available to prevent extraction traversal
-                if hasattr(tarfile, "data_filter"):
-                    tf.extraction_filter = getattr(
-                        tarfile, "data_filter", (lambda member, path: member)
-                    )
-
-                # Get members safely
-                members = []
-                for m in tf:
-                    members.append(m)
-                    if len(members) > self.MAX_ZIP_FILE_COUNT:
-                        break
-
-                score, warnings = self._check_file_count(
-                    filename, [m.name for m in members], score, warnings
-                )
-
-                for member in members[: self.MAX_ZIP_FILE_COUNT]:
-                    member_score, member_warnings = (
-                        self._inspect_tar_member_and_check_traversal(
-                            tf, member, filename, depth
-                        )
-                    )
-                    score += member_score
-                    warnings.extend(member_warnings)
-
-                    if score >= 5.0:
-                        return score, warnings
-
+            return self._inspect_tar_contents_safe(filename, data)
         except tarfile.TarError as e:
             self.logger.warning(f"Error inspecting tar {filename}: {e}")
         except Exception as e:
             self.logger.warning(f"Error inspecting tar {filename}: {e}")
 
+        return 0.0, []
+
+    def _inspect_tar_contents_safe(
+        self, filename: str, data: bytes
+    ) -> Tuple[float, List[str]]:
+        """Safely inspect tar contents with proper filtering and member processing."""
+        score = 0.0
+        warnings = []
+
+        with tarfile.open(fileobj=io.BytesIO(data), mode="r:*") as tf:
+            self._apply_tar_filter(tf)
+            members = self._get_tar_members_safely(tf)
+
+            score, warnings = self._check_file_count(
+                filename, [m.name for m in members], score, warnings
+            )
+
+            for member in members[: self.MAX_ZIP_FILE_COUNT]:
+                member_score, member_warnings = self._process_tar_member(
+                    tf, member, filename
+                )
+                score += member_score
+                warnings.extend(member_warnings)
+                if score >= 5.0:
+                    return score, warnings
+
         return score, warnings
+
+    def _apply_tar_filter(self, tf: tarfile.TarFile) -> None:
+        """Apply PEP-706 data filter if available to prevent extraction traversal."""
+        if hasattr(tarfile, "data_filter"):
+            tf.extraction_filter = getattr(
+                tarfile, "data_filter", (lambda member, path: member)
+            )
+
+    def _get_tar_members_safely(
+        self, tf: tarfile.TarFile
+    ) -> List[tarfile.TarInfo]:
+        """Get tar members safely with count limit."""
+        members = []
+        for m in tf:
+            members.append(m)
+            if len(members) > self.MAX_ZIP_FILE_COUNT:
+                break
+        return members
+
+    def _process_tar_member(
+        self, tf: tarfile.TarFile, member: tarfile.TarInfo, filename: str
+    ) -> Tuple[float, List[str]]:
+        """Process a single tar member for threats."""
+        safe_member_name = sanitize_for_logging(
+            sanitize_filename(member.name)
+        )
+        member_lower = safe_member_name.lower()
+
+        if member_lower.endswith(self.DANGEROUS_EXTENSIONS):
+            return 5.0, [
+                f"Archive {filename} contains dangerous file: {safe_member_name}"
+            ]
+
+        if self._is_path_traversal_attempt(member.name):
+            safe_member_name_traversal = sanitize_for_logging(
+                sanitize_filename(member.name)
+            )
+            return 5.0, [
+                f"Tar file {filename} contains path traversal attempt: {safe_member_name_traversal}"
+            ]
+
+        member_score, member_warnings = self._inspect_archive_member(
+            filename,
+            member.name,
+            lambda: self._handle_nested_tar_member(tf, member, filename, 0),
+        )
+        return member_score, member_warnings
+
+
 
     def _handle_nested_tar_member(
         self,

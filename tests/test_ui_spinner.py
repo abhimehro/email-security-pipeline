@@ -47,7 +47,7 @@ class TestSpinner(unittest.TestCase):
 
         output = mock_stdout.getvalue()
         # Verify cross is present
-        self.assertIn("✖ Testing Failure", output)
+        self.assertIn("✘ Testing Failure", output)
 
     @patch("sys.stdout", new_callable=StringIO)
     def test_spinner_non_tty_basic_output(self, mock_stdout):
@@ -103,7 +103,7 @@ class TestSpinner(unittest.TestCase):
 
         output = mock_stdout.getvalue()
         # Verify failure cross message is present in non-TTY mode
-        self.assertIn("✖ Testing non TTY failure", output)
+        self.assertIn("✘ Testing non TTY failure", output)
         self.assertNotIn("\x1b[", output)
 
     @patch("sys.stdout", new_callable=StringIO)
@@ -130,7 +130,7 @@ class TestSpinner(unittest.TestCase):
 
         output = mock_stdout.getvalue()
         # Verify custom failure message is used
-        self.assertIn("✖ Failed!", output)
+        self.assertIn("✘ Failed!", output)
 
     @patch("sys.stdout", new_callable=StringIO)
     def test_spinner_custom_success_non_tty(self, mock_stdout):
@@ -157,7 +157,7 @@ class TestSpinner(unittest.TestCase):
 
         output = mock_stdout.getvalue()
         # Verify custom failure message is printed in non-TTY mode
-        self.assertIn("✖ Custom Failed!", output)
+        self.assertIn("✘ Custom Failed!", output)
         self.assertNotIn("\x1b[", output)
 
     @patch("sys.stdout")

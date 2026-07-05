@@ -215,6 +215,12 @@ class NLPThreatAnalyzer:
             NLPAnalysisResult
 
         """
+        threat_score = 0.0
+        social_engineering = []
+        urgency_markers = []
+        authority_impersonation = []
+        psychological_triggers = []
+
         # Iterate over parts to avoid large string concatenation
         parts = [email_data.subject, email_data.body_text]
 
@@ -223,24 +229,43 @@ class NLPThreatAnalyzer:
             parts
         )
 
-        # Evaluate various categories
-        se_score, se_indicators = self._evaluate_social_engineering(
-            matches_by_category["SE"]
-        )
-        ug_score, ug_indicators = self._evaluate_urgency(
-            exclamation_count, caps_count, matches_by_category["UG"]
-        )
-        au_score, au_indicators = self._evaluate_authority_impersonation(
-            email_data.sender, matches_by_category["AU"]
-        )
-        ps_score, ps_indicators = self._evaluate_psychological_triggers(
-            matches_by_category["PS"]
-        )
-        ml_score, ml_indicators = self._evaluate_ml_analysis(email_data)
+        # Check for social engineering
+        if self.config.check_social_engineering:
+            score, indicators = self._detect_social_engineering(
+                matches_by_category["SE"]
+            )
+            threat_score += score
+            social_engineering.extend(indicators)
 
-        # Aggregate results
-        threat_score = se_score + ug_score + au_score + ps_score + ml_score
-        social_engineering = se_indicators + ml_indicators
+        # Check for urgency markers
+        if self.config.check_urgency_markers:
+            score, indicators = self._detect_urgency(
+                exclamation_count, caps_count, matches_by_category["UG"]
+            )
+            threat_score += score
+            urgency_markers.extend(indicators)
+
+        # Check for authority impersonation
+        if self.config.check_authority_impersonation:
+            score, indicators = self._detect_authority_impersonation(
+                email_data.sender, matches_by_category["AU"]
+            )
+            threat_score += score
+            authority_impersonation.extend(indicators)
+
+        # Detect psychological triggers
+        if getattr(self.config, "check_psychological_triggers", False):
+            score, indicators = self._detect_psychological_triggers(
+                matches_by_category["PS"]
+            )
+            threat_score += score
+            psychological_triggers.extend(indicators)
+
+        # Integration of Transformer Model Predictions into Threat Scoring
+        if self.model and self.tokenizer:
+            ml_score, ml_indicators = self._run_transformer_analysis(email_data)
+            threat_score += ml_score
+            social_engineering.extend(ml_indicators)
 
         # Calculate risk level
         risk_level = self._calculate_risk_level(threat_score)
@@ -252,42 +277,11 @@ class NLPThreatAnalyzer:
         return NLPAnalysisResult(
             threat_score=threat_score,
             social_engineering_indicators=social_engineering,
-            urgency_markers=ug_indicators,
-            authority_impersonation=au_indicators,
-            psychological_triggers=ps_indicators,
+            urgency_markers=urgency_markers,
+            authority_impersonation=authority_impersonation,
+            psychological_triggers=psychological_triggers,
             risk_level=risk_level,
         )
-
-    def _evaluate_social_engineering(self, matches: Dict) -> Tuple[float, List[str]]:
-        if self.config.check_social_engineering:
-            return self._detect_social_engineering(matches)
-        return 0.0, []
-
-    def _evaluate_urgency(
-        self, exclamation_count: int, caps_count: int, matches: Dict
-    ) -> Tuple[float, List[str]]:
-        if self.config.check_urgency_markers:
-            return self._detect_urgency(exclamation_count, caps_count, matches)
-        return 0.0, []
-
-    def _evaluate_authority_impersonation(
-        self, sender: str, matches: Dict
-    ) -> Tuple[float, List[str]]:
-        if self.config.check_authority_impersonation:
-            return self._detect_authority_impersonation(sender, matches)
-        return 0.0, []
-
-    def _evaluate_psychological_triggers(self, matches: Dict) -> Tuple[float, List[str]]:
-        if getattr(self.config, "check_psychological_triggers", False):
-            return self._detect_psychological_triggers(matches)
-        return 0.0, []
-
-    def _evaluate_ml_analysis(
-        self, email_data: EmailData
-    ) -> Tuple[float, List[str]]:
-        if self.model and self.tokenizer:
-            return self._run_transformer_analysis(email_data)
-        return 0.0, []
 
     def _scan_text_patterns(self, parts: List[Optional[str]]) -> Tuple[Dict, int, int]:
         """Scan text parts for patterns and statistics."""
@@ -364,18 +358,24 @@ class NLPThreatAnalyzer:
 
         return score, indicators
 
-    def _detect_social_engineering(
-        self, counts: Dict[str, int]
+    def _detect_patterns_with_weight(
+        self, counts: Dict[str, int], weight: float
     ) -> Tuple[float, List[str]]:
-        """Detect social engineering patterns."""
+        """Generic pattern detection with configurable weight."""
         score = 0.0
         indicators = []
 
         for description, count in counts.items():
-            score += count * 2.0  # High weight for social engineering
+            score += count * weight
             indicators.append(f"{description} ({count} occurrences)")
 
         return score, indicators
+
+    def _detect_social_engineering(
+        self, counts: Dict[str, int]
+    ) -> Tuple[float, List[str]]:
+        """Detect social engineering patterns."""
+        return self._detect_patterns_with_weight(counts, 2.0)
 
     def _detect_urgency(
         self, exclamation_count: int, caps_count: int, counts: Dict[str, int]
@@ -441,14 +441,7 @@ class NLPThreatAnalyzer:
         self, counts: Dict[str, int]
     ) -> Tuple[float, List[str]]:
         """Detect psychological manipulation tactics."""
-        score = 0.0
-        indicators = []
-
-        for description, count in counts.items():
-            score += count * 1.0
-            indicators.append(f"{description} ({count} occurrences)")
-
-        return score, indicators
+        return self._detect_patterns_with_weight(counts, 1.0)
 
     def _calculate_risk_level(self, score: float) -> str:
         """Calculate risk level based on NLP threat score."""
