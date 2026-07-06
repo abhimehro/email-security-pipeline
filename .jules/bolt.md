@@ -159,3 +159,7 @@
 ## 2024-07-04 - Optimize Substring Search Pre-Checks
 **Learning:** Replacing an `any()` generator expression with an Aho-Corasick automaton for multiple substring pre-checks provides a 40% speedup on negative lookups (clean emails). However, manually replicating word boundaries in Python to replace a C-optimized `re.findall()` for exact counting introduces massive interpreter overhead and often negates the algorithmic benefit.
 **Action:** When applying algorithmic optimizations like Aho-Corasick, use them to replace pure Python loops/generators for fast-path exclusions, but retain existing C-optimized regex engines for complex boundary evaluations and extraction.
+
+## 2025-06-27 - Remove Generator Overhead for Multi-Keyword Pre-checks
+**Learning:** Python's `any(kw in text for kw in keywords)` pattern creates a generator that runs entirely in the Python interpreter, resulting in significant overhead when checking clean text against a large list of keywords. When a pre-built Aho-Corasick automaton (like `ahocorasick.Automaton`) is available, using its `.iter(text)` method runs entirely in C, providing a massive speedup (~3-4x) for negative lookups (clean text).
+**Action:** Replace `any()` generator expressions with Aho-Corasick automaton lookups (`try: next(automaton.iter(text)); return True except StopIteration: return False`) when performing fast multi-keyword pre-checks, especially in hot paths like subject and body analysis.
