@@ -212,7 +212,7 @@ class Spinner:
                 if self.fail_msg
                 else clean_msg
             )
-            return "✘", msg
+            return "✖", msg
 
         if self.success_msg:
             return "✔", self.success_msg.replace(
@@ -268,7 +268,7 @@ class Spinner:
         """Map symbols to their respective colors."""
         if symbol == "⚠":
             return Colors.YELLOW
-        if symbol == "✘":
+        if symbol == "✖":
             return Colors.RED
         if symbol == "✔":
             return Colors.GREEN

@@ -108,7 +108,7 @@
 **Action:** Wrap the shutdown sequence in a visual loading state (like a spinner) to provide immediate feedback that cleanup is actively progressing, reducing user anxiety.
 
 ## 2025-02-15 - Cancellation Warning UX
-**Learning:** For user-initiated interruptions (like pressing Ctrl+C/KeyboardInterrupt), it's a better UX to use a warning indicator (e.g., ⚠️) and explicit "(Cancelled)" text instead of a failure indicator (e.g., ✘). This clearly differentiates cancellations from actual system errors, reducing user confusion.
+**Learning:** For user-initiated interruptions (like pressing Ctrl+C/KeyboardInterrupt), it's a better UX to use a warning indicator (e.g., ⚠️) and explicit "(Cancelled)" text instead of a failure indicator (e.g., ✖). This clearly differentiates cancellations from actual system errors, reducing user confusion.
 **Action:** Implemented this distinction in `src/utils/ui.py`'s `Spinner.__exit__`.
 
 ## 2025-02-15 - Consistent Input Prompt Styling
@@ -208,18 +208,18 @@
 **Learning:** Error paths and fallback instructions (like template creation failures) are often overlooked during UI polish passes, leading to unstyled output that breaks the overall visual consistency of the CLI.
 **Action:** When auditing CLI applications for UX, explicitly check error handling paths (`except` blocks) and fallback states (`else` branches of interactive prompts) to ensure that error messages are styled with `Colors.RED` and instructions are styled with `Colors.YELLOW`, maintaining visual hierarchy even during failures.
 ## 2025-06-25 - Consistency in Terminal Error Styling
-**Learning:** For CLI status indicators (like loading spinners), applying semantic color (like Red) only to the status symbol (✘) while leaving the final message unstyled breaks the visual hierarchy during error paths.
+**Learning:** For CLI status indicators (like loading spinners), applying semantic color (like Red) only to the status symbol (✖) while leaving the final message unstyled breaks the visual hierarchy during error paths.
 **Action:** Apply consistent semantic coloring to the entire final status message (e.g., Red for errors, Green for success, Yellow for warnings) to ensure plain-text default styling does not undermine the error state visualization.
 
 ## 2027-02-18 - Actionable Error Paths UX Consistency
-**Learning:** Consistently providing actionable instructions across all error/fallback paths, not just non-interactive ones, significantly improves user experience. In CLI tools, omitting these instructions in certain failure branches forces users to guess the next steps. Using consistent visual hierarchy (e.g. `✘` for errors, `Colors.CYAN` for commands) reduces cognitive load.
-**Action:** When auditing CLI fallback flows, extract the remediation output logic into reusable helpers to guarantee that whether a user skips a wizard, encounters a file write error, or runs non-interactively, they always receive the exact same visually-distinct actionable command (like `cp .env.example .env`). Ensure consistent `✘` prefixes on critical file operation errors.
+**Learning:** Consistently providing actionable instructions across all error/fallback paths, not just non-interactive ones, significantly improves user experience. In CLI tools, omitting these instructions in certain failure branches forces users to guess the next steps. Using consistent visual hierarchy (e.g. `✖` for errors, `Colors.CYAN` for commands) reduces cognitive load.
+**Action:** When auditing CLI fallback flows, extract the remediation output logic into reusable helpers to guarantee that whether a user skips a wizard, encounters a file write error, or runs non-interactively, they always receive the exact same visually-distinct actionable command (like `cp .env.example .env`). Ensure consistent `✖` prefixes on critical file operation errors.
 ## 2027-02-18 - Actionable Error Paths UX Consistency
-**Learning:** Consistently providing actionable instructions across all error/fallback paths, not just non-interactive ones, significantly improves user experience. In CLI tools, omitting these instructions in certain failure branches forces users to guess the next steps. Using consistent visual hierarchy (e.g. `✘` for errors, `Colors.CYAN` for commands) reduces cognitive load.
-**Action:** When auditing CLI fallback flows, extract the remediation output logic into reusable helpers to guarantee that whether a user skips a wizard, encounters a file write error, or runs non-interactively, they always receive the exact same visually-distinct actionable command (like `cp .env.example .env`). Ensure consistent `✘` prefixes on critical file operation errors.
+**Learning:** Consistently providing actionable instructions across all error/fallback paths, not just non-interactive ones, significantly improves user experience. In CLI tools, omitting these instructions in certain failure branches forces users to guess the next steps. Using consistent visual hierarchy (e.g. `✖` for errors, `Colors.CYAN` for commands) reduces cognitive load.
+**Action:** When auditing CLI fallback flows, extract the remediation output logic into reusable helpers to guarantee that whether a user skips a wizard, encounters a file write error, or runs non-interactively, they always receive the exact same visually-distinct actionable command (like `cp .env.example .env`). Ensure consistent `✖` prefixes on critical file operation errors.
 ## 2025-06-25 - Enhance Input Validation Error Styling
 **Learning:** In interactive CLI wizards, single-line error messages without actionable remediation advice often leave users stuck, and unstyled instructions blend into the error text.
-**Action:** Always format input validation errors by separating the error description (styled in `Colors.RED` with a `✘` prefix) from the actionable remediation advice (styled in `Colors.YELLOW`). This improves clarity and guides the user toward successful input.
+**Action:** Always format input validation errors by separating the error description (styled in `Colors.RED` with a `✖` prefix) from the actionable remediation advice (styled in `Colors.YELLOW`). This improves clarity and guides the user toward successful input.
 
 ## 2027-02-18 - Consolidate Loading State Text
 **Learning:** In CLI flows, printing a static status message (e.g., `print("Verifying...")`) followed immediately by instantiating a `Spinner` (e.g., `Spinner("Connecting...")`) for the actual async work creates visual stutter and terminal clutter. The user sees two similar messages back-to-back.
