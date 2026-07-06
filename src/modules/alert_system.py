@@ -1304,7 +1304,7 @@ def _calculate_overall_risk_level(
 ) -> str:
     """Calculate overall risk level from individual analysis results."""
     risk_levels = [spam_result.risk_level, nlp_result.risk_level, media_result.risk_level]
-    
+
     if "high" in risk_levels:
         return "high"
     if "medium" in risk_levels:
