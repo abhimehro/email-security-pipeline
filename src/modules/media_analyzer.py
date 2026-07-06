@@ -893,8 +893,6 @@ class MediaAuthenticityAnalyzer:
         )
         return member_score, member_warnings
 
-
-
     def _handle_nested_tar_member(
         self,
         tf: tarfile.TarFile,
