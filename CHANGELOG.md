@@ -41,6 +41,7 @@
 
 **Closed issues:**
 
+- Daily QA & Agentic Review - 2026-07-05 [\#1230](https://github.com/abhimehro/email-security-pipeline/issues/1230)
 - Daily QA & Agentic Review - 2026-07-04 [\#1226](https://github.com/abhimehro/email-security-pipeline/issues/1226)
 - Daily QA & Agentic Review - 2026-07-03 [\#1214](https://github.com/abhimehro/email-security-pipeline/issues/1214)
 - Daily QA & Agentic Review - 2026-07-02 [\#1209](https://github.com/abhimehro/email-security-pipeline/issues/1209)
@@ -409,6 +410,8 @@
 
 **Merged pull requests:**
 
+- Daily QA Review [\#1232](https://github.com/abhimehro/email-security-pipeline/pull/1232) ([abhimehro](https://github.com/abhimehro))
+- ⚡ Bolt: Use Aho-Corasick automaton for fast subject keyword pre-checks [\#1231](https://github.com/abhimehro/email-security-pipeline/pull/1231) ([abhimehro](https://github.com/abhimehro))
 - chore: Daily Agentic QA Review \(No Findings\) [\#1229](https://github.com/abhimehro/email-security-pipeline/pull/1229) ([abhimehro](https://github.com/abhimehro))
 - Harden refactor workflow command extraction for multiline PR comments [\#1228](https://github.com/abhimehro/email-security-pipeline/pull/1228) ([Copilot](https://github.com/apps/copilot-swe-agent))
 - Harden refactor workflow against transient push races [\#1227](https://github.com/abhimehro/email-security-pipeline/pull/1227) ([Copilot](https://github.com/apps/copilot-swe-agent))
