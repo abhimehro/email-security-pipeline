@@ -2,14 +2,6 @@
 numpy>=1.26.0,<2.0.0
 opencv-python-headless>=4.10.0
 
-# Optional: Database support
-# sqlite3  # Built-in to Python
-
-# Development dependencies (optional)
-pytest>=9.0.0
-python-dotenv>=1.0.0
-requests>=2.31.0
-
 # Optional: NLP and ML (uncomment when needed)
 # These are large libraries and not required for core functionality.
 # sentencepiece==0.2.1
@@ -19,3 +11,11 @@ requests>=2.31.0
 # black==23.11.0
 # flake8==6.1.0
 pyahocorasick>=2.0.0
+
+# Optional: Database support
+# sqlite3  # Built-in to Python
+
+# Development dependencies (optional)
+pytest>=9.0.0
+python-dotenv>=1.0.0
+requests>=2.31.0
