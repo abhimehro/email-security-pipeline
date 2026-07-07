@@ -333,17 +333,17 @@ def _validate_json_output(output) -> bool:
         "ssl_valid",
         "credentials_valid",
     ]
-    
+
     if not all(key in output for key in required_keys):
         print(f"❌ JSON output missing required keys. Found: {list(output.keys())}")
         return False
-    
+
     print("✓ JSON output contains all required keys")
-    
+
     if "host_resolved" not in output.get("server_reachable", {}):
         print("❌ Nested structure is incorrect")
         return False
-    
+
     print("✓ Nested structure appears correct")
     return True
 
