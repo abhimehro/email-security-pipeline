@@ -9,6 +9,7 @@ import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
 SCRIPTS = ROOT / "scripts"
 HELPER = SCRIPTS / "gh_token_env.py"
 SECURE_AUTOMATION_SCRIPTS = (
@@ -16,9 +17,7 @@ SECURE_AUTOMATION_SCRIPTS = (
     SCRIPTS / "fix_drafts.sh",
 )
 
-sys.path.insert(0, str(SCRIPTS))
-
-from gh_token_env import EnvParseError, parse_env_file  # noqa: E402
+from src.utils.env_file_parser import EnvParseError, parse_env_file
 
 
 class TestGhTokenEnvParser(unittest.TestCase):
