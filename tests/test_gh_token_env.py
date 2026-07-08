@@ -66,6 +66,16 @@ class TestGhTokenEnvParser(unittest.TestCase):
         finally:
             path.unlink()
 
+    def test_strips_trailing_inline_comments_from_unquoted_values(self) -> None:
+        with tempfile.NamedTemporaryFile("w", delete=False) as handle:
+            handle.write("GH_TOKEN=abc123  # local token\n")
+            path = Path(handle.name)
+
+        try:
+            self.assertEqual(parse_env_file(path), {"GH_TOKEN": "abc123"})
+        finally:
+            path.unlink()
+
     def test_cli_get_does_not_execute_malicious_file(self) -> None:
         marker = Path(tempfile.gettempdir()) / "gh_token_env_pwned_marker"
         if marker.exists():
