@@ -6,7 +6,7 @@
 - [x] Add secure `scripts/close_prs.sh` that loads GH_TOKEN via Python parser
 - [x] Add security tests for malicious env content and verify no `source`/`.` usage
 - [x] Run test suite and shellcheck
-- [ ] Commit, push, and open PR
+- [x] Commit, push, and open PR
 
 ## Security notes
 - Trust boundary: `GH_TOKEN.env` is local filesystem input — treat as untrusted
