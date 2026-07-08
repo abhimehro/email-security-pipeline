@@ -1,4 +1,4 @@
-"""Security tests for safe env-file parsing used by close_prs.sh."""
+"""Security tests for safe env-file parsing used by automation shell scripts."""
 
 from __future__ import annotations
 
@@ -11,6 +11,10 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPTS = ROOT / "scripts"
 HELPER = SCRIPTS / "gh_token_env.py"
+SECURE_AUTOMATION_SCRIPTS = (
+    SCRIPTS / "close_prs.sh",
+    SCRIPTS / "fix_drafts.sh",
+)
 
 sys.path.insert(0, str(SCRIPTS))
 
@@ -86,12 +90,19 @@ class TestGhTokenEnvParser(unittest.TestCase):
                 marker.unlink()
 
 
-class TestClosePrsScript(unittest.TestCase):
-    def test_does_not_source_external_env_files(self) -> None:
-        script = SCRIPTS / "close_prs.sh"
-        content = script.read_text(encoding="utf-8")
-        self.assertNotRegex(content, r"(?m)^\s*source\s+")
-        self.assertNotRegex(content, r"(?m)^\s*\.\s+")
+class TestAutomationScripts(unittest.TestCase):
+    def test_automation_scripts_do_not_source_external_env_files(self) -> None:
+        for script in SECURE_AUTOMATION_SCRIPTS:
+            with self.subTest(script=script.name):
+                content = script.read_text(encoding="utf-8")
+                self.assertNotRegex(content, r"(?m)^\s*source\s+.*\.env")
+                self.assertNotRegex(content, r"(?m)^\s*\.\s+.*\.env")
+                self.assertIn("load_gh_token", content)
+
+    def test_shared_loader_avoids_direct_env_sourcing(self) -> None:
+        loader = SCRIPTS / "load_gh_token.sh"
+        content = loader.read_text(encoding="utf-8")
+        self.assertNotRegex(content, r"(?m)^\s*source\s+.*\.env")
         self.assertIn("gh_token_env.py", content)
 
 
