@@ -66,7 +66,18 @@ if [[ ${REPLY} =~ ^[Yy]$ ]]; then
 
 	# Update .env file (using OS-appropriate sed command)
 	${SED_CMD} "s|GMAIL_EMAIL=.*|GMAIL_EMAIL=${gmail_email}|" .env
-	${SED_CMD} "s|GMAIL_APP_PASSWORD=.*|GMAIL_APP_PASSWORD=${gmail_password}|" .env
+	# Create temporary file preserving permissions if possible, or just copy back
+	cp -p .env .env.tmp 2>/dev/null || touch .env.tmp
+	chmod 600 .env.tmp 2>/dev/null || true
+	while IFS= read -r line || [[ -n "$line" ]]; do
+		if [[ $line == GMAIL_APP_PASSWORD=* ]]; then
+			echo "GMAIL_APP_PASSWORD=${gmail_password}"
+		else
+			echo "$line"
+		fi
+	done < .env > .env.tmp
+	cat .env.tmp > .env
+	rm -f .env.tmp
 	${SED_CMD} "s|GMAIL_ENABLED=.*|GMAIL_ENABLED=true|" .env
 
 	# Clear password from memory (basic security measure)
