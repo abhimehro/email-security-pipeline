@@ -324,10 +324,19 @@ class AlertSystem:
             threat_report: Threat report to alert on
 
         """
-        # Only alert on significant threats
-        if threat_report.overall_threat_score < self.config.threat_low:
+        # Alert when any analysis layer flagged medium/high risk, OR when the
+        # combined score meets THREAT_LOW. Layer risk uses per-analyser
+        # thresholds (e.g. SPAM_THRESHOLD=5 → high at score 10), while
+        # overall_threat_score is a sum that can stay below THREAT_LOW=30 even
+        # when risk_level is already "high". Gating on score alone silently
+        # dropped flagged/suspicious notifications.
+        risk = (threat_report.risk_level or "").lower()
+        score_below_floor = threat_report.overall_threat_score < self.config.threat_low
+        if risk not in ("medium", "high") and score_below_floor:
             self.logger.debug(
-                "Threat score too low to alert: %s", threat_report.overall_threat_score
+                "Threat too low to alert: score=%s risk=%s",
+                threat_report.overall_threat_score,
+                threat_report.risk_level,
             )
             # Provide positive feedback for clean emails if console is enabled
             if self.config.console:
