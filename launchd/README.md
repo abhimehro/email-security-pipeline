@@ -76,6 +76,17 @@ docker --context colima compose ps
 docker --context colima compose logs --tail=100
 ```
 
+### `Colima/Docker did not become ready within N seconds`
+
+Usually the Colima VM is stopped or crashed (check `~/.colima/_lima/colima/ha.stderr.log`). Shared Colima is also used by other services (e.g. Jellyfin) — **do not** `colima delete`. Recover with:
+
+```bash
+chmod +x scripts/recover-colima-pipeline.sh
+./scripts/recover-colima-pipeline.sh --rebuild --test-alert
+```
+
+The start wrapper no longer swallows `colima start` failures; it logs progress and waits up to 300s.
+
 ### Docker works in terminal but not from launchd
 
 Make sure the plist includes Homebrew in `PATH` and that the wrapper uses the `colima` context explicitly.
