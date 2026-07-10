@@ -25,6 +25,7 @@
 
 **Security fixes:**
 
+- P0: Password Exposure via Shell Variable in setup.sh [\#1236](https://github.com/abhimehro/email-security-pipeline/issues/1236)
 - Security Review: No validated medium+ vulnerabilities \(2026-05-21\) [\#890](https://github.com/abhimehro/email-security-pipeline/issues/890)
 - \[Security\] Script injection via workflow\_dispatch input in copilot-setup-steps.yml \(CWE-94\) [\#882](https://github.com/abhimehro/email-security-pipeline/issues/882)
 - Security review: no validated medium+ vulnerabilities found \(2026-05-14\) [\#847](https://github.com/abhimehro/email-security-pipeline/issues/847)
@@ -414,6 +415,7 @@
 
 **Merged pull requests:**
 
+- Fix password exposure in setup.sh [\#1244](https://github.com/abhimehro/email-security-pipeline/pull/1244) ([abhimehro](https://github.com/abhimehro))
 - chore\(deps\): bump github/codeql-action from codeql-bundle-v2.25.6 to 2.26.0 [\#1243](https://github.com/abhimehro/email-security-pipeline/pull/1243) ([dependabot[bot]](https://github.com/apps/dependabot))
 - security\(ABHI-1358–1361\): fix command injection in PR automation scripts [\#1240](https://github.com/abhimehro/email-security-pipeline/pull/1240) ([abhimehro](https://github.com/abhimehro))
 - chore: Jules Daily QA & Agentic Review \(Minor Fixes\) [\#1238](https://github.com/abhimehro/email-security-pipeline/pull/1238) ([abhimehro](https://github.com/abhimehro))
