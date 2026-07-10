@@ -1,0 +1,193 @@
+From 4816a608809dc9c5d6af0ce42e7d220d61a53147 Mon Sep 17 00:00:00 2001
+From: Cursor Agent <cursoragent@cursor.com>
+Date: Wed, 8 Jul 2026 08:24:36 +0000
+Subject: [PATCH] security(ABHI-1358,1359,1361): stop sourcing GH_TOKEN.env in
+ PR scripts
+
+Replace `source ../email-security-pipeline/GH_TOKEN.env` in close_prs.sh,
+fix_drafts.sh, and close_more.sh with scripts/ensure_gh_token.sh. Harden
+gh_token_env.py to ignore values containing command substitution and add
+regression tests for the automation scripts.
+
+Security: CWE-78 / command injection via malicious env file content.
+---
+ close_more.sh                       | 16 ++++++++++------
+ close_prs.sh                        | 16 ++++++++++------
+ fix_drafts.sh                       | 16 ++++++++++------
+ gh_token_env.py                     | 10 +++++++++-
+ tests/test_gh_token_env.py          |  5 +++++
+ tests/test_pr_automation_scripts.py | 27 +++++++++++++++++++++++++++
+ 6 files changed, 71 insertions(+), 19 deletions(-)
+ create mode 100644 tests/test_pr_automation_scripts.py
+
+diff --git a/close_more.sh b/close_more.sh
+index 72bda1a..4e84fde 100644
+--- a/close_more.sh
++++ b/close_more.sh
+@@ -1,13 +1,17 @@
+ #!/usr/bin/env bash
++# Close additional duplicate pull requests using a safely loaded GH_TOKEN.
++set -euo pipefail
+ 
+-source ../email-security-pipeline/GH_TOKEN.env
++SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
++# shellcheck source=scripts/ensure_gh_token.sh
++source "${SCRIPT_DIR}/scripts/ensure_gh_token.sh"
+ 
+ close_pr() {
+-  local repo=$1
+-  local pr=$2
+-  local reason=$3
+-  echo "Closing $repo#$pr ($reason)..."
+-  gh pr close $pr -R $repo -c "Automated triage: $reason"
++  local repo="$1"
++  local pr="$2"
++  local reason="$3"
++  echo "Closing ${repo}#${pr} (${reason})..."
++  gh pr close "${pr}" --repo "${repo}" --comment "Automated triage: ${reason}"
+ }
+ 
+ close_pr "abhimehro/ctrld-sync" "702" "Semantic duplicate of a newer automated PR (#707)"
+diff --git a/close_prs.sh b/close_prs.sh
+index 2c0eb06..6999606 100644
+--- a/close_prs.sh
++++ b/close_prs.sh
+@@ -1,13 +1,17 @@
+ #!/usr/bin/env bash
++# Close superseded or duplicate pull requests using a safely loaded GH_TOKEN.
++set -euo pipefail
+ 
+-source ../email-security-pipeline/GH_TOKEN.env
++SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
++# shellcheck source=scripts/ensure_gh_token.sh
++source "${SCRIPT_DIR}/scripts/ensure_gh_token.sh"
+ 
+ close_pr() {
+-  local repo=$1
+-  local pr=$2
+-  local reason=$3
+-  echo "Closing $repo#$pr ($reason)..."
+-  gh pr close $pr -R $repo -c "Automated triage: $reason"
++  local repo="$1"
++  local pr="$2"
++  local reason="$3"
++  echo "Closing ${repo}#${pr} (${reason})..."
++  gh pr close "${pr}" --repo "${repo}" --comment "Automated triage: ${reason}"
+ }
+ 
+ # SUPERSEDED
+diff --git a/fix_drafts.sh b/fix_drafts.sh
+index 06ca215..a4217ba 100644
+--- a/fix_drafts.sh
++++ b/fix_drafts.sh
+@@ -1,13 +1,17 @@
+ #!/usr/bin/env bash
++# Mark draft pull requests ready and merge them using a safely loaded GH_TOKEN.
++set -euo pipefail
+ 
+-source ../email-security-pipeline/GH_TOKEN.env
++SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
++# shellcheck source=scripts/ensure_gh_token.sh
++source "${SCRIPT_DIR}/scripts/ensure_gh_token.sh"
+ 
+ fix_and_merge() {
+-  local repo=$1
+-  local pr=$2
+-  echo "Marking $repo#$pr ready and merging..."
+-  gh pr ready $pr -R $repo
+-  gh pr merge $pr -R $repo --squash --delete-branch
++  local repo="$1"
++  local pr="$2"
++  echo "Marking ${repo}#${pr} ready and merging..."
++  gh pr ready "${pr}" --repo "${repo}"
++  gh pr merge "${pr}" --repo "${repo}" --squash --delete-branch
+ }
+ 
+ fix_and_merge "abhimehro/email-security-pipeline" "632"
+diff --git a/gh_token_env.py b/gh_token_env.py
+index 4d01967..8e8bae6 100644
+--- a/gh_token_env.py
++++ b/gh_token_env.py
+@@ -9,6 +9,8 @@ Precedence for ``GH_TOKEN``:
+ 2. Optional file from ``GH_TOKEN_ENV_FILE`` or well-known paths (legacy fallback)
+ """
+ 
++import re
++
+ import os
+ from functools import lru_cache
+ from pathlib import Path
+@@ -17,6 +19,9 @@ from typing import Mapping
+ # Legacy path referenced in ABHI-954 / TruffleHog finding (gitignored, out of repo).
+ _LEGACY_RELATIVE_ENV = Path("../email-security-pipeline/GH_TOKEN.env")
+ 
++# SECURITY: reject command substitution in parsed values.
++_COMMAND_SUBSTITUTION = re.compile(r"\$\(|`")
++
+ _RUNBOOK = "docs/github-pat-rotation-runbook.md"
+ 
+ 
+@@ -30,7 +35,10 @@ def parse_env_line(line: str, env_dict: dict[str, str]) -> None:
+     key, sep, val = line.partition("=")
+     if not sep:
+         return
+-    env_dict[key] = val.strip("'\"")
++    value = val.strip().strip("'\"")
++    if _COMMAND_SUBSTITUTION.search(value):
++        return
++    env_dict[key] = value
+ 
+ 
+ def _read_env_file(path: Path) -> dict[str, str]:
+diff --git a/tests/test_gh_token_env.py b/tests/test_gh_token_env.py
+index 18b7047..80344ca 100644
+--- a/tests/test_gh_token_env.py
++++ b/tests/test_gh_token_env.py
+@@ -30,6 +30,11 @@ class TestGhTokenEnv(unittest.TestCase):
+         parse_env_line("export BAZ='qux'", env)
+         self.assertEqual(env["BAZ"], "qux")
+ 
++    def test_parse_env_line_rejects_command_substitution(self):
++        env: dict[str, str] = {}
++        parse_env_line("GH_TOKEN=$(id)", env)
++        self.assertEqual(env, {})
++
+     def test_read_env_file_oserror(self):
+         self.assertEqual(_read_env_file(Path("/does/not/exist/ever.env")), {})
+ 
+diff --git a/tests/test_pr_automation_scripts.py b/tests/test_pr_automation_scripts.py
+new file mode 100644
+index 0000000..212ef52
+--- /dev/null
++++ b/tests/test_pr_automation_scripts.py
+@@ -0,0 +1,27 @@
++"""Verify PR automation shell scripts avoid sourcing external env files."""
++
++from __future__ import annotations
++
++import unittest
++from pathlib import Path
++
++ROOT = Path(__file__).resolve().parents[1]
++AUTOMATION_SCRIPTS = (
++    ROOT / "close_prs.sh",
++    ROOT / "close_more.sh",
++    ROOT / "fix_drafts.sh",
++)
++
++
++class TestPrAutomationScripts(unittest.TestCase):
++    def test_scripts_do_not_source_external_env_files(self) -> None:
++        for script in AUTOMATION_SCRIPTS:
++            with self.subTest(script=script.name):
++                content = script.read_text(encoding="utf-8")
++                self.assertNotRegex(content, r"(?m)^\s*source\s+.*GH_TOKEN\.env")
++                self.assertNotRegex(content, r"(?m)^\s*\.\s+.*GH_TOKEN\.env")
++                self.assertIn("ensure_gh_token.sh", content)
++
++
++if __name__ == "__main__":
++    unittest.main()
+-- 
+2.43.0
+
