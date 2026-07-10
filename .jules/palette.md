@@ -231,3 +231,7 @@
 ## 2024-05-18 - Visual Hierarchy for Terminal Validation Failures
 **Learning:** Terminal validation errors often blend together when the entire message is colored red. By prepending an uncolored heavy multiplication cross (✖) and separating the red error description from the yellow actionable remediation advice, we establish a much clearer visual hierarchy that reduces cognitive load.
 **Action:** Always format terminal error messages by placing the symbol outside the colorization block (e.g., `"✖ " + Colors.colorize("Error...", Colors.RED)`) to maintain distinct visual structure across different terminal emulators.
+
+## 2026-07-10 - Actionable Empty States
+**Learning:** When displaying an empty state or 'not configured' warning, users often lack context on how to resolve it. Adding a direct, actionable next step reduces friction.
+**Action:** Always pair empty states with a clear call-to-action or instruction.
