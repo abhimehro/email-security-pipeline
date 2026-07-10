@@ -434,11 +434,18 @@ class TestSyncFallback(unittest.TestCase):
         self.assertTrue(mock_post.called)
 
     def test_below_threshold_does_not_dispatch(self):
-        """Alerts below the threat_low threshold must never be dispatched."""
+        """Low-risk reports below threat_low must never be dispatched."""
         system = AlertSystem(_make_config(webhook=True, threat_low=50))
         with patch.object(system, "_dispatch_alert_sync") as mock_sync:
-            system.send_alert(_make_report(score=5.0))  # Below threshold
+            system.send_alert(_make_report(score=5.0, risk_level="low"))
             mock_sync.assert_not_called()
+
+    def test_medium_risk_dispatches_even_when_score_below_threat_low(self):
+        """Layer-derived medium/high risk must alert even if sum score < THREAT_LOW."""
+        system = AlertSystem(_make_config(webhook=True, threat_low=50))
+        with patch.object(system, "_dispatch_alert_sync") as mock_sync:
+            system.send_alert(_make_report(score=18.0, risk_level="high"))
+            mock_sync.assert_called_once()
 
 
 class TestOnEnqueueDone(unittest.TestCase):
