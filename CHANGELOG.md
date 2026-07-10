@@ -415,6 +415,8 @@
 
 **Merged pull requests:**
 
+- chore\(deps\): bump actions/labeler from 6.1.0 to 6.2.0 [\#1247](https://github.com/abhimehro/email-security-pipeline/pull/1247) ([dependabot[bot]](https://github.com/apps/dependabot))
+- 🎨 Palette: Improve terminal validation visual hierarchy [\#1245](https://github.com/abhimehro/email-security-pipeline/pull/1245) ([abhimehro](https://github.com/abhimehro))
 - Fix password exposure in setup.sh [\#1244](https://github.com/abhimehro/email-security-pipeline/pull/1244) ([abhimehro](https://github.com/abhimehro))
 - chore\(deps\): bump github/codeql-action from codeql-bundle-v2.25.6 to 2.26.0 [\#1243](https://github.com/abhimehro/email-security-pipeline/pull/1243) ([dependabot[bot]](https://github.com/apps/dependabot))
 - security\(ABHI-1358–1361\): fix command injection in PR automation scripts [\#1240](https://github.com/abhimehro/email-security-pipeline/pull/1240) ([abhimehro](https://github.com/abhimehro))
