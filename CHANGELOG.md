@@ -42,6 +42,7 @@
 
 **Closed issues:**
 
+- Daily QA & Agentic Review - 2026-07-10 [\#1250](https://github.com/abhimehro/email-security-pipeline/issues/1250)
 - Daily QA & Agentic Review - 2026-07-09 [\#1246](https://github.com/abhimehro/email-security-pipeline/issues/1246)
 - Daily QA & Agentic Review - 2026-07-08 [\#1242](https://github.com/abhimehro/email-security-pipeline/issues/1242)
 - Daily QA & Agentic Review - 2026-07-07 [\#1239](https://github.com/abhimehro/email-security-pipeline/issues/1239)
@@ -415,6 +416,8 @@
 
 **Merged pull requests:**
 
+- chore\(deps\): bump actions/stale from 10.3.0 to 10.4.0 [\#1251](https://github.com/abhimehro/email-security-pipeline/pull/1251) ([dependabot[bot]](https://github.com/apps/dependabot))
+- 🎨 Palette: Add actionable empty state for unconfigured accounts [\#1249](https://github.com/abhimehro/email-security-pipeline/pull/1249) ([abhimehro](https://github.com/abhimehro))
 - chore\(deps\): bump actions/labeler from 6.1.0 to 6.2.0 [\#1247](https://github.com/abhimehro/email-security-pipeline/pull/1247) ([dependabot[bot]](https://github.com/apps/dependabot))
 - 🎨 Palette: Improve terminal validation visual hierarchy [\#1245](https://github.com/abhimehro/email-security-pipeline/pull/1245) ([abhimehro](https://github.com/abhimehro))
 - Fix password exposure in setup.sh [\#1244](https://github.com/abhimehro/email-security-pipeline/pull/1244) ([abhimehro](https://github.com/abhimehro))
