@@ -413,6 +413,7 @@ class EmailSecurityPipeline:
         print(f"  📧 {Colors.colorize('Monitored Accounts:', Colors.CYAN)}")
         if not self.config.email_accounts:
             print(f"    - {Colors.colorize('⚠ No accounts configured', Colors.YELLOW)}")
+            print(f"      {Colors.colorize('→ Add credentials to your .env file to start processing emails.', Colors.GREY)}")
         else:
             for account in self.config.email_accounts:
                 status = (
