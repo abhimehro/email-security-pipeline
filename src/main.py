@@ -464,6 +464,7 @@ class EmailSecurityPipeline:
             print(
                 f"    - {Colors.colorize('⚠ No alert channels configured', Colors.YELLOW)}"
             )
+            print(f"      {Colors.colorize('→ Enable alerts in your .env file to receive notifications.', Colors.GREY)}")
 
         print(f"  ⚙️ {Colors.colorize('System:', Colors.CYAN)}")
         print(f"    - Log Level:  {self.config.system.log_level}")
