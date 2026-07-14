@@ -1,5 +1,5 @@
 # Core dependencies
-numpy>=1.26.0,<2.0.0
+numpy==2.4.6
 opencv-python-headless==4.10.0.84
 pyahocorasick==2.3.1
 
