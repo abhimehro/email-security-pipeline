@@ -2,7 +2,7 @@
 # NOTE: This intentionally avoids the optional NLP/ML stacks (torch/transformers)
 # so PR validation stays fast and reliable.
 
-numpy==2.4.6
+numpy==1.26.4
 opencv-python-headless==4.10.0.84
 pre-commit==4.5.1
 pyahocorasick==2.3.1
