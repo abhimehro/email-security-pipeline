@@ -1,6 +1,6 @@
 # Core dependencies
 numpy==2.5.1
-opencv-python==4.13.0.92
+opencv-python==5.0.0.93
 pyahocorasick==2.3.1
 requests==2.34.2
 
