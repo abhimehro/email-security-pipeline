@@ -6,6 +6,6 @@ opencv-python-headless==4.13.0.92
 # sqlite3  # Built-in to Python
 
 # Development dependencies (optional)
-pytest==9.0.3
+
 python-dotenv==1.2.2
 
