@@ -1,21 +1,21 @@
 # Core dependencies
 numpy>=1.26.0,<2.0.0
-opencv-python-headless>=4.10.0
+opencv-python-headless==4.10.0.84
+pyahocorasick==2.0.0
 
 # Optional: NLP and ML (uncomment when needed)
 # These are large libraries and not required for core functionality.
 # sentencepiece==0.2.1
-# torch>=2.9.0
+# torch==2.9.0
 # transformers==5.0.0rc3
 # pytest-cov==4.1.0
 # black==23.11.0
 # flake8==6.1.0
-pyahocorasick>=2.0.0
 
 # Optional: Database support
 # sqlite3  # Built-in to Python
 
 # Development dependencies (optional)
-pytest>=9.0.0
-python-dotenv>=1.0.0
-requests>=2.31.0
+pytest==9.1.1
+python-dotenv==1.2.2
+requests==2.34.2
