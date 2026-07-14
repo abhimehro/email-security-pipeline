@@ -1,7 +1,6 @@
 # Core dependencies
 numpy==2.5.1
 opencv-python-headless==4.13.0.92
-pyahocorasick==2.3.1
 
 # Optional: Database support
 # sqlite3  # Built-in to Python
