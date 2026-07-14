@@ -1,7 +1,7 @@
 # Core dependencies
 numpy>=1.26.0,<2.0.0
 opencv-python-headless==4.10.0.84
-pyahocorasick==2.0.0
+pyahocorasick==2.3.1
 
 # Optional: NLP and ML (uncomment when needed)
 # These are large libraries and not required for core functionality.
@@ -16,6 +16,6 @@ pyahocorasick==2.0.0
 # sqlite3  # Built-in to Python
 
 # Development dependencies (optional)
-pytest==9.1.1
+pytest==9.0.3
 python-dotenv==1.2.2
-requests==2.34.2
+requests==2.34.1
