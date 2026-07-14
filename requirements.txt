@@ -9,4 +9,4 @@ pyahocorasick==2.3.1
 # Development dependencies (optional)
 pytest==9.0.3
 python-dotenv==1.2.2
-requests==2.34.1
+requests==2.34.2
