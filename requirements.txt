@@ -8,4 +8,4 @@ opencv-python-headless==4.13.0.92
 # Development dependencies (optional)
 pytest==9.0.3
 python-dotenv==1.2.2
-requests==2.34.2
+

@@ -6,4 +6,4 @@ numpy==2.5.1
 opencv-python-headless==4.13.0.92
 pytest==9.0.3
 python-dotenv==1.2.2
-requests==2.34.2
+
