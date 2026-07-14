@@ -3,7 +3,6 @@
 # so PR validation stays fast and reliable.
 
 numpy==2.5.1
-opencv-python-headless==4.13.0.92
 
 
 
