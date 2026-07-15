@@ -42,6 +42,9 @@
 
 **Closed issues:**
 
+- Daily QA & Agentic Review - 2026-07-14 [\#1261](https://github.com/abhimehro/email-security-pipeline/issues/1261)
+- Daily QA & Agentic Review - 2026-07-12 [\#1257](https://github.com/abhimehro/email-security-pipeline/issues/1257)
+- Daily QA & Agentic Review - 2026-07-12 [\#1256](https://github.com/abhimehro/email-security-pipeline/issues/1256)
 - Daily QA & Agentic Review - 2026-07-11 [\#1254](https://github.com/abhimehro/email-security-pipeline/issues/1254)
 - Daily QA & Agentic Review - 2026-07-10 [\#1250](https://github.com/abhimehro/email-security-pipeline/issues/1250)
 - Daily QA & Agentic Review - 2026-07-09 [\#1246](https://github.com/abhimehro/email-security-pipeline/issues/1246)
@@ -417,6 +420,9 @@
 
 **Merged pull requests:**
 
+- chore\(deps\): bump actions/setup-node from 6.4.0 to 7.0.0 [\#1263](https://github.com/abhimehro/email-security-pipeline/pull/1263) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps\): bump ruby/setup-ruby from 1.316.0 to 1.318.0 [\#1262](https://github.com/abhimehro/email-security-pipeline/pull/1262) ([dependabot[bot]](https://github.com/apps/dependabot))
+- 🎨 Palette: Improve visual hierarchy for fatal errors [\#1260](https://github.com/abhimehro/email-security-pipeline/pull/1260) ([abhimehro](https://github.com/abhimehro))
 - 🎨 Palette: Add call-to-action to empty alert configuration [\#1253](https://github.com/abhimehro/email-security-pipeline/pull/1253) ([abhimehro](https://github.com/abhimehro))
 - chore\(deps\): bump actions/stale from 10.3.0 to 10.4.0 [\#1251](https://github.com/abhimehro/email-security-pipeline/pull/1251) ([dependabot[bot]](https://github.com/apps/dependabot))
 - 🎨 Palette: Add actionable empty state for unconfigured accounts [\#1249](https://github.com/abhimehro/email-security-pipeline/pull/1249) ([abhimehro](https://github.com/abhimehro))
