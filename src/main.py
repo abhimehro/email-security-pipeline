@@ -157,7 +157,7 @@ class EmailSecurityPipeline:
             self.logger.info("Received shutdown signal")
             self.stop()
         except ConfigurationError as e:
-            print("\n" + Colors.colorize("❌ Configuration Error:", Colors.RED))
+            print("\n" + "✖ " + Colors.colorize("Configuration Error:", Colors.RED))
             for error in e.args[0]:
                 print(f"  • {Colors.colorize(error, Colors.YELLOW)}")
             print(
@@ -174,6 +174,7 @@ class EmailSecurityPipeline:
             sys.exit(1)
         except Exception as e:
             self.logger.error(f"Fatal error: {e}", exc_info=True)
+            print("\n✖ " + Colors.colorize(f"Fatal error: {e}. ", Colors.RED) + Colors.colorize("Check the logs for details.", Colors.YELLOW))
             self.stop()
             sys.exit(1)
 
