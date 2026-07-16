@@ -3,7 +3,6 @@ Layer 3: Media Authenticity Verification
 Analyzes attachments for synthetic content and deepfakes.
 """
 
-import concurrent.futures
 import io
 import logging
 import os
@@ -257,7 +256,7 @@ class MediaAuthenticityAnalyzer:
         potential_deepfakes = []
 
         # Optimization: Use ThreadPoolExecutor to process attachments concurrently.
-        with concurrent.futures.ThreadPoolExecutor() as executor:
+        with ThreadPoolExecutor() as executor:
             # We use a mutable list to track if the threshold has been crossed globally.
             # Because of the GIL, list operations are thread-safe enough for this heuristic check.
             shared_state = {"stop_deepfake": False}
