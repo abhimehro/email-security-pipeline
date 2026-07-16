@@ -46,6 +46,17 @@ class ParseContext:
 logger = logging.getLogger(__name__)
 
 
+
+@dataclass
+class EmailParserConfig:
+    """Configuration for EmailParser."""
+
+    max_body_size: int = 1024 * 1024  # 1MB default
+    max_attachment_bytes: int = 25 * 1024 * 1024  # 25MB default
+    max_total_attachment_bytes: int = 100 * 1024 * 1024  # 100MB default
+    max_attachment_count: int = 10
+
+
 class EmailParser:
     """
     Parses raw email bytes into structured EmailData objects.
@@ -58,27 +69,24 @@ class EmailParser:
     def __init__(
         self,
         config: EmailAccountConfig,
-        max_body_size: int = 1024 * 1024,  # 1MB default
-        max_attachment_bytes: int = 25 * 1024 * 1024,  # 25MB default
-        max_total_attachment_bytes: int = 100 * 1024 * 1024,  # 100MB default
-        max_attachment_count: int = 10,
+        parser_config: Optional[EmailParserConfig] = None,
     ):
         """
         Initialize email parser.
 
         Args:
             config: Email account configuration (for account_email field)
-            max_body_size: Maximum size for body text/HTML
-            max_attachment_bytes: Maximum bytes per attachment
-            max_total_attachment_bytes: Maximum total attachment size per email
-            max_attachment_count: Maximum number of attachments per email
-
+            parser_config: Parser configuration limits and options
         """
         self.config = config
-        self.max_body_size = max_body_size
-        self.max_attachment_bytes = max_attachment_bytes
-        self.max_total_attachment_bytes = max_total_attachment_bytes
-        self.max_attachment_count = max_attachment_count
+
+        if parser_config is None:
+            parser_config = EmailParserConfig()
+
+        self.max_body_size = parser_config.max_body_size
+        self.max_attachment_bytes = parser_config.max_attachment_bytes
+        self.max_total_attachment_bytes = parser_config.max_total_attachment_bytes
+        self.max_attachment_count = parser_config.max_attachment_count
         self.logger = logging.getLogger(f"EmailParser.{config.provider}")
 
     def parse_email(
