@@ -397,8 +397,7 @@ def _generate_config_content(
     return content
 
 
-def _write_config_file(config_file: str, new_content: str) -> bool:
-    """Helper to write the configuration to a file securely."""
+def _validate_config_path(config_file: str):
     if "\0" in config_file:
         print(
             "✖ "
@@ -406,7 +405,7 @@ def _write_config_file(config_file: str, new_content: str) -> bool:
                 f"Error: Invalid configuration file path '{config_file}'.", Colors.RED
             )
         )
-        return False
+        return None
 
     # Restrict writes to files in the current working directory by accepting
     # only a plain filename (no directory components).
@@ -423,9 +422,57 @@ def _write_config_file(config_file: str, new_content: str) -> bool:
                 Colors.RED,
             )
         )
-        return False
+        return None
 
-    config_path = (Path.cwd() / candidate_name).resolve()
+    return (Path.cwd() / candidate_name).resolve()
+
+
+def _apply_fallback_chmod(fd: int, config_path_str: str) -> None:
+    import sys
+
+    try:
+        stat_fd = os.fstat(fd)
+        stat_path = (
+            os.lstat(config_path_str)
+            if hasattr(os, "lstat")
+            else os.stat(config_path_str)
+        )
+        if stat_fd.st_ino == stat_path.st_ino and stat_fd.st_dev == stat_path.st_dev:
+            chmod_kwargs = (
+                {"follow_symlinks": False}
+                if os.chmod in getattr(os, "supports_follow_symlinks", set())
+                else {}
+            )
+            os.chmod(config_path_str, 0o600, **chmod_kwargs)
+        else:
+            print(
+                f"\n✖ {Colors.colorize('Error: TOCTOU detected on ', Colors.RED)}"
+                f"{Colors.colorize(config_path_str, Colors.BOLD)}"
+            )
+            sys.exit(1)
+    except OSError as exc:
+        print(
+            f"\n✖ {Colors.colorize('Error setting permissions: ' + str(exc), Colors.RED)}"
+        )
+        sys.exit(1)
+
+
+def _set_file_permissions(fd: int, config_path) -> None:
+    try:
+        os.fchmod(fd, 0o600)
+    except (AttributeError, OSError, NotImplementedError):
+        try:
+            # Some platforms support os.chmod(fd, mode)
+            os.chmod(fd, 0o600)
+        except (AttributeError, OSError, NotImplementedError, TypeError):
+            _apply_fallback_chmod(fd, str(config_path))
+
+
+def _write_config_file(config_file: str, new_content: str) -> bool:
+    """Helper to write the configuration to a file securely."""
+    config_path = _validate_config_path(config_file)
+    if not config_path:
+        return False
 
     try:
         # Create file with restrictive permissions (600)
@@ -436,52 +483,7 @@ def _write_config_file(config_file: str, new_content: str) -> bool:
             0o600,
         )
 
-        # os.open mode only applies to new files. If the file exists, we must explicitly set permissions.
-        # We prioritize using the file descriptor (fchmod or chmod with FD) to prevent TOCTOU
-        # vulnerabilities. Path-based chmod is only used as a final fallback on systems
-        # that don't support FD-based permission changes (like some older Windows versions).
-        try:
-            os.fchmod(fd, 0o600)
-        except (AttributeError, OSError, NotImplementedError):
-            try:
-                # Some platforms support os.chmod(fd, mode)
-                os.chmod(fd, 0o600)
-            except (AttributeError, OSError, NotImplementedError, TypeError):
-                # Final fallback to path-based chmod with inode verification.
-                try:
-                    stat_fd = os.fstat(fd)
-                    config_path_str = str(config_path)
-                    stat_path = (
-                        os.lstat(config_path_str)
-                        if hasattr(os, "lstat")
-                        else os.stat(config_path_str)
-                    )
-                    if (
-                        stat_fd.st_ino == stat_path.st_ino
-                        and stat_fd.st_dev == stat_path.st_dev
-                    ):
-                        chmod_kwargs = (
-                            {"follow_symlinks": False}
-                            if os.chmod
-                            in getattr(os, "supports_follow_symlinks", set())
-                            else {}
-                        )
-                        os.chmod(config_path_str, 0o600, **chmod_kwargs)
-                    else:
-                        print(
-                            f"\n✖ {Colors.colorize('Error: TOCTOU detected on ', Colors.RED)}"
-                            f"{Colors.colorize(str(config_path), Colors.BOLD)}"
-                        )
-                        import sys
-
-                        sys.exit(1)
-                except OSError as exc:
-                    print(
-                        f"\n✖ {Colors.colorize('Error setting permissions: ' + str(exc), Colors.RED)}"
-                    )
-                    import sys
-
-                    sys.exit(1)
+        _set_file_permissions(fd, config_path)
 
         with os.fdopen(fd, "w") as f:
             f.write(new_content)
