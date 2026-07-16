@@ -198,5 +198,50 @@ class TestMetrics(unittest.TestCase):
         self.assertEqual(self.metrics.processing_time_ms[-1], 1499.0)
 
 
+    def test_get_summary_format(self):
+        """Test that get_summary returns the expected dictionary format."""
+        # Add some data to ensure processing_time_stats is populated
+        self.metrics.record_email_processed()
+        self.metrics.record_threat("spam", "low")
+        self.metrics.record_processing_time(150.0)
+        self.metrics.record_error("timeout")
+
+        summary = self.metrics.get_summary()
+
+        # Check top-level keys
+        expected_keys = {
+            "uptime_seconds",
+            "emails_processed",
+            "threats_detected",
+            "processing_time_stats",
+            "errors",
+            "sample_count"
+        }
+        self.assertEqual(set(summary.keys()), expected_keys)
+
+        # Check types
+        self.assertIsInstance(summary["uptime_seconds"], float)
+        self.assertIsInstance(summary["emails_processed"], int)
+        self.assertIsInstance(summary["threats_detected"], dict)
+        self.assertIsInstance(summary["processing_time_stats"], dict)
+        self.assertIsInstance(summary["errors"], dict)
+        self.assertIsInstance(summary["sample_count"], int)
+
+        # Check nested stats keys
+        expected_stats_keys = {
+            "avg_ms",
+            "min_ms",
+            "max_ms",
+            "p50_ms",
+            "p95_ms",
+            "p99_ms"
+        }
+        self.assertEqual(set(summary["processing_time_stats"].keys()), expected_stats_keys)
+
+        # Check nested stats types
+        for key in expected_stats_keys:
+            self.assertIsInstance(summary["processing_time_stats"][key], float)
+
+
 if __name__ == "__main__":
     unittest.main()
