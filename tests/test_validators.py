@@ -16,127 +16,113 @@ class TestValidators(unittest.TestCase):
 
     def test_check_default_credentials(self):
         scenarios = [
-            {
-                "name": "no_defaults_clean",
-                "email_accounts": [
-                    Mock(
-                        spec=EmailAccountConfig,
-                        enabled=True,
-                        email="real@test.com",
-                        app_password="real-password",
-                        provider="gmail",
-                    )
-                ],
-                "webhook_enabled": False,
-                "webhook_url": None,
-                "slack_enabled": False,
-                "slack_webhook": None,
-                "expected_errors": []
-            },
-            {
-                "name": "default_email",
-                "email_accounts": [
-                    Mock(
-                        spec=EmailAccountConfig,
-                        enabled=True,
-                        email="your-email@gmail.com",
-                        app_password="real-password",
-                        provider="gmail",
-                    )
-                ],
-                "webhook_enabled": False,
-                "webhook_url": None,
-                "slack_enabled": False,
-                "slack_webhook": None,
-                "expected_errors": ["Gmail account enabled but uses default email: your-email@gmail.com"]
-            },
-            {
-                "name": "default_password",
-                "email_accounts": [
-                    Mock(
-                        spec=EmailAccountConfig,
-                        enabled=True,
-                        email="real@test.com",
-                        app_password="your-app-password-here",
-                        provider="gmail",
-                    )
-                ],
-                "webhook_enabled": False,
-                "webhook_url": None,
-                "slack_enabled": False,
-                "slack_webhook": None,
-                "expected_errors": ["Gmail account enabled but uses default password"]
-            },
-            {
-                "name": "disabled_account_ignored",
-                "email_accounts": [
-                    Mock(
-                        spec=EmailAccountConfig,
-                        enabled=False,
-                        email="your-email@gmail.com",
-                        app_password="your-app-password-here",
-                        provider="gmail",
-                    )
-                ],
-                "webhook_enabled": False,
-                "webhook_url": None,
-                "slack_enabled": False,
-                "slack_webhook": None,
-                "expected_errors": []
-            },
-            {
-                "name": "default_webhook",
-                "email_accounts": [],
-                "webhook_enabled": True,
-                "webhook_url": "https://your-webhook-url.com/alerts",
-                "slack_enabled": False,
-                "slack_webhook": None,
-                "expected_errors": ["Webhook alerts enabled but uses default URL"]
-            },
-            {
-                "name": "default_slack",
-                "email_accounts": [],
-                "webhook_enabled": False,
-                "webhook_url": None,
-                "slack_enabled": True,
-                "slack_webhook": "https://hooks.slack.com/services/YOUR/WEBHOOK/URL",
-                "expected_errors": ["Slack alerts enabled but uses default Webhook URL"]
-            },
-            {
-                "name": "multiple_errors",
-                "email_accounts": [
-                    Mock(
-                        spec=EmailAccountConfig,
-                        enabled=True,
-                        email="your-email@gmail.com",
-                        app_password="your-app-password-here",
-                        provider="gmail",
-                    )
-                ],
-                "webhook_enabled": True,
-                "webhook_url": "https://your-webhook-url.com/alerts",
-                "slack_enabled": True,
-                "slack_webhook": "https://hooks.slack.com/services/YOUR/WEBHOOK/URL",
-                "expected_errors": [
+            ("no_defaults_clean", True, "real@test.com", "real-password", False, None, False, None, []),
+            (
+                "default_email",
+                True,
+                "your-email@gmail.com",
+                "real-password",
+                False,
+                None,
+                False,
+                None,
+                ["Gmail account enabled but uses default email: your-email@gmail.com"],
+            ),
+            (
+                "default_password",
+                True,
+                "real@test.com",
+                "your-app-password-here",
+                False,
+                None,
+                False,
+                None,
+                ["Gmail account enabled but uses default password"],
+            ),
+            (
+                "disabled_account_ignored",
+                False,
+                "your-email@gmail.com",
+                "your-app-password-here",
+                False,
+                None,
+                False,
+                None,
+                [],
+            ),
+            (
+                "default_webhook",
+                None,
+                None,
+                None,
+                True,
+                "https://your-webhook-url.com/alerts",
+                False,
+                None,
+                ["Webhook alerts enabled but uses default URL"],
+            ),
+            (
+                "default_slack",
+                None,
+                None,
+                None,
+                False,
+                None,
+                True,
+                "https://hooks.slack.com/services/YOUR/WEBHOOK/URL",
+                ["Slack alerts enabled but uses default Webhook URL"],
+            ),
+            (
+                "multiple_errors",
+                True,
+                "your-email@gmail.com",
+                "your-app-password-here",
+                True,
+                "https://your-webhook-url.com/alerts",
+                True,
+                "https://hooks.slack.com/services/YOUR/WEBHOOK/URL",
+                [
                     "Gmail account enabled but uses default email: your-email@gmail.com",
                     "Gmail account enabled but uses default password",
                     "Webhook alerts enabled but uses default URL",
-                    "Slack alerts enabled but uses default Webhook URL"
-                ]
-            }
+                    "Slack alerts enabled but uses default Webhook URL",
+                ],
+            ),
         ]
 
-        for scenario in scenarios:
-            with self.subTest(scenario=scenario["name"]):
-                self.config.email_accounts = scenario["email_accounts"]
-                self.config.alerts.webhook_enabled = scenario["webhook_enabled"]
-                self.config.alerts.webhook_url = scenario["webhook_url"]
-                self.config.alerts.slack_enabled = scenario["slack_enabled"]
-                self.config.alerts.slack_webhook = scenario["slack_webhook"]
+        for (
+            name,
+            acc_enabled,
+            acc_email,
+            acc_pw,
+            wh_enabled,
+            wh_url,
+            sl_enabled,
+            sl_url,
+            expected,
+        ) in scenarios:
+            with self.subTest(scenario=name):
+                self.config.email_accounts = (
+                    [
+                        Mock(
+                            spec=EmailAccountConfig,
+                            enabled=acc_enabled,
+                            email=acc_email,
+                            app_password=acc_pw,
+                            provider="gmail",
+                        )
+                    ]
+                    if acc_email
+                    else []
+                )
+                self.config.alerts.webhook_enabled = wh_enabled
+                self.config.alerts.webhook_url = wh_url
+                self.config.alerts.slack_enabled = sl_enabled
+                self.config.alerts.slack_webhook = sl_url
 
                 errors = check_default_credentials(self.config)
+                self.assertEqual(errors, expected)
 
-                self.assertEqual(errors, scenario["expected_errors"])
 
 if __name__ == "__main__":
     unittest.main()
