@@ -164,6 +164,19 @@ class TestScanTextPatternsCategories(_BaseNLPScanTest):
 class TestScanTextPatternsTwoPhase(_BaseNLPScanTest):
     """Confirms that the fast simple_master_pattern gate short-circuits correctly."""
 
+
+    def test_gate_uses_search_not_match(self):
+        # SECURITY STORY: The simple_master_pattern gate must use .search(), not .match().
+        # If it used .match(), it would only find keywords at the very beginning of the string,
+        # silently dropping threats buried mid-paragraph.
+        text = "This is a normal sentence. However, verify your account right now!"
+        matches, _, _ = self.analyzer._scan_text_patterns([text])
+        self.assertGreater(
+            len(matches["SE"]),
+            0,
+            "Gate failed to detect mid-string pattern (regression: using match instead of search)"
+        )
+
     def test_neutral_text_bypasses_named_group_scan(self):
         # None of the 20 patterns appear in this text.
         # simple_master_pattern.search() must return None →
