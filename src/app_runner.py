@@ -130,10 +130,7 @@ class AppRunner:
             # TOCTOU detection: verify inode and device match
             if fd_stat.st_ino != path_stat.st_ino or fd_stat.st_dev != path_stat.st_dev:
                 print(
-                    Colors.colorize(
-                        "❌ CRITICAL: TOCTOU detected during permission setting. Aborting.",
-                        Colors.RED,
-                    )
+                    "✖ " + Colors.colorize("CRITICAL: TOCTOU detected during permission setting. Aborting.", Colors.RED)
                 )
                 self._print_fallback_instructions()
                 sys.exit(1)
@@ -143,10 +140,7 @@ class AppRunner:
             return
         except OSError as e:
             print(
-                Colors.colorize(
-                    f"❌ CRITICAL: Failed to set secure permissions: {e}",
-                    Colors.RED,
-                )
+                "✖ " + Colors.colorize(f"CRITICAL: Failed to set secure permissions: {e}", Colors.RED)
             )
             self._print_fallback_instructions()
             sys.exit(1)
