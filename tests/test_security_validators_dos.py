@@ -29,6 +29,24 @@ class TestValidateSubjectLength(unittest.TestCase):
         self.assertEqual(len(result), MAX_SUBJECT_LENGTH)
         self.assertEqual(result, "B" * MAX_SUBJECT_LENGTH)
 
+    def test_subject_one_under_limit_returned_unchanged(self):
+        subject = "D" * (MAX_SUBJECT_LENGTH - 1)
+        self.assertEqual(validate_subject_length(subject), subject)
+
+    def test_empty_subject_returned_unchanged(self):
+        subject = ""
+        self.assertEqual(validate_subject_length(subject), subject)
+
+    def test_unicode_subject_at_exact_limit_returned_unchanged(self):
+        subject = "é" * MAX_SUBJECT_LENGTH
+        self.assertEqual(validate_subject_length(subject), subject)
+
+    def test_unicode_subject_one_over_limit_is_truncated(self):
+        subject = "🚀" * (MAX_SUBJECT_LENGTH + 1)
+        result = validate_subject_length(subject)
+        self.assertEqual(len(result), MAX_SUBJECT_LENGTH)
+        self.assertEqual(result, "🚀" * MAX_SUBJECT_LENGTH)
+
     def test_very_long_subject_is_truncated(self):
         subject = "C" * (MAX_SUBJECT_LENGTH * 10)
         result = validate_subject_length(subject)
