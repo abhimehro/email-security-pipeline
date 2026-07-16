@@ -63,6 +63,26 @@ class IMAPConnection:
         self.connection: Optional[imaplib.IMAP4_SSL] = None
         self.logger = logging.getLogger(f"IMAPConnection.{config.provider}")
 
+    def _create_imap_client(self, context: ssl.SSLContext) -> imaplib.IMAP4:
+        """
+        Create and return the appropriate IMAP client.
+        """
+        if self.config.use_ssl:
+            return imaplib.IMAP4_SSL(
+                self.config.imap_server,
+                self.config.imap_port,
+                ssl_context=context,
+                timeout=30,  # SECURITY: Prevent indefinite hangs
+            )
+
+        client = imaplib.IMAP4(
+            self.config.imap_server,
+            self.config.imap_port,
+            timeout=30,  # SECURITY: Prevent indefinite hangs
+        )
+        client.starttls(ssl_context=context)
+        return client
+
     def connect(self) -> bool:
         """
         Establish connection to IMAP server with secure TLS.
@@ -84,20 +104,8 @@ class IMAPConnection:
             # Create secure SSL context (TLS 1.2+ enforced)
             context = create_secure_ssl_context()
 
-            if self.config.use_ssl:
-                self.connection = imaplib.IMAP4_SSL(
-                    self.config.imap_server,
-                    self.config.imap_port,
-                    ssl_context=context,
-                    timeout=30,  # SECURITY: Prevent indefinite hangs
-                )
-            else:
-                self.connection = imaplib.IMAP4(
-                    self.config.imap_server,
-                    self.config.imap_port,
-                    timeout=30,  # SECURITY: Prevent indefinite hangs
-                )
-                self.connection.starttls(ssl_context=context)
+            # Initialize client based on SSL configuration
+            self.connection = self._create_imap_client(context)
 
             # Authenticate
             self.connection.login(self.config.email, self.config.app_password)
@@ -267,22 +275,10 @@ class IMAPConnection:
             # Increased to 50 to minimize 0.5s sleep overhead per batch
             batch_size = 50
 
-            import time as time_module
-
             for i in range(0, len(email_ids), batch_size):
-                batch_start = time_module.time()
-
                 batch_ids = email_ids[i : i + batch_size]
                 batch_emails = self._fetch_batch(batch_ids)
                 emails.extend(batch_emails)
-
-                # Only sleep if we have more batches to process
-                if i + batch_size < len(email_ids):
-                    elapsed = time_module.time() - batch_start
-                    # Sleep for the remaining time of the rate limit delay, if any
-                    sleep_time = max(0, self.rate_limit_delay - elapsed)
-                    if sleep_time > 0:
-                        time.sleep(sleep_time)
 
             return emails
 

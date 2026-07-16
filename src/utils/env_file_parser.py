@@ -4,8 +4,6 @@ SECURITY: Never use shell ``source`` on env files (CWE-78). This module only
 extracts validated KEY=VALUE assignments.
 """
 
-from __future__ import annotations
-
 import re
 from pathlib import Path
 

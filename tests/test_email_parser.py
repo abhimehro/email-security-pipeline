@@ -18,7 +18,7 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from unittest.mock import MagicMock
 
-from src.modules.email_parser import EmailParser
+from src.modules.email_parser import EmailParser, EmailParserConfig
 from src.utils.config import EmailAccountConfig
 from src.utils.security_validators import MAX_MIME_PARTS, MAX_SUBJECT_LENGTH
 
@@ -56,7 +56,8 @@ def _make_config() -> EmailAccountConfig:
 
 def _make_parser(**kwargs) -> EmailParser:
     """Convenience factory; keyword arguments override parser defaults."""
-    return EmailParser(_make_config(), **kwargs)
+    parser_config = EmailParserConfig(**kwargs)
+    return EmailParser(_make_config(), parser_config=parser_config)
 
 
 def _simple_raw(subject: str = "Test", body: str = "Hello") -> bytes:

@@ -26,6 +26,10 @@ from src.utils.pattern_compiler import (
 
 
 class TestCheckRedosSafety:
+    def test_empty_list_passes(self):
+        """An empty list should not raise."""
+        check_redos_safety([])  # must not raise
+
     def test_safe_patterns_pass(self):
         """Common email-analysis patterns should not raise."""
         safe = [
@@ -92,9 +96,9 @@ class TestCompilePatterns:
     def test_empty_list_compiles_to_empty_alternation(self):
         """An empty list should not raise; the resulting pattern matches nothing."""
         pat = compile_patterns([])
-        # re.compile("") matches everything; an empty join also matches ""
-        # The key thing is it must not raise.
         assert isinstance(pat, re.Pattern)
+        assert pat.search("anything") is None
+        assert pat.search("") is None
 
     def test_validate_redos_raises_on_unsafe_pattern(self):
         with pytest.raises(ValueError, match="Potential ReDoS"):
@@ -153,6 +157,15 @@ class TestCompileNamedGroupPattern:
     def test_case_insensitive_by_default(self):
         pat, _ = compile_named_group_pattern([r"\bphishing\b"])
         assert pat.search("PHISHING attempt detected")
+
+
+    def test_empty_list_compiles_to_empty_pattern(self):
+        """An empty list should not raise and produces a pattern that matches nothing."""
+        pat, group_map = compile_named_group_pattern([])
+        assert isinstance(pat, re.Pattern)
+        assert group_map == {}
+        assert pat.search("anything") is None
+        assert pat.search("") is None
 
     def test_validate_redos_raises(self):
         with pytest.raises(ValueError, match="Potential ReDoS"):

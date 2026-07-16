@@ -422,6 +422,21 @@
 
 **Merged pull requests:**
 
+- 🧹 \[code health improvement\] Refactor EmailParser config to fix Too Many Parameters issue [\#1283](https://github.com/abhimehro/email-security-pipeline/pull/1283) ([abhimehro](https://github.com/abhimehro))
+- 🧪 Add missing empty list tests and fix empty compilation bug [\#1282](https://github.com/abhimehro/email-security-pipeline/pull/1282) ([abhimehro](https://github.com/abhimehro))
+- 🧪 \[testing improvement\] Add more boundary cases for validate\_subject\_length [\#1281](https://github.com/abhimehro/email-security-pipeline/pull/1281) ([abhimehro](https://github.com/abhimehro))
+- 🧪 Add test for print\_help in AppRunner [\#1280](https://github.com/abhimehro/email-security-pipeline/pull/1280) ([abhimehro](https://github.com/abhimehro))
+- 🧹 Refactor \_handle\_missing\_config\_interactive to reduce complexity [\#1277](https://github.com/abhimehro/email-security-pipeline/pull/1277) ([abhimehro](https://github.com/abhimehro))
+- 🧹 \[code health\] Remove unused annotations import in gh\_token\_cli.py [\#1275](https://github.com/abhimehro/email-security-pipeline/pull/1275) ([abhimehro](https://github.com/abhimehro))
+- 🧪 Improve test coverage for SSRF prevention [\#1274](https://github.com/abhimehro/email-security-pipeline/pull/1274) ([abhimehro](https://github.com/abhimehro))
+- Add test for simple\_master\_pattern search vs match gate bug [\#1273](https://github.com/abhimehro/email-security-pipeline/pull/1273) ([abhimehro](https://github.com/abhimehro))
+- 🧪 Add comprehensive schema validation test for Metrics.get\_summary [\#1272](https://github.com/abhimehro/email-security-pipeline/pull/1272) ([abhimehro](https://github.com/abhimehro))
+- ⚡ Bolt: Remove unnecessary sleep in IMAP fetch batching [\#1271](https://github.com/abhimehro/email-security-pipeline/pull/1271) ([abhimehro](https://github.com/abhimehro))
+- 🧹 \[Refactor\] Extract helpers to reduce complexity of \_write\_config\_file [\#1270](https://github.com/abhimehro/email-security-pipeline/pull/1270) ([abhimehro](https://github.com/abhimehro))
+- 🧹 \[Code Health\] Remove unused concurrent.futures import in media\_analyzer [\#1269](https://github.com/abhimehro/email-security-pipeline/pull/1269) ([abhimehro](https://github.com/abhimehro))
+- 🧹 Refactor IMAPConnection.connect\(\) to reduce complexity [\#1268](https://github.com/abhimehro/email-security-pipeline/pull/1268) ([abhimehro](https://github.com/abhimehro))
+- 🧹 \[code health\] Remove unused annotations import in env\_file\_parser.py [\#1266](https://github.com/abhimehro/email-security-pipeline/pull/1266) ([abhimehro](https://github.com/abhimehro))
+- Jules Daily QA: Fix pre-commit hook failures and exclude patch files [\#1264](https://github.com/abhimehro/email-security-pipeline/pull/1264) ([abhimehro](https://github.com/abhimehro))
 - chore\(deps\): bump actions/setup-node from 6.4.0 to 7.0.0 [\#1263](https://github.com/abhimehro/email-security-pipeline/pull/1263) ([dependabot[bot]](https://github.com/apps/dependabot))
 - chore\(deps\): bump ruby/setup-ruby from 1.316.0 to 1.318.0 [\#1262](https://github.com/abhimehro/email-security-pipeline/pull/1262) ([dependabot[bot]](https://github.com/apps/dependabot))
 - 🎨 Palette: Improve visual hierarchy for fatal errors [\#1260](https://github.com/abhimehro/email-security-pipeline/pull/1260) ([abhimehro](https://github.com/abhimehro))

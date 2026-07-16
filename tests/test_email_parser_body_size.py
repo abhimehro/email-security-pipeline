@@ -11,7 +11,7 @@ contracts so any accidental weakening is caught immediately.
 import unittest
 from unittest.mock import MagicMock, patch
 
-from src.modules.email_parser import EmailParser
+from src.modules.email_parser import EmailParser, EmailParserConfig
 from src.utils.config import EmailAccountConfig
 
 # ---------------------------------------------------------------------------
@@ -33,7 +33,8 @@ def _make_parser(max_body_size: int = _SMALL_MAX) -> EmailParser:
         provider="test",
         use_ssl=True,
     )
-    parser = EmailParser(config, max_body_size=max_body_size)
+    parser_config = EmailParserConfig(max_body_size=max_body_size)
+    parser = EmailParser(config, parser_config=parser_config)
     parser.logger = MagicMock()
     return parser
 

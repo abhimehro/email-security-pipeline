@@ -30,7 +30,7 @@ from ..utils.security_validators import (
 
 # Import from refactored modules
 from .email_data import EmailData
-from .email_parser import EmailParser
+from .email_parser import EmailParser, EmailParserConfig
 from .imap_connection import IMAPConnection, IMAPDiagnostics
 
 # Re-export public API for backward compatibility
@@ -91,12 +91,15 @@ class IMAPClient:
             max_total_attachment_bytes=max_total_attachment_bytes,
         )
 
-        self.parser = EmailParser(
-            config=config,
+        parser_config = EmailParserConfig(
             max_body_size=self.max_body_size,
             max_attachment_bytes=max_attachment_bytes,
             max_total_attachment_bytes=max_total_attachment_bytes,
             max_attachment_count=max_attachment_count,
+        )
+        self.parser = EmailParser(
+            config=config,
+            parser_config=parser_config,
         )
 
         # Create shared logger for backward compatibility
