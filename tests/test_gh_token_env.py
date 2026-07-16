@@ -6,9 +6,13 @@ import subprocess
 import sys
 import tempfile
 import unittest
-from contextlib import contextmanager
+from contextlib import contextmanager, redirect_stderr
+from io import StringIO
 from pathlib import Path
 from typing import Iterator
+
+
+from src.utils.gh_token_cli import main as cli_main
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
@@ -73,6 +77,14 @@ class TestGhTokenEnvParser(unittest.TestCase):
             self.assertNotEqual(proc.returncode, 0)
             self.assertFalse(marker.exists())
 
+
+
+    def test_cli_main_handles_env_parse_error(self) -> None:
+        with temporary_env_file("INVALID LINE\n") as path:
+            with redirect_stderr(StringIO()) as stderr:
+                ret_code = cli_main([str(path)])
+                self.assertEqual(ret_code, 1)
+                self.assertIn("error:", stderr.getvalue())
 
 class TestAutomationScripts(unittest.TestCase):
     def test_automation_scripts_do_not_source_external_env_files(self) -> None:
