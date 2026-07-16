@@ -86,6 +86,8 @@ def compile_patterns(
     """
     if validate_redos:
         check_redos_safety(patterns)
+    if not patterns:
+        return re.compile(r"(?!)", flags)
     parts = [f"(?:{p})" for p in patterns]
     return re.compile("|".join(parts), flags)
 
@@ -119,6 +121,8 @@ def compile_named_group_pattern(
     """
     if validate_redos:
         check_redos_safety(patterns)
+    if not patterns:
+        return re.compile(r"(?!)", flags), {}
     parts: List[str] = []
     group_map: Dict[str, str] = {}
     for i, p in enumerate(patterns):
