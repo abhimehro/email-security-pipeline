@@ -2,7 +2,7 @@
 # Optimized for size, security, and maintainability
 
 # Stage 1: Builder
-FROM python:3.11-slim AS builder
+FROM python:3.13-slim AS builder
 
 WORKDIR /build
 
@@ -18,7 +18,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir --user -r requirements.txt
 
 # Stage 2: Runtime
-FROM python:3.11-slim
+FROM python:3.13-slim
 
 # Labels for metadata
 LABEL org.opencontainers.image.title="Email Security Pipeline" \
