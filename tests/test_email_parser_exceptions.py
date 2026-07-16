@@ -9,7 +9,7 @@ from datetime import datetime
 from email.message import Message
 from unittest.mock import MagicMock, patch
 
-from src.modules.email_parser import EmailParser
+from src.modules.email_parser import EmailParser, EmailParserConfig
 from src.utils.config import EmailAccountConfig
 
 # ---------------------------------------------------------------------------
@@ -29,7 +29,7 @@ def _make_parser() -> EmailParser:
         provider="test",
         use_ssl=True,
     )
-    parser = EmailParser(config)
+    parser = EmailParser(config, parser_config=EmailParserConfig())
     parser.logger = MagicMock()
     return parser
 

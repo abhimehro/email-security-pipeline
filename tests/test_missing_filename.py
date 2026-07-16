@@ -2,7 +2,7 @@ import unittest
 from email.message import Message
 from unittest.mock import MagicMock
 
-from src.modules.email_parser import EmailParser
+from src.modules.email_parser import EmailParser, EmailParserConfig
 from src.utils.config import EmailAccountConfig
 
 
@@ -14,12 +14,15 @@ class TestMissingFilename(unittest.TestCase):
         self.config.email = "test@example.com"
 
         # Instantiate parser with mock config
-        self.parser = EmailParser(
-            self.config,
+        parser_config = EmailParserConfig(
             max_body_size=1024 * 1024,
             max_attachment_bytes=25 * 1024 * 1024,
             max_total_attachment_bytes=100 * 1024 * 1024,
             max_attachment_count=10,
+        )
+        self.parser = EmailParser(
+            self.config,
+            parser_config=parser_config,
         )
 
     def test_extract_attachment_missing_filename(self):
