@@ -5,7 +5,6 @@ from unittest.mock import patch
 from src.utils.config import Config, ConfigurationError
 from src.utils.security_validators import is_safe_webhook_url
 
-
 class TestSSRFPrevention(unittest.TestCase):
 
     def test_empty_url(self):
@@ -89,6 +88,98 @@ class TestSSRFPrevention(unittest.TestCase):
             f"Expected zero-net or private error msg, got: {msg}",
         )
 
+    @patch("socket.getaddrinfo")
+    def test_multicast_ip(self, mock_getaddrinfo):
+        mock_getaddrinfo.return_value = [
+            (socket.AF_INET, socket.SOCK_STREAM, 6, "", ("224.0.0.1", 443))
+        ]
+        is_safe, msg = is_safe_webhook_url("https://multicast.local/webhook")
+        self.assertFalse(is_safe)
+        self.assertIn("resolves to multicast", msg)
+
+    @patch("socket.getaddrinfo")
+    def test_reserved_ip(self, mock_getaddrinfo):
+        mock_getaddrinfo.return_value = [
+            (socket.AF_INET, socket.SOCK_STREAM, 6, "", ("240.0.0.1", 443))
+        ]
+        is_safe, msg = is_safe_webhook_url("https://reserved.local/webhook")
+        self.assertFalse(is_safe)
+        self.assertTrue("resolves to reserved" in msg or "private IP" in msg, msg)
+
+    @patch("socket.getaddrinfo")
+    def test_unspecified_ip(self, mock_getaddrinfo):
+        mock_getaddrinfo.return_value = [
+            (socket.AF_INET, socket.SOCK_STREAM, 6, "", ("0.0.0.0", 443))
+        ]
+        is_safe, msg = is_safe_webhook_url("https://unspecified.local/webhook")
+        self.assertFalse(is_safe)
+        # 0.0.0.0 might hit zero-net or unspecified depending on order/implementation
+        self.assertTrue("unspecified" in msg or "zero-net" in msg or "private IP" in msg, msg)
+
+    @patch("socket.getaddrinfo")
+    def test_invalid_ip_address(self, mock_getaddrinfo):
+        mock_getaddrinfo.return_value = [
+            (socket.AF_INET, socket.SOCK_STREAM, 6, "", ("999.999.999.999", 443))
+        ]
+        is_safe, msg = is_safe_webhook_url("https://invalid-ip.local/webhook")
+        self.assertFalse(is_safe)
+        self.assertIn("Resolved to an invalid IP address", msg)
+
+    def test_invalid_url_parse(self):
+        # A URL that fails urlparse
+        is_safe, msg = is_safe_webhook_url("https://[")
+        self.assertFalse(is_safe)
+        self.assertIn("Failed to parse URL", msg)
+
+    @patch("socket.getaddrinfo")
+    def test_getaddrinfo_exception(self, mock_getaddrinfo):
+        mock_getaddrinfo.side_effect = Exception("Generic error")
+        is_safe, msg = is_safe_webhook_url("https://error.local/webhook")
+        self.assertFalse(is_safe)
+        self.assertIn("Error resolving hostname", msg)
+
+    @patch("socket.getaddrinfo")
+    def test_zero_net_ip_strict(self, mock_getaddrinfo):
+        mock_getaddrinfo.return_value = [
+            (socket.AF_INET, socket.SOCK_STREAM, 6, "", ("0.1.2.3", 443))
+        ]
+        is_safe, msg = is_safe_webhook_url("https://strict-zero.local/webhook")
+        self.assertFalse(is_safe)
+        self.assertTrue("zero-net" in msg or "private IP" in msg, msg)
+
+    @patch("src.utils.security_validators.ipaddress.ip_address")
+    @patch("socket.getaddrinfo")
+    def test_zero_net_ip_direct_mocked(self, mock_getaddrinfo, mock_ip_address):
+        # Python's ipaddress module considers 0.0.0.0/8 as private
+        # We mock ip_address to return an object that has is_private=False
+        # but represents a zero-net IP, to test the fallback logic on line 217.
+        mock_getaddrinfo.return_value = [
+            (socket.AF_INET, socket.SOCK_STREAM, 6, "", ("0.1.2.3", 443))
+        ]
+
+        class MockIPv4Address:
+            def __init__(self, ip_str):
+                self.ip_str = ip_str
+                self.version = 4
+                self.is_loopback = False
+                self.is_private = False
+                self.is_link_local = False
+                self.is_multicast = False
+                self.is_reserved = False
+                self.is_unspecified = False
+
+            def __int__(self):
+                # Returns the integer representation of 0.1.2.3
+                return 66051
+
+            def __str__(self):
+                return self.ip_str
+
+        mock_ip_address.return_value = MockIPv4Address("0.1.2.3")
+
+        is_safe, msg = is_safe_webhook_url("https://strict-zero.local/webhook")
+        self.assertFalse(is_safe)
+        self.assertIn("resolves to zero-net", msg)
 
 class TestConfigSSRFPrevention(unittest.TestCase):
 
