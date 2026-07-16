@@ -275,22 +275,10 @@ class IMAPConnection:
             # Increased to 50 to minimize 0.5s sleep overhead per batch
             batch_size = 50
 
-            import time as time_module
-
             for i in range(0, len(email_ids), batch_size):
-                batch_start = time_module.time()
-
                 batch_ids = email_ids[i : i + batch_size]
                 batch_emails = self._fetch_batch(batch_ids)
                 emails.extend(batch_emails)
-
-                # Only sleep if we have more batches to process
-                if i + batch_size < len(email_ids):
-                    elapsed = time_module.time() - batch_start
-                    # Sleep for the remaining time of the rate limit delay, if any
-                    sleep_time = max(0, self.rate_limit_delay - elapsed)
-                    if sleep_time > 0:
-                        time.sleep(sleep_time)
 
             return emails
 
