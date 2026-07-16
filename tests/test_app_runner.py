@@ -1,3 +1,4 @@
+import io
 import signal
 from unittest.mock import MagicMock, patch
 
@@ -307,3 +308,14 @@ def test_styled_input_keyboard_interrupt(
     mock_print.assert_called_once_with()
     mock_write.assert_called_once_with("[RESET]")
     mock_flush.assert_called_once()
+
+@patch("sys.stdout", new_callable=io.StringIO)
+def test_print_help(mock_stdout, mock_app_runner):
+    mock_app_runner.print_help()
+    output = mock_stdout.getvalue()
+    assert "Usage:" in output
+    assert "python src/main.py [CONFIG_FILE]" in output
+    assert "Arguments:" in output
+    assert "CONFIG_FILE    Path to the environment configuration file (default: .env)" in output
+    assert "Options:" in output
+    assert "-h, --help     Show this help message and exit" in output
