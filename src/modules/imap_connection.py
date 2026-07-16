@@ -63,6 +63,26 @@ class IMAPConnection:
         self.connection: Optional[imaplib.IMAP4_SSL] = None
         self.logger = logging.getLogger(f"IMAPConnection.{config.provider}")
 
+    def _create_imap_client(self, context: ssl.SSLContext) -> imaplib.IMAP4:
+        """
+        Create and return the appropriate IMAP client.
+        """
+        if self.config.use_ssl:
+            return imaplib.IMAP4_SSL(
+                self.config.imap_server,
+                self.config.imap_port,
+                ssl_context=context,
+                timeout=30,  # SECURITY: Prevent indefinite hangs
+            )
+
+        client = imaplib.IMAP4(
+            self.config.imap_server,
+            self.config.imap_port,
+            timeout=30,  # SECURITY: Prevent indefinite hangs
+        )
+        client.starttls(ssl_context=context)
+        return client
+
     def connect(self) -> bool:
         """
         Establish connection to IMAP server with secure TLS.
@@ -84,20 +104,8 @@ class IMAPConnection:
             # Create secure SSL context (TLS 1.2+ enforced)
             context = create_secure_ssl_context()
 
-            if self.config.use_ssl:
-                self.connection = imaplib.IMAP4_SSL(
-                    self.config.imap_server,
-                    self.config.imap_port,
-                    ssl_context=context,
-                    timeout=30,  # SECURITY: Prevent indefinite hangs
-                )
-            else:
-                self.connection = imaplib.IMAP4(
-                    self.config.imap_server,
-                    self.config.imap_port,
-                    timeout=30,  # SECURITY: Prevent indefinite hangs
-                )
-                self.connection.starttls(ssl_context=context)
+            # Initialize client based on SSL configuration
+            self.connection = self._create_imap_client(context)
 
             # Authenticate
             self.connection.login(self.config.email, self.config.app_password)
