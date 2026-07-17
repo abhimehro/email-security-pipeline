@@ -488,6 +488,39 @@ def _write_config_file(config_file: str, new_content: str) -> bool:
         return False
 
 
+def _print_welcome() -> None:
+    """Print the setup wizard introduction."""
+    print(
+        "\n"
+        + Colors.colorize(
+            "🧙 Welcome to the Email Security Pipeline Setup Wizard! 🧙", Colors.BOLD
+        )
+    )
+    print(
+        Colors.colorize("Let's get your environment configured quickly.", Colors.GREY)
+    )
+    print(Colors.colorize("(Press Ctrl+C at any time to cancel setup)", Colors.GREY))
+
+
+def _read_template(template_file: str) -> str | None:
+    """Read the environment template content."""
+    try:
+        with open(template_file, "r") as f:
+            return f.read()
+    except Exception as e:
+        print("✖ " + Colors.colorize(f"Error reading template: {e}", Colors.RED))
+        return None
+
+
+def _print_next_steps(config_file: str) -> None:
+    """Print post-wizard instructions."""
+    print("\n" + Colors.colorize("Next Steps:", Colors.BOLD))
+    print(
+        f"1. Review {Colors.colorize(config_file, Colors.BOLD)} to ensure settings are correct."
+    )
+    print(f"2. Run the pipeline: {Colors.colorize('python src/main.py', Colors.CYAN)}")
+
+
 def run_setup_wizard(
     config_file: str = ".env", template_file: str = ".env.example"
 ) -> bool:
@@ -502,16 +535,7 @@ def run_setup_wizard(
         )
         return False
 
-    print(
-        "\n"
-        + Colors.colorize(
-            "🧙 Welcome to the Email Security Pipeline Setup Wizard! 🧙", Colors.BOLD
-        )
-    )
-    print(
-        Colors.colorize("Let's get your environment configured quickly.", Colors.GREY)
-    )
-    print(Colors.colorize("(Press Ctrl+C at any time to cancel setup)", Colors.GREY))
+    _print_welcome()
 
     try:
         # 1. Select Provider
@@ -532,11 +556,8 @@ def run_setup_wizard(
             return False
 
         # 3. Read Template
-        try:
-            with open(template_file, "r") as f:
-                template_content = f.read()
-        except Exception as e:
-            print("✖ " + Colors.colorize(f"Error reading template: {e}", Colors.RED))
+        template_content = _read_template(template_file)
+        if template_content is None:
             return False
 
         # 4. Generate Config
@@ -548,13 +569,7 @@ def run_setup_wizard(
         if not _write_config_file(config_file, new_content):
             return False
 
-        print("\n" + Colors.colorize("Next Steps:", Colors.BOLD))
-        print(
-            f"1. Review {Colors.colorize(config_file, Colors.BOLD)} to ensure settings are correct."
-        )
-        print(
-            f"2. Run the pipeline: {Colors.colorize('python src/main.py', Colors.CYAN)}"
-        )
+        _print_next_steps(config_file)
 
         return True
 
