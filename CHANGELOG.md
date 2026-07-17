@@ -42,6 +42,7 @@
 
 **Closed issues:**
 
+- Daily QA & Agentic Review — 2026-07-16 [\#1290](https://github.com/abhimehro/email-security-pipeline/issues/1290)
 - Daily QA & Agentic Review - 2026-07-15 [\#1265](https://github.com/abhimehro/email-security-pipeline/issues/1265)
 - Daily QA & Agentic Review - 2026-07-14 [\#1261](https://github.com/abhimehro/email-security-pipeline/issues/1261)
 - Daily QA & Agentic Review - 2026-07-12 [\#1257](https://github.com/abhimehro/email-security-pipeline/issues/1257)
@@ -422,6 +423,12 @@
 
 **Merged pull requests:**
 
+- chore\(deps\): bump ruby/setup-ruby from 1.318.0 to 1.319.0 [\#1292](https://github.com/abhimehro/email-security-pipeline/pull/1292) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps\): bump github/codeql-action from codeql-bundle-v2.26.0 to 2.26.1 [\#1291](https://github.com/abhimehro/email-security-pipeline/pull/1291) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Draft: Salvage \#1284 setup wizard helper extraction [\#1289](https://github.com/abhimehro/email-security-pipeline/pull/1289) ([abhimehro](https://github.com/abhimehro))
+- Draft: Salvage \#1278 GhTokenCli EnvParseError test [\#1288](https://github.com/abhimehro/email-security-pipeline/pull/1288) ([abhimehro](https://github.com/abhimehro))
+- Draft: Salvage \#1279 email size boundary tests [\#1287](https://github.com/abhimehro/email-security-pipeline/pull/1287) ([abhimehro](https://github.com/abhimehro))
+- 🎨 Palette: Standardize CLI error styling and actionable hints [\#1286](https://github.com/abhimehro/email-security-pipeline/pull/1286) ([abhimehro](https://github.com/abhimehro))
 - 🧹 \[code health improvement\] Refactor EmailParser config to fix Too Many Parameters issue [\#1283](https://github.com/abhimehro/email-security-pipeline/pull/1283) ([abhimehro](https://github.com/abhimehro))
 - 🧪 Add missing empty list tests and fix empty compilation bug [\#1282](https://github.com/abhimehro/email-security-pipeline/pull/1282) ([abhimehro](https://github.com/abhimehro))
 - 🧪 \[testing improvement\] Add more boundary cases for validate\_subject\_length [\#1281](https://github.com/abhimehro/email-security-pipeline/pull/1281) ([abhimehro](https://github.com/abhimehro))
