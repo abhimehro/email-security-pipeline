@@ -437,15 +437,14 @@ def _set_file_permissions(fd: int, config_path: Path) -> None:
                     os.chmod(config_path_str, 0o600, **chmod_kwargs)
                 else:
                     print(
-                        f"\n✖ {Colors.colorize('Error: TOCTOU detected on ', Colors.RED)}"
-                        f"{Colors.colorize(str(config_path), Colors.BOLD)}"
+                        f"\n✖ " + Colors.colorize("Error: TOCTOU detected on " + str(config_path), Colors.RED)
                     )
                     import sys
 
                     sys.exit(1)
             except OSError as exc:
                 print(
-                    f"\n✖ {Colors.colorize('Error setting permissions: ' + str(exc), Colors.RED)}"
+                    f"\n✖ " + Colors.colorize("Error setting permissions: " + str(exc), Colors.RED)
                 )
                 import sys
 
