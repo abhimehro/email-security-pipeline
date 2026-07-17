@@ -70,6 +70,16 @@ class TestCalculateMaxEmailSize(unittest.TestCase):
         ten_mb = 10 * 1024 * 1024
         self.assertEqual(calculate_max_email_size(ten_mb), ten_mb + _OVERHEAD_BYTES)
 
+    def test_negative_attachment_limit_returns_default(self):
+        self.assertEqual(calculate_max_email_size(-1024), DEFAULT_MAX_EMAIL_SIZE)
+
+    def test_very_large_attachment_limit_adds_overhead(self):
+        large_limit = 100 * 1024 * 1024 * 1024  # 100 GB
+        self.assertEqual(
+            calculate_max_email_size(large_limit),
+            large_limit + _OVERHEAD_BYTES,
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
