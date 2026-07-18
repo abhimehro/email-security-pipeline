@@ -1,8 +1,12 @@
 import os
+import subprocess  # nosec B404
+import sys
 import unittest
+from pathlib import Path
 from unittest.mock import MagicMock, mock_open, patch
 
 from src.utils.setup_wizard import (
+    WizardSkipped,
     _generate_config_content,
     _is_valid_email,
     main,
@@ -226,6 +230,18 @@ OUTLOOK_APP_PASSWORD=password
         result = run_setup_wizard(config_file=".env", template_file=".env.example")
         self.assertFalse(result)
 
+    @patch("builtins.input")
+    @patch("pathlib.Path.exists")
+    def test_user_skip_with_raise(self, mock_exists, mock_input):
+        mock_exists.return_value = True
+        mock_input.return_value = "4"  # Skip
+        with self.assertRaises(WizardSkipped):
+            run_setup_wizard(
+                config_file=".env",
+                template_file=".env.example",
+                raise_on_skip=True,
+            )
+
     def test_connection_failure_retry(self):
         mocks = self._setup_full_mock_dependencies()
         _, _, _, _, _, mock_write_handle, mock_getpass, mock_input, mock_imap_conn = (
@@ -378,11 +394,36 @@ class TestSetupWizardCLI(unittest.TestCase):
     @patch("src.utils.setup_wizard.sys.stdin.isatty", return_value=True)
     @patch(
         "src.utils.setup_wizard.run_setup_wizard",
+        side_effect=WizardSkipped("skipped"),
+    )
+    def test_main_skip(self, _mock_wizard, _mock_isatty):
+        """CLI should return 2 when the wizard is skipped."""
+        self.assertEqual(main(), 2)
+
+    @patch("src.utils.setup_wizard.sys.stdin.isatty", return_value=True)
+    @patch(
+        "src.utils.setup_wizard.run_setup_wizard",
         side_effect=EOFError(),
     )
     def test_main_eof(self, _mock_wizard, _mock_isatty):
         """CLI should return 1 on unexpected EOF."""
         self.assertEqual(main(), 1)
+
+    def test_cli_module_invocation_requires_tty(self):
+        """The real module invocation should fail cleanly without a TTY."""
+        repo_root = Path(__file__).resolve().parents[1]
+        result = subprocess.run(  # nosec B603
+            [sys.executable, "-m", "src.utils.setup_wizard"],
+            cwd=repo_root,
+            input="",
+            capture_output=True,
+            text=True,
+        )
+        self.assertEqual(result.returncode, 1)
+        self.assertIn(
+            "Interactive credential setup requires a TTY.",
+            result.stdout + result.stderr,
+        )
 
 
 if __name__ == "__main__":

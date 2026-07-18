@@ -10,6 +10,7 @@ try:
 except ImportError:
 
     class Colors:
+        ENABLED = False
         RESET = ""
         BOLD = ""
         CYAN = ""
@@ -21,6 +22,10 @@ except ImportError:
         @classmethod
         def colorize(cls, text, color):
             return text
+
+
+class WizardSkipped(Exception):
+    """Raised when the user intentionally skips interactive setup."""
 
 
 try:
@@ -547,11 +552,15 @@ def _print_next_steps(config_file: str) -> None:
 
 
 def run_setup_wizard(
-    config_file: str = ".env", template_file: str = ".env.example"
+    config_file: str = ".env",
+    template_file: str = ".env.example",
+    raise_on_skip: bool = False,
 ) -> bool:
     """
     Run an interactive setup wizard to configure the application.
     Returns True if setup was successful, False otherwise.
+    If raise_on_skip is True, a WizardSkipped exception is raised when the user
+    chooses to skip the wizard instead of returning False.
     """
 
     if not Path(template_file).exists():
@@ -569,6 +578,8 @@ def run_setup_wizard(
         # 1. Select Provider
         choice = _select_provider()
         if choice == "4":
+            if raise_on_skip:
+                raise WizardSkipped("User chose to skip setup.")
             return False
 
         provider_map = {
@@ -622,7 +633,9 @@ def main() -> int:
         return 1
 
     try:
-        return 0 if run_setup_wizard() else 1
+        return 0 if run_setup_wizard(raise_on_skip=True) else 1
+    except WizardSkipped:
+        return 2
     except EOFError:
         print("\n✖ " + Colors.colorize("Interactive input closed.", Colors.RED))
         return 1

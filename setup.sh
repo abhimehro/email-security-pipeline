@@ -56,7 +56,17 @@ if [[ ${configure} == "true" ]]; then
 			exit 1
 		fi
 
-		if ! python3 -m src.utils.setup_wizard; then
+		set +e
+		python3 -m src.utils.setup_wizard
+		exit_code=$?
+		set -e
+
+		if [[ ${exit_code} -eq 0 ]]; then
+			true
+		elif [[ ${exit_code} -eq 2 ]]; then
+			cp .env.example .env
+			print_success "Created .env from template"
+		else
 			echo -e "${RED}Credential setup failed or was cancelled.${NC}"
 			exit 1
 		fi
