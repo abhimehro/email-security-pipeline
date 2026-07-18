@@ -4,13 +4,6 @@
 
 set -e # Exit on error
 
-# Check if running on macOS or Linux
-if [[ ${OSTYPE} == "darwin"* ]]; then
-	SED_CMD="sed -i ''"
-else
-	SED_CMD="sed -i"
-fi
-
 echo "===================================="
 echo "Email Security Pipeline Setup"
 echo "===================================="
@@ -31,60 +24,46 @@ print_success() {
 	echo -e "${GREEN}✓${NC} $1"
 }
 
-# Check if .env exists
+# Check if .env exists and whether the user wants to overwrite it.
+configure=false
 if [[ -f .env ]]; then
 	echo -e "${YELLOW}Warning: .env file already exists${NC}"
-	read -p "Do you want to overwrite it? (y/N): " -n 1 -r
+	read -rp "Do you want to overwrite it? (y/N): " -n 1
 	echo
 	if [[ ! ${REPLY} =~ ^[Yy]$ ]]; then
 		echo "Keeping existing .env file"
 	else
-		cp .env.example .env
-		print_success "Created new .env from template"
+		configure=true
 	fi
 else
-	cp .env.example .env
-	print_success "Created .env from template"
+	configure=true
 fi
 
-echo ""
-echo "===================================="
-echo "Configuration"
-echo "===================================="
-echo ""
-echo "You need to configure your email credentials in the .env file."
-echo ""
-read -p "Would you like to configure Gmail credentials now? (y/N): " -n 1 -r
-echo
-
-GMAIL_CONFIGURED=false
-
-if [[ ${REPLY} =~ ^[Yy]$ ]]; then
-	read -p "Enter your Gmail address: " gmail_email
-	read -sp "Enter your Gmail app password (hidden): " gmail_password
+if [[ ${configure} == "true" ]]; then
 	echo ""
+	echo "===================================="
+	echo "Configuration"
+	echo "===================================="
+	echo ""
+	echo "You need to configure your email credentials in the .env file."
+	echo ""
+	read -rp "Would you like to configure email credentials now? (y/N): " -n 1
+	echo
 
-	# Update .env file (using OS-appropriate sed command)
-	${SED_CMD} "s|GMAIL_EMAIL=.*|GMAIL_EMAIL=${gmail_email}|" .env
-	# Create temporary file preserving permissions if possible, or just copy back
-	cp -p .env .env.tmp 2>/dev/null || touch .env.tmp
-	chmod 600 .env.tmp 2>/dev/null || true
-	while IFS= read -r line || [[ -n "$line" ]]; do
-		if [[ $line == GMAIL_APP_PASSWORD=* ]]; then
-			echo "GMAIL_APP_PASSWORD=${gmail_password}"
-		else
-			echo "$line"
+	if [[ ${REPLY} =~ ^[Yy]$ ]]; then
+		if ! command -v python3 &>/dev/null; then
+			echo -e "${RED}Error: Python 3 is required for credential setup${NC}"
+			exit 1
 		fi
-	done < .env > .env.tmp
-	cat .env.tmp > .env
-	rm -f .env.tmp
-	${SED_CMD} "s|GMAIL_ENABLED=.*|GMAIL_ENABLED=true|" .env
 
-	# Clear password from memory (basic security measure)
-	gmail_password=""
-
-	print_success "Gmail credentials configured!"
-	GMAIL_CONFIGURED=true
+		if ! python3 src/utils/setup_wizard.py; then
+			echo -e "${RED}Credential setup failed or was cancelled.${NC}"
+			exit 1
+		fi
+	else
+		cp .env.example .env
+		print_success "Created .env from template"
+	fi
 fi
 
 echo ""
@@ -96,7 +75,7 @@ echo "Choose your deployment method:"
 echo "1) Docker (recommended)"
 echo "2) Local Python (Virtual Environment)"
 echo ""
-read -p "Enter choice (1 or 2): " -n 1 -r
+read -rp "Enter choice (1 or 2): " -n 1
 echo
 echo ""
 
@@ -167,7 +146,7 @@ elif [[ ${REPLY} == "2" ]]; then
 		echo "Connectivity Check"
 		echo "===================================="
 		echo ""
-		read -p "Run connection test now? (y/N): " -n 1 -r
+		read -rp "Run connection test now? (y/N): " -n 1
 		echo
 		if [[ ${REPLY} =~ ^[Yy]$ ]]; then
 			./venv/bin/python scripts/check_mail_connectivity.py

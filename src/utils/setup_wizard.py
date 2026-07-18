@@ -1,6 +1,7 @@
 import getpass
 import os
 import re
+import sys
 from pathlib import Path
 
 # Check if Colors is available in the expected path, otherwise mock it
@@ -145,7 +146,8 @@ def _test_connection(email: str, app_password: str, provider_choice: str) -> boo
         # outside, we just print as before.
         error_msg = str(e).replace(app_password, "***") if app_password else str(e)
         print(
-            "✖ " + Colors.colorize(f"Error during connection test: {error_msg}", Colors.RED)
+            "✖ "
+            + Colors.colorize(f"Error during connection test: {error_msg}", Colors.RED)
         )
         if provider_choice == "3":
             print(OUTLOOK_AUTH_ERROR_TIP)
@@ -171,10 +173,16 @@ def _select_provider() -> str:
     )
 
     choices_map = {
-        "1": "1", "gmail": "1",
-        "2": "2", "proton": "2", "proton mail": "2", "protonmail": "2",
-        "3": "3", "outlook": "3",
-        "4": "4", "skip": "4"
+        "1": "1",
+        "gmail": "1",
+        "2": "2",
+        "proton": "2",
+        "proton mail": "2",
+        "protonmail": "2",
+        "3": "3",
+        "outlook": "3",
+        "4": "4",
+        "skip": "4",
     }
 
     while True:
@@ -192,8 +200,11 @@ def _select_provider() -> str:
             if choice in choices_map:
                 return choices_map[choice]
             print(
-                "✖ " + Colors.colorize("Invalid choice. ", Colors.RED)
-                + Colors.colorize("Please enter a number (1-4) or provider name.", Colors.YELLOW)
+                "✖ "
+                + Colors.colorize("Invalid choice. ", Colors.RED)
+                + Colors.colorize(
+                    "Please enter a number (1-4) or provider name.", Colors.YELLOW
+                )
             )
         except EOFError:
             return "4"
@@ -211,7 +222,8 @@ def _prompt_for_email(provider_name: str) -> str:
         email = _styled_input(prompt)
         if not email:
             print(
-                "✖ " + Colors.colorize("Email is required. ", Colors.RED)
+                "✖ "
+                + Colors.colorize("Email is required. ", Colors.RED)
                 + Colors.colorize("Please provide an email address.", Colors.YELLOW)
             )
             continue
@@ -220,7 +232,8 @@ def _prompt_for_email(provider_name: str) -> str:
             return email
 
         print(
-            "✖ " + Colors.colorize("Invalid email format. ", Colors.RED)
+            "✖ "
+            + Colors.colorize("Invalid email format. ", Colors.RED)
             + Colors.colorize(
                 "Please enter a valid email address (e.g., user@example.com).",
                 Colors.YELLOW,
@@ -287,7 +300,8 @@ def _prompt_for_password(provider_name: str) -> str:
     app_secret = _get_input()
     while not app_secret:
         print(
-            "✖ " + Colors.colorize("Password is required. ", Colors.RED)
+            "✖ "
+            + Colors.colorize("Password is required. ", Colors.RED)
             + Colors.colorize("Please provide a password.", Colors.YELLOW)
         )
         app_secret = _get_input()
@@ -388,7 +402,10 @@ def _validate_config_path(config_file: str) -> Path | None:
     """Validate the configuration file path securely."""
     if "\0" in config_file:
         print(
-            "✖ " + Colors.colorize(f"Error: Invalid configuration file path '{config_file}'.", Colors.RED)
+            "✖ "
+            + Colors.colorize(
+                f"Error: Invalid configuration file path '{config_file}'.", Colors.RED
+            )
         )
         return None
 
@@ -399,7 +416,11 @@ def _validate_config_path(config_file: str) -> Path | None:
         or candidate_name != config_file
     ):
         print(
-            "✖ " + Colors.colorize(f"Error: Unsafe configuration file path '{config_file}'. Use a filename only.", Colors.RED)
+            "✖ "
+            + Colors.colorize(
+                f"Error: Unsafe configuration file path '{config_file}'. Use a filename only.",
+                Colors.RED,
+            )
         )
         return None
 
@@ -430,21 +451,26 @@ def _set_file_permissions(fd: int, config_path: Path) -> None:
                 ):
                     chmod_kwargs = (
                         {"follow_symlinks": False}
-                        if os.chmod
-                        in getattr(os, "supports_follow_symlinks", set())
+                        if os.chmod in getattr(os, "supports_follow_symlinks", set())
                         else {}
                     )
                     os.chmod(config_path_str, 0o600, **chmod_kwargs)
                 else:
                     print(
-                        f"\n✖ " + Colors.colorize("Error: TOCTOU detected on " + str(config_path), Colors.RED)
+                        f"\n✖ "
+                        + Colors.colorize(
+                            "Error: TOCTOU detected on " + str(config_path), Colors.RED
+                        )
                     )
                     import sys
 
                     sys.exit(1)
             except OSError as exc:
                 print(
-                    f"\n✖ " + Colors.colorize("Error setting permissions: " + str(exc), Colors.RED)
+                    f"\n✖ "
+                    + Colors.colorize(
+                        "Error setting permissions: " + str(exc), Colors.RED
+                    )
                 )
                 import sys
 
@@ -530,7 +556,10 @@ def run_setup_wizard(
 
     if not Path(template_file).exists():
         print(
-            "✖ " + Colors.colorize(f"Error: Template file '{template_file}' not found.", Colors.RED)
+            "✖ "
+            + Colors.colorize(
+                f"Error: Template file '{template_file}' not found.", Colors.RED
+            )
         )
         return False
 
@@ -579,3 +608,27 @@ def run_setup_wizard(
         )
         print(f"\n\n{warning} {message}")
         return False
+
+
+def main() -> int:
+    """CLI entry point for setup.sh and other automation."""
+    if not sys.stdin.isatty():
+        print(
+            "✖ "
+            + Colors.colorize(
+                "Interactive credential setup requires a TTY.", Colors.RED
+            )
+        )
+        return 1
+
+    try:
+        return 0 if run_setup_wizard() else 1
+    except EOFError:
+        print("\n✖ " + Colors.colorize("Interactive input closed.", Colors.RED))
+        return 1
+    except KeyboardInterrupt:
+        return 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

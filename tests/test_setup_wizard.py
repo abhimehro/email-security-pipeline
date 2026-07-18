@@ -5,6 +5,7 @@ from unittest.mock import MagicMock, mock_open, patch
 from src.utils.setup_wizard import (
     _generate_config_content,
     _is_valid_email,
+    main,
     run_setup_wizard,
 )
 
@@ -352,6 +353,36 @@ OUTLOOK_APP_PASSWORD=password
 
     def test_skip_verification(self):
         self._run_edge_case(["1", "test@gmail.com", "n"], False, None, True, True)
+
+
+class TestSetupWizardCLI(unittest.TestCase):
+    """Smoke tests for the setup_wizard CLI entry point."""
+
+    @patch("src.utils.setup_wizard.sys.stdin.isatty", return_value=False)
+    def test_main_requires_tty(self, _mock_isatty):
+        """CLI should fail immediately without a TTY."""
+        self.assertEqual(main(), 1)
+
+    @patch("src.utils.setup_wizard.sys.stdin.isatty", return_value=True)
+    @patch("src.utils.setup_wizard.run_setup_wizard", return_value=True)
+    def test_main_success(self, _mock_wizard, _mock_isatty):
+        """CLI should return 0 when the wizard succeeds."""
+        self.assertEqual(main(), 0)
+
+    @patch("src.utils.setup_wizard.sys.stdin.isatty", return_value=True)
+    @patch("src.utils.setup_wizard.run_setup_wizard", return_value=False)
+    def test_main_failure(self, _mock_wizard, _mock_isatty):
+        """CLI should return 1 when the wizard returns False."""
+        self.assertEqual(main(), 1)
+
+    @patch("src.utils.setup_wizard.sys.stdin.isatty", return_value=True)
+    @patch(
+        "src.utils.setup_wizard.run_setup_wizard",
+        side_effect=EOFError(),
+    )
+    def test_main_eof(self, _mock_wizard, _mock_isatty):
+        """CLI should return 1 on unexpected EOF."""
+        self.assertEqual(main(), 1)
 
 
 if __name__ == "__main__":
