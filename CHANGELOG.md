@@ -42,6 +42,7 @@
 
 **Closed issues:**
 
+- Daily QA Check - email-security-pipeline - 2026-07-17 [\#1295](https://github.com/abhimehro/email-security-pipeline/issues/1295)
 - Daily QA & Agentic Review — 2026-07-17 [\#1294](https://github.com/abhimehro/email-security-pipeline/issues/1294)
 - Daily QA & Agentic Review — 2026-07-16 [\#1290](https://github.com/abhimehro/email-security-pipeline/issues/1290)
 - Daily QA & Agentic Review - 2026-07-15 [\#1265](https://github.com/abhimehro/email-security-pipeline/issues/1265)
@@ -443,6 +444,7 @@
 - 🧹 \[Refactor\] Extract helpers to reduce complexity of \_write\_config\_file [\#1270](https://github.com/abhimehro/email-security-pipeline/pull/1270) ([abhimehro](https://github.com/abhimehro))
 - 🧹 \[Code Health\] Remove unused concurrent.futures import in media\_analyzer [\#1269](https://github.com/abhimehro/email-security-pipeline/pull/1269) ([abhimehro](https://github.com/abhimehro))
 - 🧹 Refactor IMAPConnection.connect\(\) to reduce complexity [\#1268](https://github.com/abhimehro/email-security-pipeline/pull/1268) ([abhimehro](https://github.com/abhimehro))
+- 🧪 Refactor check\_default\_credentials tests to use self.subTest\(\) [\#1267](https://github.com/abhimehro/email-security-pipeline/pull/1267) ([abhimehro](https://github.com/abhimehro))
 - 🧹 \[code health\] Remove unused annotations import in env\_file\_parser.py [\#1266](https://github.com/abhimehro/email-security-pipeline/pull/1266) ([abhimehro](https://github.com/abhimehro))
 - Jules Daily QA: Fix pre-commit hook failures and exclude patch files [\#1264](https://github.com/abhimehro/email-security-pipeline/pull/1264) ([abhimehro](https://github.com/abhimehro))
 - chore\(deps\): bump actions/setup-node from 6.4.0 to 7.0.0 [\#1263](https://github.com/abhimehro/email-security-pipeline/pull/1263) ([dependabot[bot]](https://github.com/apps/dependabot))
