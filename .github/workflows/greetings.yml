@@ -11,6 +11,8 @@ jobs:
     steps:
       - uses: actions/first-interaction@v3
         with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          issue_message: "Message that will be displayed on users' first issue"
-          pr_message: "Message that will be displayed on users' first pull request"
+          # SECURITY: kebab-case inputs required by first-interaction@v3;
+          # underscore names are ignored → empty issue/pr messages → action fails.
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          issue-message: "Message that will be displayed on users' first issue"
+          pr-message: "Message that will be displayed on users' first pull request"
