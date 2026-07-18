@@ -56,7 +56,7 @@ if [[ ${configure} == "true" ]]; then
 			exit 1
 		fi
 
-		if ! python3 src/utils/setup_wizard.py; then
+		if ! python3 -m src.utils.setup_wizard; then
 			echo -e "${RED}Credential setup failed or was cancelled.${NC}"
 			exit 1
 		fi
