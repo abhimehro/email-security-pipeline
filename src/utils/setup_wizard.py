@@ -551,6 +551,49 @@ def _print_next_steps(config_file: str) -> None:
     print(f"2. Run the pipeline: {Colors.colorize('python src/main.py', Colors.CYAN)}")
 
 
+def _execute_setup_steps(
+    choice: str,
+    template_file: str,
+    config_file: str,
+    raise_on_skip: bool,
+) -> bool:
+    """Helper to process provider choice, credentials, and configuration writing."""
+    if choice == "4":
+        if raise_on_skip:
+            raise WizardSkipped("User chose to skip setup.")
+        return False
+
+    provider_map = {
+        "1": ("GMAIL", "Gmail"),
+        "2": ("PROTON", "Proton Mail"),
+        "3": ("OUTLOOK", "Outlook"),
+    }
+    selected_key, selected_name = provider_map[choice]
+
+    # 2. Get Credentials
+    email, app_secret = _get_credentials(choice, selected_name)
+    if not email or not app_secret:
+        return False
+
+    # 3. Read Template
+    template_content = _read_template(template_file)
+    if template_content is None:
+        return False
+
+    # 4. Generate Config
+    new_content = _generate_config_content(
+        template_content, selected_key, email, app_secret
+    )
+
+    # 5. Write Config
+    if not _write_config_file(config_file, new_content):
+        return False
+
+    _print_next_steps(config_file)
+
+    return True
+
+
 def run_setup_wizard(
     config_file: str = ".env",
     template_file: str = ".env.example",
@@ -577,40 +620,7 @@ def run_setup_wizard(
     try:
         # 1. Select Provider
         choice = _select_provider()
-        if choice == "4":
-            if raise_on_skip:
-                raise WizardSkipped("User chose to skip setup.")
-            return False
-
-        provider_map = {
-            "1": ("GMAIL", "Gmail"),
-            "2": ("PROTON", "Proton Mail"),
-            "3": ("OUTLOOK", "Outlook"),
-        }
-        selected_key, selected_name = provider_map[choice]
-
-        # 2. Get Credentials
-        email, app_secret = _get_credentials(choice, selected_name)
-        if not email or not app_secret:
-            return False
-
-        # 3. Read Template
-        template_content = _read_template(template_file)
-        if template_content is None:
-            return False
-
-        # 4. Generate Config
-        new_content = _generate_config_content(
-            template_content, selected_key, email, app_secret
-        )
-
-        # 5. Write Config
-        if not _write_config_file(config_file, new_content):
-            return False
-
-        _print_next_steps(config_file)
-
-        return True
+        return _execute_setup_steps(choice, template_file, config_file, raise_on_skip)
 
     except KeyboardInterrupt:
         warning = Colors.colorize("⚠", Colors.YELLOW)
