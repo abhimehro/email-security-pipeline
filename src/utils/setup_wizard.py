@@ -557,7 +557,7 @@ def _execute_setup_steps(
     config_file: str,
     raise_on_skip: bool,
 ) -> bool:
-    """Helper to process provider choice, credentials, and configuration writing."""
+    """Process provider choice, credentials, and configuration writing."""
     if choice == "4":
         if raise_on_skip:
             raise WizardSkipped("User chose to skip setup.")
