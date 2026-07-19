@@ -309,6 +309,7 @@ def test_styled_input_keyboard_interrupt(
     mock_write.assert_called_once_with("[RESET]")
     mock_flush.assert_called_once()
 
+
 @patch("sys.stdout", new_callable=io.StringIO)
 def test_print_help(mock_stdout, mock_app_runner):
     mock_app_runner.print_help()

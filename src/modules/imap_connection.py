@@ -16,7 +16,6 @@ import re
 import logging
 import socket
 import ssl
-import time
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Tuple
 
