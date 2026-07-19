@@ -96,7 +96,7 @@ vim .env
 # Edit .env file
 nano .env
 
-# Or use setup script
+# Or use the interactive setup script (supports Gmail, Proton Mail, and Outlook)
 ./setup.sh
 ```
 
