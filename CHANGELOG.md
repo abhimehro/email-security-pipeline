@@ -42,6 +42,7 @@
 
 **Closed issues:**
 
+- Daily QA & Agentic Review — 2026-07-18 [\#1298](https://github.com/abhimehro/email-security-pipeline/issues/1298)
 - Daily QA Check - email-security-pipeline - 2026-07-17 [\#1295](https://github.com/abhimehro/email-security-pipeline/issues/1295)
 - Daily QA & Agentic Review — 2026-07-17 [\#1294](https://github.com/abhimehro/email-security-pipeline/issues/1294)
 - Daily QA & Agentic Review — 2026-07-16 [\#1290](https://github.com/abhimehro/email-security-pipeline/issues/1290)
@@ -425,6 +426,8 @@
 
 **Merged pull requests:**
 
+- Jules Daily QA & Agentic Review: Linting Fixes [\#1300](https://github.com/abhimehro/email-security-pipeline/pull/1300) ([abhimehro](https://github.com/abhimehro))
+- fix\(setup\): ABHI-1365 remove shell-variable password exposure in setup.sh [\#1299](https://github.com/abhimehro/email-security-pipeline/pull/1299) ([abhimehro](https://github.com/abhimehro))
 - chore\(deps\): bump actions/first-interaction from 1 to 3 [\#1296](https://github.com/abhimehro/email-security-pipeline/pull/1296) ([dependabot[bot]](https://github.com/apps/dependabot))
 - chore\(deps\): bump ruby/setup-ruby from 1.318.0 to 1.319.0 [\#1292](https://github.com/abhimehro/email-security-pipeline/pull/1292) ([dependabot[bot]](https://github.com/apps/dependabot))
 - chore\(deps\): bump github/codeql-action from codeql-bundle-v2.26.0 to 2.26.1 [\#1291](https://github.com/abhimehro/email-security-pipeline/pull/1291) ([dependabot[bot]](https://github.com/apps/dependabot))
