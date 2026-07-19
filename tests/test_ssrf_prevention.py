@@ -5,6 +5,7 @@ from unittest.mock import patch
 from src.utils.config import Config, ConfigurationError
 from src.utils.security_validators import is_safe_webhook_url
 
+
 class TestSSRFPrevention(unittest.TestCase):
 
     def test_empty_url(self):
@@ -180,6 +181,7 @@ class TestSSRFPrevention(unittest.TestCase):
         is_safe, msg = is_safe_webhook_url("https://strict-zero.local/webhook")
         self.assertFalse(is_safe)
         self.assertIn("resolves to zero-net", msg)
+
 
 class TestConfigSSRFPrevention(unittest.TestCase):
 
