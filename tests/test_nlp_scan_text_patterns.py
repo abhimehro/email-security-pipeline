@@ -164,7 +164,6 @@ class TestScanTextPatternsCategories(_BaseNLPScanTest):
 class TestScanTextPatternsTwoPhase(_BaseNLPScanTest):
     """Confirms that the fast simple_master_pattern gate short-circuits correctly."""
 
-
     def test_gate_uses_search_not_match(self):
         # SECURITY STORY: The simple_master_pattern gate must use .search(), not .match().
         # If it used .match(), it would only find keywords at the very beginning of the string,

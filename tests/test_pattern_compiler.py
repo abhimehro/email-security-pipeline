@@ -158,7 +158,6 @@ class TestCompileNamedGroupPattern:
         pat, _ = compile_named_group_pattern([r"\bphishing\b"])
         assert pat.search("PHISHING attempt detected")
 
-
     def test_empty_list_compiles_to_empty_pattern(self):
         """An empty list should not raise and produces a pattern that matches nothing."""
         pat, group_map = compile_named_group_pattern([])

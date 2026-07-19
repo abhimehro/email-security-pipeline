@@ -197,7 +197,6 @@ class TestMetrics(unittest.TestCase):
         # The newest value (index -1) should be 1499.0
         self.assertEqual(self.metrics.processing_time_ms[-1], 1499.0)
 
-
     def test_get_summary_format(self):
         """Test that get_summary returns the expected dictionary format."""
         # Add some data to ensure processing_time_stats is populated
