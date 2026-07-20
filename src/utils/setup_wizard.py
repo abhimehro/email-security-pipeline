@@ -408,9 +408,8 @@ def _validate_config_path(config_file: str) -> Path | None:
     if "\0" in config_file:
         print(
             "✖ "
-            + Colors.colorize(
-                f"Error: Invalid configuration file path '{config_file}'.", Colors.RED
-            )
+            + Colors.colorize(f"Error: Invalid configuration file path '{config_file}'. ", Colors.RED)
+            + Colors.colorize("Ensure the path contains no null bytes.", Colors.YELLOW)
         )
         return None
 
@@ -422,10 +421,8 @@ def _validate_config_path(config_file: str) -> Path | None:
     ):
         print(
             "✖ "
-            + Colors.colorize(
-                f"Error: Unsafe configuration file path '{config_file}'. Use a filename only.",
-                Colors.RED,
-            )
+            + Colors.colorize(f"Error: Unsafe configuration file path '{config_file}'. ", Colors.RED)
+            + Colors.colorize("Use a filename only.", Colors.YELLOW)
         )
         return None
 
@@ -462,7 +459,7 @@ def _set_file_permissions(fd: int, config_path: Path) -> None:
                     os.chmod(config_path_str, 0o600, **chmod_kwargs)
                 else:
                     print(
-                        f"\n✖ "
+                        "\n✖ "
                         + Colors.colorize(
                             "Error: TOCTOU detected on " + str(config_path), Colors.RED
                         )
@@ -472,7 +469,7 @@ def _set_file_permissions(fd: int, config_path: Path) -> None:
                     sys.exit(1)
             except OSError as exc:
                 print(
-                    f"\n✖ "
+                    "\n✖ "
                     + Colors.colorize(
                         "Error setting permissions: " + str(exc), Colors.RED
                     )
@@ -609,9 +606,8 @@ def run_setup_wizard(
     if not Path(template_file).exists():
         print(
             "✖ "
-            + Colors.colorize(
-                f"Error: Template file '{template_file}' not found.", Colors.RED
-            )
+            + Colors.colorize(f"Error: Template file '{template_file}' not found. ", Colors.RED)
+            + Colors.colorize("Ensure the file exists before running the wizard.", Colors.YELLOW)
         )
         return False
 
@@ -636,9 +632,8 @@ def main() -> int:
     if not sys.stdin.isatty():
         print(
             "✖ "
-            + Colors.colorize(
-                "Interactive credential setup requires a TTY.", Colors.RED
-            )
+            + Colors.colorize("Interactive credential setup requires a TTY. ", Colors.RED)
+            + Colors.colorize("Run the command in an interactive terminal or provide a config file.", Colors.YELLOW)
         )
         return 1
 

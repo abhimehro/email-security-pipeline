@@ -235,3 +235,6 @@
 ## 2026-07-10 - Actionable Empty States
 **Learning:** When displaying an empty state or 'not configured' warning, users often lack context on how to resolve it. Adding a direct, actionable next step reduces friction.
 **Action:** Always pair empty states with a clear call-to-action or instruction.
+## 2026-07-19 - Clearer visual hierarchy for CLI errors
+**Learning:** When a terminal application displays validation errors, presenting the entire string in red makes it harder for users to distinguish the failure reason from the required action, increasing friction.
+**Action:** Separate error descriptions (in `Colors.RED`) from actionable remediation advice (in `Colors.YELLOW`) to establish a clear visual hierarchy and guide users to immediate resolution.
