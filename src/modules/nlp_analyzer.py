@@ -294,32 +294,32 @@ class NLPThreatAnalyzer:
             "PS": defaultdict(int),
         }
 
-        for part in parts:
-            if not part:
-                continue
+        valid_parts = [p for p in parts if p]
+        if valid_parts:
+            # ⚡ BOLT: Join all parts for fast, unconditional operations to reduce loop overhead
+            joined_text = "\n".join(valid_parts)
+            exclamation_count += joined_text.count("!")
+            caps_count += len(self.CAPS_WORDS_PATTERN.findall(joined_text))
 
-            # Accumulate simple counts for urgency detection
-            exclamation_count += part.count("!")
-            # Optimization: len(findall) is faster than sum(finditer) because it avoids Python-level
-            # generator iteration and executes entirely in C. Memory overhead is negligible for typical emails.
-            caps_count += len(self.CAPS_WORDS_PATTERN.findall(part))
-
-            # Optimization: Fast check with simple pattern on lowercased text
-            # avoiding re.IGNORECASE penalty
-            part_lower = part.lower()
-            if self.simple_master_pattern.search(part_lower):
-                for match in self.master_pattern.finditer(part_lower):
-                    group_name = match.lastgroup
-                    if group_name and group_name in self.master_map:
-                        prefix, description = self.master_map[group_name]
-                        if prefix == "AU":
-                            matches_by_category[prefix][description].append(
-                                match.group().lower()
-                            )
-                        else:
-                            matches_by_category[prefix][description] += 1
+            # ⚡ BOLT: Hybrid approach - apply pre-filter to individual parts to isolate matches
+            # before running expensive operations
+            for part in valid_parts:
+                part_lower = part.lower()
+                if self.simple_master_pattern.search(part_lower):
+                    self._extract_pattern_matches(part_lower, matches_by_category)
 
         return matches_by_category, exclamation_count, caps_count
+
+    def _extract_pattern_matches(self, part_lower: str, matches_by_category: Dict) -> None:
+        """Helper to extract and categorize regex pattern matches."""
+        for match in self.master_pattern.finditer(part_lower):
+            group_name = match.lastgroup
+            if group_name and group_name in self.master_map:
+                prefix, description = self.master_map[group_name]
+                if prefix == "AU":
+                    matches_by_category[prefix][description].append(match.group().lower())
+                else:
+                    matches_by_category[prefix][description] += 1
 
     def _run_transformer_analysis(
         self, email_data: EmailData
