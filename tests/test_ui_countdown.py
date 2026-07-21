@@ -12,6 +12,7 @@ from io import StringIO
 from unittest.mock import MagicMock, patch
 
 from src.utils.ui import CountdownTimer
+from src.utils.colors import Colors
 
 
 class TestCountdownTimerNonTTY(unittest.TestCase):
@@ -121,6 +122,46 @@ class TestCountdownTimerWait(unittest.TestCase):
         CountdownTimer.wait(2, "Testing")
         mock_start.assert_called_once()
 
+
+
+
+class TestCountdownTimerTTY(unittest.TestCase):
+    """Tests for CountdownTimer.start() in TTY mode."""
+
+    @patch("time.sleep")
+    @patch("sys.stdout", new_callable=StringIO)
+    def test_start_tty_completes_normally(self, mock_stdout, mock_sleep):
+        """start() in TTY mode should run normally and clear line at finish."""
+        mock_stdout.isatty = MagicMock(return_value=True)
+        timer = CountdownTimer(duration=1, message="Waiting")
+        timer.start()
+        output = mock_stdout.getvalue()
+        self.assertIn("Waiting...", output)
+        self.assertIn("\r\033[K", output)  # Clears line at end
+
+    @patch("time.sleep", side_effect=KeyboardInterrupt)
+    @patch("sys.stdout", new_callable=StringIO)
+    def test_start_tty_keyboard_interrupt(self, mock_stdout, mock_sleep):
+        """start() should catch KeyboardInterrupt, print cancel message, and raise."""
+        mock_stdout.isatty = MagicMock(return_value=True)
+        timer = CountdownTimer(duration=1, message="Waiting")
+        with self.assertRaises(KeyboardInterrupt):
+            timer.start()
+        output = mock_stdout.getvalue()
+        self.assertIn("(Cancelled)", output)
+        self.assertIn(Colors.YELLOW, output)
+
+    @patch("time.sleep", side_effect=EOFError)
+    @patch("sys.stdout", new_callable=StringIO)
+    def test_start_tty_eof_error(self, mock_stdout, mock_sleep):
+        """start() should catch EOFError, print cancel message, and raise KeyboardInterrupt."""
+        mock_stdout.isatty = MagicMock(return_value=True)
+        timer = CountdownTimer(duration=1, message="Waiting (Press Ctrl+C to stop)")
+        with self.assertRaises(KeyboardInterrupt):
+            timer.start()
+        output = mock_stdout.getvalue()
+        self.assertIn("(Cancelled)", output)
+        self.assertNotIn("(Press Ctrl+C to stop)", output.split("\r")[-1])
 
 if __name__ == "__main__":
     unittest.main()
