@@ -461,17 +461,10 @@ class SpamAnalyzer:
         if "softfail" not in joined:
             return True, False
 
-        spf_fail = False
-        spf_softfail = False
-        for spf in spf_headers:
-            spf_lower = spf.lower()
-            if "fail" in spf_lower and "softfail" not in spf_lower:
-                spf_fail = True
-            elif "softfail" in spf_lower:
-                spf_softfail = True
-            if spf_fail and spf_softfail:
-                break
-        return spf_fail, spf_softfail
+        spf_fail = any(
+            "fail" in s.lower() and "softfail" not in s.lower() for s in spf_headers
+        )
+        return spf_fail, True
 
     def _check_auth_results(
         self, headers: Dict[str, Union[str, List[str]]], spf_fail: bool
