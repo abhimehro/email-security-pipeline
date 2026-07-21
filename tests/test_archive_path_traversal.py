@@ -139,5 +139,33 @@ class TestArchivePathTraversal(unittest.TestCase):
         self.assertTrue(result.threat_score >= 5.0)
 
 
+
+    def test_tar_symlink_path_traversal(self):
+        """Test that symlinks with malicious link targets are flagged."""
+
+        tar_buffer = io.BytesIO()
+        with tarfile.open(fileobj=tar_buffer, mode="w") as tf:
+            info = tarfile.TarInfo(name="legit.txt")
+            info.type = tarfile.SYMTYPE
+            info.linkname = "../../etc/passwd"
+            tf.addfile(info)
+
+        tar_data = tar_buffer.getvalue()
+
+        result = self._run_analyzer_on_archive(
+            "test_symlink.tar", "application/x-tar", tar_data
+        )
+
+        self.assertTrue(result.threat_score >= 5.0)
+        found_warning = False
+        for warning in result.suspicious_attachments:
+            if "contains link with path traversal attempt" in warning:
+                self.assertNotIn("../", warning)
+                found_warning = True
+
+        self.assertTrue(
+            found_warning, "Expected to find a warning about path traversal in symlink"
+        )
+
 if __name__ == "__main__":
     unittest.main()

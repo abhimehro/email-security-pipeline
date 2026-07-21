@@ -1,3 +1,6 @@
 ## 2025-03-05 - Remove unnecessary sleep in IMAP fetch batching
 **Learning:** Hardcoded `time.sleep()` delays inside IO-bound batch processing loops create massive artificial bottlenecks, scaling linearly with batch counts, and can often be safely removed if upstream providers handle rate-limiting natively or the overhead naturally serves as throttling.
 **Action:** When inspecting loops around I/O, question explicit `sleep` logic—benchmark it, ensure no server-side 429s are triggered on removal, and delete the artificial delays for massive throughput gains.
+## 2025-11-09 - Avoid eager evaluation of IPAddress properties
+**Learning:** When evaluating multiple boolean properties on an ipaddress object for security checks, putting them in a list or tuple structure forces eager evaluation and avoids short-circuiting. An alternative is an if/elif chain, but that increases cyclomatic complexity. The best approach is to iterate over a constant tuple of property name strings and use getattr(), preserving short-circuiting and saving overhead.
+**Action:** For multiple object property checks, favor a short-circuiting approach with getattr over strings rather than eager evaluation or deep if/elif branches when complexity matters.
