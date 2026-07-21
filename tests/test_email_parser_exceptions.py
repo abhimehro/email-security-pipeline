@@ -266,5 +266,5 @@ class TestProcessSinglepartBody:
             with patch.object(parser, "_add_body_content") as mock_add_body:
                 parser._process_singlepart_body(msg, ctx)
                 mock_add_body.assert_called_once_with(
-                    "text/plain", "decoded string", body_dict, "email_005"
+                    "text/plain", "decoded string", ctx
                 )

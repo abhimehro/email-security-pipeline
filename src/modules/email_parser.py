@@ -319,9 +319,7 @@ class EmailParser:
     ) -> None:
         """Process a text/html body part in a multipart email."""
         decoded_part = self._decode_part_payload(part)
-        self._add_body_content(
-            content_type, decoded_part, ctx.body_dict, ctx.safe_email_id
-        )
+        self._add_body_content(content_type, decoded_part, ctx)
 
     def _process_multipart_attachment(
         self,
@@ -392,9 +390,7 @@ class EmailParser:
             payload = msg.get_payload(decode=True)
             if payload:
                 decoded = self._decode_bytes(payload, msg.get_content_charset())
-                self._add_body_content(
-                    content_type, decoded, ctx.body_dict, ctx.safe_email_id
-                )
+                self._add_body_content(content_type, decoded, ctx)
         except UnicodeDecodeError as e:
             self.logger.warning(
                 f"Failed to decode email payload for {ctx.safe_email_id}: {e}"
@@ -407,48 +403,42 @@ class EmailParser:
 
     def _append_body_part(
         self,
-        parts: List[str],
-        current_len: int,
+        key: str,
         new_part: str,
-        body_type: str,
-        safe_email_id: str,
-    ) -> Tuple[List[str], int]:
+        ctx: ParseContext,
+    ) -> None:
         """
         Append body part with size checking and truncation.
 
         Args:
-            parts: List of body parts accumulated so far
-            current_len: Current total length
+            key: "text" or "html" part key
             new_part: New part to append
-            body_type: "Body text" or "Body HTML" for logging
-            safe_email_id: Sanitized email ID for logging
-
-        Returns:
-            Tuple of (updated_parts, updated_len)
+            ctx: ParseContext containing body_dict and safe_email_id
 
         """
+        current_len = ctx.body_dict[f"{key}_len"]
         remaining = self.max_body_size - current_len
+        body_type = "Body HTML" if key == "html" else "Body text"
+        parts = ctx.body_dict[f"{key}_parts"]
 
         if len(new_part) > remaining:
             # Truncate to fit
             new_part = new_part[:remaining]
             parts.append(new_part)
-            new_len = current_len + len(new_part)
+            ctx.body_dict[f"{key}_len"] = current_len + len(new_part)
             self.logger.warning(
                 f"{body_type} truncated to {self.max_body_size} bytes "
-                f"for email {safe_email_id}"
+                f"for email {ctx.safe_email_id}"
             )
-            return parts, new_len
         else:
             parts.append(new_part)
-            return parts, current_len + len(new_part)
+            ctx.body_dict[f"{key}_len"] = current_len + len(new_part)
 
     def _add_body_content(
         self,
         content_type: str,
         part_data: str,
-        body_dict: Dict[str, Any],
-        safe_email_id: str,
+        ctx: ParseContext,
     ) -> None:
         """
         Unified body content handler with size limiting.
@@ -462,21 +452,14 @@ class EmailParser:
         Args:
             content_type: MIME content type ("text/plain" or "text/html")
             part_data: Decoded content string to add
-            body_dict: Mutable dict with 'text_parts'/'html_parts' lists and
-                       'text_len'/'html_len' counters
-            safe_email_id: Sanitized email ID for logging
+            ctx: ParseContext containing body_dict and safe_email_id
 
         """
         key = "html" if content_type == "text/html" else "text"
-        label = "Body HTML" if key == "html" else "Body text"
-        current_len = body_dict[f"{key}_len"]
+        current_len = ctx.body_dict[f"{key}_len"]
 
         if current_len < self.max_body_size:
-            parts, new_len = self._append_body_part(
-                body_dict[f"{key}_parts"], current_len, part_data, label, safe_email_id
-            )
-            body_dict[f"{key}_parts"] = parts
-            body_dict[f"{key}_len"] = new_len
+            self._append_body_part(key, part_data, ctx)
 
     def _is_attachment_count_valid(
         self, attachments: List[Dict[str, Any]], safe_email_id: str
