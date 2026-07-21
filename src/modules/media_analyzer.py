@@ -885,6 +885,14 @@ class MediaAuthenticityAnalyzer:
                 f"Tar file {filename} contains path traversal attempt: {safe_member_name_traversal}"
             ]
 
+        if (member.issym() or member.islnk()) and self._is_path_traversal_attempt(member.linkname):
+            safe_linkname_traversal = sanitize_for_logging(
+                sanitize_filename(member.linkname)
+            )
+            return 5.0, [
+                f"Tar file {filename} contains link with path traversal attempt: {safe_linkname_traversal}"
+            ]
+
         member_score, member_warnings = self._inspect_archive_member(
             filename,
             member.name,
