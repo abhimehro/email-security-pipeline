@@ -28,8 +28,6 @@ Known ReDoS signatures — nested or repeated quantifiers on unbounded character
 classes are the most common source of catastrophic backtracking.
 """
 
-_REDOS_REGEX = re.compile("|".join(map(re.escape, _REDOS_SIGNATURES)))
-
 
 def check_redos_safety(patterns: List[str]) -> None:
     """
@@ -56,8 +54,9 @@ def check_redos_safety(patterns: List[str]) -> None:
 
     """
     for pattern in patterns:
-        if _REDOS_REGEX.search(pattern):
-            raise ValueError(f"Potential ReDoS in pattern: {pattern!r}")
+        for unsafe in _REDOS_SIGNATURES:
+            if unsafe in pattern:
+                raise ValueError(f"Potential ReDoS in pattern: {pattern!r}")
 
 
 def compile_patterns(

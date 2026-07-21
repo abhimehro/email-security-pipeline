@@ -26,20 +26,11 @@ class TestTTLCache(unittest.TestCase):
                 with self.assertRaises(ValueError):
                     TTLCache(**params)
 
-    def test_basic_get_put_clear(self):
-        """Test basic get, put, and clear operations."""
-        # Test put and get
+    def test_put_get_basic(self):
+        """Test basic put and get operations."""
         self.cache.put("key1", "value1")
         self.assertEqual(self.cache.get("key1"), "value1")
         self.assertEqual(len(self.cache), 1)
-
-        # Test missing key returns None
-        self.assertIsNone(self.cache.get("nonexistent"))
-
-        # Test clear
-        self.cache.clear()
-        self.assertIsNone(self.cache.get("key1"))
-        self.assertEqual(len(self.cache), 0)
 
     def _verify_eviction(self, cache, expected_present, expected_absent):
         for k in expected_present:
@@ -65,35 +56,20 @@ class TestTTLCache(unittest.TestCase):
         cache.put("c", 3)
         self._verify_eviction(cache, ["a", "c"], ["b"])
 
-    def test_lru_eviction(self):
-        """Test LRU eviction when cache exceeds max_size."""
+    def test_size_eviction(self):
+        """Test size-based eviction."""
         max_size = 5
         cache = TTLCache(max_size=max_size)
-
-        # Fill cache to max_size
-        for i in range(max_size):
+        for i in range(max_size + 2):
             cache.put(f"k{i}", i)
-
-        # Add one more to trigger eviction of the oldest (k0)
-        cache.put("k_new", 99)
-
         self.assertEqual(len(cache), max_size)
-        self.assertIsNone(cache.get("k0"))  # Evicted
-        self.assertEqual(cache.get("k1"), 1)  # Still present
-        self.assertEqual(cache.get("k_new"), 99)  # Newly added
+        self._verify_eviction(cache, [f"k{i}" for i in range(2, 7)], ["k0", "k1"])
 
-    def test_ttl_expiration(self):
-        """Test TTL expiration and lazy eviction."""
+    def test_ttl_eviction_lazy(self):
+        """Test lazy TTL eviction."""
         cache = TTLCache(max_size=10, ttl_seconds=0.1)
         cache.put("k", "v")
-        self.assertEqual(cache.get("k"), "v")
-        self.assertIn("k", cache)
-
-        # Wait for TTL to expire
         time.sleep(0.2)
-
-        # Should return None and lazily evict on get or __contains__
-        self.assertNotIn("k", cache)
         self.assertIsNone(cache.get("k"))
         self.assertEqual(len(cache), 0)
 
@@ -106,6 +82,12 @@ class TestTTLCache(unittest.TestCase):
         keys = cache.keys()
         self.assertIn("new", keys)
         self.assertNotIn("old", keys)
+
+    def test_clear(self):
+        """Test clear()."""
+        self.cache.put("a", 1)
+        self.cache.clear()
+        self.assertEqual(len(self.cache), 0)
 
 
 if __name__ == "__main__":

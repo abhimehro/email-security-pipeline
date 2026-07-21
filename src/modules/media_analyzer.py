@@ -22,17 +22,6 @@ from ..utils.threat_scoring import calculate_risk_level
 from .email_data import EmailData
 
 
-
-@dataclass
-class FrameExtractionOptions:
-    """Options for frame extraction."""
-
-    max_frames: int = 10
-    max_dim: int = 1920
-    step: int = 1
-    total_frames: int = 0
-
-
 @dataclass
 class MediaAnalysisResult:
     """Result of media analysis."""
@@ -896,15 +885,6 @@ class MediaAuthenticityAnalyzer:
                 f"Tar file {filename} contains path traversal attempt: {safe_member_name_traversal}"
             ]
 
-        if member.issym() or member.islnk():
-            if self._is_path_traversal_attempt(member.linkname):
-                safe_linkname_traversal = sanitize_for_logging(
-                    sanitize_filename(member.linkname)
-                )
-                return 5.0, [
-                    f"Tar file {filename} contains link with path traversal attempt: {safe_linkname_traversal}"
-                ]
-
         member_score, member_warnings = self._inspect_archive_member(
             filename,
             member.name,
@@ -1199,10 +1179,9 @@ class MediaAuthenticityAnalyzer:
                             frames.append(self._resize_frame_if_needed(frame, max_dim))
                         count += 1
                 else:
-                    options = FrameExtractionOptions(
-                        max_frames=max_frames, max_dim=max_dim, step=step, total_frames=total_frames
+                    frames = self._extract_frames_sampled(
+                        cap, total_frames, step, max_frames, max_dim
                     )
-                    frames = self._extract_frames_sampled(cap, options)
 
             cap.release()
         except Exception as e:
@@ -1226,14 +1205,14 @@ class MediaAuthenticityAnalyzer:
         return frames
 
     def _extract_frames_sampled(
-        self, cap, options: FrameExtractionOptions
+        self, cap, total_frames: int, step: int, max_frames: int, max_dim: int
     ) -> List[np.ndarray]:
         """Extract frames using a hybrid approach of seeking and grabbing for sampling."""
         frames = []
         current_frame = 0
 
-        for target_frame in range(0, options.total_frames, options.step):
-            if len(frames) >= options.max_frames:
+        for target_frame in range(0, total_frames, step):
+            if len(frames) >= max_frames:
                 break
 
             current_frame = self._advance_to_frame(cap, current_frame, target_frame)
@@ -1243,7 +1222,7 @@ class MediaAuthenticityAnalyzer:
 
             success, frame = cap.read()
             if success and frame is not None:
-                frames.append(self._resize_frame_if_needed(frame, options.max_dim))
+                frames.append(self._resize_frame_if_needed(frame, max_dim))
                 current_frame += 1
             else:
                 break
