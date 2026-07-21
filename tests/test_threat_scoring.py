@@ -125,3 +125,11 @@ class TestCalculateRiskLevel:
 
         with pytest.raises(TypeError):
             calculate_risk_level(None, 5.0, 10.0)  # type: ignore
+
+    def test_integer_inputs(self):
+        assert calculate_risk_level(10, 5, 10) == "high"
+        assert calculate_risk_level(7, 5, 10) == "medium"
+        assert calculate_risk_level(4, 5, 10) == "low"
+
+    def test_keyword_arguments(self):
+        assert calculate_risk_level(score=10.0, low_threshold=5.0, high_threshold=10.0) == "high"
