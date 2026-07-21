@@ -438,12 +438,21 @@ class SpamAnalyzer:
         spf_headers = self._get_header_list(headers, "received-spf")
         spf_fail = False
         spf_softfail = False
-        for spf in spf_headers:
-            spf_lower = spf.lower()
-            if "fail" in spf_lower and "softfail" not in spf_lower:
-                spf_fail = True
-            elif "softfail" in spf_lower:
-                spf_softfail = True
+
+        if spf_headers:
+            joined = " ".join(spf_headers).lower()
+            if "fail" in joined:
+                if "softfail" in joined:
+                    for spf in spf_headers:
+                        spf_lower = spf.lower()
+                        if "fail" in spf_lower and "softfail" not in spf_lower:
+                            spf_fail = True
+                        elif "softfail" in spf_lower:
+                            spf_softfail = True
+                        if spf_fail and spf_softfail:
+                            break
+                else:
+                    spf_fail = True
 
         if spf_fail:
             score += 2.0
