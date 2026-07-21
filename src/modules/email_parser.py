@@ -29,8 +29,8 @@ from ..utils.config import EmailAccountConfig
 from ..utils.sanitization import sanitize_for_logging
 from ..utils.security_validators import (
     MAX_MIME_PARTS,
-    MAX_SUBJECT_LENGTH,
     sanitize_filename,
+    validate_subject_length,
 )
 from .email_data import EmailData
 
@@ -182,12 +182,7 @@ class EmailParser:
         """
         subject = self._decode_header_value(msg.get("Subject", ""))
 
-        if len(subject) > MAX_SUBJECT_LENGTH:
-            subject = subject[:MAX_SUBJECT_LENGTH]
-            safe_id = sanitize_for_logging(email_id)
-            self.logger.warning(
-                f"Subject truncated to {MAX_SUBJECT_LENGTH} chars for email {safe_id}"
-            )
+        subject = validate_subject_length(subject)
 
         return subject
 
