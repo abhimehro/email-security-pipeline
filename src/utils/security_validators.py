@@ -197,18 +197,18 @@ def _is_ip_safe(ip_str: str, hostname: str) -> Tuple[bool, str]:
         return False, f"Resolved to an invalid IP address: {ip_str}"
 
     # SECURITY: Explicitly block various internal/private/reserved ranges
-    if ip.is_loopback:
-        return False, f"'{hostname}' resolves to loopback ({ip_str})"
-    elif ip.is_private:
-        return False, f"'{hostname}' resolves to private IP ({ip_str})"
-    elif ip.is_link_local:
-        return False, f"'{hostname}' resolves to link-local ({ip_str})"
-    elif ip.is_multicast:
-        return False, f"'{hostname}' resolves to multicast ({ip_str})"
-    elif ip.is_reserved:
-        return False, f"'{hostname}' resolves to reserved ({ip_str})"
-    elif ip.is_unspecified:
-        return False, f"'{hostname}' resolves to unspecified ({ip_str})"
+    checks = (
+        ("is_loopback", "loopback"),
+        ("is_private", "private IP"),
+        ("is_link_local", "link-local"),
+        ("is_multicast", "multicast"),
+        ("is_reserved", "reserved"),
+        ("is_unspecified", "unspecified"),
+    )
+
+    for attr, block_type in checks:
+        if getattr(ip, attr):
+            return False, f"'{hostname}' resolves to {block_type} ({ip_str})"
 
     # Check specific IPv4 scenarios not covered entirely by the above
     if ip.version == 4:
