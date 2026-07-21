@@ -18,6 +18,10 @@ from ..utils.threat_scoring import calculate_risk_level
 from .email_data import EmailData
 
 
+# Compiled patterns for authentication result checks
+DKIM_AUTH_PATTERN = re.compile(r"dkim=(?:fail|permerror|neutral)")
+SPF_AUTH_PATTERN = re.compile(r"spf=(?:fail|permerror)")
+
 @dataclass
 class SpamAnalysisResult:
     """Result of spam analysis."""
@@ -465,18 +469,11 @@ class SpamAnalyzer:
         dkim_auth_fail = False
         spf_auth_fail = False
 
-        for result in auth_results:
-            result_lower = result.lower()
-
-            # Check DKIM results
-            if "dkim=fail" in result_lower or "dkim=permerror" in result_lower:
+        if auth_results:
+            combined_results = " ".join(auth_results).lower()
+            if DKIM_AUTH_PATTERN.search(combined_results):
                 dkim_auth_fail = True
-            elif "dkim=neutral" in result_lower:
-                # Neutral usually means signature failed to verify or public key issue
-                dkim_auth_fail = True
-
-            # Check SPF results (secondary check if Received-SPF is missing/ambiguous)
-            if "spf=fail" in result_lower or "spf=permerror" in result_lower:
+            if SPF_AUTH_PATTERN.search(combined_results):
                 spf_auth_fail = True
 
         if dkim_auth_fail:
