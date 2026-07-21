@@ -158,8 +158,12 @@ class EmailParser:
         """
         headers: Dict[str, Union[str, List[str]]] = {}
 
+        # Optimization: Pre-compute lowercase keys to avoid calling .lower()
+        # on every single item, which is inefficient for repeated headers (e.g., Received)
+        lower_map = {k: k.lower() for k in set(msg.keys())}
+
         for key, value in msg.items():
-            key_lower = key.lower()
+            key_lower = lower_map[key]
             decoded_val = self._decode_header_value(value)
 
             if key_lower in headers:
