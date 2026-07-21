@@ -4,3 +4,7 @@
 ## 2025-11-09 - Avoid eager evaluation of IPAddress properties
 **Learning:** When evaluating multiple boolean properties on an ipaddress object for security checks, putting them in a list or tuple structure forces eager evaluation and avoids short-circuiting. An alternative is an if/elif chain, but that increases cyclomatic complexity. The best approach is to iterate over a constant tuple of property name strings and use getattr(), preserving short-circuiting and saving overhead.
 **Action:** For multiple object property checks, favor a short-circuiting approach with getattr over strings rather than eager evaluation or deep if/elif branches when complexity matters.
+
+## 2026-07-21 - Optimize list append loop using extend and list comp (salvage #1314)
+**Learning:** Conditional `.append()` in a Python for-loop pays interpreter overhead; `lst.extend([item for item in iter if item])` pushes generation into C for a material speedup on large batches.
+**Action:** Prefer `extend` + comprehension for filter-and-collect loops without side effects.
