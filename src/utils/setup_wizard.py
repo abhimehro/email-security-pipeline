@@ -451,12 +451,23 @@ def _set_file_permissions(fd: int, config_path: Path) -> None:
                     stat_fd.st_ino == stat_path.st_ino
                     and stat_fd.st_dev == stat_path.st_dev
                 ):
-                    chmod_kwargs = (
-                        {"follow_symlinks": False}
-                        if os.chmod in getattr(os, "supports_follow_symlinks", set())
-                        else {}
-                    )
-                    os.chmod(config_path_str, 0o600, **chmod_kwargs)
+                    # We can't rely on os.chmod(path) without follow_symlinks=False.
+                    # Since we have the fd, we should try os.chmod(fd, mode) if the platform supports it,
+                    # or error out to avoid a TOCTOU vulnerability.
+
+                    if os.chmod in getattr(os, "supports_follow_symlinks", set()):
+                        os.chmod(config_path_str, 0o600, follow_symlinks=False)
+                    elif os.chmod in getattr(os, "supports_fd", set()):
+                        os.chmod(fd, 0o600)
+                    else:
+                        print(
+                            "\n✖ "
+                            + Colors.colorize(
+                                "Error: Cannot securely set file permissions on this platform.", Colors.RED
+                            )
+                        )
+                        import sys
+                        sys.exit(1)
                 else:
                     print(
                         "\n✖ "
