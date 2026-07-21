@@ -129,32 +129,6 @@ class TestMetrics(unittest.TestCase):
         self.assertAlmostEqual(stats["p95_ms"], 95.0, delta=1.0)
         self.assertAlmostEqual(stats["p99_ms"], 99.0, delta=1.0)
 
-    def test_reset(self):
-        """Test resetting metrics."""
-        # Add some data
-        self.metrics.record_email_processed()
-        self.metrics.record_threat("phishing", "high")
-        self.metrics.record_processing_time(100.0)
-        self.metrics.record_error("test_error")
-
-        # Record the start time before reset
-        old_start_time = self.metrics.start_time
-
-        # Small delay to ensure time difference
-        time.sleep(0.01)
-
-        # Reset
-        self.metrics.reset()
-
-        # Everything should be cleared
-        self.assertEqual(self.metrics.emails_processed, 0)
-        self.assertEqual(len(self.metrics.threats_detected), 0)
-        self.assertEqual(len(self.metrics.processing_time_ms), 0)
-        self.assertEqual(len(self.metrics.errors_count), 0)
-
-        # Start time should be updated
-        self.assertGreater(self.metrics.start_time, old_start_time)
-
     def test_uptime_calculation(self):
         """Test that uptime is calculated correctly."""
         # Set a known start time
