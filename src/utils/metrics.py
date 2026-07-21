@@ -142,17 +142,3 @@ class Metrics:
             "sample_count": len(self.processing_time_ms),
         }
 
-    def reset(self):
-        """
-        Reset all metrics to initial state.
-
-        TEACHING MOMENT: Use this carefully! You typically only reset metrics
-        when you're exporting them to a monitoring system and starting a new
-        collection window. Don't reset if you want cumulative statistics since
-        startup.
-        """
-        self.emails_processed = 0
-        self.threats_detected.clear()
-        self.processing_time_ms.clear()
-        self.errors_count.clear()
-        self.start_time = time.monotonic()

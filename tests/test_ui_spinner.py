@@ -187,3 +187,38 @@ class TestSpinner(unittest.TestCase):
         )
         self.assertNotIn("\033[?25l", writes)
         self.assertNotIn("\033[?25h", writes)
+
+    @patch("sys.stdout", new_callable=StringIO)
+    def test_spinner_spin_loop_and_elapsed(self, mock_stdout):
+        import time
+        mock_stdout.isatty = MagicMock(return_value=True)
+
+        with Spinner("Testing loop", delay=0.01) as spinner:
+            # Fake the start time so elapsed is > 1.0 in the spin loop
+            spinner.start_time = time.time() - 1.5
+            # Sleep enough to let the thread wake up (0.1s) and run at least one loop
+            time.sleep(0.15)
+
+        output = mock_stdout.getvalue()
+        self.assertRegex(output, r"\[1\.\d+s\]")
+        self.assertIn("Press Ctrl+C to stop", output)
+
+    @patch("sys.stdout", new_callable=StringIO)
+    def test_spinner_keyboard_interrupt(self, mock_stdout):
+        mock_stdout.isatty = MagicMock(return_value=True)
+
+        try:
+            with Spinner("Testing Interrupt"):
+                raise KeyboardInterrupt()
+        except KeyboardInterrupt:
+            pass
+
+        output = mock_stdout.getvalue()
+        self.assertIn("⚠", output)
+        self.assertIn("Cancelled", output)
+        self.assertIn("Testing Interrupt", output)
+
+    def test_spinner_color_fallback(self):
+        spinner = Spinner("Test")
+        from src.utils.colors import Colors
+        self.assertEqual(spinner._get_color_for_symbol("?"), Colors.WHITE)

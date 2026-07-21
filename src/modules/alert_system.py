@@ -52,6 +52,15 @@ class ThreatReport:
     timestamp: str
 
 
+@dataclass
+class RenderConfig:
+    """Configuration options for console rendering."""
+
+    width: int
+    risk_color: str
+    risk_symbol: str
+
+
 class AlertSystem:
     """Manages alerts and notifications."""
 
@@ -409,17 +418,14 @@ class AlertSystem:
     def _print_alert_header(
         self,
         risk_level: str,
-        timestamp: str,
-        width: int,
-        risk_color: str,
-        risk_symbol: str,
+        render_config: RenderConfig,
     ):
         """Print the alert header."""
         print()
         # Top Border (┌───┐)
         # Width adjustment: -2 for the corners
-        border_len = width - 2
-        print(Colors.colorize(f"┌{'─'*border_len}┐", risk_color))
+        border_len = render_config.width - 2
+        print(Colors.colorize(f"┌{'─'*border_len}┐", render_config.risk_color))
 
         # Header Row
         title = "🚨 SECURITY ALERT"
@@ -440,27 +446,27 @@ class AlertSystem:
 
         # Padding for the header text row:
         # We need to fill the space between title and risk label.
-        # Fixed width = width
+        # Fixed width = render_config.width
         # Content = "│  " + title + PADDING + risk_label + " " + symbol
         # We don't print a right border '│' here because alignment is tricky with emojis.
         # But we can try to approximate.
 
         # Magic number explanation:
         # 5 comes from: 3 chars for left prefix ("│  ") + 1 char space before symbol + 1 char approx for symbol/emoji width variance
-        padding_len = width - len(title) - len(risk_label) - 5
+        padding_len = render_config.width - len(title) - len(risk_label) - 5
         padding = " " * max(1, padding_len)
 
         print(
-            Colors.colorize("│  ", risk_color)
+            Colors.colorize("│  ", render_config.risk_color)
             + Colors.colorize(title, Colors.BOLD)
             + padding
-            + Colors.colorize(risk_label, risk_color + Colors.BOLD)
+            + Colors.colorize(risk_label, render_config.risk_color + Colors.BOLD)
             + " "
-            + risk_symbol
+            + render_config.risk_symbol
         )
 
         # Separator (├───┤)
-        print(Colors.colorize(f"├{'─'*border_len}┤", risk_color))
+        print(Colors.colorize(f"├{'─'*border_len}┤", render_config.risk_color))
 
     def _print_alert_metadata(
         self, report: ThreatReport, width: int, risk_color: str, formatted_time: str
@@ -737,8 +743,14 @@ class AlertSystem:
         except ValueError:
             formatted_time = report.timestamp
 
+        render_config = RenderConfig(
+            width=WIDTH,
+            risk_color=risk_color,
+            risk_symbol=risk_symbol,
+        )
+
         self._print_alert_header(
-            report.risk_level, formatted_time, WIDTH, risk_color, risk_symbol
+            report.risk_level, render_config
         )
         self._print_alert_metadata(report, WIDTH, risk_color, formatted_time)
         self._print_threat_score(
