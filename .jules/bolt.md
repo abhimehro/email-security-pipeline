@@ -4,3 +4,7 @@
 ## 2025-11-09 - Avoid eager evaluation of IPAddress properties
 **Learning:** When evaluating multiple boolean properties on an ipaddress object for security checks, putting them in a list or tuple structure forces eager evaluation and avoids short-circuiting. An alternative is an if/elif chain, but that increases cyclomatic complexity. The best approach is to iterate over a constant tuple of property name strings and use getattr(), preserving short-circuiting and saving overhead.
 **Action:** For multiple object property checks, favor a short-circuiting approach with getattr over strings rather than eager evaluation or deep if/elif branches when complexity matters.
+
+## 2026-07-21 - Fast Sequential Filtering (salvage #1331)
+**Learning:** When evaluating items with a function that both parses and validates, a list comprehension powered by an inner generator expression (e.g., `[p for p in (func(x) for x in data) if p]`) reduces pure loop overhead for simple batch processing without the walrus operator.
+**Action:** Prefer list comprehensions over nested iteration when mapping + filtering a sequence without heavy internal side effects.
