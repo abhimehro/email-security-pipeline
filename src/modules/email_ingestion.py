@@ -311,6 +311,16 @@ class EmailIngestionConfig:
     max_parallel_accounts: int = 3
 
 
+
+@dataclass
+class FetchContext:
+    account: EmailAccountConfig
+    folder: str
+    client: Any
+    is_first: bool
+    max_per_folder: int
+
+
 class EmailIngestionManager:
     """
     Manages email ingestion from multiple accounts.
@@ -414,39 +424,32 @@ class EmailIngestionManager:
                 if email_data:
                     folder_emails.append(email_data)
 
-    def _fetch_folder(
-        self,
-        account: EmailAccountConfig,
-        folder: str,
-        client,
-        is_first: bool,
-        max_per_folder: int,
-    ) -> list:
+    def _fetch_folder(self, context: FetchContext) -> list:
         folder_emails = []
-        cleanup_required = not is_first
-        if not is_first:
-            if not client.connect():
+        cleanup_required = not context.is_first
+        if not context.is_first:
+            if not context.client.connect():
                 self.logger.error(
-                    f"Failed to connect for folder {sanitize_for_logging(folder)} "
-                    f"on {redact_email(account.email)}"
+                    f"Failed to connect for folder {sanitize_for_logging(context.folder)} "
+                    f"on {redact_email(context.account.email)}"
                 )
                 return folder_emails
         try:
             self.logger.info(
-                f"Fetching from {redact_email(account.email)}/"
-                f"{sanitize_for_logging(folder)}"
+                f"Fetching from {redact_email(context.account.email)}/"
+                f"{sanitize_for_logging(context.folder)}"
             )
-            raw_emails = client.fetch_unseen_emails(folder, max_per_folder)
+            raw_emails = context.client.fetch_unseen_emails(context.folder, context.max_per_folder)
             if raw_emails:
-                self._parse_emails_parallel(client, raw_emails, folder, folder_emails)
+                self._parse_emails_parallel(context.client, raw_emails, context.folder, folder_emails)
         except Exception as e:
             self.logger.error(
-                f"Error fetching from {sanitize_for_logging(folder)}: {e}"
+                f"Error fetching from {sanitize_for_logging(context.folder)}: {e}"
             )
         finally:
             if cleanup_required:
                 try:
-                    client.disconnect()
+                    context.client.disconnect()
                 except Exception as e:
                     self.logger.warning(f"Error disconnecting client: {e}")
         return folder_emails
@@ -478,14 +481,13 @@ class EmailIngestionManager:
                 client = (
                     persistent_client if is_first else self._create_imap_client(account)
                 )
+                context = FetchContext(
+                    account, folder, client, is_first, max_per_folder
+                )
                 futures.append(
                     folder_executor.submit(
                         self._fetch_folder,
-                        account,
-                        folder,
-                        client,
-                        is_first,
-                        max_per_folder,
+                        context,
                     )
                 )
 
