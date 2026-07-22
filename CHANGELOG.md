@@ -429,6 +429,8 @@
 
 **Merged pull requests:**
 
+- chore\(deps\): bump actions/labeler from 6.2.0 to 7.0.0 [\#1338](https://github.com/abhimehro/email-security-pipeline/pull/1338) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps\): bump ruby/setup-ruby from 1.319.0 to 1.320.0 [\#1337](https://github.com/abhimehro/email-security-pipeline/pull/1337) ([dependabot[bot]](https://github.com/apps/dependabot))
 - ⚡ Bolt: Optimize IP validation in webhook checker [\#1333](https://github.com/abhimehro/email-security-pipeline/pull/1333) ([abhimehro](https://github.com/abhimehro))
 - 🧹 Refactor \_print\_alert\_header to use RenderConfig [\#1329](https://github.com/abhimehro/email-security-pipeline/pull/1329) ([abhimehro](https://github.com/abhimehro))
 - 🧪 Add thread-safety and TTL contains tests for TTLCache [\#1326](https://github.com/abhimehro/email-security-pipeline/pull/1326) ([abhimehro](https://github.com/abhimehro))
