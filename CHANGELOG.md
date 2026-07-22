@@ -429,8 +429,11 @@
 
 **Merged pull requests:**
 
+- chore: Fix flake8 spacing issues [\#1340](https://github.com/abhimehro/email-security-pipeline/pull/1340) ([abhimehro](https://github.com/abhimehro))
+- Jules Daily QA & Agentic Review - Minor Fixes [\#1339](https://github.com/abhimehro/email-security-pipeline/pull/1339) ([abhimehro](https://github.com/abhimehro))
 - chore\(deps\): bump actions/labeler from 6.2.0 to 7.0.0 [\#1338](https://github.com/abhimehro/email-security-pipeline/pull/1338) ([dependabot[bot]](https://github.com/apps/dependabot))
 - chore\(deps\): bump ruby/setup-ruby from 1.319.0 to 1.320.0 [\#1337](https://github.com/abhimehro/email-security-pipeline/pull/1337) ([dependabot[bot]](https://github.com/apps/dependabot))
+- perf\(imap\): list-comp size parse filter \(salvages \#1331\) [\#1334](https://github.com/abhimehro/email-security-pipeline/pull/1334) ([abhimehro](https://github.com/abhimehro))
 - ⚡ Bolt: Optimize IP validation in webhook checker [\#1333](https://github.com/abhimehro/email-security-pipeline/pull/1333) ([abhimehro](https://github.com/abhimehro))
 - 🧹 Refactor \_print\_alert\_header to use RenderConfig [\#1329](https://github.com/abhimehro/email-security-pipeline/pull/1329) ([abhimehro](https://github.com/abhimehro))
 - 🧪 Add thread-safety and TTL contains tests for TTLCache [\#1326](https://github.com/abhimehro/email-security-pipeline/pull/1326) ([abhimehro](https://github.com/abhimehro))
@@ -441,6 +444,7 @@
 - 🧪 \[testing improvement\] Add comprehensive tests for sanitize\_filename [\#1316](https://github.com/abhimehro/email-security-pipeline/pull/1316) ([abhimehro](https://github.com/abhimehro))
 - ⚡ Optimize ReDoS signature checking with compiled regex [\#1315](https://github.com/abhimehro/email-security-pipeline/pull/1315) ([abhimehro](https://github.com/abhimehro))
 - 🔒 Fix path traversal vulnerability via tar symlinks/hardlinks [\#1313](https://github.com/abhimehro/email-security-pipeline/pull/1313) ([abhimehro](https://github.com/abhimehro))
+- 🧹 Refactor \_fetch\_folder to use FetchContext [\#1311](https://github.com/abhimehro/email-security-pipeline/pull/1311) ([abhimehro](https://github.com/abhimehro))
 - 🧪 Add unit tests for Spinner class [\#1310](https://github.com/abhimehro/email-security-pipeline/pull/1310) ([abhimehro](https://github.com/abhimehro))
 - chore\(deps\): bump github/gh-aw/actions/setup-cli from 0.81.6 to 0.82.14 [\#1309](https://github.com/abhimehro/email-security-pipeline/pull/1309) ([dependabot[bot]](https://github.com/apps/dependabot))
 - chore\(deps\): bump github/gh-aw/actions/setup from 0.81.6 to 0.82.14 [\#1308](https://github.com/abhimehro/email-security-pipeline/pull/1308) ([dependabot[bot]](https://github.com/apps/dependabot))
