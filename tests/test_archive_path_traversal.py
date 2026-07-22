@@ -138,8 +138,6 @@ class TestArchivePathTraversal(unittest.TestCase):
         )
         self.assertTrue(result.threat_score >= 5.0)
 
-
-
     def test_tar_symlink_path_traversal(self):
         """Test that symlinks with malicious link targets are flagged."""
 
@@ -166,6 +164,7 @@ class TestArchivePathTraversal(unittest.TestCase):
         self.assertTrue(
             found_warning, "Expected to find a warning about path traversal in symlink"
         )
+
 
 if __name__ == "__main__":
     unittest.main()
