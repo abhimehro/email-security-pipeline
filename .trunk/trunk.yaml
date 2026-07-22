@@ -21,7 +21,7 @@ lint:
     - bandit@1.9.4
     - black@26.5.1
     - checkov@3.3.8
-    - deno@2.9.2
+    - deno@2.9.3
     - dotenv-linter@4.0.0
     - git-diff-check
     - hadolint@2.14.0
