@@ -311,7 +311,6 @@ class EmailIngestionConfig:
     max_parallel_accounts: int = 3
 
 
-
 @dataclass
 class FetchContext:
     account: EmailAccountConfig
