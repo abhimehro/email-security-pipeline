@@ -8,3 +8,6 @@
 ## 2026-07-21 - Fast Sequential Filtering (salvage #1331)
 **Learning:** When evaluating items with a function that both parses and validates, a list comprehension powered by an inner generator expression (e.g., `[p for p in (func(x) for x in data) if p]`) reduces pure loop overhead for simple batch processing without the walrus operator.
 **Action:** Prefer list comprehensions over nested iteration when mapping + filtering a sequence without heavy internal side effects.
+## 2025-07-23 - Fast Sequential Filtering
+**Learning:** When applying a function to a sequence and filtering out truthy results in a tight loop, utilizing list comprehension with `.extend()` is faster in CPython than explicitly using a `for` loop with `.append()`.
+**Action:** When filtering map outputs directly to an existing list, leverage list comprehension combined with `.extend()` to reduce loop overhead in CPython.
