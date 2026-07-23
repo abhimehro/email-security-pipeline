@@ -202,8 +202,13 @@ class SpamAnalyzer:
         text_lower = email_data.body_text.lower()
         html_lower = email_data.body_html.lower() if email_data.body_html else ""
 
-        extracted_urls = self.URL_EXTRACTION_PATTERN.findall(text_lower)
-        if html_lower:
+        # ⚡ BOLT: Fast-path string check avoids regex engine overhead
+        # 'http' is a prerequisite for matching 'https?://', skipping the regex search
+        # provides significant speedup on clean emails.
+        extracted_urls = []
+        if 'http' in text_lower:
+            extracted_urls = self.URL_EXTRACTION_PATTERN.findall(text_lower)
+        if html_lower and 'http' in html_lower:
             extracted_urls.extend(self.URL_EXTRACTION_PATTERN.findall(html_lower))
         link_count = len(extracted_urls)
 
