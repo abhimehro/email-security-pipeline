@@ -433,50 +433,28 @@ def _set_file_permissions(fd: int, config_path: Path) -> None:
     """Set file permissions securely to prevent TOCTOU vulnerabilities."""
     try:
         os.fchmod(fd, 0o600)
-    except (AttributeError, OSError, NotImplementedError):
+    except (AttributeError, OSError, NotImplementedError) as e_primary:
         try:
             # Some platforms support os.chmod(fd, mode)
             os.chmod(fd, 0o600)
-        except (AttributeError, OSError, NotImplementedError, TypeError):
-            # Final fallback to path-based chmod with inode verification.
-            try:
-                stat_fd = os.fstat(fd)
-                config_path_str = str(config_path)
-                stat_path = (
-                    os.lstat(config_path_str)
-                    if hasattr(os, "lstat")
-                    else os.stat(config_path_str)
+        except (AttributeError, NotImplementedError, TypeError):
+            print(
+                "\n✖ "
+                + Colors.colorize(
+                    "CRITICAL: Platform does not support secure file descriptor permissions.", Colors.RED
                 )
-                if (
-                    stat_fd.st_ino == stat_path.st_ino
-                    and stat_fd.st_dev == stat_path.st_dev
-                ):
-                    chmod_kwargs = (
-                        {"follow_symlinks": False}
-                        if os.chmod in getattr(os, "supports_follow_symlinks", set())
-                        else {}
-                    )
-                    os.chmod(config_path_str, 0o600, **chmod_kwargs)
-                else:
-                    print(
-                        "\n✖ "
-                        + Colors.colorize(
-                            "Error: TOCTOU detected on " + str(config_path), Colors.RED
-                        )
-                    )
-                    import sys
-
-                    sys.exit(1)
-            except OSError as exc:
-                print(
-                    "\n✖ "
-                    + Colors.colorize(
-                        "Error setting permissions: " + str(exc), Colors.RED
-                    )
+            )
+            import sys
+            sys.exit(1)
+        except OSError as exc:
+            print(
+                "\n✖ "
+                + Colors.colorize(
+                    "Error setting permissions: " + str(exc), Colors.RED
                 )
-                import sys
-
-                sys.exit(1)
+            )
+            import sys
+            sys.exit(1)
 
 
 def _write_config_file(config_file: str, new_content: str) -> bool:

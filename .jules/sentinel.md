@@ -54,3 +54,8 @@
 **Vulnerability:** The application used `urlparse(url).netloc` to extract the domain for spam checks and configuration validation.
 **Learning:** `netloc` includes the credentials and port (e.g., `user:pass@domain:port`), which bypasses simple string-matching spam filters. An attacker could craft a URL like `http://domain.com:80@malicious.com` or `http://malicious.com:80` and bypass the filter.
 **Prevention:** Always use `urllib.parse.urlparse(url).hostname` instead of `.netloc` to accurately extract the domain name for validation. Ensure you handle `None` values (e.g., `(parsed.hostname or "").lower()`).
+
+## 2026-07-23 - [TOCTOU in fallback file permission logic]
+**Vulnerability:** The `_set_file_permissions` fallback logic for creating config files was vulnerable to Time-of-Check to Time-of-Use (TOCTOU) symlink attacks if the platform didn't support file descriptor based chmod operations and `follow_symlinks` parameter.
+**Learning:** Relying on `st_ino` and `st_dev` comparison between file descriptors and paths can be defeated in highly parallel environments or depending on specific OS characteristics.
+**Prevention:** Remove path-based fallback mechanisms relying on inode/device verification for security-critical files entirely. Fail securely instead if atomic operations (`fchmod` or `chmod` with fd) are unavailable.
