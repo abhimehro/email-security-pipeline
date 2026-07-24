@@ -42,6 +42,7 @@
 
 **Closed issues:**
 
+- Daily QA & Agentic Review — 2026-07-23 [\#1349](https://github.com/abhimehro/email-security-pipeline/issues/1349)
 - Daily QA & Agentic Review — 2026-07-22 [\#1343](https://github.com/abhimehro/email-security-pipeline/issues/1343)
 - Daily QA & Agentic Review — 2026-07-21 [\#1336](https://github.com/abhimehro/email-security-pipeline/issues/1336)
 - Daily QA & Agentic Review — 2026-07-20 [\#1305](https://github.com/abhimehro/email-security-pipeline/issues/1305)
@@ -430,7 +431,15 @@
 
 **Merged pull requests:**
 
+- Agentic QA: Fix E303 too many blank lines in email\_ingestion.py [\#1355](https://github.com/abhimehro/email-security-pipeline/pull/1355) ([abhimehro](https://github.com/abhimehro))
+- ⚡ Bolt: Optimize email address formatting loop [\#1354](https://github.com/abhimehro/email-security-pipeline/pull/1354) ([abhimehro](https://github.com/abhimehro))
+- chore\(deps\): bump github/gh-aw/actions/setup from 0.82.14 to 0.83.1 [\#1352](https://github.com/abhimehro/email-security-pipeline/pull/1352) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps\): bump github/gh-aw/actions/setup-cli from 0.82.14 to 0.83.1 [\#1351](https://github.com/abhimehro/email-security-pipeline/pull/1351) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps\): bump ruby/setup-ruby from 1.320.0 to 1.321.0 [\#1350](https://github.com/abhimehro/email-security-pipeline/pull/1350) ([dependabot[bot]](https://github.com/apps/dependabot))
+- refactor\(parser\): validate\_subject\_length + restore warning assert \(salvages \#1320\) [\#1347](https://github.com/abhimehro/email-security-pipeline/pull/1347) ([abhimehro](https://github.com/abhimehro))
+- perf\(spam\): SPF join fast-path helper \(salvages \#1327\) [\#1346](https://github.com/abhimehro/email-security-pipeline/pull/1346) ([abhimehro](https://github.com/abhimehro))
 - ⚡ Bolt: Optimization - Fast-path string check for URL extraction regex [\#1344](https://github.com/abhimehro/email-security-pipeline/pull/1344) ([abhimehro](https://github.com/abhimehro))
+- perf\(ingestion\): extend+comprehension parse collect \(salvages \#1335/\#1314\) [\#1341](https://github.com/abhimehro/email-security-pipeline/pull/1341) ([abhimehro](https://github.com/abhimehro))
 - chore: Fix flake8 spacing issues [\#1340](https://github.com/abhimehro/email-security-pipeline/pull/1340) ([abhimehro](https://github.com/abhimehro))
 - Jules Daily QA & Agentic Review - Minor Fixes [\#1339](https://github.com/abhimehro/email-security-pipeline/pull/1339) ([abhimehro](https://github.com/abhimehro))
 - chore\(deps\): bump actions/labeler from 6.2.0 to 7.0.0 [\#1338](https://github.com/abhimehro/email-security-pipeline/pull/1338) ([dependabot[bot]](https://github.com/apps/dependabot))
