@@ -16,7 +16,7 @@ from email import encoders
 from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 from src.modules.email_parser import EmailParser, EmailParserConfig
 from src.utils.config import EmailAccountConfig
@@ -582,15 +582,17 @@ class TestHeaderSizeLimits(unittest.TestCase):
 
     def test_oversized_subject_logs_warning(self):
         """Truncating an oversized subject must produce a warning log."""
-        self.parser.parse_email(
-            "hdr-warn",
-            _simple_raw(subject="W" * (MAX_SUBJECT_LENGTH + 100)),
-            "INBOX",
-        )
-        warning_texts = [str(c) for c in self.parser.logger.warning.call_args_list]
+        # Logging moved into validate_subject_length (security_validators).
+        with patch("src.utils.security_validators.logger") as mock_logger:
+            self.parser.parse_email(
+                "hdr-warn",
+                _simple_raw(subject="W" * (MAX_SUBJECT_LENGTH + 100)),
+                "INBOX",
+            )
+            warning_texts = [str(c) for c in mock_logger.warning.call_args_list]
         self.assertTrue(
             any(
-                "truncated" in t.lower() or str(MAX_SUBJECT_LENGTH) in t
+                "truncat" in t.lower() or str(MAX_SUBJECT_LENGTH) in t
                 for t in warning_texts
             ),
             f"Expected a truncation warning, got: {warning_texts}",
