@@ -279,6 +279,7 @@ def _prompt_for_password(provider_name: str) -> str:
     prompt = (
         Colors.colorize("? ", Colors.CYAN)
         + Colors.colorize(f"Enter your {provider_name} app password ", Colors.BOLD)
+        + Colors.colorize("(typing will be hidden) ", Colors.GREY)
         + Colors.colorize("*", Colors.RED)
         + Colors.colorize(": ", Colors.BOLD)
     )
