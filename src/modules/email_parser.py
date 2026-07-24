@@ -625,16 +625,6 @@ class EmailParser:
             return value
 
     @classmethod
-    def _format_address(cls, name: str, address: str) -> str:
-        """
-        Format a single name and address pair.
-        """
-        name_clean = cls._decode_header_value(name)
-        if name_clean and address:
-            return f"{name_clean} <{address}>"
-        return address or name_clean
-
-    @classmethod
     def _format_addresses(cls, header_value: str) -> str:
         """
         Parse and format email addresses from header.
@@ -653,11 +643,17 @@ class EmailParser:
         if not header_value:
             return ""
 
-        addresses = (
-            cls._format_address(name, address)
-            for name, address in getaddresses([header_value])
-        )
-        return ", ".join(filter(None, addresses))
+        # Optimization: Use a list to avoid generator/filter double evaluation overhead.
+        # Inline the formatting logic to skip function call overhead on hot path.
+        addresses = []
+        for name, address in getaddresses([header_value]):
+            name_clean = cls._decode_header_value(name)
+            if name_clean and address:
+                addresses.append(f"{name_clean} <{address}>")
+            elif address or name_clean:
+                addresses.append(address or name_clean)
+
+        return ", ".join(addresses)
 
     @staticmethod
     def _decode_part_payload(part: Message) -> str:

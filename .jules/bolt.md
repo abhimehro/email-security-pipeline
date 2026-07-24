@@ -11,3 +11,6 @@
 ## 2025-07-23 - Fast Sequential Filtering
 **Learning:** When applying a function to a sequence and filtering out truthy results in a tight loop, utilizing list comprehension with `.extend()` is faster in CPython than explicitly using a `for` loop with `.append()`.
 **Action:** When filtering map outputs directly to an existing list, leverage list comprehension combined with `.extend()` to reduce loop overhead in CPython.
+## 2025-02-14 - Python Loop and Function Call Overhead
+**Learning:** In tight loops parsing data (like email headers), the overhead of a helper function call and generator expressions combined with `filter()` is significant. Inlining the helper logic directly into a standard for loop with append avoids function overhead and double evaluation, yielding a measurable speedup without sacrificing readability.
+**Action:** When a simple transformation is applied to every item in a collection in a hot path, prefer a standard for loop with append over mapping to a helper function.
