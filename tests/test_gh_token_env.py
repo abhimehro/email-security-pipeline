@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 import subprocess
 import sys
 import tempfile
@@ -51,8 +52,9 @@ class TestGhTokenEnvParser(unittest.TestCase):
                 parse_env_file(path)
 
     def test_allows_quoted_token_values(self) -> None:
-        with temporary_env_file('GH_TOKEN="ghp_abc-def_123"\n') as path:
-            self.assertEqual(parse_env_file(path), {"GH_TOKEN": "ghp_abc-def_123"})
+        token = f"test_{os.urandom(4).hex()}-def_123"
+        with temporary_env_file(f'GH_TOKEN="{token}"\n') as path:
+            self.assertEqual(parse_env_file(path), {"GH_TOKEN": token})
 
     def test_strips_trailing_inline_comments_from_unquoted_values(self) -> None:
         with temporary_env_file("GH_TOKEN=abc123  # local token\n") as path:
