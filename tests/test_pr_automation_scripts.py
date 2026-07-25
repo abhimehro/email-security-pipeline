@@ -185,35 +185,6 @@ class TestPrAutomationScripts(unittest.TestCase):
         self.assertRegex(calls, r"pr close --repo owner/repo --comment [^\n]+ 123\b")
         self.assertRegex(calls, r"pr close --repo owner/repo --comment [^\n]+ 456\b")
 
-    def test_close_prs_helper_failure_prevents_gh_calls(self) -> None:
-        result, _, calls = _run_with_stub(
-            CLOSE_PRS,
-            ["--repo", "owner/repo", "123"],
-            {"GH_STUB_AUTH_STATUS_FAIL": "1"},
-        )
-        self.assertNotEqual(result.returncode, 0)
-        self.assertNotIn("pr close", calls)
-
-    def test_close_prs_empty_token_prevents_gh_calls(self) -> None:
-        def _install_empty_helper(tmp_path: Path, env: dict[str, str]) -> Path:
-            script_copy = tmp_path / "close_prs.sh"
-            shutil.copy(CLOSE_PRS, script_copy)
-            fake_helper = tmp_path / "load_gh_token.sh"
-            fake_helper.write_text(
-                "#!/usr/bin/env bash\nprintf '\\n'\nexit 0\n",
-                encoding="utf-8",
-            )
-            fake_helper.chmod(0o755)
-            return script_copy
-
-        result, _, calls = _run_with_stub(
-            CLOSE_PRS,
-            ["--repo", "owner/repo", "123"],
-            pre_run=_install_empty_helper,
-        )
-        self.assertNotEqual(result.returncode, 0)
-        self.assertNotIn("pr close", calls)
-
     def test_fix_drafts_reaches_pr_ready_and_merge(self) -> None:
         token = _token("draft")
         result, _, calls = _run_with_stub(
@@ -228,20 +199,33 @@ class TestPrAutomationScripts(unittest.TestCase):
             calls,
         )
 
-    def test_fix_drafts_helper_failure_prevents_gh_calls(self) -> None:
-        result, _, calls = _run_with_stub(
-            FIX_DRAFTS,
-            ["owner/repo", "123"],
-            {"GH_STUB_AUTH_STATUS_FAIL": "1"},
-        )
-        self.assertNotEqual(result.returncode, 0)
-        self.assertNotIn("pr ready", calls)
-        self.assertNotIn("pr merge", calls)
+    def test_helper_failure_prevents_gh_calls(self) -> None:
+        cases = [
+            (CLOSE_PRS, ["--repo", "owner/repo", "123"], ["pr close"]),
+            (FIX_DRAFTS, ["owner/repo", "123"], ["pr ready", "pr merge"]),
+        ]
+        for script, args, forbidden in cases:
+            with self.subTest(script=script.name):
+                result, _, calls = _run_with_stub(
+                    script,
+                    args,
+                    {"GH_STUB_AUTH_STATUS_FAIL": "1"},
+                )
+                self.assertNotEqual(result.returncode, 0)
+                for fragment in forbidden:
+                    self.assertNotIn(fragment, calls)
 
-    def test_fix_drafts_empty_token_prevents_gh_calls(self) -> None:
-        def _install_empty_helper(tmp_path: Path, env: dict[str, str]) -> Path:
-            script_copy = tmp_path / "fix_drafts.sh"
-            shutil.copy(FIX_DRAFTS, script_copy)
+    def test_empty_token_prevents_gh_calls(self) -> None:
+        cases = [
+            (CLOSE_PRS, ["--repo", "owner/repo", "123"], ["pr close"]),
+            (FIX_DRAFTS, ["owner/repo", "123"], ["pr ready", "pr merge"]),
+        ]
+
+        def _install_empty_helper(
+            script: Path, tmp_path: Path, env: dict[str, str]
+        ) -> Path:
+            script_copy = tmp_path / script.name
+            shutil.copy(script, script_copy)
             fake_helper = tmp_path / "load_gh_token.sh"
             fake_helper.write_text(
                 "#!/usr/bin/env bash\nprintf '\\n'\nexit 0\n",
@@ -250,14 +234,16 @@ class TestPrAutomationScripts(unittest.TestCase):
             fake_helper.chmod(0o755)
             return script_copy
 
-        result, _, calls = _run_with_stub(
-            FIX_DRAFTS,
-            ["owner/repo", "123"],
-            pre_run=_install_empty_helper,
-        )
-        self.assertNotEqual(result.returncode, 0)
-        self.assertNotIn("pr ready", calls)
-        self.assertNotIn("pr merge", calls)
+        for script, args, forbidden in cases:
+            with self.subTest(script=script.name):
+                result, _, calls = _run_with_stub(
+                    script,
+                    args,
+                    pre_run=lambda p, e, s=script: _install_empty_helper(s, p, e),
+                )
+                self.assertNotEqual(result.returncode, 0)
+                for fragment in forbidden:
+                    self.assertNotIn(fragment, calls)
 
 
 if __name__ == "__main__":
