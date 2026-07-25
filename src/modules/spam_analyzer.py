@@ -491,11 +491,10 @@ class SpamAnalyzer:
         # ⚡ BOLT: Optimization - Fast path check for failure keywords on joined results
         # This avoids loop overhead and string lowercasing for the vast majority
         # of clean emails that have passing authentication results.
+        # Combined conditional uses tuple iteration and any() to avoid 'Complex Conditional'
+        # while keeping the fast path.
         joined_results = " ".join(auth_results).lower()
-        if "fail" not in joined_results and "permerror" not in joined_results and "neutral" not in joined_results:
-            # We don't have to evaluate the headers individually
-            pass
-        else:
+        if any(kw in joined_results for kw in ("fail", "permerror", "neutral")):
             for result in auth_results:
                 result_lower = result.lower()
 
