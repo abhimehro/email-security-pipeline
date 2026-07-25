@@ -41,7 +41,7 @@ class TestGhTokenEnvParser(unittest.TestCase):
             self.assertEqual(parse_env_file(path), {"GH_TOKEN": "abc123"})
 
     def test_rejects_command_injection_line(self) -> None:
-        with temporary_env_file('GH_TOKEN=safe\n$(touch /tmp/pwned)\n') as path:
+        with temporary_env_file("GH_TOKEN=safe\n$(touch /tmp/pwned)\n") as path:
             with self.assertRaises(EnvParseError):
                 parse_env_file(path)
 
@@ -52,9 +52,7 @@ class TestGhTokenEnvParser(unittest.TestCase):
 
     def test_allows_quoted_token_values(self) -> None:
         with temporary_env_file('GH_TOKEN="ghp_abc-def_123"\n') as path:
-            self.assertEqual(
-                parse_env_file(path), {"GH_TOKEN": "ghp_abc-def_123"}
-            )
+            self.assertEqual(parse_env_file(path), {"GH_TOKEN": "ghp_abc-def_123"})
 
     def test_strips_trailing_inline_comments_from_unquoted_values(self) -> None:
         with temporary_env_file("GH_TOKEN=abc123  # local token\n") as path:
@@ -91,13 +89,18 @@ class TestAutomationScripts(unittest.TestCase):
                 content = script.read_text(encoding="utf-8")
                 self.assertNotRegex(content, r"(?m)^\s*source\s+.*\.env")
                 self.assertNotRegex(content, r"(?m)^\s*\.\s+.*\.env")
-                self.assertIn("load_gh_token", content)
+                self.assertNotRegex(content, r"(?m)^\s*source\s+.*load_gh_token\.sh")
+                self.assertNotRegex(content, r"(?m)^\s*\.\s+.*load_gh_token\.sh")
+                self.assertIn("load_gh_token.sh", content)
 
-    def test_shared_loader_avoids_direct_env_sourcing(self) -> None:
+    def test_shared_loader_avoids_direct_env_sourcing_and_has_source_guard(
+        self,
+    ) -> None:
         loader = SCRIPTS / "load_gh_token.sh"
         content = loader.read_text(encoding="utf-8")
         self.assertNotRegex(content, r"(?m)^\s*source\s+.*\.env")
         self.assertIn("gh_token_env.py", content)
+        self.assertIn("BASH_SOURCE[0]", content)
 
 
 if __name__ == "__main__":
