@@ -8,7 +8,7 @@ import subprocess  # nosec: B404
 import tempfile
 import unittest
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPTS = ROOT / "scripts"
@@ -69,6 +69,40 @@ def _base_env(tmp: Path) -> dict[str, str]:
     return env
 
 
+def _stubbed_env(tmp: Path) -> dict[str, str]:
+    """Return an isolated environment with a stubbed gh on PATH."""
+    bin_dir = tmp / "bin"
+    bin_dir.mkdir()
+    log = tmp / "gh_calls.log"
+    _write_gh_stub(bin_dir, log)
+    env = _base_env(tmp)
+    env["PATH"] = f"{bin_dir}:{env.get('PATH', '')}"
+    return env
+
+
+def _run_with_stub(
+    script: Path,
+    args: list[str],
+    env_overrides: dict[str, str] | None = None,
+    pre_run: Callable[[Path, dict[str, str]], Path | None] | None = None,
+) -> tuple[subprocess.CompletedProcess[str], Path, str]:
+    """Run a script with an isolated HOME, stubbed gh, and optional pre-run setup."""
+    with tempfile.TemporaryDirectory() as tmp:
+        tmp_path = Path(tmp)
+        env = _stubbed_env(tmp_path)
+        if env_overrides:
+            env.update(env_overrides)
+        actual_script = script
+        if pre_run:
+            maybe_script = pre_run(tmp_path, env)
+            if maybe_script is not None:
+                actual_script = maybe_script
+        result = _run(["bash", str(actual_script), *args], cwd=ROOT, env=env)
+        log = tmp_path / "gh_calls.log"
+        calls = log.read_text(encoding="utf-8") if log.exists() else ""
+        return result, tmp_path, calls
+
+
 class TestLoadGhToken(unittest.TestCase):
     def test_prints_existing_env_token(self) -> None:
         token = _token("env")
@@ -82,54 +116,43 @@ class TestLoadGhToken(unittest.TestCase):
 
     def test_gh_auth_token_fallback(self) -> None:
         token = _token("ghp")
-        with tempfile.TemporaryDirectory() as tmp:
-            tmp_path = Path(tmp)
-            bin_dir = tmp_path / "bin"
-            bin_dir.mkdir()
-            log = tmp_path / "gh_calls.log"
-            _write_gh_stub(bin_dir, log)
-            env = _base_env(tmp_path)
-            env["GH_STUB_AUTH_TOKEN"] = token
-            env["PATH"] = f"{bin_dir}:{env.get('PATH', '')}"
-            result = _run(["bash", str(LOAD_GH_TOKEN)], cwd=ROOT, env=env)
-            self.assertEqual(result.returncode, 0)
-            self.assertEqual(result.stdout, f"{token}\n")
-            self.assertEqual(result.stderr, "")
+        result, _, _ = _run_with_stub(
+            LOAD_GH_TOKEN,
+            [],
+            {"GH_STUB_AUTH_TOKEN": token},
+        )
+        self.assertEqual(result.returncode, 0)
+        self.assertEqual(result.stdout, f"{token}\n")
+        self.assertEqual(result.stderr, "")
 
     def test_env_file_fallback(self) -> None:
         token = _token("file")
-        with tempfile.TemporaryDirectory() as tmp:
-            tmp_path = Path(tmp)
-            bin_dir = tmp_path / "bin"
-            bin_dir.mkdir()
-            log = tmp_path / "gh_calls.log"
-            _write_gh_stub(bin_dir, log)
+
+        def _write_env_file(tmp_path: Path, env: dict[str, str]) -> None:
             env_file = tmp_path / "GH_TOKEN.env"
             env_file.write_text(f"GH_TOKEN={token}\n", encoding="utf-8")
             env_file.chmod(0o600)
-            env = _base_env(tmp_path)
             env["GH_TOKEN_ENV_FILE"] = str(env_file)
-            env["GH_STUB_AUTH_STATUS_FAIL"] = "1"
-            env["PATH"] = f"{bin_dir}:{env.get('PATH', '')}"
-            result = _run(["bash", str(LOAD_GH_TOKEN)], cwd=ROOT, env=env)
-            self.assertEqual(result.returncode, 0)
-            self.assertEqual(result.stdout, f"{token}\n")
-            self.assertEqual(result.stderr, "")
+
+        result, _, _ = _run_with_stub(
+            LOAD_GH_TOKEN,
+            [],
+            {"GH_STUB_AUTH_STATUS_FAIL": "1"},
+            pre_run=_write_env_file,
+        )
+        self.assertEqual(result.returncode, 0)
+        self.assertEqual(result.stdout, f"{token}\n")
+        self.assertEqual(result.stderr, "")
 
     def test_fails_when_no_token_resolved(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
-            tmp_path = Path(tmp)
-            bin_dir = tmp_path / "bin"
-            bin_dir.mkdir()
-            log = tmp_path / "gh_calls.log"
-            _write_gh_stub(bin_dir, log)
-            env = _base_env(tmp_path)
-            env["GH_STUB_AUTH_STATUS_FAIL"] = "1"
-            env["PATH"] = f"{bin_dir}:{env.get('PATH', '')}"
-            result = _run(["bash", str(LOAD_GH_TOKEN)], cwd=ROOT, env=env)
-            self.assertNotEqual(result.returncode, 0)
-            self.assertEqual(result.stdout, "")
-            self.assertIn("GH_TOKEN is not configured", result.stderr)
+        result, _, _ = _run_with_stub(
+            LOAD_GH_TOKEN,
+            [],
+            {"GH_STUB_AUTH_STATUS_FAIL": "1"},
+        )
+        self.assertNotEqual(result.returncode, 0)
+        self.assertEqual(result.stdout, "")
+        self.assertIn("GH_TOKEN is not configured", result.stderr)
 
     def test_fails_loudly_when_sourced(self) -> None:
         result = _run(
@@ -142,15 +165,6 @@ class TestLoadGhToken(unittest.TestCase):
 
 
 class TestPrAutomationScripts(unittest.TestCase):
-    def _stubbed_env(self, tmp: Path) -> dict[str, str]:
-        bin_dir = tmp / "bin"
-        bin_dir.mkdir()
-        log = tmp / "gh_calls.log"
-        _write_gh_stub(bin_dir, log)
-        env = _base_env(tmp)
-        env["PATH"] = f"{bin_dir}:{env.get('PATH', '')}"
-        return env
-
     def test_callers_do_not_source_the_helper(self) -> None:
         for script in (CLOSE_PRS, FIX_DRAFTS):
             with self.subTest(script=script.name):
@@ -161,48 +175,27 @@ class TestPrAutomationScripts(unittest.TestCase):
 
     def test_close_prs_reaches_pr_close(self) -> None:
         token = _token("close")
-        with tempfile.TemporaryDirectory() as tmp:
-            tmp_path = Path(tmp)
-            env = self._stubbed_env(tmp_path)
-            env["GH_TOKEN"] = token
-            result = _run(
-                ["bash", str(CLOSE_PRS), "--repo", "owner/repo", "123", "456"],
-                cwd=ROOT,
-                env=env,
-            )
-            self.assertEqual(result.returncode, 0, result.stderr)
-            log = tmp_path / "gh_calls.log"
-            self.assertTrue(log.exists())
-            calls = log.read_text(encoding="utf-8")
-            self.assertEqual(calls.count("pr close "), 2)
-            self.assertRegex(
-                calls, r"pr close --repo owner/repo --comment [^\n]+ 123\b"
-            )
-            self.assertRegex(
-                calls, r"pr close --repo owner/repo --comment [^\n]+ 456\b"
-            )
+        result, _, calls = _run_with_stub(
+            CLOSE_PRS,
+            ["--repo", "owner/repo", "123", "456"],
+            {"GH_TOKEN": token},
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(calls.count("pr close "), 2)
+        self.assertRegex(calls, r"pr close --repo owner/repo --comment [^\n]+ 123\b")
+        self.assertRegex(calls, r"pr close --repo owner/repo --comment [^\n]+ 456\b")
 
     def test_close_prs_helper_failure_prevents_gh_calls(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
-            tmp_path = Path(tmp)
-            env = self._stubbed_env(tmp_path)
-            env["GH_STUB_AUTH_STATUS_FAIL"] = "1"
-            result = _run(
-                ["bash", str(CLOSE_PRS), "--repo", "owner/repo", "123"],
-                cwd=ROOT,
-                env=env,
-            )
-            self.assertNotEqual(result.returncode, 0)
-            log = tmp_path / "gh_calls.log"
-            if log.exists():
-                calls = log.read_text(encoding="utf-8")
-                self.assertNotIn("pr close", calls)
+        result, _, calls = _run_with_stub(
+            CLOSE_PRS,
+            ["--repo", "owner/repo", "123"],
+            {"GH_STUB_AUTH_STATUS_FAIL": "1"},
+        )
+        self.assertNotEqual(result.returncode, 0)
+        self.assertNotIn("pr close", calls)
 
     def test_close_prs_empty_token_prevents_gh_calls(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
-            tmp_path = Path(tmp)
-            # Copy close_prs.sh into a temp dir and shadow its helper with an
-            # executable that returns an empty token successfully.
+        def _install_empty_helper(tmp_path: Path, env: dict[str, str]) -> Path:
             script_copy = tmp_path / "close_prs.sh"
             shutil.copy(CLOSE_PRS, script_copy)
             fake_helper = tmp_path / "load_gh_token.sh"
@@ -211,58 +204,42 @@ class TestPrAutomationScripts(unittest.TestCase):
                 encoding="utf-8",
             )
             fake_helper.chmod(0o755)
-            env = self._stubbed_env(tmp_path)
-            result = _run(
-                ["bash", str(script_copy), "--repo", "owner/repo", "123"],
-                cwd=ROOT,
-                env=env,
-            )
-            self.assertNotEqual(result.returncode, 0)
-            log = tmp_path / "gh_calls.log"
-            if log.exists():
-                self.assertNotIn("pr close", log.read_text(encoding="utf-8"))
+            return script_copy
+
+        result, _, calls = _run_with_stub(
+            CLOSE_PRS,
+            ["--repo", "owner/repo", "123"],
+            pre_run=_install_empty_helper,
+        )
+        self.assertNotEqual(result.returncode, 0)
+        self.assertNotIn("pr close", calls)
 
     def test_fix_drafts_reaches_pr_ready_and_merge(self) -> None:
         token = _token("draft")
-        with tempfile.TemporaryDirectory() as tmp:
-            tmp_path = Path(tmp)
-            env = self._stubbed_env(tmp_path)
-            env["GH_TOKEN"] = token
-            result = _run(
-                ["bash", str(FIX_DRAFTS), "owner/repo", "123"],
-                cwd=ROOT,
-                env=env,
-            )
-            self.assertEqual(result.returncode, 0, result.stderr)
-            log = tmp_path / "gh_calls.log"
-            self.assertTrue(log.exists())
-            calls = log.read_text(encoding="utf-8")
-            self.assertIn("pr ready 123 --repo owner/repo", calls)
-            self.assertIn(
-                "pr merge 123 --repo owner/repo --squash --delete-branch",
-                calls,
-            )
+        result, _, calls = _run_with_stub(
+            FIX_DRAFTS,
+            ["owner/repo", "123"],
+            {"GH_TOKEN": token},
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("pr ready 123 --repo owner/repo", calls)
+        self.assertIn(
+            "pr merge 123 --repo owner/repo --squash --delete-branch",
+            calls,
+        )
 
     def test_fix_drafts_helper_failure_prevents_gh_calls(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
-            tmp_path = Path(tmp)
-            env = self._stubbed_env(tmp_path)
-            env["GH_STUB_AUTH_STATUS_FAIL"] = "1"
-            result = _run(
-                ["bash", str(FIX_DRAFTS), "owner/repo", "123"],
-                cwd=ROOT,
-                env=env,
-            )
-            self.assertNotEqual(result.returncode, 0)
-            log = tmp_path / "gh_calls.log"
-            if log.exists():
-                calls = log.read_text(encoding="utf-8")
-                self.assertNotIn("pr ready", calls)
-                self.assertNotIn("pr merge", calls)
+        result, _, calls = _run_with_stub(
+            FIX_DRAFTS,
+            ["owner/repo", "123"],
+            {"GH_STUB_AUTH_STATUS_FAIL": "1"},
+        )
+        self.assertNotEqual(result.returncode, 0)
+        self.assertNotIn("pr ready", calls)
+        self.assertNotIn("pr merge", calls)
 
     def test_fix_drafts_empty_token_prevents_gh_calls(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
-            tmp_path = Path(tmp)
+        def _install_empty_helper(tmp_path: Path, env: dict[str, str]) -> Path:
             script_copy = tmp_path / "fix_drafts.sh"
             shutil.copy(FIX_DRAFTS, script_copy)
             fake_helper = tmp_path / "load_gh_token.sh"
@@ -271,17 +248,16 @@ class TestPrAutomationScripts(unittest.TestCase):
                 encoding="utf-8",
             )
             fake_helper.chmod(0o755)
-            env = self._stubbed_env(tmp_path)
-            result = _run(
-                ["bash", str(script_copy), "owner/repo", "123"],
-                cwd=ROOT,
-                env=env,
-            )
-            self.assertNotEqual(result.returncode, 0)
-            log = tmp_path / "gh_calls.log"
-            if log.exists():
-                self.assertNotIn("pr ready", log.read_text(encoding="utf-8"))
-                self.assertNotIn("pr merge", log.read_text(encoding="utf-8"))
+            return script_copy
+
+        result, _, calls = _run_with_stub(
+            FIX_DRAFTS,
+            ["owner/repo", "123"],
+            pre_run=_install_empty_helper,
+        )
+        self.assertNotEqual(result.returncode, 0)
+        self.assertNotIn("pr ready", calls)
+        self.assertNotIn("pr merge", calls)
 
 
 if __name__ == "__main__":
