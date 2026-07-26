@@ -430,6 +430,39 @@ def _validate_config_path(config_file: str) -> Path | None:
     return (Path.cwd() / candidate_name).resolve()
 
 
+def _exit_with_error(message: str) -> None:
+    """Helper to print a colored error message and exit."""
+    print("\n✖ " + Colors.colorize(message, Colors.RED))
+    import sys
+    sys.exit(1)
+
+
+def _set_permissions_fallback(fd: int, config_path: Path) -> None:
+    """Fallback logic for setting permissions when fchmod fails."""
+    try:
+        stat_fd = os.fstat(fd)
+        config_path_str = str(config_path)
+        stat_path = (
+            os.lstat(config_path_str)
+            if hasattr(os, "lstat")
+            else os.stat(config_path_str)
+        )
+        if stat_fd.st_ino != stat_path.st_ino or stat_fd.st_dev != stat_path.st_dev:
+            _exit_with_error("Error: TOCTOU detected on " + str(config_path))
+
+        # We can't rely on os.chmod(path) without follow_symlinks=False.
+        # Since we have the fd, we should try os.chmod(fd, mode) if the platform supports it,
+        # or error out to avoid a TOCTOU vulnerability.
+        if os.chmod in getattr(os, "supports_follow_symlinks", set()):
+            os.chmod(config_path_str, 0o600, follow_symlinks=False)
+        elif os.chmod in getattr(os, "supports_fd", set()):
+            os.chmod(fd, 0o600)
+        else:
+            _exit_with_error("Error: Cannot securely set file permissions on this platform.")
+    except OSError as exc:
+        _exit_with_error("Error setting permissions: " + str(exc))
+
+
 def _set_file_permissions(fd: int, config_path: Path) -> None:
     """Set file permissions securely to prevent TOCTOU vulnerabilities."""
     try:
@@ -438,24 +471,9 @@ def _set_file_permissions(fd: int, config_path: Path) -> None:
         try:
             # Some platforms support os.chmod(fd, mode)
             os.chmod(fd, 0o600)
-        except (AttributeError, NotImplementedError, TypeError):
-            print(
-                "\n✖ "
-                + Colors.colorize(
-                    "CRITICAL: Platform does not support secure file descriptor permissions.", Colors.RED
-                )
-            )
-            import sys
-            sys.exit(1)
-        except OSError as exc:
-            print(
-                "\n✖ "
-                + Colors.colorize(
-                    "Error setting permissions: " + str(exc), Colors.RED
-                )
-            )
-            import sys
-            sys.exit(1)
+        except (AttributeError, OSError, NotImplementedError, TypeError):
+            # Final fallback to path-based chmod with inode verification.
+            _set_permissions_fallback(fd, config_path)
 
 
 def _write_config_file(config_file: str, new_content: str) -> bool:
