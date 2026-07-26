@@ -18,6 +18,10 @@ from ..utils.threat_scoring import calculate_risk_level
 from .email_data import EmailData
 
 
+# Compiled patterns for authentication result checks
+DKIM_AUTH_PATTERN = re.compile(r"dkim=(?:fail|permerror|neutral)")
+SPF_AUTH_PATTERN = re.compile(r"spf=(?:fail|permerror)")
+
 @dataclass
 class SpamAnalysisResult:
     """Result of spam analysis."""

@@ -1,25 +1,50 @@
 #!/usr/bin/env bash
-# SECURITY: Shared helper for loading GH_TOKEN without sourcing external env files.
-# CAUTION: Only source this trusted helper — never source GH_TOKEN.env directly.
+# SECURITY: This helper must be executed, not sourced.
+# It prints a resolved GH_TOKEN to stdout and exits 0, or prints an error to
+# stderr and exits 1. Callers should capture it with:
+# GH_TOKEN="$(bash "${SCRIPT_DIR}/load_gh_token.sh")"
 
-load_gh_token() {
-  local script_dir="${1:?script directory is required}"
-  local repo_root
-  repo_root="$(cd "${script_dir}/.." && pwd)"
+# Guard must run before set -e so a sourced return 1 does not kill the caller.
+if [[ ${BASH_SOURCE[0]} != "$0" ]]; then
+	echo "error: load_gh_token.sh must be executed, not sourced." >&2
+	# shellcheck disable=SC2016
+	printf ' use: GH_TOKEN="$(bash %q)"\n' "${BASH_SOURCE[0]}" >&2
+	# shellcheck disable=SC2317
+	return 1 2>/dev/null || exit 1
+fi
 
-  local helper="${script_dir}/gh_token_env.py"
-  local default_env_file="${repo_root}/GH_TOKEN.env"
-  local env_file="${GH_TOKEN_ENV_FILE:-${default_env_file}}"
+set -euo pipefail
 
-  if [[ -n "${GH_TOKEN:-}" ]]; then
-    return 0
-  fi
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
-  if [[ ! -f "${env_file}" ]]; then
-    echo "error: GH_TOKEN is unset and env file not found: ${env_file}" >&2
-    return 1
-  fi
+HELPER="${SCRIPT_DIR}/gh_token_env.py"
+DEFAULT_ENV_FILE="${REPO_ROOT}/GH_TOKEN.env"
+ENV_FILE="${GH_TOKEN_ENV_FILE:-${DEFAULT_ENV_FILE}}"
 
-  GH_TOKEN="$(python3 "${helper}" --get GH_TOKEN "${env_file}")"
-  export GH_TOKEN
-}
+if [[ -n ${GH_TOKEN-} ]]; then
+	printf '%s\n' "${GH_TOKEN}"
+	exit 0
+fi
+
+if command -v gh >/dev/null 2>&1 && gh auth status -h github.com >/dev/null 2>&1; then
+	token="$(gh auth token 2>/dev/null || true)"
+	token="${token//[[:space:]]/}"
+	if [[ -n ${token} ]]; then
+		printf '%s\n' "${token}"
+		exit 0
+	fi
+fi
+
+if [[ -f ${ENV_FILE} ]]; then
+	if token="$(python3 "${HELPER}" --get GH_TOKEN "${ENV_FILE}")"; then
+		if [[ -n ${token} ]]; then
+			printf '%s\n' "${token}"
+			exit 0
+		fi
+	fi
+fi
+
+echo "error: GH_TOKEN is not configured." >&2
+echo "Export GH_TOKEN, run 'gh auth login', or create a GH_TOKEN.env file." >&2
+exit 1
