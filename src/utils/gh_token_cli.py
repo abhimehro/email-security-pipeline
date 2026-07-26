@@ -31,13 +31,13 @@ def write_requested_variable(name: str, variables: dict[str, str], env_file: Pat
 
 
 def write_exports(variables: dict[str, str]) -> None:
-    for key, value in variables.items():
-        sys.stdout.write(f"export {key}={_shell_escape(value)}\n")
+    if variables:
+        sys.stdout.write("".join([f"export {key}={_shell_escape(value)}\n" for key, value in variables.items()]))
 
 
 def write_assignments(variables: dict[str, str]) -> None:
-    for key, value in variables.items():
-        sys.stdout.write(f"{key}={value}\n")
+    if variables:
+        sys.stdout.write("".join([f"{key}={value}\n" for key, value in variables.items()]))
 
 
 def main(argv: list[str] | None = None) -> int:

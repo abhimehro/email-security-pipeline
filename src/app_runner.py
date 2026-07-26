@@ -103,8 +103,7 @@ class AppRunner:
         """
         Set secure permissions (0o600) on a file descriptor.
 
-        Uses fchmod if available (preferred), falls back to chmod with fd,
-        then to path-based chmod with TOCTOU detection.
+        Uses fchmod if available (preferred), falls back to chmod with fd.
         Exits on security failures.
         """
         SECURE_MODE = 0o600
@@ -116,32 +115,16 @@ class AppRunner:
         except AttributeError:
             pass  # fchmod not available on this platform
 
-        # Fallback 1: chmod with file descriptor
+        # Fallback: chmod with file descriptor
         try:
             os.chmod(fd, SECURE_MODE)
             return
         except (AttributeError, TypeError):
-            pass  # chmod doesn't support fd on this platform
-
-        # Fallback 2: path-based chmod with TOCTOU detection
-        try:
-            # Get file stats via fd
-            fd_stat = os.fstat(fd)
-
-            # Get file stats via path
-            path_stat = os.lstat(self.config_file)
-
-            # TOCTOU detection: verify inode and device match
-            if fd_stat.st_ino != path_stat.st_ino or fd_stat.st_dev != path_stat.st_dev:
-                print(
-                    "✖ " + Colors.colorize("CRITICAL: TOCTOU detected during permission setting. Aborting.", Colors.RED)
-                )
-                self._print_fallback_instructions()
-                sys.exit(1)
-
-            # Use follow_symlinks=False to prevent symlink attacks
-            os.chmod(self.config_file, SECURE_MODE, follow_symlinks=False)
-            return
+            print(
+                "✖ " + Colors.colorize("CRITICAL: Platform does not support secure file descriptor permissions.", Colors.RED)
+            )
+            self._print_fallback_instructions()
+            sys.exit(1)
         except OSError as e:
             print(
                 "✖ " + Colors.colorize(f"CRITICAL: Failed to set secure permissions: {e}", Colors.RED)

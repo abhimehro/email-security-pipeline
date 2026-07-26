@@ -42,6 +42,9 @@
 
 **Closed issues:**
 
+- Daily QA & Agentic Review — 2026-07-25 [\#1361](https://github.com/abhimehro/email-security-pipeline/issues/1361)
+- email-security-pipeline close\_prs.sh still sources token helper [\#1358](https://github.com/abhimehro/email-security-pipeline/issues/1358)
+- Daily QA & Agentic Review — 2026-07-24 [\#1357](https://github.com/abhimehro/email-security-pipeline/issues/1357)
 - Daily QA & Agentic Review — 2026-07-23 [\#1349](https://github.com/abhimehro/email-security-pipeline/issues/1349)
 - Daily QA & Agentic Review — 2026-07-22 [\#1343](https://github.com/abhimehro/email-security-pipeline/issues/1343)
 - Daily QA & Agentic Review — 2026-07-21 [\#1336](https://github.com/abhimehro/email-security-pipeline/issues/1336)
@@ -431,11 +434,15 @@
 
 **Merged pull requests:**
 
+- fix\(security\): ABHI-1561 stop sourcing load\_gh\_token.sh [\#1363](https://github.com/abhimehro/email-security-pipeline/pull/1363) ([abhimehro](https://github.com/abhimehro))
+- 🎨 Palette: Add typing hint to password prompt [\#1356](https://github.com/abhimehro/email-security-pipeline/pull/1356) ([abhimehro](https://github.com/abhimehro))
 - Agentic QA: Fix E303 too many blank lines in email\_ingestion.py [\#1355](https://github.com/abhimehro/email-security-pipeline/pull/1355) ([abhimehro](https://github.com/abhimehro))
 - ⚡ Bolt: Optimize email address formatting loop [\#1354](https://github.com/abhimehro/email-security-pipeline/pull/1354) ([abhimehro](https://github.com/abhimehro))
+- 🛡️ Sentinel: \[CRITICAL\] Fix TOCTOU vulnerability in file permissions fallback [\#1353](https://github.com/abhimehro/email-security-pipeline/pull/1353) ([abhimehro](https://github.com/abhimehro))
 - chore\(deps\): bump github/gh-aw/actions/setup from 0.82.14 to 0.83.1 [\#1352](https://github.com/abhimehro/email-security-pipeline/pull/1352) ([dependabot[bot]](https://github.com/apps/dependabot))
 - chore\(deps\): bump github/gh-aw/actions/setup-cli from 0.82.14 to 0.83.1 [\#1351](https://github.com/abhimehro/email-security-pipeline/pull/1351) ([dependabot[bot]](https://github.com/apps/dependabot))
 - chore\(deps\): bump ruby/setup-ruby from 1.320.0 to 1.321.0 [\#1350](https://github.com/abhimehro/email-security-pipeline/pull/1350) ([dependabot[bot]](https://github.com/apps/dependabot))
+- docs\(agents\): remove stale \_get\_terminal\_width bug note [\#1348](https://github.com/abhimehro/email-security-pipeline/pull/1348) ([cursor[bot]](https://github.com/apps/cursor))
 - refactor\(parser\): validate\_subject\_length + restore warning assert \(salvages \#1320\) [\#1347](https://github.com/abhimehro/email-security-pipeline/pull/1347) ([abhimehro](https://github.com/abhimehro))
 - perf\(spam\): SPF join fast-path helper \(salvages \#1327\) [\#1346](https://github.com/abhimehro/email-security-pipeline/pull/1346) ([abhimehro](https://github.com/abhimehro))
 - ⚡ Bolt: Optimization - Fast-path string check for URL extraction regex [\#1344](https://github.com/abhimehro/email-security-pipeline/pull/1344) ([abhimehro](https://github.com/abhimehro))
@@ -449,8 +456,10 @@
 - 🧹 Refactor \_print\_alert\_header to use RenderConfig [\#1329](https://github.com/abhimehro/email-security-pipeline/pull/1329) ([abhimehro](https://github.com/abhimehro))
 - 🧪 Add thread-safety and TTL contains tests for TTLCache [\#1326](https://github.com/abhimehro/email-security-pipeline/pull/1326) ([abhimehro](https://github.com/abhimehro))
 - 🧹 Code Health: Remove unused reset method from Metrics class [\#1325](https://github.com/abhimehro/email-security-pipeline/pull/1325) ([abhimehro](https://github.com/abhimehro))
+- ⚡ Bolt: Optimize \_check\_auth\_results string checks [\#1324](https://github.com/abhimehro/email-security-pipeline/pull/1324) ([abhimehro](https://github.com/abhimehro))
 - 🧪 Add keyword and integer tests for calculate\_risk\_level [\#1323](https://github.com/abhimehro/email-security-pipeline/pull/1323) ([abhimehro](https://github.com/abhimehro))
 - 🧹 \[Code Health\] Refactor \_extract\_frames\_sampled to use options dataclass [\#1322](https://github.com/abhimehro/email-security-pipeline/pull/1322) ([abhimehro](https://github.com/abhimehro))
+- ⚡ Bolt: Optimize sequential writes in gh\_token\_cli.py [\#1319](https://github.com/abhimehro/email-security-pipeline/pull/1319) ([abhimehro](https://github.com/abhimehro))
 - 🧪 test: add coverage for CountdownTimer tty loops and exception handling [\#1317](https://github.com/abhimehro/email-security-pipeline/pull/1317) ([abhimehro](https://github.com/abhimehro))
 - 🧪 \[testing improvement\] Add comprehensive tests for sanitize\_filename [\#1316](https://github.com/abhimehro/email-security-pipeline/pull/1316) ([abhimehro](https://github.com/abhimehro))
 - ⚡ Optimize ReDoS signature checking with compiled regex [\#1315](https://github.com/abhimehro/email-security-pipeline/pull/1315) ([abhimehro](https://github.com/abhimehro))
