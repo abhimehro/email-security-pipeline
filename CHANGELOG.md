@@ -435,6 +435,7 @@
 **Merged pull requests:**
 
 - fix\(security\): ABHI-1561 stop sourcing load\_gh\_token.sh [\#1363](https://github.com/abhimehro/email-security-pipeline/pull/1363) ([abhimehro](https://github.com/abhimehro))
+- Jules Daily QA & Agentic Review: Repository Healthy [\#1360](https://github.com/abhimehro/email-security-pipeline/pull/1360) ([abhimehro](https://github.com/abhimehro))
 - 🎨 Palette: Add typing hint to password prompt [\#1356](https://github.com/abhimehro/email-security-pipeline/pull/1356) ([abhimehro](https://github.com/abhimehro))
 - Agentic QA: Fix E303 too many blank lines in email\_ingestion.py [\#1355](https://github.com/abhimehro/email-security-pipeline/pull/1355) ([abhimehro](https://github.com/abhimehro))
 - ⚡ Bolt: Optimize email address formatting loop [\#1354](https://github.com/abhimehro/email-security-pipeline/pull/1354) ([abhimehro](https://github.com/abhimehro))
@@ -446,6 +447,7 @@
 - refactor\(parser\): validate\_subject\_length + restore warning assert \(salvages \#1320\) [\#1347](https://github.com/abhimehro/email-security-pipeline/pull/1347) ([abhimehro](https://github.com/abhimehro))
 - perf\(spam\): SPF join fast-path helper \(salvages \#1327\) [\#1346](https://github.com/abhimehro/email-security-pipeline/pull/1346) ([abhimehro](https://github.com/abhimehro))
 - ⚡ Bolt: Optimization - Fast-path string check for URL extraction regex [\#1344](https://github.com/abhimehro/email-security-pipeline/pull/1344) ([abhimehro](https://github.com/abhimehro))
+- refactor\(ingestion\): IMAPClient takes EmailIngestionConfig \(salvages \#1330\) [\#1342](https://github.com/abhimehro/email-security-pipeline/pull/1342) ([abhimehro](https://github.com/abhimehro))
 - perf\(ingestion\): extend+comprehension parse collect \(salvages \#1335/\#1314\) [\#1341](https://github.com/abhimehro/email-security-pipeline/pull/1341) ([abhimehro](https://github.com/abhimehro))
 - chore: Fix flake8 spacing issues [\#1340](https://github.com/abhimehro/email-security-pipeline/pull/1340) ([abhimehro](https://github.com/abhimehro))
 - Jules Daily QA & Agentic Review - Minor Fixes [\#1339](https://github.com/abhimehro/email-security-pipeline/pull/1339) ([abhimehro](https://github.com/abhimehro))
@@ -454,6 +456,7 @@
 - perf\(imap\): list-comp size parse filter \(salvages \#1331\) [\#1334](https://github.com/abhimehro/email-security-pipeline/pull/1334) ([abhimehro](https://github.com/abhimehro))
 - ⚡ Bolt: Optimize IP validation in webhook checker [\#1333](https://github.com/abhimehro/email-security-pipeline/pull/1333) ([abhimehro](https://github.com/abhimehro))
 - 🧹 Refactor \_print\_alert\_header to use RenderConfig [\#1329](https://github.com/abhimehro/email-security-pipeline/pull/1329) ([abhimehro](https://github.com/abhimehro))
+- 🔒 Fix TOCTOU Vulnerability in Configuration File Permission Setup [\#1328](https://github.com/abhimehro/email-security-pipeline/pull/1328) ([abhimehro](https://github.com/abhimehro))
 - 🧪 Add thread-safety and TTL contains tests for TTLCache [\#1326](https://github.com/abhimehro/email-security-pipeline/pull/1326) ([abhimehro](https://github.com/abhimehro))
 - 🧹 Code Health: Remove unused reset method from Metrics class [\#1325](https://github.com/abhimehro/email-security-pipeline/pull/1325) ([abhimehro](https://github.com/abhimehro))
 - ⚡ Bolt: Optimize \_check\_auth\_results string checks [\#1324](https://github.com/abhimehro/email-security-pipeline/pull/1324) ([abhimehro](https://github.com/abhimehro))
