@@ -69,18 +69,17 @@ def _realpath_under(root: Path, candidate: str) -> str | None:
 
 
 def _append_github_step_summary(body: str) -> None:
-    """Append to GITHUB_STEP_SUMMARY only when the path is under a trusted root."""
+    """Append to GITHUB_STEP_SUMMARY only when it matches a trusted fixed path."""
     raw = os.environ.get("GITHUB_STEP_SUMMARY")
     if not raw:
         return
-    safe: str | None = None
-    for root in (Path("/home/runner"), Path("/github"), ROOT):
-        safe = _realpath_under(root, raw)
-        if safe:
-            break
-    if not safe:
+    trusted_summary = OUTPUT_ROOT / "github-step-summary.md"
+    trusted_summary.parent.mkdir(parents=True, exist_ok=True)
+    expected = os.path.realpath(str(trusted_summary))
+    actual = os.path.realpath(raw)
+    if actual != expected:
         return
-    with open(safe, "a", encoding="utf-8") as handle:
+    with open(expected, "a", encoding="utf-8") as handle:
         handle.write(body.rstrip() + "\n\n")
 
 
