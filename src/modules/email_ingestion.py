@@ -308,7 +308,6 @@ class EmailIngestionConfig:
     max_parallel_accounts: int = 3
 
 
-
 @dataclass
 class FetchContext:
     account: EmailAccountConfig
@@ -421,9 +420,9 @@ class EmailIngestionManager:
             results = parse_executor.map(
                 lambda args: client.parse_email(args[0], args[1], folder), raw_emails
             )
-            for email_data in results:
-                if email_data:
-                    folder_emails.append(email_data)
+            folder_emails.extend(
+                [email_data for email_data in results if email_data]
+            )
 
     def _fetch_folder(self, context: FetchContext) -> list:
         folder_emails = []

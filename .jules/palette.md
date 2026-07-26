@@ -238,3 +238,6 @@
 ## 2026-07-19 - Clearer visual hierarchy for CLI errors
 **Learning:** When a terminal application displays validation errors, presenting the entire string in red makes it harder for users to distinguish the failure reason from the required action, increasing friction.
 **Action:** Separate error descriptions (in `Colors.RED`) from actionable remediation advice (in `Colors.YELLOW`) to establish a clear visual hierarchy and guide users to immediate resolution.
+## 2026-07-24 - Added hidden typing hint
+**Learning:** Users can get confused when CLI password prompts don't show keystrokes, leading to abandoned setups.
+**Action:** Always add a grey '(typing will be hidden)' hint before the cursor on getpass prompts.
