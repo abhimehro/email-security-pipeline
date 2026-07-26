@@ -441,14 +441,8 @@ class SpamAnalyzer:
         issues = []
 
         spf_headers = self._get_header_list(headers, "received-spf")
-        spf_fail = False
-        spf_softfail = False
-        for spf in spf_headers:
-            spf_lower = spf.lower()
-            if "fail" in spf_lower and "softfail" not in spf_lower:
-                spf_fail = True
-            elif "softfail" in spf_lower:
-                spf_softfail = True
+
+        spf_fail, spf_softfail = self._evaluate_spf_headers(spf_headers)
 
         if spf_fail:
             score += 2.0
@@ -458,6 +452,24 @@ class SpamAnalyzer:
             issues.append("SPF soft fail")
 
         return score, issues, spf_fail
+
+    @staticmethod
+    def _evaluate_spf_headers(spf_headers: List[str]) -> Tuple[bool, bool]:
+        """Evaluate a list of SPF headers for fail and softfail states."""
+        if not spf_headers:
+            return False, False
+
+        joined = " ".join(spf_headers).lower()
+        if "fail" not in joined:
+            return False, False
+
+        if "softfail" not in joined:
+            return True, False
+
+        spf_fail = any(
+            "fail" in s.lower() and "softfail" not in s.lower() for s in spf_headers
+        )
+        return spf_fail, True
 
     def _check_auth_results(
         self, headers: Dict[str, Union[str, List[str]]], spf_fail: bool
