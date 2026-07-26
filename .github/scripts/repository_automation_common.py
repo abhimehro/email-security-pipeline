@@ -54,19 +54,18 @@ def truncate(text: str, limit: int = 4000) -> str:
     return text[: limit - 15] + "\n... [truncated]"
 
 
-def _is_under(path: Path, root: Path) -> bool:
-    """True when path resolves inside root (path-traversal safe)."""
-    try:
-        path.resolve().relative_to(root.resolve())
-        return True
-    except ValueError:
-        return False
+def _realpath_under(root: Path, candidate: str) -> str | None:
+    """
+    Return a realpath contained under root, or None.
 
-
-def _runner_attempt() -> str:
-    """Sanitize GITHUB_RUN_ATTEMPT for use in shell/git argv (CodeQL)."""
-    raw = os.environ.get("GITHUB_RUN_ATTEMPT", "1") or "1"
-    return raw if raw.isdigit() else "1"
+    Uses os.path.realpath + startswith — the containment pattern CodeQL
+    recognizes for py/path-injection (pathlib resolve/relative_to is not).
+    """
+    base = os.path.realpath(str(root))
+    resolved = os.path.realpath(candidate)
+    if resolved == base or resolved.startswith(base + os.sep):
+        return resolved
+    return None
 
 
 def _append_github_step_summary(body: str) -> None:
@@ -74,14 +73,14 @@ def _append_github_step_summary(body: str) -> None:
     raw = os.environ.get("GITHUB_STEP_SUMMARY")
     if not raw:
         return
-    candidate = Path(raw)
-    if ".." in candidate.parts:
+    safe: str | None = None
+    for root in (Path("/home/runner"), Path("/github"), ROOT):
+        safe = _realpath_under(root, raw)
+        if safe:
+            break
+    if not safe:
         return
-    resolved = candidate.resolve()
-    allowed_roots = (Path("/home/runner"), Path("/github"), ROOT)
-    if not any(_is_under(resolved, root) for root in allowed_roots):
-        return
-    with resolved.open("a", encoding="utf-8") as handle:
+    with open(safe, "a", encoding="utf-8") as handle:
         handle.write(body.rstrip() + "\n\n")
 
 
@@ -195,16 +194,26 @@ def write_result(
     return result
 
 
-def enforce_result(path_str: str) -> int:
-    # SECURITY: CLI argv is untrusted; only accept result files under OUTPUT_ROOT.
-    path = Path(path_str).resolve()
-    if not _is_under(path, OUTPUT_ROOT):
-        print(f"Refusing task result outside automation output: {path}")
+def enforce_result(task: str) -> int:
+    """
+    Enforce a task result under OUTPUT_ROOT.
+
+    Accepts a task directory name only (not a free-form path) so CLI argv
+    cannot escape the automation output root (CodeQL py/path-injection).
+    """
+    if not re.fullmatch(r"[a-z0-9-]+", task):
+        print(f"Invalid task name for enforce: {task}")
         return 1
-    if not path.exists():
-        print(f"Missing task result: {path}")
+    candidate = os.path.join(str(OUTPUT_ROOT), task, "result.json")
+    path_str = _realpath_under(OUTPUT_ROOT, candidate)
+    if path_str is None:
+        print(f"Refusing task result outside automation output: {task}")
         return 1
-    data = json.loads(path.read_text())
+    if not os.path.exists(path_str):
+        print(f"Missing task result: {path_str}")
+        return 1
+    with open(path_str, encoding="utf-8") as handle:
+        data = json.loads(handle.read())
     return 1 if data.get("status") in {"failure", "needs_review"} else 0
 
 
@@ -352,10 +361,9 @@ def create_pr_for_current_changes(
     )
     if existing_match:
         return existing_match["url"]
-    # SECURITY: only digits from GITHUB_RUN_ATTEMPT enter git argv.
+    # Avoid env-tainted branch suffixes (GITHUB_RUN_ATTEMPT → CodeQL command injection).
     branch_name = (
-        f"{branch_prefix.replace('/', '-')}-"
-        f"{now_utc().strftime('%Y%m%d')}-{_runner_attempt()}"
+        f"{branch_prefix.replace('/', '-')}-{now_utc().strftime('%Y%m%d%H%M%S')}"
     )
     run_checked([GIT_BIN, "config", "user.name", "repository-automation[bot]"])
     run_checked(

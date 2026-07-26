@@ -74,4 +74,4 @@ jobs:
 
       - name: Enforce weekly retrospective result
         if: always()
-        run: python .github/scripts/repository_automation.py enforce .automation-output/weekly-retrospective/result.json
+        run: python .github/scripts/repository_automation.py enforce weekly-retrospective
