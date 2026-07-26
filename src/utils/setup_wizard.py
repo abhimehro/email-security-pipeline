@@ -279,6 +279,7 @@ def _prompt_for_password(provider_name: str) -> str:
     prompt = (
         Colors.colorize("? ", Colors.CYAN)
         + Colors.colorize(f"Enter your {provider_name} app password ", Colors.BOLD)
+        + Colors.colorize("(typing will be hidden) ", Colors.GREY)
         + Colors.colorize("*", Colors.RED)
         + Colors.colorize(": ", Colors.BOLD)
     )
@@ -466,7 +467,7 @@ def _set_file_permissions(fd: int, config_path: Path) -> None:
     """Set file permissions securely to prevent TOCTOU vulnerabilities."""
     try:
         os.fchmod(fd, 0o600)
-    except (AttributeError, OSError, NotImplementedError):
+    except (AttributeError, OSError, NotImplementedError) as e_primary:
         try:
             # Some platforms support os.chmod(fd, mode)
             os.chmod(fd, 0o600)

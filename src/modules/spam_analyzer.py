@@ -18,6 +18,10 @@ from ..utils.threat_scoring import calculate_risk_level
 from .email_data import EmailData
 
 
+# Compiled patterns for authentication result checks
+DKIM_AUTH_PATTERN = re.compile(r"dkim=(?:fail|permerror|neutral)")
+SPF_AUTH_PATTERN = re.compile(r"spf=(?:fail|permerror)")
+
 @dataclass
 class SpamAnalysisResult:
     """Result of spam analysis."""
@@ -202,8 +206,13 @@ class SpamAnalyzer:
         text_lower = email_data.body_text.lower()
         html_lower = email_data.body_html.lower() if email_data.body_html else ""
 
-        extracted_urls = self.URL_EXTRACTION_PATTERN.findall(text_lower)
-        if html_lower:
+        # ⚡ BOLT: Fast-path string check avoids regex engine overhead
+        # 'http' is a prerequisite for matching 'https?://', skipping the regex search
+        # provides significant speedup on clean emails.
+        extracted_urls = []
+        if 'http' in text_lower:
+            extracted_urls = self.URL_EXTRACTION_PATTERN.findall(text_lower)
+        if html_lower and 'http' in html_lower:
             extracted_urls.extend(self.URL_EXTRACTION_PATTERN.findall(html_lower))
         link_count = len(extracted_urls)
 
@@ -436,14 +445,8 @@ class SpamAnalyzer:
         issues = []
 
         spf_headers = self._get_header_list(headers, "received-spf")
-        spf_fail = False
-        spf_softfail = False
-        for spf in spf_headers:
-            spf_lower = spf.lower()
-            if "fail" in spf_lower and "softfail" not in spf_lower:
-                spf_fail = True
-            elif "softfail" in spf_lower:
-                spf_softfail = True
+
+        spf_fail, spf_softfail = self._evaluate_spf_headers(spf_headers)
 
         if spf_fail:
             score += 2.0
@@ -453,6 +456,24 @@ class SpamAnalyzer:
             issues.append("SPF soft fail")
 
         return score, issues, spf_fail
+
+    @staticmethod
+    def _evaluate_spf_headers(spf_headers: List[str]) -> Tuple[bool, bool]:
+        """Evaluate a list of SPF headers for fail and softfail states."""
+        if not spf_headers:
+            return False, False
+
+        joined = " ".join(spf_headers).lower()
+        if "fail" not in joined:
+            return False, False
+
+        if "softfail" not in joined:
+            return True, False
+
+        spf_fail = any(
+            "fail" in s.lower() and "softfail" not in s.lower() for s in spf_headers
+        )
+        return spf_fail, True
 
     def _check_auth_results(
         self, headers: Dict[str, Union[str, List[str]]], spf_fail: bool
@@ -465,18 +486,11 @@ class SpamAnalyzer:
         dkim_auth_fail = False
         spf_auth_fail = False
 
-        for result in auth_results:
-            result_lower = result.lower()
-
-            # Check DKIM results
-            if "dkim=fail" in result_lower or "dkim=permerror" in result_lower:
+        if auth_results:
+            combined_results = " ".join(auth_results).lower()
+            if DKIM_AUTH_PATTERN.search(combined_results):
                 dkim_auth_fail = True
-            elif "dkim=neutral" in result_lower:
-                # Neutral usually means signature failed to verify or public key issue
-                dkim_auth_fail = True
-
-            # Check SPF results (secondary check if Received-SPF is missing/ambiguous)
-            if "spf=fail" in result_lower or "spf=permerror" in result_lower:
+            if SPF_AUTH_PATTERN.search(combined_results):
                 spf_auth_fail = True
 
         if dkim_auth_fail:

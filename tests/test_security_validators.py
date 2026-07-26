@@ -1,6 +1,7 @@
 import unittest
 from src.utils.security_validators import sanitize_filename
 
+
 class TestSanitizeFilename(unittest.TestCase):
     def test_happy_path(self):
         self.assertEqual(sanitize_filename("normal_file.txt"), "normal_file.txt")
@@ -38,6 +39,7 @@ class TestSanitizeFilename(unittest.TestCase):
 
         long_name_256 = "文" * 256
         self.assertEqual(len(sanitize_filename(long_name_256)), 255)
+
 
 if __name__ == "__main__":
     unittest.main()
