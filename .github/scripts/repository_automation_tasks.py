@@ -15,6 +15,7 @@ from repository_automation_common import (
     ensure_gh_token,
     gh_json,
     git_output,
+    is_commit_sha,
     iso_day,
     latest_tag_for_action,
     matches_any,
@@ -22,12 +23,16 @@ from repository_automation_common import (
     release_url,
     run_shell_command,
     safe_pr_body,
+    sha_for_tag,
     target_ref,
     write_result,
     writes_allowed,
 )
 
-WORKFLOW_PATTERN = re.compile(r"(uses:\s*)([^@\s]+)@([^\s#]+)")
+# Optional trailing `# vX.Y.Z` comment is the version hint for SHA pins (Lesson 0z).
+WORKFLOW_PATTERN = re.compile(
+    r"(uses:\s*)([^@\s]+)@([^\s#]+)(?:[ \t]+#[ \t]*([^\n]*))?"
+)
 IGNORED_DIRS = {".git", ".venv", "node_modules", "__pycache__"}
 
 
@@ -153,38 +158,69 @@ def discover_hotspots(limit: int = 5) -> list[tuple[str, int]]:
     return sorted(candidates, key=lambda item: item[1], reverse=True)[:limit]
 
 
+def _extract_repo_id(action_ref: str) -> str | None:
+    if action_ref.startswith(("./", "docker://")):
+        return None
+    parts = action_ref.split("/")
+    if len(parts) < 2:
+        return None
+    return "/".join(parts[:2])
+
+
+def _plan_action_pin(
+    match: re.Match[str],
+    file_path: Path,
+    latest_cache: dict[str, str],
+    sha_cache: dict[tuple[str, str], str],
+) -> dict[str, Any] | None:
+    """Resolve one uses: action@ref line to a SHA pin replacement, or skip."""
+    action_ref = match.group(2)
+    current = match.group(3)
+    version_hint = (match.group(4) or "").strip() or None
+    repo_id = _extract_repo_id(action_ref)
+    if not repo_id:
+        return None
+    latest = latest_cache.get(repo_id)
+    if latest is None:
+        latest = latest_tag_for_action(repo_id)
+        latest_cache[repo_id] = latest
+    proposed_tag = target_ref(current, latest, version_hint=version_hint)
+    if not proposed_tag or proposed_tag == current:
+        return None
+    cache_key = (repo_id, proposed_tag)
+    sha = sha_cache.get(cache_key)
+    if sha is None:
+        sha = sha_for_tag(repo_id, proposed_tag)
+        sha_cache[cache_key] = sha
+    if not sha or not is_commit_sha(sha):
+        print(
+            f"Warning: Could not resolve commit SHA for {repo_id}@{proposed_tag}. Skipping."
+        )
+        return None
+    if is_commit_sha(current) and current.lower() == sha.lower():
+        return None
+    pin = f"{sha} # {proposed_tag}"
+    return {
+        "old": match.group(0),
+        "new": f"{match.group(1)}{action_ref}@{pin}",
+        "file": str(file_path.relative_to(ROOT)),
+        "action": action_ref,
+        "current": current,
+        "target": pin,
+    }
+
+
 def workflow_file_plans() -> list[dict[str, Any]]:
     latest_cache: dict[str, str] = {}
+    sha_cache: dict[tuple[str, str], str] = {}
     plans = []
     for file_path in sorted((ROOT / ".github" / "workflows").glob("*.y*ml")):
         text = file_path.read_text()
         replacements = []
         for match in WORKFLOW_PATTERN.finditer(text):
-            action_ref = match.group(2)
-            current = match.group(3)
-            if action_ref.startswith("./") or action_ref.startswith("docker://"):
-                continue
-            parts = action_ref.split("/")
-            if len(parts) < 2:
-                continue
-            repo_id = "/".join(parts[:2])
-            latest = latest_cache.get(repo_id)
-            if latest is None:
-                latest = latest_tag_for_action(repo_id)
-                latest_cache[repo_id] = latest
-            proposed = target_ref(current, latest)
-            if not proposed or proposed == current:
-                continue
-            replacements.append(
-                {
-                    "old": match.group(0),
-                    "new": f"{match.group(1)}{action_ref}@{proposed}",
-                    "file": str(file_path.relative_to(ROOT)),
-                    "action": action_ref,
-                    "current": current,
-                    "target": proposed,
-                }
-            )
+            update = _plan_action_pin(match, file_path, latest_cache, sha_cache)
+            if update:
+                replacements.append(update)
         if replacements:
             plans.append(
                 {"path": file_path, "text": text, "replacements": replacements}
@@ -248,8 +284,7 @@ def run_workflow_updater(config: dict[str, Any]) -> dict[str, Any]:
         body = "# Workflow updater\n\n- Status: **success**\n- Summary: No GitHub Action updates were detected.\n"
         return write_result(
             "workflow-updater",
-            "success",
-            "No GitHub Action updates were detected.",
+            ("success", "No GitHub Action updates were detected."),
             body,
             {"updates": []},
         )
@@ -278,8 +313,7 @@ def run_workflow_updater(config: dict[str, Any]) -> dict[str, Any]:
         )
         return write_result(
             "workflow-updater",
-            status,
-            summary,
+            (status, summary),
             "\n".join(body_parts),
             {"updates": updates, "pull_request_url": ""},
         )
@@ -297,8 +331,7 @@ def run_workflow_updater(config: dict[str, Any]) -> dict[str, Any]:
         )
         return write_result(
             "workflow-updater",
-            "needs_review",
-            summary,
+            ("needs_review", summary),
             "\n".join(body_parts),
             {"updates": updates, "pull_request_url": ""},
         )
@@ -333,8 +366,7 @@ def run_workflow_updater(config: dict[str, Any]) -> dict[str, Any]:
         body_parts.extend(["## Draft PR failure", f"- {exc}", ""])
     return write_result(
         "workflow-updater",
-        status,
-        summary,
+        (status, summary),
         "\n".join(body_parts),
         {"updates": updates, "pull_request_url": pr_url},
     )
@@ -364,8 +396,7 @@ def run_performance_optimizer(config: dict[str, Any]) -> dict[str, Any]:
         lines.extend(f"- {item}" for item in suggestions)
     return write_result(
         "performance-optimizer",
-        status,
-        summary,
+        (status, summary),
         "\n".join(lines) + "\n",
         {"hotspots": hotspots, "command_results": details["command_results"]},
     )
@@ -376,8 +407,7 @@ def run_quality_assurance(config: dict[str, Any]) -> dict[str, Any]:
     status, summary, details = run_command_set("quality-assurance", section)
     return write_result(
         "quality-assurance",
-        status,
-        summary,
+        (status, summary),
         details["body"],
         {"command_results": details["command_results"]},
     )
@@ -486,8 +516,7 @@ def run_backlog_manager(config: dict[str, Any]) -> dict[str, Any]:
         )
     return write_result(
         "backlog-manager",
-        status,
-        summary,
+        (status, summary),
         "\n".join(lines) + "\n",
         {
             "issues": issues,
@@ -607,8 +636,7 @@ def run_daily_status_report(config: dict[str, Any]) -> dict[str, Any]:
     status = "failure" if error else overall_status(results)
     return write_result(
         "daily-status-report",
-        status,
-        summary,
+        (status, summary),
         body,
         {"issue_url": issue_url, "task_results": results},
     )
@@ -808,8 +836,7 @@ def run_weekly_retrospective(config: dict[str, Any]) -> dict[str, Any]:
         status = "failure"
     return write_result(
         "weekly-retrospective",
-        status,
-        summary,
+        (status, summary),
         body,
         {"issue_url": issue_url, "runs": runs, "safe_pr_url": safe_pr_url},
     )

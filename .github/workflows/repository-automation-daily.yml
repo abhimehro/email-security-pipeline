@@ -75,7 +75,7 @@ jobs:
 
       - name: Enforce workflow updater result
         if: always()
-        run: python .github/scripts/repository_automation.py enforce .automation-output/workflow-updater/result.json
+        run: python .github/scripts/repository_automation.py enforce workflow-updater
 
   performance_optimizer:
     name: 2. Performance optimizer
@@ -111,7 +111,7 @@ jobs:
 
       - name: Enforce performance result
         if: always()
-        run: python .github/scripts/repository_automation.py enforce .automation-output/performance-optimizer/result.json
+        run: python .github/scripts/repository_automation.py enforce performance-optimizer
 
   quality_assurance:
     name: 3. Quality assurance
@@ -147,7 +147,7 @@ jobs:
 
       - name: Enforce QA result
         if: always()
-        run: python .github/scripts/repository_automation.py enforce .automation-output/quality-assurance/result.json
+        run: python .github/scripts/repository_automation.py enforce quality-assurance
 
   backlog_manager:
     name: 4. Backlog manager
@@ -183,7 +183,7 @@ jobs:
 
       - name: Enforce backlog result
         if: always()
-        run: python .github/scripts/repository_automation.py enforce .automation-output/backlog-manager/result.json
+        run: python .github/scripts/repository_automation.py enforce backlog-manager
 
   daily_status_report:
     name: 5. Daily status report
@@ -228,4 +228,4 @@ jobs:
 
       - name: Enforce daily status result
         if: always()
-        run: python .github/scripts/repository_automation.py enforce .automation-output/daily-status-report/result.json
+        run: python .github/scripts/repository_automation.py enforce daily-status-report

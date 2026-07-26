@@ -28,14 +28,18 @@ def main() -> int:
         description="Consolidated repository automation runner"
     )
     parser.add_argument("task")
-    parser.add_argument("result_path", nargs="?")
+    parser.add_argument(
+        "target",
+        nargs="?",
+        help="For 'enforce': task directory name under .automation-output/",
+    )
     args = parser.parse_args()
 
     if args.task == "enforce":
-        if not args.result_path:
-            print("enforce requires a result path")
+        if not args.target:
+            print("enforce requires a task name (e.g. workflow-updater)")
             return 1
-        return enforce_result(args.result_path)
+        return enforce_result(args.target)
 
     runner = TASK_RUNNERS.get(args.task)
     if runner is None:
