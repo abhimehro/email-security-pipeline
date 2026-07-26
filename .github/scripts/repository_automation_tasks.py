@@ -284,8 +284,7 @@ def run_workflow_updater(config: dict[str, Any]) -> dict[str, Any]:
         body = "# Workflow updater\n\n- Status: **success**\n- Summary: No GitHub Action updates were detected.\n"
         return write_result(
             "workflow-updater",
-            "success",
-            "No GitHub Action updates were detected.",
+            ("success", "No GitHub Action updates were detected."),
             body,
             {"updates": []},
         )
@@ -314,8 +313,7 @@ def run_workflow_updater(config: dict[str, Any]) -> dict[str, Any]:
         )
         return write_result(
             "workflow-updater",
-            status,
-            summary,
+            (status, summary),
             "\n".join(body_parts),
             {"updates": updates, "pull_request_url": ""},
         )
@@ -333,8 +331,7 @@ def run_workflow_updater(config: dict[str, Any]) -> dict[str, Any]:
         )
         return write_result(
             "workflow-updater",
-            "needs_review",
-            summary,
+            ("needs_review", summary),
             "\n".join(body_parts),
             {"updates": updates, "pull_request_url": ""},
         )
@@ -369,8 +366,7 @@ def run_workflow_updater(config: dict[str, Any]) -> dict[str, Any]:
         body_parts.extend(["## Draft PR failure", f"- {exc}", ""])
     return write_result(
         "workflow-updater",
-        status,
-        summary,
+        (status, summary),
         "\n".join(body_parts),
         {"updates": updates, "pull_request_url": pr_url},
     )
@@ -400,8 +396,7 @@ def run_performance_optimizer(config: dict[str, Any]) -> dict[str, Any]:
         lines.extend(f"- {item}" for item in suggestions)
     return write_result(
         "performance-optimizer",
-        status,
-        summary,
+        (status, summary),
         "\n".join(lines) + "\n",
         {"hotspots": hotspots, "command_results": details["command_results"]},
     )
@@ -412,8 +407,7 @@ def run_quality_assurance(config: dict[str, Any]) -> dict[str, Any]:
     status, summary, details = run_command_set("quality-assurance", section)
     return write_result(
         "quality-assurance",
-        status,
-        summary,
+        (status, summary),
         details["body"],
         {"command_results": details["command_results"]},
     )
@@ -522,8 +516,7 @@ def run_backlog_manager(config: dict[str, Any]) -> dict[str, Any]:
         )
     return write_result(
         "backlog-manager",
-        status,
-        summary,
+        (status, summary),
         "\n".join(lines) + "\n",
         {
             "issues": issues,
@@ -643,8 +636,7 @@ def run_daily_status_report(config: dict[str, Any]) -> dict[str, Any]:
     status = "failure" if error else overall_status(results)
     return write_result(
         "daily-status-report",
-        status,
-        summary,
+        (status, summary),
         body,
         {"issue_url": issue_url, "task_results": results},
     )
@@ -844,8 +836,7 @@ def run_weekly_retrospective(config: dict[str, Any]) -> dict[str, Any]:
         status = "failure"
     return write_result(
         "weekly-retrospective",
-        status,
-        summary,
+        (status, summary),
         body,
         {"issue_url": issue_url, "runs": runs, "safe_pr_url": safe_pr_url},
     )
