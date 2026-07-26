@@ -204,15 +204,20 @@ def enforce_result(task: str) -> int:
     if not re.fullmatch(r"[a-z0-9-]+", task):
         print(f"Invalid task name for enforce: {task}")
         return 1
-    candidate = os.path.join(str(OUTPUT_ROOT), task, "result.json")
-    path_str = _realpath_under(OUTPUT_ROOT, candidate)
-    if path_str is None:
+
+    base = OUTPUT_ROOT.resolve()
+    path = (base / task / "result.json").resolve()
+    try:
+        path.relative_to(base)
+    except ValueError:
         print(f"Refusing task result outside automation output: {task}")
         return 1
-    if not os.path.exists(path_str):
-        print(f"Missing task result: {path_str}")
+
+    if not path.exists():
+        print(f"Missing task result: {path}")
         return 1
-    with open(path_str, encoding="utf-8") as handle:
+
+    with path.open(encoding="utf-8") as handle:
         data = json.loads(handle.read())
     return 1 if data.get("status") in {"failure", "needs_review"} else 0
 
