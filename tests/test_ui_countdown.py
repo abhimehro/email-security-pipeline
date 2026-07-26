@@ -123,8 +123,6 @@ class TestCountdownTimerWait(unittest.TestCase):
         mock_start.assert_called_once()
 
 
-
-
 class TestCountdownTimerTTY(unittest.TestCase):
     """Tests for CountdownTimer.start() in TTY mode."""
 
@@ -162,6 +160,7 @@ class TestCountdownTimerTTY(unittest.TestCase):
         output = mock_stdout.getvalue()
         self.assertIn("(Cancelled)", output)
         self.assertNotIn("(Press Ctrl+C to stop)", output.split("\r")[-1])
+
 
 if __name__ == "__main__":
     unittest.main()
