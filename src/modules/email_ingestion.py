@@ -58,44 +58,41 @@ class IMAPClient:
     def __init__(
         self,
         config: EmailAccountConfig,
-        rate_limit_delay: int = 1,
-        max_attachment_bytes: int = 25 * 1024 * 1024,
-        max_total_attachment_bytes: int = 100 * 1024 * 1024,
-        max_attachment_count: int = 10,
+        ingestion_config: Optional["EmailIngestionConfig"] = None,
     ):
         """
         Initialize IMAP client.
 
         Args:
             config: Email account configuration
-            rate_limit_delay: Delay between operations (seconds)
-            max_attachment_bytes: Maximum attachment bytes retained for analysis
-            max_total_attachment_bytes: Maximum total size of all attachments per email
-            max_attachment_count: Maximum number of attachments per email
+            ingestion_config: Optional limits/config; defaults applied when omitted
 
         """
+        if ingestion_config is None:
+            ingestion_config = EmailIngestionConfig()
+
         self.config = config
-        self.rate_limit_delay = rate_limit_delay
-        self.max_attachment_bytes = max_attachment_bytes
-        self.max_total_attachment_bytes = max_total_attachment_bytes
-        self.max_attachment_count = max_attachment_count
+        self.rate_limit_delay = ingestion_config.rate_limit_delay
+        self.max_attachment_bytes = ingestion_config.max_attachment_bytes
+        self.max_total_attachment_bytes = ingestion_config.max_total_attachment_bytes
+        self.max_attachment_count = ingestion_config.max_attachment_count
 
         # Calculate max email size based on attachment limits
-        self.max_email_size = calculate_max_email_size(max_total_attachment_bytes)
+        self.max_email_size = calculate_max_email_size(self.max_total_attachment_bytes)
         self.max_body_size = 1024 * 1024  # Default 1MB, overridden by manager
 
         # Create connection and parser components
         self.connection_manager = IMAPConnection(
             config=config,
-            rate_limit_delay=rate_limit_delay,
-            max_total_attachment_bytes=max_total_attachment_bytes,
+            rate_limit_delay=self.rate_limit_delay,
+            max_total_attachment_bytes=self.max_total_attachment_bytes,
         )
 
         parser_config = EmailParserConfig(
             max_body_size=self.max_body_size,
-            max_attachment_bytes=max_attachment_bytes,
-            max_total_attachment_bytes=max_total_attachment_bytes,
-            max_attachment_count=max_attachment_count,
+            max_attachment_bytes=self.max_attachment_bytes,
+            max_total_attachment_bytes=self.max_total_attachment_bytes,
+            max_attachment_count=self.max_attachment_count,
         )
         self.parser = EmailParser(
             config=config,
@@ -368,13 +365,15 @@ class EmailIngestionManager:
             if not account.enabled:
                 continue
 
-            client = IMAPClient(
-                account,
-                self.rate_limit_delay,
-                self.max_attachment_bytes,
-                self.max_total_attachment_bytes,
-                self.max_attachment_count,
+            client_config = EmailIngestionConfig(
+                rate_limit_delay=self.rate_limit_delay,
+                max_attachment_bytes=self.max_attachment_bytes,
+                max_total_attachment_bytes=self.max_total_attachment_bytes,
+                max_attachment_count=self.max_attachment_count,
+                max_body_size_bytes=self.max_body_size,
+                max_parallel_accounts=self.max_parallel_accounts,
             )
+            client = IMAPClient(account, client_config)
             client.max_body_size = self.max_body_size
 
             if client.connect():
@@ -392,13 +391,15 @@ class EmailIngestionManager:
 
     def _create_imap_client(self, account: EmailAccountConfig) -> IMAPClient:
         """Helper to create a fresh IMAP client matching manager settings."""
-        client = IMAPClient(
-            account,
-            self.rate_limit_delay,
-            self.max_attachment_bytes,
-            self.max_total_attachment_bytes,
-            self.max_attachment_count,
+        client_config = EmailIngestionConfig(
+            rate_limit_delay=self.rate_limit_delay,
+            max_attachment_bytes=self.max_attachment_bytes,
+            max_total_attachment_bytes=self.max_total_attachment_bytes,
+            max_attachment_count=self.max_attachment_count,
+            max_body_size_bytes=self.max_body_size,
+            max_parallel_accounts=self.max_parallel_accounts,
         )
+        client = IMAPClient(account, client_config)
         client.max_body_size = self.max_body_size
         return client
 
@@ -587,7 +588,9 @@ class EmailIngestionManager:
         self.logger.info(f"Running diagnostics for {redact_email(email_address)}...")
 
         # Create a temporary client for diagnostics
-        client = IMAPClient(
-            account_to_diagnose, self.rate_limit_delay, self.max_attachment_bytes
+        client_config = EmailIngestionConfig(
+            rate_limit_delay=self.rate_limit_delay,
+            max_attachment_bytes=self.max_attachment_bytes,
         )
+        client = IMAPClient(account_to_diagnose, client_config)
         return client.diagnose_connection_issues(account_to_diagnose)
