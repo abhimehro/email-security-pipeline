@@ -158,6 +158,58 @@ def discover_hotspots(limit: int = 5) -> list[tuple[str, int]]:
     return sorted(candidates, key=lambda item: item[1], reverse=True)[:limit]
 
 
+def _extract_repo_id(action_ref: str) -> str | None:
+    if action_ref.startswith(("./", "docker://")):
+        return None
+    parts = action_ref.split("/")
+    if len(parts) < 2:
+        return None
+    return "/".join(parts[:2])
+
+
+def _plan_action_pin(
+    match: re.Match[str],
+    file_path: Path,
+    latest_cache: dict[str, str],
+    sha_cache: dict[tuple[str, str], str],
+) -> dict[str, Any] | None:
+    """Resolve one uses: action@ref line to a SHA pin replacement, or skip."""
+    action_ref = match.group(2)
+    current = match.group(3)
+    version_hint = (match.group(4) or "").strip() or None
+    repo_id = _extract_repo_id(action_ref)
+    if not repo_id:
+        return None
+    latest = latest_cache.get(repo_id)
+    if latest is None:
+        latest = latest_tag_for_action(repo_id)
+        latest_cache[repo_id] = latest
+    proposed_tag = target_ref(current, latest, version_hint=version_hint)
+    if not proposed_tag or proposed_tag == current:
+        return None
+    cache_key = (repo_id, proposed_tag)
+    sha = sha_cache.get(cache_key)
+    if sha is None:
+        sha = sha_for_tag(repo_id, proposed_tag)
+        sha_cache[cache_key] = sha
+    if not sha or not is_commit_sha(sha):
+        print(
+            f"Warning: Could not resolve commit SHA for {repo_id}@{proposed_tag}. Skipping."
+        )
+        return None
+    if is_commit_sha(current) and current.lower() == sha.lower():
+        return None
+    pin = f"{sha} # {proposed_tag}"
+    return {
+        "old": match.group(0),
+        "new": f"{match.group(1)}{action_ref}@{pin}",
+        "file": str(file_path.relative_to(ROOT)),
+        "action": action_ref,
+        "current": current,
+        "target": pin,
+    }
+
+
 def workflow_file_plans() -> list[dict[str, Any]]:
     latest_cache: dict[str, str] = {}
     sha_cache: dict[tuple[str, str], str] = {}
@@ -166,45 +218,9 @@ def workflow_file_plans() -> list[dict[str, Any]]:
         text = file_path.read_text()
         replacements = []
         for match in WORKFLOW_PATTERN.finditer(text):
-            action_ref = match.group(2)
-            current = match.group(3)
-            version_hint = (match.group(4) or "").strip() or None
-            if action_ref.startswith("./") or action_ref.startswith("docker://"):
-                continue
-            parts = action_ref.split("/")
-            if len(parts) < 2:
-                continue
-            repo_id = "/".join(parts[:2])
-            latest = latest_cache.get(repo_id)
-            if latest is None:
-                latest = latest_tag_for_action(repo_id)
-                latest_cache[repo_id] = latest
-            proposed_tag = target_ref(current, latest, version_hint=version_hint)
-            if not proposed_tag or proposed_tag == current:
-                continue
-            cache_key = (repo_id, proposed_tag)
-            sha = sha_cache.get(cache_key)
-            if sha is None:
-                sha = sha_for_tag(repo_id, proposed_tag)
-                sha_cache[cache_key] = sha
-            if not sha or not is_commit_sha(sha):
-                print(
-                    f"Warning: Could not resolve commit SHA for {repo_id}@{proposed_tag}. Skipping."
-                )
-                continue
-            if is_commit_sha(current) and current.lower() == sha.lower():
-                continue
-            pin = f"{sha} # {proposed_tag}"
-            replacements.append(
-                {
-                    "old": match.group(0),
-                    "new": f"{match.group(1)}{action_ref}@{pin}",
-                    "file": str(file_path.relative_to(ROOT)),
-                    "action": action_ref,
-                    "current": current,
-                    "target": pin,
-                }
-            )
+            update = _plan_action_pin(match, file_path, latest_cache, sha_cache)
+            if update:
+                replacements.append(update)
         if replacements:
             plans.append(
                 {"path": file_path, "text": text, "replacements": replacements}

@@ -54,6 +54,37 @@ def truncate(text: str, limit: int = 4000) -> str:
     return text[: limit - 15] + "\n... [truncated]"
 
 
+def _is_under(path: Path, root: Path) -> bool:
+    """True when path resolves inside root (path-traversal safe)."""
+    try:
+        path.resolve().relative_to(root.resolve())
+        return True
+    except ValueError:
+        return False
+
+
+def _runner_attempt() -> str:
+    """Sanitize GITHUB_RUN_ATTEMPT for use in shell/git argv (CodeQL)."""
+    raw = os.environ.get("GITHUB_RUN_ATTEMPT", "1") or "1"
+    return raw if raw.isdigit() else "1"
+
+
+def _append_github_step_summary(body: str) -> None:
+    """Append to GITHUB_STEP_SUMMARY only when the path is under a trusted root."""
+    raw = os.environ.get("GITHUB_STEP_SUMMARY")
+    if not raw:
+        return
+    candidate = Path(raw)
+    if ".." in candidate.parts:
+        return
+    resolved = candidate.resolve()
+    allowed_roots = (Path("/home/runner"), Path("/github"), ROOT)
+    if not any(_is_under(resolved, root) for root in allowed_roots):
+        return
+    with resolved.open("a", encoding="utf-8") as handle:
+        handle.write(body.rstrip() + "\n\n")
+
+
 def run_process(
     command: list[str],
     *,
@@ -156,15 +187,16 @@ def write_result(
         json.dumps(result, indent=2, sort_keys=True) + "\n"
     )
     print(body)
-    summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
-    if summary_path:
-        with open(summary_path, "a", encoding="utf-8") as handle:
-            handle.write(body.rstrip() + "\n\n")
+    _append_github_step_summary(body)
     return result
 
 
 def enforce_result(path_str: str) -> int:
-    path = Path(path_str)
+    # SECURITY: CLI argv is untrusted; only accept result files under OUTPUT_ROOT.
+    path = Path(path_str).resolve()
+    if not _is_under(path, OUTPUT_ROOT):
+        print(f"Refusing task result outside automation output: {path}")
+        return 1
     if not path.exists():
         print(f"Missing task result: {path}")
         return 1
@@ -316,7 +348,11 @@ def create_pr_for_current_changes(
     )
     if existing_match:
         return existing_match["url"]
-    branch_name = f"{branch_prefix.replace('/', '-')}-{now_utc().strftime('%Y%m%d')}-{os.environ.get('GITHUB_RUN_ATTEMPT', '1')}"
+    # SECURITY: only digits from GITHUB_RUN_ATTEMPT enter git argv.
+    branch_name = (
+        f"{branch_prefix.replace('/', '-')}-"
+        f"{now_utc().strftime('%Y%m%d')}-{_runner_attempt()}"
+    )
     run_checked([GIT_BIN, "config", "user.name", "repository-automation[bot]"])
     run_checked(
         [
@@ -389,6 +425,15 @@ def sha_for_tag(repo_id: str, tag: str) -> str:
     return ""
 
 
+def _pin_version(
+    current: str, version_hint: str | None
+) -> tuple[int, int, int] | None:
+    """Comparable version for a workflow pin (tag body or `# vX.Y.Z` hint)."""
+    if is_commit_sha(current):
+        return numeric_version(version_hint) if version_hint else None
+    return numeric_version(current)
+
+
 def target_ref(
     current: str, latest: str, *, version_hint: str | None = None
 ) -> str | None:
@@ -397,22 +442,15 @@ def target_ref(
 
     Callers must resolve to a commit SHA before writing workflow files.
     """
-    if is_commit_sha(current):
-        current_v = numeric_version(version_hint) if version_hint else None
-    else:
-        current_v = numeric_version(current)
     latest_v = numeric_version(latest)
     if not latest_v:
         return None
-    if current_v is not None and latest_v <= current_v:
-        return None
-    if current_v is None and not is_commit_sha(current):
-        return None
-    if current_v is None and is_commit_sha(current) and not version_hint:
+    current_v = _pin_version(current, version_hint)
+    if current_v is not None:
+        return latest if latest_v > current_v else None
+    if is_commit_sha(current) and not version_hint:
         return latest
-    if current_v is None:
-        return None
-    return latest
+    return None
 
 
 def append_publication_result(
