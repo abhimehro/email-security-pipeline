@@ -22,7 +22,6 @@ from ..utils.threat_scoring import calculate_risk_level
 from .email_data import EmailData
 
 
-
 @dataclass
 class FrameExtractionOptions:
     """Options for frame extraction."""

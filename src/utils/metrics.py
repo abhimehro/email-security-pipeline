@@ -141,4 +141,3 @@ class Metrics:
             "errors": dict(self.errors_count),
             "sample_count": len(self.processing_time_ms),
         }
-
