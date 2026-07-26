@@ -361,7 +361,7 @@ def create_pr_for_current_changes(
     )
     if existing_match:
         return existing_match["url"]
-    # Avoid env-tainted branch suffixes (GITHUB_RUN_ATTEMPT → CodeQL command injection).
+    # Use timestamp-only branch suffixes (avoid env-derived argv for CodeQL).
     branch_name = (
         f"{branch_prefix.replace('/', '-')}-{now_utc().strftime('%Y%m%d%H%M%S')}"
     )
