@@ -40,6 +40,9 @@ class ColoredFormatter(logging.Formatter):
             elif "Waiting" in record.msg and "seconds until next check" in record.msg:
                 # Dim the waiting message to reduce visual noise
                 record.msg = Colors.colorize(str(record.msg), Colors.GREY)
+            elif "No new emails to analyze" in record.msg:
+                # Dim the repetitive no emails message to reduce visual noise
+                record.msg = Colors.colorize(str(record.msg), Colors.GREY)
             elif "Analysis complete" in record.msg:
                 # Highlight success
                 record.msg = Colors.colorize(str(record.msg), Colors.GREEN)
