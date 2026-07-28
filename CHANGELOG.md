@@ -42,6 +42,10 @@
 
 **Closed issues:**
 
+- \[repo-automation\] Daily Status Report - 2026-07-27 [\#1371](https://github.com/abhimehro/email-security-pipeline/issues/1371)
+- Daily QA & Agentic Review — 2026-07-26 [\#1369](https://github.com/abhimehro/email-security-pipeline/issues/1369)
+- \[repo-automation\] Weekly Retrospective - 2026-07-26 [\#1368](https://github.com/abhimehro/email-security-pipeline/issues/1368)
+- \[repo-automation\] Daily Status Report - 2026-07-26 [\#1367](https://github.com/abhimehro/email-security-pipeline/issues/1367)
 - Daily QA & Agentic Review — 2026-07-25 [\#1361](https://github.com/abhimehro/email-security-pipeline/issues/1361)
 - email-security-pipeline close\_prs.sh still sources token helper [\#1358](https://github.com/abhimehro/email-security-pipeline/issues/1358)
 - Daily QA & Agentic Review — 2026-07-24 [\#1357](https://github.com/abhimehro/email-security-pipeline/issues/1357)
@@ -434,6 +438,7 @@
 
 **Merged pull requests:**
 
+- chore\(deps\): bump github/gh-aw/actions/setup-cli from 0.83.1 to 0.83.4 [\#1374](https://github.com/abhimehro/email-security-pipeline/pull/1374) ([dependabot[bot]](https://github.com/apps/dependabot))
 - Jules Daily QA & Agentic Review - Healthy [\#1365](https://github.com/abhimehro/email-security-pipeline/pull/1365) ([abhimehro](https://github.com/abhimehro))
 - fix\(ci\): restore repository\_automation\_common and SHA-pin workflows [\#1364](https://github.com/abhimehro/email-security-pipeline/pull/1364) ([abhimehro](https://github.com/abhimehro))
 - fix\(security\): ABHI-1561 stop sourcing load\_gh\_token.sh [\#1363](https://github.com/abhimehro/email-security-pipeline/pull/1363) ([abhimehro](https://github.com/abhimehro))
