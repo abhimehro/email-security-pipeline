@@ -438,7 +438,9 @@
 
 **Merged pull requests:**
 
+- Jules Daily QA & Agentic Review: Repository Healthy [\#1376](https://github.com/abhimehro/email-security-pipeline/pull/1376) ([abhimehro](https://github.com/abhimehro))
 - chore\(deps\): bump github/gh-aw/actions/setup-cli from 0.83.1 to 0.83.4 [\#1374](https://github.com/abhimehro/email-security-pipeline/pull/1374) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps\): bump github/gh-aw/actions/setup from 0.83.1 to 0.83.4 [\#1373](https://github.com/abhimehro/email-security-pipeline/pull/1373) ([dependabot[bot]](https://github.com/apps/dependabot))
 - Jules Daily QA & Agentic Review - Healthy [\#1365](https://github.com/abhimehro/email-security-pipeline/pull/1365) ([abhimehro](https://github.com/abhimehro))
 - fix\(ci\): restore repository\_automation\_common and SHA-pin workflows [\#1364](https://github.com/abhimehro/email-security-pipeline/pull/1364) ([abhimehro](https://github.com/abhimehro))
 - fix\(security\): ABHI-1561 stop sourcing load\_gh\_token.sh [\#1363](https://github.com/abhimehro/email-security-pipeline/pull/1363) ([abhimehro](https://github.com/abhimehro))
