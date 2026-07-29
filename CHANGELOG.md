@@ -440,12 +440,14 @@
 
 **Merged pull requests:**
 
+- Fix: Remove unused import in email\_parser.py [\#1380](https://github.com/abhimehro/email-security-pipeline/pull/1380) ([abhimehro](https://github.com/abhimehro))
 - chore\(deps\): bump actions/stale from 10.4.0 to 11.0.0 [\#1379](https://github.com/abhimehro/email-security-pipeline/pull/1379) ([dependabot[bot]](https://github.com/apps/dependabot))
 - Jules Daily QA & Agentic Review: Repository Healthy [\#1376](https://github.com/abhimehro/email-security-pipeline/pull/1376) ([abhimehro](https://github.com/abhimehro))
 - 🛡️ Sentinel: \[HIGH\] Fix TOCTOU vulnerability in file permission logic [\#1375](https://github.com/abhimehro/email-security-pipeline/pull/1375) ([abhimehro](https://github.com/abhimehro))
 - chore\(deps\): bump github/gh-aw/actions/setup-cli from 0.83.1 to 0.83.4 [\#1374](https://github.com/abhimehro/email-security-pipeline/pull/1374) ([dependabot[bot]](https://github.com/apps/dependabot))
 - chore\(deps\): bump github/gh-aw/actions/setup from 0.83.1 to 0.83.4 [\#1373](https://github.com/abhimehro/email-security-pipeline/pull/1373) ([dependabot[bot]](https://github.com/apps/dependabot))
 - 🎨 Palette: Dim repetitive "No new emails" log message [\#1372](https://github.com/abhimehro/email-security-pipeline/pull/1372) ([abhimehro](https://github.com/abhimehro))
+- chore\(actions\): consolidate workflow automation [\#1366](https://github.com/abhimehro/email-security-pipeline/pull/1366) ([abhimehro](https://github.com/abhimehro))
 - Jules Daily QA & Agentic Review - Healthy [\#1365](https://github.com/abhimehro/email-security-pipeline/pull/1365) ([abhimehro](https://github.com/abhimehro))
 - fix\(ci\): restore repository\_automation\_common and SHA-pin workflows [\#1364](https://github.com/abhimehro/email-security-pipeline/pull/1364) ([abhimehro](https://github.com/abhimehro))
 - fix\(security\): ABHI-1561 stop sourcing load\_gh\_token.sh [\#1363](https://github.com/abhimehro/email-security-pipeline/pull/1363) ([abhimehro](https://github.com/abhimehro))
