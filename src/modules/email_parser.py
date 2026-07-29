@@ -29,7 +29,6 @@ from ..utils.config import EmailAccountConfig
 from ..utils.sanitization import sanitize_for_logging
 from ..utils.security_validators import (
     MAX_MIME_PARTS,
-    MAX_SUBJECT_LENGTH,
     sanitize_filename,
     validate_subject_length,
 )
