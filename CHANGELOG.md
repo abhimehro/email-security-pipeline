@@ -42,6 +42,8 @@
 
 **Closed issues:**
 
+- Daily QA & Agentic Review — 2026-07-28 [\#1378](https://github.com/abhimehro/email-security-pipeline/issues/1378)
+- \[repo-automation\] Daily Status Report - 2026-07-28 [\#1377](https://github.com/abhimehro/email-security-pipeline/issues/1377)
 - \[repo-automation\] Daily Status Report - 2026-07-27 [\#1371](https://github.com/abhimehro/email-security-pipeline/issues/1371)
 - Daily QA & Agentic Review — 2026-07-26 [\#1369](https://github.com/abhimehro/email-security-pipeline/issues/1369)
 - \[repo-automation\] Weekly Retrospective - 2026-07-26 [\#1368](https://github.com/abhimehro/email-security-pipeline/issues/1368)
@@ -439,6 +441,7 @@
 **Merged pull requests:**
 
 - Jules Daily QA & Agentic Review: Repository Healthy [\#1376](https://github.com/abhimehro/email-security-pipeline/pull/1376) ([abhimehro](https://github.com/abhimehro))
+- 🛡️ Sentinel: \[HIGH\] Fix TOCTOU vulnerability in file permission logic [\#1375](https://github.com/abhimehro/email-security-pipeline/pull/1375) ([abhimehro](https://github.com/abhimehro))
 - chore\(deps\): bump github/gh-aw/actions/setup-cli from 0.83.1 to 0.83.4 [\#1374](https://github.com/abhimehro/email-security-pipeline/pull/1374) ([dependabot[bot]](https://github.com/apps/dependabot))
 - chore\(deps\): bump github/gh-aw/actions/setup from 0.83.1 to 0.83.4 [\#1373](https://github.com/abhimehro/email-security-pipeline/pull/1373) ([dependabot[bot]](https://github.com/apps/dependabot))
 - 🎨 Palette: Dim repetitive "No new emails" log message [\#1372](https://github.com/abhimehro/email-security-pipeline/pull/1372) ([abhimehro](https://github.com/abhimehro))
