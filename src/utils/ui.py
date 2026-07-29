@@ -53,7 +53,7 @@ class CountdownTimer:
             remaining = self.duration
             while remaining > 0 and not self._stop_event.is_set():
                 # Format time as MM:SS if > 60s, else just seconds
-                if remaining >= 60:
+                if self.duration >= 60:
                     time_str = f"{remaining // 60}:{remaining % 60:02d}"
                 else:
                     time_str = f"{remaining}s"
