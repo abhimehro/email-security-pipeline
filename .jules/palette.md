@@ -241,3 +241,6 @@
 ## 2026-07-24 - Added hidden typing hint
 **Learning:** Users can get confused when CLI password prompts don't show keystrokes, leading to abandoned setups.
 **Action:** Always add a grey '(typing will be hidden)' hint before the cursor on getpass prompts.
+## 2026-07-27 - Dim repetitive polling messages
+**Learning:** Repetitive polling messages ("No new emails to analyze") create significant visual noise in the CLI, drowning out important events like threat detections.
+**Action:** Identify and apply subtle coloring (like GREY) to high-frequency, non-actionable log messages to improve the signal-to-noise ratio and visual hierarchy in the terminal UX.
