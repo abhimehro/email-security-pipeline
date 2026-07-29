@@ -1,8 +1,8 @@
 # Landing personal-config security fix (ABHI-1358, ABHI-1359, ABHI-1361)
 
-The cloud agent cannot push to `abhimehro/personal-config` (403 for `cursor[bot]`).
-The fix is shipped in this repository as an apply-able patch so you can land it from
-your own credentials.
+The cloud agent cannot push to `abhimehro/personal-config` (403 for
+`cursor[bot]`). The fix is shipped in this repository as an apply-able patch so
+you can land it from your own credentials.
 
 ## Patch
 
@@ -39,14 +39,14 @@ git push -u origin cursor-agent/fix-command-injection-pr-scripts-babb
 
 ## What the patch changes
 
-| File | Change |
-|------|--------|
-| `close_prs.sh` | `source GH_TOKEN.env` → `source scripts/ensure_gh_token.sh` |
-| `fix_drafts.sh` | same |
-| `close_more.sh` | same |
-| `gh_token_env.py` | reject command substitution in parsed values |
-| `tests/test_gh_token_env.py` | regression test |
-| `tests/test_pr_automation_scripts.py` | new — verifies no `source *.env` |
+| File                                  | Change                                                      |
+| ------------------------------------- | ----------------------------------------------------------- |
+| `close_prs.sh`                        | `source GH_TOKEN.env` → `source scripts/ensure_gh_token.sh` |
+| `fix_drafts.sh`                       | same                                                        |
+| `close_more.sh`                       | same                                                        |
+| `gh_token_env.py`                     | reject command substitution in parsed values                |
+| `tests/test_gh_token_env.py`          | regression test                                             |
+| `tests/test_pr_automation_scripts.py` | new — verifies no `source *.env`                            |
 
 ## Verify after apply
 

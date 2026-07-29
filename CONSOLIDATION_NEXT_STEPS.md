@@ -9,23 +9,26 @@
    - Restored hash-based cache implementation from PR #140
 4. ✅ **Verified with tests**: 80/83 tests passing (3 pre-existing failures)
 5. ✅ **Created comprehensive documentation**
-6. ✅ **Pushed consolidated changes** to copilot/consolidate-pull-requests branch
+6. ✅ **Pushed consolidated changes** to copilot/consolidate-pull-requests
+   branch
 
 ## 📋 Remaining Manual Tasks
 
 ### 1. Review and Merge This PR
-   - Review the consolidated changes in PR #160
-   - Verify all security fixes, performance improvements, and UX enhancements
-   - Merge PR #160 into main
+
+- Review the consolidated changes in PR #160
+- Verify all security fixes, performance improvements, and UX enhancements
+- Merge PR #160 into main
 
 ### 2. Close Original PRs
 
 Close these 20 PRs with a comment linking to the consolidated PR #160:
 
 **Security (Sentinel) PRs:**
+
 - #134 - sentinel-fix-alert-config-leak
 - #143 - sentinel-log-sanitization-fix
-- #123 - sentinel/dos-protection  
+- #123 - sentinel/dos-protection
 - #128 - sentinel-dangerous-extensions
 - #137 - sentinel-media-dos-fix
 - #146 - sentinel/zip-inspection
@@ -34,12 +37,14 @@ Close these 20 PRs with a comment linking to the consolidated PR #160:
 - #125 - sentinel-alert-redaction
 
 **Performance (Bolt) PRs:**
+
 - #138 - bolt/optimize-sanitize-filename
 - #126 - bolt-nlp-optimization
 - #141 - bolt-optimize-deepfake-detection
 - #152 - bolt/parallel-analysis
 
 **UX (Palette) PRs:**
+
 - #121 - palette-ux-clean-report
 - #124 - palette-config-ux
 - #136 - palette-auth-tips
@@ -49,6 +54,7 @@ Close these 20 PRs with a comment linking to the consolidated PR #160:
 - #142 - palette-setup-ux
 
 **Suggested Closing Comment:**
+
 ```
 This PR has been consolidated into #160 along with 19 other Jules PRs to resolve merge conflicts and create a single, cohesive update. All changes from this PR have been preserved and tested. Please see #160 for the complete consolidated changes.
 ```
@@ -84,7 +90,8 @@ Or use the GitHub UI to delete branches after closing PRs.
 
 ### 4. Optional: Close PR #159
 
-PR #159 (copilot/review-jules-pull-requests) was the triage analysis that informed this consolidation. It can be closed with:
+PR #159 (copilot/review-jules-pull-requests) was the triage analysis that
+informed this consolidation. It can be closed with:
 
 ```
 This PR provided valuable triage analysis that guided the consolidation effort completed in #160. The consolidation is now complete, so this triage PR can be closed. Thank you for the analysis!
@@ -149,4 +156,7 @@ This PR provided valuable triage analysis that guided the consolidation effort c
 
 ---
 
-**Note**: Steps 2-4 require GitHub repository admin access to close PRs and delete branches. These cannot be automated through git commands alone and must be done through the GitHub web interface or GitHub CLI/API with appropriate permissions.
+**Note**: Steps 2-4 require GitHub repository admin access to close PRs and
+delete branches. These cannot be automated through git commands alone and must
+be done through the GitHub web interface or GitHub CLI/API with appropriate
+permissions.

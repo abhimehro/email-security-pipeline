@@ -310,14 +310,18 @@ class NLPThreatAnalyzer:
 
         return matches_by_category, exclamation_count, caps_count
 
-    def _extract_pattern_matches(self, part_lower: str, matches_by_category: Dict) -> None:
+    def _extract_pattern_matches(
+        self, part_lower: str, matches_by_category: Dict
+    ) -> None:
         """Helper to extract and categorize regex pattern matches."""
         for match in self.master_pattern.finditer(part_lower):
             group_name = match.lastgroup
             if group_name and group_name in self.master_map:
                 prefix, description = self.master_map[group_name]
                 if prefix == "AU":
-                    matches_by_category[prefix][description].append(match.group().lower())
+                    matches_by_category[prefix][description].append(
+                        match.group().lower()
+                    )
                 else:
                     matches_by_category[prefix][description] += 1
 

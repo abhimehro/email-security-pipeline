@@ -1,6 +1,8 @@
 import pytest
+
 from src.modules.spam_analyzer import SpamAnalyzer
 from src.utils.config import AnalysisConfig
+
 
 @pytest.fixture
 def spam_analyzer():
@@ -26,13 +28,14 @@ def spam_analyzer():
     )
     return SpamAnalyzer(config)
 
+
 def test_auth_results(spam_analyzer):
     headers = {
         "authentication-results": [
             "spf=fail",
             "dkim=permerror",
             "dkim=neutral",
-            "dkim=fail"
+            "dkim=fail",
         ]
     }
     score, issues = spam_analyzer._check_auth_results(headers, spf_fail=False)
@@ -40,17 +43,14 @@ def test_auth_results(spam_analyzer):
     assert "SPF verification failed (Authentication-Results)" in issues
     assert score == 4.5
 
+
 def test_auth_results_case_insensitivity(spam_analyzer):
-    headers = {
-        "authentication-results": [
-            "SPF=Fail",
-            "DKIM=permerror"
-        ]
-    }
+    headers = {"authentication-results": ["SPF=Fail", "DKIM=permerror"]}
     score, issues = spam_analyzer._check_auth_results(headers, spf_fail=False)
     assert "DKIM verification failed (Authentication-Results)" in issues
     assert "SPF verification failed (Authentication-Results)" in issues
     assert score == 4.5
+
 
 def test_auth_results_empty(spam_analyzer):
     headers = {}

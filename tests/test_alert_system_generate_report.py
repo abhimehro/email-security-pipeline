@@ -1,16 +1,16 @@
 import sys
 import unittest
 from datetime import datetime, timezone
-from unittest.mock import patch, MagicMock
 from pathlib import Path
+from unittest.mock import MagicMock, patch
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.modules.alert_system import generate_threat_report, ThreatReport
+from src.modules.alert_system import ThreatReport, generate_threat_report
 from src.modules.email_ingestion import EmailData
-from src.modules.spam_analyzer import SpamAnalysisResult
-from src.modules.nlp_analyzer import NLPAnalysisResult
 from src.modules.media_analyzer import MediaAnalysisResult
+from src.modules.nlp_analyzer import NLPAnalysisResult
+from src.modules.spam_analyzer import SpamAnalysisResult
 
 
 class TestGenerateThreatReport(unittest.TestCase):

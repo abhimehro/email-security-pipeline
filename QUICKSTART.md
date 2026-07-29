@@ -5,6 +5,7 @@ Get your Email Security Pipeline up and running in 5 minutes!
 ## Step 1: Get Your Email Credentials
 
 ### Gmail
+
 1. Go to https://myaccount.google.com/security
 2. Enable 2-Step Verification if not already enabled
 3. Go to "App passwords" section
@@ -13,11 +14,14 @@ Get your Email Security Pipeline up and running in 5 minutes!
 
 ### Outlook/Hotmail
 
-**⚠️ WARNING: Personal Outlook accounts (outlook.com, hotmail.com, live.com) do NOT support app passwords as of October 2024.**
+**⚠️ WARNING: Personal Outlook accounts (outlook.com, hotmail.com, live.com) do
+NOT support app passwords as of October 2024.**
 
-**Skip this section** unless you have a Microsoft 365 Business account. Use Gmail or Proton Mail instead.
+**Skip this section** unless you have a Microsoft 365 Business account. Use
+Gmail or Proton Mail instead.
 
 **For Microsoft 365 Business accounts only:**
+
 1. Go to https://account.microsoft.com/security
 2. Go to "Advanced security options"
 3. Under "App passwords", create new password
@@ -42,6 +46,7 @@ nano .env
 ```
 
 **Update these critical fields:**
+
 ```env
 GMAIL_ENABLED=true
 GMAIL_EMAIL=your-actual-email@gmail.com
@@ -49,6 +54,7 @@ GMAIL_APP_PASSWORD=your-16-char-app-password
 ```
 
 **Build and run:**
+
 ```bash
 # Build the Docker image
 docker compose build
@@ -85,6 +91,7 @@ Send yourself a test email with some spam-like characteristics:
 **Subject:** URGENT! You've won $1,000,000! Act now!
 
 **Body:**
+
 ```
 Dear Winner,
 
@@ -105,11 +112,13 @@ Within 5 minutes (default check interval), you should see an alert!
 ### View Logs
 
 **Docker:**
+
 ```bash
 docker compose logs -f email-security-pipeline
 ```
 
 **Local:**
+
 ```bash
 tail -f logs/email_security.log
 ```
@@ -119,6 +128,7 @@ tail -f logs/email_security.log
 Edit `.env` to make detection more or less sensitive:
 
 **More Sensitive (catches more threats, may have false positives):**
+
 ```env
 SPAM_THRESHOLD=3.0
 NLP_THRESHOLD=0.5
@@ -126,6 +136,7 @@ THREAT_LOW=20
 ```
 
 **Less Sensitive (fewer false positives, may miss some threats):**
+
 ```env
 SPAM_THRESHOLD=7.0
 NLP_THRESHOLD=0.8
@@ -151,6 +162,7 @@ THREAT_LOW=40
 ### Enable Webhook Alerts
 
 Update `.env`:
+
 ```env
 ALERT_WEBHOOK_ENABLED=true
 ALERT_WEBHOOK_URL=https://your-webhook-endpoint.com/alerts
@@ -159,21 +171,25 @@ ALERT_WEBHOOK_URL=https://your-webhook-endpoint.com/alerts
 ## Troubleshooting
 
 ### "Authentication failed"
+
 - Double-check your app password (no spaces)
 - Ensure IMAP is enabled in your email settings
 - Try regenerating the app password
 
 ### "No emails detected"
+
 - Check folder names are correct (case-sensitive)
 - Verify emails are marked as "unread"
 - Ensure IMAP permissions are granted
 
 ### "Connection timeout"
+
 - Check firewall settings
 - Verify network connectivity
 - Ensure IMAP ports are not blocked (993 for Gmail/Outlook)
 
 ### "Module not found" errors
+
 - Ensure you're running from project root
 - Verify all dependencies are installed: `pip install -r requirements.txt`
 - Check Python version: `python3 --version` (should be 3.11+)

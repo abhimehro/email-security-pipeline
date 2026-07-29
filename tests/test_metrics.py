@@ -188,7 +188,7 @@ class TestMetrics(unittest.TestCase):
             "threats_detected",
             "processing_time_stats",
             "errors",
-            "sample_count"
+            "sample_count",
         }
         self.assertEqual(set(summary.keys()), expected_keys)
 
@@ -207,9 +207,11 @@ class TestMetrics(unittest.TestCase):
             "max_ms",
             "p50_ms",
             "p95_ms",
-            "p99_ms"
+            "p99_ms",
         }
-        self.assertEqual(set(summary["processing_time_stats"].keys()), expected_stats_keys)
+        self.assertEqual(
+            set(summary["processing_time_stats"].keys()), expected_stats_keys
+        )
 
         # Check nested stats types
         for key in expected_stats_keys:

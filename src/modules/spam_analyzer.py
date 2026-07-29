@@ -17,10 +17,10 @@ from ..utils.pattern_compiler import compile_named_group_pattern, compile_patter
 from ..utils.threat_scoring import calculate_risk_level
 from .email_data import EmailData
 
-
 # Compiled patterns for authentication result checks
 DKIM_AUTH_PATTERN = re.compile(r"dkim=(?:fail|permerror|neutral)")
 SPF_AUTH_PATTERN = re.compile(r"spf=(?:fail|permerror)")
+
 
 @dataclass
 class SpamAnalysisResult:
@@ -210,9 +210,9 @@ class SpamAnalyzer:
         # 'http' is a prerequisite for matching 'https?://', skipping the regex search
         # provides significant speedup on clean emails.
         extracted_urls = []
-        if 'http' in text_lower:
+        if "http" in text_lower:
             extracted_urls = self.URL_EXTRACTION_PATTERN.findall(text_lower)
-        if html_lower and 'http' in html_lower:
+        if html_lower and "http" in html_lower:
             extracted_urls.extend(self.URL_EXTRACTION_PATTERN.findall(html_lower))
         link_count = len(extracted_urls)
 
@@ -509,7 +509,9 @@ class SpamAnalyzer:
                 break
 
         if has_fail_indicator:
-            dkim_auth_fail, spf_auth_fail = self._evaluate_auth_results_loop(auth_results)
+            dkim_auth_fail, spf_auth_fail = self._evaluate_auth_results_loop(
+                auth_results
+            )
 
         if dkim_auth_fail:
             score += 2.5
@@ -521,7 +523,6 @@ class SpamAnalyzer:
             issues.append("SPF verification failed (Authentication-Results)")
 
         return score, issues
-
 
     def _evaluate_auth_results_loop(self, auth_results: List[str]) -> Tuple[bool, bool]:
         """Helper to evaluate auth results loop and reduce cyclomatic complexity."""
@@ -540,6 +541,7 @@ class SpamAnalyzer:
             if "spf=fail" in result_lower or "spf=permerror" in result_lower:
                 spf_auth_fail = True
         return dkim_auth_fail, spf_auth_fail
+
     def _check_dkim_presence(
         self, headers: Dict[str, Union[str, List[str]]]
     ) -> Tuple[float, List[str]]:

@@ -862,9 +862,7 @@ class MediaAuthenticityAnalyzer:
                 tarfile, "data_filter", (lambda member, path: member)
             )
 
-    def _get_tar_members_safely(
-        self, tf: tarfile.TarFile
-    ) -> List[tarfile.TarInfo]:
+    def _get_tar_members_safely(self, tf: tarfile.TarFile) -> List[tarfile.TarInfo]:
         """Get tar members safely with count limit."""
         members = []
         for m in tf:
@@ -877,9 +875,7 @@ class MediaAuthenticityAnalyzer:
         self, tf: tarfile.TarFile, member: tarfile.TarInfo, filename: str
     ) -> Tuple[float, List[str]]:
         """Process a single tar member for threats."""
-        safe_member_name = sanitize_for_logging(
-            sanitize_filename(member.name)
-        )
+        safe_member_name = sanitize_for_logging(sanitize_filename(member.name))
         member_lower = safe_member_name.lower()
 
         if member_lower.endswith(self.DANGEROUS_EXTENSIONS):
@@ -1199,7 +1195,10 @@ class MediaAuthenticityAnalyzer:
                         count += 1
                 else:
                     options = FrameExtractionOptions(
-                        max_frames=max_frames, max_dim=max_dim, step=step, total_frames=total_frames
+                        max_frames=max_frames,
+                        max_dim=max_dim,
+                        step=step,
+                        total_frames=total_frames,
                     )
                     frames = self._extract_frames_sampled(cap, options)
 

@@ -420,9 +420,7 @@ class EmailIngestionManager:
             results = parse_executor.map(
                 lambda args: client.parse_email(args[0], args[1], folder), raw_emails
             )
-            folder_emails.extend(
-                [email_data for email_data in results if email_data]
-            )
+            folder_emails.extend([email_data for email_data in results if email_data])
 
     def _fetch_folder(self, context: FetchContext) -> list:
         folder_emails = []
@@ -439,9 +437,13 @@ class EmailIngestionManager:
                 f"Fetching from {redact_email(context.account.email)}/"
                 f"{sanitize_for_logging(context.folder)}"
             )
-            raw_emails = context.client.fetch_unseen_emails(context.folder, context.max_per_folder)
+            raw_emails = context.client.fetch_unseen_emails(
+                context.folder, context.max_per_folder
+            )
             if raw_emails:
-                self._parse_emails_parallel(context.client, raw_emails, context.folder, folder_emails)
+                self._parse_emails_parallel(
+                    context.client, raw_emails, context.folder, folder_emails
+                )
         except Exception as e:
             self.logger.error(
                 f"Error fetching from {sanitize_for_logging(context.folder)}: {e}"

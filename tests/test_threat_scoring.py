@@ -132,4 +132,7 @@ class TestCalculateRiskLevel:
         assert calculate_risk_level(4, 5, 10) == "low"
 
     def test_keyword_arguments(self):
-        assert calculate_risk_level(score=10.0, low_threshold=5.0, high_threshold=10.0) == "high"
+        assert (
+            calculate_risk_level(score=10.0, low_threshold=5.0, high_threshold=10.0)
+            == "high"
+        )

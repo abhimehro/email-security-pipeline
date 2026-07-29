@@ -8,7 +8,8 @@
 [![CodeScene System Mastery](https://codescene.io/projects/80823/status-badges/system-mastery)](https://codescene.io/projects/80823)
 [![CodeScene Missed Goals](https://codescene.io/projects/80823/status-badges/missed-goals)](https://codescene.io/projects/80823)
 
-A self-hosted, containerized email security analysis system that monitors IMAP folders for suspicious messages using multi-layered threat detection.
+A self-hosted, containerized email security analysis system that monitors IMAP
+folders for suspicious messages using multi-layered threat detection.
 
 ## Features
 
@@ -42,10 +43,13 @@ A self-hosted, containerized email security analysis system that monitors IMAP f
 
 ### Observability & Monitoring
 
-- **Structured Logging**: JSON format for log aggregation tools (Splunk, ELK, CloudWatch)
-- **Metrics Collection**: Track emails processed, threats detected, and processing performance
+- **Structured Logging**: JSON format for log aggregation tools (Splunk, ELK,
+  CloudWatch)
+- **Metrics Collection**: Track emails processed, threats detected, and
+  processing performance
 - **Log Rotation**: Automatic log file rotation to prevent disk space issues
-- **Configurable Formats**: Switch between human-readable text and machine-parseable JSON
+- **Configurable Formats**: Switch between human-readable text and
+  machine-parseable JSON
 
 ## Architecture
 
@@ -87,7 +91,8 @@ A self-hosted, containerized email security analysis system that monitors IMAP f
 - Python 3.11+ or Docker
 - Email account(s) with IMAP access
 - App passwords for email accounts (if 2FA enabled)
-- On macOS, Colima is supported as a lightweight Docker backend (`brew install colima docker docker-compose`)
+- On macOS, Colima is supported as a lightweight Docker backend
+  (`brew install colima docker docker-compose`)
 
 ### Option 1: Docker Deployment (Recommended)
 
@@ -128,7 +133,9 @@ A self-hosted, containerized email security analysis system that monitors IMAP f
 
 ### Option 3: Background Execution (macOS/Darwin)
 
-If you are on macOS, you can run the pipeline as a background service (launchd daemon) that starts automatically on login. The current setup supports Colima and starts the Compose stack in detached mode.
+If you are on macOS, you can run the pipeline as a background service (launchd
+daemon) that starts automatically on login. The current setup supports Colima
+and starts the Compose stack in detached mode.
 
 1. **Install the daemon**
 
@@ -159,7 +166,8 @@ If you are on macOS, you can run the pipeline as a background service (launchd d
 #### Gmail
 
 1. Enable IMAP: Settings → Forwarding and POP/IMAP → Enable IMAP
-2. Generate App Password: Google Account → Security → 2-Step Verification → App passwords
+2. Generate App Password: Google Account → Security → 2-Step Verification → App
+   passwords
 3. Update `.env`:
    ```env
    GMAIL_ENABLED=true
@@ -169,15 +177,19 @@ If you are on macOS, you can run the pipeline as a background service (launchd d
 
 #### Outlook/Hotmail
 
-**⚠️ CRITICAL: Personal Outlook accounts (outlook.com, hotmail.com, live.com, msn.com) NO LONGER support app passwords as of October 1, 2024.**
+**⚠️ CRITICAL: Personal Outlook accounts (outlook.com, hotmail.com, live.com,
+msn.com) NO LONGER support app passwords as of October 1, 2024.**
 
-- **Personal Accounts**: App passwords do NOT work. Requires OAuth2 (not currently supported).
-- **Microsoft 365 Business**: May still work with app passwords (depends on tenant configuration).
+- **Personal Accounts**: App passwords do NOT work. Requires OAuth2 (not
+  currently supported).
+- **Microsoft 365 Business**: May still work with app passwords (depends on
+  tenant configuration).
 
 **For Microsoft 365 Business accounts only:**
 
 1. Enable IMAP: Settings → Sync email → Let devices use IMAP
-2. Generate App Password: Account security → Advanced security options → App passwords
+2. Generate App Password: Account security → Advanced security options → App
+   passwords
 3. Update `.env`:
    ```env
    OUTLOOK_ENABLED=true
@@ -185,7 +197,8 @@ If you are on macOS, you can run the pipeline as a background service (launchd d
    OUTLOOK_APP_PASSWORD=your-app-password
    ```
 
-**Recommendation:** Use Gmail or Proton Mail instead of personal Outlook accounts.
+**Recommendation:** Use Gmail or Proton Mail instead of personal Outlook
+accounts.
 
 See `OUTLOOK_TROUBLESHOOTING.md` for more details.
 
@@ -202,7 +215,8 @@ See `OUTLOOK_TROUBLESHOOTING.md` for more details.
    PROTON_APP_PASSWORD=your-bridge-password
    PROTON_FOLDERS=INBOX
    ```
-   **Note:** Proton Mail requires the Bridge application running locally; adjust the IMAP port if your Bridge uses 1143/STARTTLS instead of 143/SSL.
+   **Note:** Proton Mail requires the Bridge application running locally; adjust
+   the IMAP port if your Bridge uses 1143/STARTTLS instead of 143/SSL.
 
 #### Connectivity sanity checks (Bridge + Gmail)
 
@@ -222,7 +236,8 @@ openssl s_client -connect imap.gmail.com:993 -quiet </dev/null | head -5
   ```bash
   python scripts/check_mail_connectivity.py
   ```
-- It issues NOOP on IMAP/SMTP for Gmail and Proton Bridge using your .env settings; no messages are fetched or sent.
+- It issues NOOP on IMAP/SMTP for Gmail and Proton Bridge using your .env
+  settings; no messages are fetched or sent.
 
 ### Analysis Configuration
 
@@ -277,9 +292,9 @@ MAX_PARALLEL_ACCOUNTS=3        # Max accounts processed simultaneously (default:
 
 ### Parallel Account Processing
 
-Multiple email accounts are fetched **concurrently** using a `ThreadPoolExecutor`.
-Each account runs in its own thread with an isolated IMAP connection, so credentials
-and session state are never shared.
+Multiple email accounts are fetched **concurrently** using a
+`ThreadPoolExecutor`. Each account runs in its own thread with an isolated IMAP
+connection, so credentials and session state are never shared.
 
 **Performance impact (example with 3 accounts at 30 s each):**
 
@@ -289,8 +304,10 @@ and session state are never shared.
 | Parallel (after, `MAX_PARALLEL_ACCOUNTS=3`) | ~30 s      |
 
 - Per-account errors are caught and logged without interrupting other accounts.
-- Rate limiting (`RATE_LIMIT_DELAY`) is applied independently per account thread.
-- Memory footprint scales linearly with the number of parallel accounts and emails fetched.
+- Rate limiting (`RATE_LIMIT_DELAY`) is applied independently per account
+  thread.
+- Memory footprint scales linearly with the number of parallel accounts and
+  emails fetched.
 
 ### Logging Configuration
 
@@ -306,7 +323,8 @@ LOG_FILE=logs/email_security.log
 
 #### Text Format (Default)
 
-Best for local development and human reading. Includes colored output for better visibility:
+Best for local development and human reading. Includes colored output for better
+visibility:
 
 ```
 2024-02-15 10:30:45 - EmailSecurityPipeline - INFO - Analyzing email: Important update...
@@ -366,8 +384,7 @@ ENABLE_METRICS=true
 - **Processing time**: Min, max, average, p50, p95, p99 percentiles
 - **Errors**: Categorized error counts
 
-**Viewing metrics:**
-Metrics are logged every 10 monitoring cycles:
+**Viewing metrics:** Metrics are logged every 10 monitoring cycles:
 
 ```
 INFO - Metrics Summary: 150 emails processed, 12 threat types detected, avg processing time: 145ms
@@ -378,7 +395,8 @@ INFO - Metrics Summary: 150 emails processed, 12 threat types detected, avg proc
 - **Performance monitoring**: Identify slow processing
 - **Threat patterns**: Track threat types over time
 - **Capacity planning**: Understand email volume
-- **Alerting**: Set up monitoring for metric thresholds (e.g., "alert if avg processing time > 1000ms")
+- **Alerting**: Set up monitoring for metric thresholds (e.g., "alert if avg
+  processing time > 1000ms")
 
 ## Project Structure
 
@@ -506,7 +524,8 @@ tail -f logs/email_security.log
    pre-commit install
    ```
 
-   This will automatically run code quality checks before each commit, including:
+   This will automatically run code quality checks before each commit,
+   including:
    - Trailing whitespace removal
    - End-of-file fixing
    - YAML/JSON validation
@@ -569,7 +588,8 @@ SKIP=bandit git commit -m "Message"
 
 ### Adding Custom Analysis Rules
 
-Extend `spam_analyzer.py`, `nlp_analyzer.py`, or `media_analyzer.py` with custom patterns:
+Extend `spam_analyzer.py`, `nlp_analyzer.py`, or `media_analyzer.py` with custom
+patterns:
 
 ```python
 # Example: Add custom spam keyword
@@ -607,7 +627,8 @@ def _custom_alert(self, report: ThreatReport):
 
 Adjust these settings in `.env` to optimize performance for your environment:
 
-- **Check Interval**: Increase `CHECK_INTERVAL` for less frequent checks to reduce load
+- **Check Interval**: Increase `CHECK_INTERVAL` for less frequent checks to
+  reduce load
 - **Rate Limit Delay**: Increase `RATE_LIMIT_DELAY` if experiencing throttling
 - **Batch Size**: Reduce `MAX_EMAILS_PER_BATCH` if processing is slow
 - **Analysis Layers**: Disable unused layers for faster processing:
@@ -621,29 +642,35 @@ The pipeline has undergone significant performance improvements:
 
 #### Email Parsing Efficiency (Feb 2026)
 
-- **String Concatenation**: Replaced O(N²) string concatenation with O(N) list accumulation
+- **String Concatenation**: Replaced O(N²) string concatenation with O(N) list
+  accumulation
   - Uses `list.append()` + `"".join()` instead of `+=` for building email bodies
   - Prevents DoS vulnerabilities from large multipart emails
   - Reduces memory allocation overhead
 
 #### Media Analysis Performance (Feb 2026)
 
-- **Frequency Domain Analysis**: cv2.dft is ~2x faster than numpy FFT for deepfake detection
-  - Switched from `np.fft.fft2()` to `cv2.dft()` for compression artifact analysis
+- **Frequency Domain Analysis**: cv2.dft is ~2x faster than numpy FFT for
+  deepfake detection
+  - Switched from `np.fft.fft2()` to `cv2.dft()` for compression artifact
+    analysis
 - **Frame Sampling**: Reduced from 20 to 10 frames for video analysis
   - Statistical sampling provides equivalent detection with 50% fewer frames
-  - **Combined impact**: Video processing reduced from ~20s to ~3.5s (5.7x speedup)
+  - **Combined impact**: Video processing reduced from ~20s to ~3.5s (5.7x
+    speedup)
 
 #### NLP Pattern Matching (2025)
 
-- **Regex Optimization**: Combined multiple pattern searches into single-pass operations
+- **Regex Optimization**: Combined multiple pattern searches into single-pass
+  operations
   - Pre-compiled regex patterns at module scope
   - Hybrid approach: fast detection pass + detailed identification pass
   - Memory-efficient match counting with generators instead of `findall()`
 
 #### Input Truncation (2025)
 
-- **LRU Cache Efficiency**: Truncate large text to processing limits before caching
+- **LRU Cache Efficiency**: Truncate large text to processing limits before
+  caching
   - Transformer models typically process first 512 tokens only
   - Truncating before caching achieves ~300x speedup on repeated large inputs
 
@@ -668,21 +695,29 @@ When optimizing for your use case:
 
 1. **Profile First**: Use `LOG_LEVEL=DEBUG` to identify bottlenecks
 2. **Disable Unused Features**: Turn off unnecessary analysis layers
-3. **Adjust Limits**: Reduce `MAX_BODY_SIZE` and attachment limits for faster processing
+3. **Adjust Limits**: Reduce `MAX_BODY_SIZE` and attachment limits for faster
+   processing
 4. **Batch Processing**: Balance `MAX_EMAILS_PER_BATCH` vs processing time
-5. **Resource Allocation**: Ensure adequate CPU/memory for media analysis if enabled
+5. **Resource Allocation**: Ensure adequate CPU/memory for media analysis if
+   enabled
 
 ## Limitations
 
-- **Personal Outlook Accounts**: Not supported due to Microsoft's discontinuation of app password authentication (October 2024). Only OAuth2 is supported, which is not yet implemented.
-- **Proton Mail**: Requires Bridge application running locally (Bridge provides localhost IMAP server)
+- **Personal Outlook Accounts**: Not supported due to Microsoft's
+  discontinuation of app password authentication (October 2024). Only OAuth2 is
+  supported, which is not yet implemented.
+- **Proton Mail**: Requires Bridge application running locally (Bridge provides
+  localhost IMAP server)
 - **Deepfake Detection**: Basic heuristics only; ML models not included
-- **Transformer Models**: Not enabled by default (requires additional dependencies)
-- **IMAP Only**: Does not support POP3 or proprietary APIs (e.g., Microsoft Graph)
+- **Transformer Models**: Not enabled by default (requires additional
+  dependencies)
+- **IMAP Only**: Does not support POP3 or proprietary APIs (e.g., Microsoft
+  Graph)
 
 ## Future Enhancements
 
-- [ ] **OAuth2 Authentication** for personal Outlook/Microsoft accounts (high priority)
+- [ ] **OAuth2 Authentication** for personal Outlook/Microsoft accounts (high
+      priority)
 - [ ] Full transformer model integration for NLP analysis
 - [ ] Advanced deepfake detection using specialized ML models
 - [ ] Database persistence for threat history
@@ -694,7 +729,8 @@ When optimizing for your use case:
 
 ## GitHub Actions & Agentic Workflows
 
-This repository includes automated workflows powered by GitHub Actions and AI agents:
+This repository includes automated workflows powered by GitHub Actions and AI
+agents:
 
 - **Daily Perf Improver** - Identifies and implements performance optimizations
 - **Daily QA** - Performs quality assurance checks and suggests improvements
@@ -706,19 +742,23 @@ When CodeScene fails on a PR during review/salvage sessions, comment:
 /cs-agent skill:fix-code-health-degradations
 ```
 
-Then continue salvage verification after the CodeScene remediation run completes.
+Then continue salvage verification after the CodeScene remediation run
+completes.
 
 ### Prerequisites for Agentic Workflows
 
-Some workflows require **GitHub Discussions** to be enabled for coordination and planning.
+Some workflows require **GitHub Discussions** to be enabled for coordination and
+planning.
 
-**⚠️ If you see workflow failures** about "Failed to create discussion", you need to enable Discussions:
+**⚠️ If you see workflow failures** about "Failed to create discussion", you
+need to enable Discussions:
 
 1. Go to your repository **Settings**
 2. Scroll to **Features** section
 3. Enable **Discussions**
 
-For detailed setup instructions, see [Agentic Workflows Setup Guide](.github/AGENTIC_WORKFLOWS_SETUP.md).
+For detailed setup instructions, see
+[Agentic Workflows Setup Guide](.github/AGENTIC_WORKFLOWS_SETUP.md).
 
 ## License
 

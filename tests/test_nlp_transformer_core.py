@@ -6,9 +6,9 @@ Tests cover:
   - _analyze_core_impl: missing model/tokenizer/torch, happy path (mocking torch), and exception handling
 """
 
-import unittest
-import hashlib
 import functools
+import hashlib
+import unittest
 from unittest.mock import MagicMock, patch
 
 from src.modules.nlp_analyzer import NLPThreatAnalyzer

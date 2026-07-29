@@ -12,8 +12,8 @@ SECURITY STORY: IMAP connections are security-critical because:
 """
 
 import imaplib
-import re
 import logging
+import re
 import socket
 import ssl
 from datetime import datetime

@@ -306,7 +306,9 @@ def _check_script_exists(script_path: str) -> bool:
     return Path(script_path).exists()
 
 
-def _run_diagnostics_script(script_path: str, email: str) -> subprocess.CompletedProcess:
+def _run_diagnostics_script(
+    script_path: str, email: str
+) -> subprocess.CompletedProcess:
     """Run the diagnostics script and return the result."""
     return subprocess.run(
         ["python3", script_path, email],
@@ -365,7 +367,9 @@ def test_diagnostics_script():
 
         test_account_email = _get_first_enabled_account(config)
         if not test_account_email:
-            print("⚠️ No enabled email accounts found, skipping diagnostics script test")
+            print(
+                "⚠️ No enabled email accounts found, skipping diagnostics script test"
+            )
             return True
 
         print(f"Testing diagnostics for: {test_account_email}")

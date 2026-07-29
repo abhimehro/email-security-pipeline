@@ -115,7 +115,9 @@ class TestSSRFPrevention(unittest.TestCase):
         is_safe, msg = is_safe_webhook_url("https://unspecified.local/webhook")
         self.assertFalse(is_safe)
         # 0.0.0.0 might hit zero-net or unspecified depending on order/implementation
-        self.assertTrue("unspecified" in msg or "zero-net" in msg or "private IP" in msg, msg)
+        self.assertTrue(
+            "unspecified" in msg or "zero-net" in msg or "private IP" in msg, msg
+        )
 
     @patch("socket.getaddrinfo")
     def test_invalid_ip_address(self, mock_getaddrinfo):

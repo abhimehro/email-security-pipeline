@@ -3,6 +3,7 @@
 ## Problem Statement
 
 The Daily Backlog Burner workflow failed with the error:
+
 ```
 Failed to create discussion in 'abhimehro/email-security-pipeline':
 Request failed due to following response errors:
@@ -12,11 +13,14 @@ Request failed due to following response errors:
 
 ## Root Cause
 
-The workflow was configured to use GitHub Discussions to track backlog management progress, but **Discussions are not enabled** in the `abhimehro/email-security-pipeline` repository.
+The workflow was configured to use GitHub Discussions to track backlog
+management progress, but **Discussions are not enabled** in the
+`abhimehro/email-security-pipeline` repository.
 
 ## Solution Implemented
 
-Modified the workflow to use **GitHub Issues** instead of Discussions, since Issues are available in all repositories by default.
+Modified the workflow to use **GitHub Issues** instead of Discussions, since
+Issues are available in all repositories by default.
 
 ### Changes Made to `.github/workflows/daily-backlog-burner.md`
 
@@ -40,18 +44,24 @@ Modified the workflow to use **GitHub Issues** instead of Discussions, since Iss
 2. **Phase Selection Logic** (line 51):
    ```markdown
    # Before:
-   First check for existing open discussion titled "${{ github.workflow }}" using `list_discussions`
+
+   First check for existing open discussion titled "${{ github.workflow }}" using
+   `list_discussions`
 
    # After:
-   First check for existing open issue with title starting with "${{ github.workflow }} - Research, Roadmap and Plan" using `list_issues`
+
+   First check for existing open issue with title starting with "${{
+   github.workflow }} - Research, Roadmap and Plan" using `list_issues`
    ```
 
 3. **Tracking Artifact Creation** (line 68):
    ```markdown
    # Before:
+
    Use this research to create a discussion with title "..."
 
    # After:
+
    Use this research to create an issue with title "..."
    ```
 
@@ -63,12 +73,15 @@ Modified the workflow to use **GitHub Issues** instead of Discussions, since Iss
 ## How It Works Now
 
 ### Phase 1: Research & Planning
+
 1. Workflow researches the entire backlog of issues and PRs
-2. Creates a **tracking issue** titled "Daily Backlog Burner - Research, Roadmap and Plan"
+2. Creates a **tracking issue** titled "Daily Backlog Burner - Research, Roadmap
+   and Plan"
 3. Issue contains comprehensive backlog analysis and recommendations
 4. Maintainers can comment on the issue to adjust priorities
 
 ### Phase 2: Execution
+
 1. Workflow reads the tracking issue and maintainer feedback
 2. Selects a backlog item to work on
 3. Creates a branch and implements changes
@@ -103,7 +116,8 @@ gh aw run daily-backlog-burner --repo abhimehro/email-security-pipeline
 ### Expected Behavior
 
 1. ✅ Workflow completes successfully (no "Resource not accessible" errors)
-2. ✅ Creates a tracking issue: "Daily Backlog Burner - Research, Roadmap and Plan"
+2. ✅ Creates a tracking issue: "Daily Backlog Burner - Research, Roadmap and
+   Plan"
 3. ✅ Issue contains backlog research and recommendations
 4. ✅ On subsequent runs, workflow reads the issue and works on backlog items
 
@@ -122,6 +136,7 @@ If you prefer to use Discussions instead of Issues, you can:
 3. Recompile the workflow
 
 However, **using Issues is recommended** because:
+
 - ✅ Issues are available in all repositories by default
 - ✅ Better integration with project management tools
 - ✅ More familiar to most developers
@@ -135,23 +150,34 @@ However, **using Issues is recommended** because:
 
 ## Files That Need Updating (After Compilation)
 
-- `.github/workflows/daily-backlog-burner.lock.yml` - Compiled workflow (auto-generated)
+- `.github/workflows/daily-backlog-burner.lock.yml` - Compiled workflow
+  (auto-generated)
 
 ## Related Workflows
 
-The following workflows also use Discussions and may need similar fixes if Discussions remain disabled:
+The following workflows also use Discussions and may need similar fixes if
+Discussions remain disabled:
 
 - `daily-qa.md` - Uses `create-discussion` with category "q-a"
 - `daily-perf-improver.md` - Uses `create-discussion` with category "ideas"
 
-Consider applying the same fix to these workflows if they encounter similar failures.
+Consider applying the same fix to these workflows if they encounter similar
+failures.
 
 ## Security Considerations
 
-✅ This fix keeps the overall security posture similar while changing **where** writes occur:
-- The workflow now uses Issue permissions (e.g., `issues: write`) instead of Discussion permissions (e.g., `discussions: write`); no broader write scopes are introduced
-- The workflow continues to create/update tracking Issues (and any configured PR comments) via `safe-outputs`, but it does not modify repository source files or branches directly
-- The `safe-outputs` configuration constrains what can be written (titles, labels, bodies, counts), reducing the risk of arbitrary or attacker-controlled writes while still allowing the necessary Issue/PR updates
+✅ This fix keeps the overall security posture similar while changing **where**
+writes occur:
+
+- The workflow now uses Issue permissions (e.g., `issues: write`) instead of
+  Discussion permissions (e.g., `discussions: write`); no broader write scopes
+  are introduced
+- The workflow continues to create/update tracking Issues (and any configured PR
+  comments) via `safe-outputs`, but it does not modify repository source files
+  or branches directly
+- The `safe-outputs` configuration constrains what can be written (titles,
+  labels, bodies, counts), reducing the risk of arbitrary or attacker-controlled
+  writes while still allowing the necessary Issue/PR updates
 
 ## Support
 
@@ -164,6 +190,6 @@ If you encounter any issues after applying this fix:
 
 ---
 
-**Fix Author**: GitHub Copilot  
-**Date**: 2026-02-16  
+**Fix Author**: GitHub Copilot\
+**Date**: 2026-02-16\
 **Issue**: #232 - [agentics] Daily Backlog Burner failed

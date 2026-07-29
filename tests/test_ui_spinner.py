@@ -191,6 +191,7 @@ class TestSpinner(unittest.TestCase):
     @patch("sys.stdout", new_callable=StringIO)
     def test_spinner_spin_loop_and_elapsed(self, mock_stdout):
         import time
+
         mock_stdout.isatty = MagicMock(return_value=True)
 
         with Spinner("Testing loop", delay=0.01) as spinner:
@@ -221,4 +222,5 @@ class TestSpinner(unittest.TestCase):
     def test_spinner_color_fallback(self):
         spinner = Spinner("Test")
         from src.utils.colors import Colors
+
         self.assertEqual(spinner._get_color_for_symbol("?"), Colors.WHITE)

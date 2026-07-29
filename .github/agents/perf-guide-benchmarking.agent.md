@@ -7,11 +7,14 @@ description: Measure and validate performance improvements
 
 ## Why Benchmark?
 
-**SECURITY STORY**: Without measurements, "optimizations" can make things worse. A 10ms delay seems small until you scan 10,000 emails—then it's 100 seconds. Benchmarks catch regressions before production.
+**SECURITY STORY**: Without measurements, "optimizations" can make things worse.
+A 10ms delay seems small until you scan 10,000 emails—then it's 100 seconds.
+Benchmarks catch regressions before production.
 
 ## Quick Start
 
 **Install**:
+
 ```bash
 pip install pytest-benchmark
 ```
@@ -30,6 +33,7 @@ def test_email_parsing_performance(benchmark):
 ## Real Example
 
 See `tests/test_ingestion_optimization.py`:
+
 - Tests O(N) string concatenation fix
 - Validates multipart email speed
 - **WHAT NOT TO DO**: Don't optimize without proof
@@ -48,11 +52,13 @@ pytest tests/test_my_opt.py --benchmark-only
 ```
 
 Key metrics:
+
 - **Mean**: Average time (primary target)
 - **StdDev**: Consistency (high = unstable)
 - **Min/Max**: Outliers (huge max = DoS risk)
 
-**MAINTENANCE WISDOM**: Add `assert benchmark.stats.mean < THRESHOLD` to catch CI regressions.
+**MAINTENANCE WISDOM**: Add `assert benchmark.stats.mean < THRESHOLD` to catch
+CI regressions.
 
 ## Common Pitfalls
 

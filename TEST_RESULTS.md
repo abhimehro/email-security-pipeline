@@ -70,7 +70,8 @@
 
 ### Immediate Actions
 
-1. ✅ **Configuration is ready** - You can run the pipeline with Gmail and Proton Mail
+1. ✅ **Configuration is ready** - You can run the pipeline with Gmail and
+   Proton Mail
 2. ⚠️ **Outlook troubleshooting** - Follow steps in OUTLOOK_TROUBLESHOOTING.md
 3. ✅ **Test the pipeline** - Run with working accounts first
 
@@ -138,10 +139,10 @@ Follow the troubleshooting steps in `OUTLOOK_TROUBLESHOOTING.md`:
 
 **The Email Security Pipeline is ready to use!**
 
-You can start monitoring emails with Gmail and Proton Mail immediately. The Outlook connection issue can be resolved later using the troubleshooting guide.
+You can start monitoring emails with Gmail and Proton Mail immediately. The
+Outlook connection issue can be resolved later using the troubleshooting guide.
 
 ---
 
-**Tested By:** CodePilot AI Assistant
-**Test Script:** test_config.py
+**Tested By:** CodePilot AI Assistant **Test Script:** test_config.py
 **Configuration File:** .env

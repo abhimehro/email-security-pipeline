@@ -7,8 +7,8 @@ This helps identify whether issues are credential-based or network/SSL-based.
 import imaplib
 import os
 import ssl
-
 from dataclasses import dataclass
+
 from dotenv import load_dotenv
 
 
@@ -21,6 +21,7 @@ class ConnectionConfig:
     password: str
     use_ssl: bool = True
     verify_ssl: bool = True
+
 
 def test_connection(config: ConnectionConfig):
     """Test IMAP connection with detailed diagnostics."""
@@ -40,7 +41,9 @@ def test_connection(config: ConnectionConfig):
                 print("⚠️  SSL verification DISABLED")
 
             print(f"Connecting to {config.host}:{config.port} with SSL...")
-            imap = imaplib.IMAP4_SSL(config.host, config.port, ssl_context=context, timeout=30)
+            imap = imaplib.IMAP4_SSL(
+                config.host, config.port, ssl_context=context, timeout=30
+            )
         else:
             print(f"Connecting to {config.host}:{config.port} without SSL...")
             imap = imaplib.IMAP4(config.host, config.port, timeout=30)
@@ -93,15 +96,17 @@ def main():
         gmail_password = os.getenv("GMAIL_APP_PASSWORD", "")
 
         if gmail_email and gmail_password:
-            test_connection(ConnectionConfig(
-                "Gmail",
-                os.getenv("GMAIL_IMAP_SERVER", "imap.gmail.com"),
-                int(os.getenv("GMAIL_IMAP_PORT", "993")),
-                gmail_email,
-                gmail_password,
-                use_ssl=True,
-                verify_ssl=True,
-            ))
+            test_connection(
+                ConnectionConfig(
+                    "Gmail",
+                    os.getenv("GMAIL_IMAP_SERVER", "imap.gmail.com"),
+                    int(os.getenv("GMAIL_IMAP_PORT", "993")),
+                    gmail_email,
+                    gmail_password,
+                    use_ssl=True,
+                    verify_ssl=True,
+                )
+            )
         else:
             print("\n⚠️  Gmail credentials not configured")
 
@@ -115,29 +120,31 @@ def main():
         if proton_email and proton_password:
             # First try with verification disabled (as configured)
             verify = os.getenv("PROTON_VERIFY_SSL", "true").lower() != "false"
-            test_connection(ConnectionConfig(
-                "Proton Mail Bridge (as configured)",
-                proton_server,
-                proton_port,
-                proton_email,
-                proton_password,
-                use_ssl=True,
-                verify_ssl=verify,
-
-            ))
+            test_connection(
+                ConnectionConfig(
+                    "Proton Mail Bridge (as configured)",
+                    proton_server,
+                    proton_port,
+                    proton_email,
+                    proton_password,
+                    use_ssl=True,
+                    verify_ssl=verify,
+                )
+            )
 
             # Also try without SSL entirely (STARTTLS fallback)
             print("\n--- Trying Proton without SSL (STARTTLS) ---")
-            test_connection(ConnectionConfig(
-                "Proton Mail Bridge (STARTTLS fallback)",
-                proton_server,
-                proton_port,
-                proton_email,
-                proton_password,
-                use_ssl=False,
-                verify_ssl=False,
-
-            ))
+            test_connection(
+                ConnectionConfig(
+                    "Proton Mail Bridge (STARTTLS fallback)",
+                    proton_server,
+                    proton_port,
+                    proton_email,
+                    proton_password,
+                    use_ssl=False,
+                    verify_ssl=False,
+                )
+            )
         else:
             print("\n⚠️  Proton credentials not configured")
 

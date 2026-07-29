@@ -20,11 +20,11 @@ well-formed pull request.
 
 ## Prerequisites
 
-| Requirement | Minimum version |
-|-------------|-----------------|
-| Python      | 3.11            |
-| Git         | any recent      |
-| Docker *(optional, for integration testing)* | any recent |
+| Requirement                                  | Minimum version |
+| -------------------------------------------- | --------------- |
+| Python                                       | 3.11            |
+| Git                                          | any recent      |
+| Docker _(optional, for integration testing)_ | any recent      |
 
 > **Note:** The heavy ML libraries (`torch`, `transformers`, `sentencepiece`)
 > are intentionally excluded from the CI requirements file. The pipeline
@@ -55,8 +55,8 @@ cp .env.example .env
 # Edit .env with your IMAP credentials — see README.md for per-provider details
 ```
 
-> **Important:** The `.env` file is already listed in `.gitignore`. Never
-> remove it from that list, and never commit credentials. See
+> **Important:** The `.env` file is already listed in `.gitignore`. Never remove
+> it from that list, and never commit credentials. See
 > [Secrets Policy](#secrets-policy) below.
 
 ---
@@ -112,9 +112,9 @@ trunk check --all
 trunk fmt
 ```
 
-> **Note:** pre-commit (see the next section) runs a separate, complementary
-> set of hooks focused on file hygiene and security scanning. It does **not**
-> run black, isort, or ruff — those belong to Trunk.
+> **Note:** pre-commit (see the next section) runs a separate, complementary set
+> of hooks focused on file hygiene and security scanning. It does **not** run
+> black, isort, or ruff — those belong to Trunk.
 
 > **Note:** The repository has a small number of pre-existing lint warnings
 > (trailing whitespace, EOF issues, case-conflict in `.Jules`/`.jules`
@@ -128,23 +128,23 @@ trunk fmt
 Pre-commit runs automatically before every `git commit` once installed. It
 includes the following hooks:
 
-| Hook | What it checks |
-|------|----------------|
-| `trailing-whitespace` | Removes trailing spaces |
-| `end-of-file-fixer` | Ensures files end with a newline |
-| `check-yaml` / `check-json` / `check-toml` | Config file syntax |
-| `check-added-large-files` | Blocks files larger than 500 KB |
-| `check-merge-conflict` | Detects leftover conflict markers |
-| `check-case-conflict` | Prevents files that differ only by case |
-| `debug-statements` | Detects accidental `pdb`/`breakpoint()` calls |
-| `mixed-line-ending` | Enforces LF line endings |
-| `requirements-txt-fixer` | Keeps `requirements*.txt` sorted |
-| `bandit` | Security linting for `src/` |
-| `python-check-blanket-noqa` | Flags bare `# noqa` without specific codes |
-| `python-check-mock-methods` | Detects incorrect mock method names |
-| `python-no-eval` | Prevents use of `eval()` |
-| `python-no-log-warn` | Flags deprecated `logger.warn()` calls |
-| `python-use-type-annotations` | Encourages type hints |
+| Hook                                       | What it checks                                |
+| ------------------------------------------ | --------------------------------------------- |
+| `trailing-whitespace`                      | Removes trailing spaces                       |
+| `end-of-file-fixer`                        | Ensures files end with a newline              |
+| `check-yaml` / `check-json` / `check-toml` | Config file syntax                            |
+| `check-added-large-files`                  | Blocks files larger than 500 KB               |
+| `check-merge-conflict`                     | Detects leftover conflict markers             |
+| `check-case-conflict`                      | Prevents files that differ only by case       |
+| `debug-statements`                         | Detects accidental `pdb`/`breakpoint()` calls |
+| `mixed-line-ending`                        | Enforces LF line endings                      |
+| `requirements-txt-fixer`                   | Keeps `requirements*.txt` sorted              |
+| `bandit`                                   | Security linting for `src/`                   |
+| `python-check-blanket-noqa`                | Flags bare `# noqa` without specific codes    |
+| `python-check-mock-methods`                | Detects incorrect mock method names           |
+| `python-no-eval`                           | Prevents use of `eval()`                      |
+| `python-no-log-warn`                       | Flags deprecated `logger.warn()` calls        |
+| `python-use-type-annotations`              | Encourages type hints                         |
 
 Useful commands:
 
@@ -173,24 +173,26 @@ git commit --no-verify -m "emergency fix"
 
 Use one of these prefixes followed by a short, hyphen-separated description:
 
-| Prefix | Use for |
-|--------|---------|
-| `feat/` | New features |
-| `fix/` | Bug fixes |
-| `docs/` | Documentation-only changes |
-| `chore/` | Maintenance (deps, config, CI) |
-| `test/` | Test additions or improvements |
-| `perf/` | Performance improvements |
+| Prefix      | Use for                                     |
+| ----------- | ------------------------------------------- |
+| `feat/`     | New features                                |
+| `fix/`      | Bug fixes                                   |
+| `docs/`     | Documentation-only changes                  |
+| `chore/`    | Maintenance (deps, config, CI)              |
+| `test/`     | Test additions or improvements              |
+| `perf/`     | Performance improvements                    |
 | `refactor/` | Code restructuring without behaviour change |
 
-Examples: `feat/oauth2-outlook`, `fix/media-analyzer-zip-bomb`, `docs/contributing-guide`
+Examples: `feat/oauth2-outlook`, `fix/media-analyzer-zip-bomb`,
+`docs/contributing-guide`
 
 ### Before Opening the PR
 
 1. Make sure the full test suite passes: `python3 -m pytest`
 2. Make sure pre-commit passes: `pre-commit run --all-files`
 3. Keep changes focused — one logical change per PR makes review faster.
-4. Reference the related issue number in your PR description (e.g. `Closes #42`).
+4. Reference the related issue number in your PR description (e.g.
+   `Closes #42`).
 
 ### What to Include in the PR Description
 
@@ -211,8 +213,8 @@ the repository. At a minimum your description should cover:
 
 - Credentials, API keys, app passwords, and tokens must **never** appear in
   source code, commit messages, or PR descriptions.
-- Copy `.env.example` to `.env` and fill in real values locally. The `.env`
-  file is git-ignored and must stay that way.
+- Copy `.env.example` to `.env` and fill in real values locally. The `.env` file
+  is git-ignored and must stay that way.
 - If you accidentally commit a secret, rotate/revoke it immediately and then
   contact the maintainer to scrub the git history.
 - Use `chmod 600 .env` on Unix systems to restrict file permissions.

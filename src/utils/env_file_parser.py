@@ -24,9 +24,7 @@ def _validate_key(key: str, line_number: int) -> None:
 
 def _reject_command_substitution(value: str, line_number: int) -> None:
     if _COMMAND_SUBSTITUTION.search(value):
-        raise EnvParseError(
-            f"line {line_number}: command substitution is not allowed"
-        )
+        raise EnvParseError(f"line {line_number}: command substitution is not allowed")
 
 
 def _parse_quoted_value(value: str, line_number: int) -> str:

@@ -11,14 +11,15 @@ Supported Skills:
 - skill:uplift-code-health (Moderate confidence auto-fix, broader scope)
 """
 
-import json
-import sys
 import argparse
-import subprocess
-from typing import Optional, Dict, Any, Tuple
-import requests
-import time
+import json
 import re
+import subprocess
+import sys
+import time
+from typing import Any, Dict, Optional, Tuple
+
+import requests
 
 try:
     import google.generativeai as genai
@@ -522,7 +523,9 @@ Skill-guided refactoring | Confidence-based decisions | Code Health driven"""
                 "Accept": "application/vnd.github.v3+json",
             }
 
-            response = requests.post(url, json={"body": comment_body}, headers=headers, timeout=10)
+            response = requests.post(
+                url, json={"body": comment_body}, headers=headers, timeout=10
+            )
             response.raise_for_status()
 
             self.log("SUCCESS", "Posted comment to PR")

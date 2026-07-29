@@ -2,14 +2,18 @@
 
 ## Problem
 
-Several agentic workflows are failing because **GitHub Discussions are not enabled** in this repository.
+Several agentic workflows are failing because **GitHub Discussions are not
+enabled** in this repository.
 
 ### Failed Workflows:
-- [Daily Perf Improver](https://github.com/abhimehro/email-security-pipeline/actions/runs/22034991943) - Failed to create "Research and Plan" discussion
+
+- [Daily Perf Improver](https://github.com/abhimehro/email-security-pipeline/actions/runs/22034991943) -
+  Failed to create "Research and Plan" discussion
 - Daily QA (will fail when it tries to create discussions)
 - Daily Backlog Burner (will fail when it tries to create discussions)
 
 ### Error Message:
+
 ```
 Failed to create discussion in 'abhimehro/email-security-pipeline':
 Resource not accessible by integration. Common causes:
@@ -32,7 +36,8 @@ Enable GitHub Discussions for this repository:
 
 3. **Configure Discussion Categories** (recommended)
    - **Announcements** - For workflow announcements
-   - **Ideas** - For workflow research and proposals (required by Daily Perf Improver and Daily Backlog Burner)
+   - **Ideas** - For workflow research and proposals (required by Daily Perf
+     Improver and Daily Backlog Burner)
    - **General** - For general discussions (required by Daily QA)
    - **Q&A** - For questions and troubleshooting
 4. **Verify Setup**
@@ -48,18 +53,21 @@ Enable GitHub Discussions for this repository:
 ## Documentation
 
 For more details, see:
+
 - [Agentic Workflows Setup Guide](AGENTIC_WORKFLOWS_SETUP.md)
 - [GitHub Discussions Documentation](https://docs.github.com/en/discussions/quickstart)
 
 ## Impact
 
 Until discussions are enabled:
+
 - ❌ Agentic workflows cannot coordinate work or share research
 - ❌ Performance improvement planning will fail
 - ❌ QA automation cannot track progress
 - ❌ Backlog management workflows cannot function
 
 After enabling discussions:
+
 - ✅ All agentic workflows will function properly
 - ✅ Workflows can coordinate and track progress
 - ✅ Research and plans will be shared in discussions
@@ -68,6 +76,8 @@ After enabling discussions:
 ## Questions?
 
 If you have any questions or need help with this setup, please:
+
 - Comment on this issue
 - Check the [setup guide](AGENTIC_WORKFLOWS_SETUP.md)
-- Review the [GitHub Discussions documentation](https://docs.github.com/en/discussions)
+- Review the
+  [GitHub Discussions documentation](https://docs.github.com/en/discussions)

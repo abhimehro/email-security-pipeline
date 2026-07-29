@@ -174,7 +174,11 @@ class EmailSecurityPipeline:
             sys.exit(1)
         except Exception as e:
             self.logger.error(f"Fatal error: {e}", exc_info=True)
-            print("\n✖ " + Colors.colorize(f"Fatal error: {e}. ", Colors.RED) + Colors.colorize("Check the logs for details.", Colors.YELLOW))
+            print(
+                "\n✖ "
+                + Colors.colorize(f"Fatal error: {e}. ", Colors.RED)
+                + Colors.colorize("Check the logs for details.", Colors.YELLOW)
+            )
             self.stop()
             sys.exit(1)
 
@@ -414,7 +418,9 @@ class EmailSecurityPipeline:
         print(f"  📧 {Colors.colorize('Monitored Accounts:', Colors.CYAN)}")
         if not self.config.email_accounts:
             print(f"    - {Colors.colorize('⚠ No accounts configured', Colors.YELLOW)}")
-            print(f"      {Colors.colorize('→ Add credentials to your .env file to start processing emails.', Colors.GREY)}")
+            print(
+                f"      {Colors.colorize('→ Add credentials to your .env file to start processing emails.', Colors.GREY)}"
+            )
         else:
             for account in self.config.email_accounts:
                 status = (
@@ -465,7 +471,9 @@ class EmailSecurityPipeline:
             print(
                 f"    - {Colors.colorize('⚠ No alert channels configured', Colors.YELLOW)}"
             )
-            print(f"      {Colors.colorize('→ Enable alerts in your .env file to receive notifications.', Colors.GREY)}")
+            print(
+                f"      {Colors.colorize('→ Enable alerts in your .env file to receive notifications.', Colors.GREY)}"
+            )
 
         print(f"  ⚙️ {Colors.colorize('System:', Colors.CYAN)}")
         print(f"    - Log Level:  {self.config.system.log_level}")

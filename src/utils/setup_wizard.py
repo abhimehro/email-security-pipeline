@@ -409,7 +409,9 @@ def _validate_config_path(config_file: str) -> Path | None:
     if "\0" in config_file:
         print(
             "✖ "
-            + Colors.colorize(f"Error: Invalid configuration file path '{config_file}'. ", Colors.RED)
+            + Colors.colorize(
+                f"Error: Invalid configuration file path '{config_file}'. ", Colors.RED
+            )
             + Colors.colorize("Ensure the path contains no null bytes.", Colors.YELLOW)
         )
         return None
@@ -422,7 +424,9 @@ def _validate_config_path(config_file: str) -> Path | None:
     ):
         print(
             "✖ "
-            + Colors.colorize(f"Error: Unsafe configuration file path '{config_file}'. ", Colors.RED)
+            + Colors.colorize(
+                f"Error: Unsafe configuration file path '{config_file}'. ", Colors.RED
+            )
             + Colors.colorize("Use a filename only.", Colors.YELLOW)
         )
         return None
@@ -434,6 +438,7 @@ def _exit_with_error(message: str) -> None:
     """Helper to print a colored error message and exit."""
     print("\n✖ " + Colors.colorize(message, Colors.RED))
     import sys
+
     sys.exit(1)
 
 
@@ -447,7 +452,9 @@ def _set_file_permissions(fd: int) -> None:
             os.chmod(fd, 0o600)
         except (AttributeError, OSError, NotImplementedError, TypeError):
             # Fail securely if atomic operations are unavailable
-            _exit_with_error("Error: Cannot securely set file permissions on this platform.")
+            _exit_with_error(
+                "Error: Cannot securely set file permissions on this platform."
+            )
 
 
 def _write_config_file(config_file: str, new_content: str) -> bool:
@@ -577,8 +584,12 @@ def run_setup_wizard(
     if not Path(template_file).exists():
         print(
             "✖ "
-            + Colors.colorize(f"Error: Template file '{template_file}' not found. ", Colors.RED)
-            + Colors.colorize("Ensure the file exists before running the wizard.", Colors.YELLOW)
+            + Colors.colorize(
+                f"Error: Template file '{template_file}' not found. ", Colors.RED
+            )
+            + Colors.colorize(
+                "Ensure the file exists before running the wizard.", Colors.YELLOW
+            )
         )
         return False
 
@@ -603,8 +614,13 @@ def main() -> int:
     if not sys.stdin.isatty():
         print(
             "✖ "
-            + Colors.colorize("Interactive credential setup requires a TTY. ", Colors.RED)
-            + Colors.colorize("Run the command in an interactive terminal or provide a config file.", Colors.YELLOW)
+            + Colors.colorize(
+                "Interactive credential setup requires a TTY. ", Colors.RED
+            )
+            + Colors.colorize(
+                "Run the command in an interactive terminal or provide a config file.",
+                Colors.YELLOW,
+            )
         )
         return 1
 

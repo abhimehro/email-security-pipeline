@@ -4,7 +4,9 @@
 
 ### Project overview
 
-Email Security Analysis Pipeline — a Python-based email security system that monitors IMAP mailboxes and runs multi-layer threat detection (spam, NLP, media analysis). See `README.md` for full details.
+Email Security Analysis Pipeline — a Python-based email security system that
+monitors IMAP mailboxes and runs multi-layer threat detection (spam, NLP, media
+analysis). See `README.md` for full details.
 
 ### Running tests
 
@@ -13,7 +15,8 @@ python3 -m pytest        # runs the full test suite; no external services or cre
 python3 -m pytest -v     # verbose output
 ```
 
-Tests mock all IMAP connections and external services; no `.env` file is required.
+Tests mock all IMAP connections and external services; no `.env` file is
+required.
 
 ### Linting
 
@@ -21,32 +24,58 @@ Tests mock all IMAP connections and external services; no `.env` file is require
 python3 -m pre_commit run --all-files
 ```
 
-Note: the repo has pre-existing lint issues (trailing whitespace, EOF fixes, case-conflict in `.Jules`/`.jules` dirs, `.bandit` config parse error). These are not regressions.
+Note: the repo has pre-existing lint issues (trailing whitespace, EOF fixes,
+case-conflict in `.Jules`/`.jules` dirs, `.bandit` config parse error). These
+are not regressions.
 
 ### Running the application
 
-The pipeline requires a `.env` file with IMAP credentials (see `.env.example`). To start:
+The pipeline requires a `.env` file with IMAP credentials (see `.env.example`).
+To start:
 
 ```bash
 cp .env.example .env   # then edit with real credentials
 python3 src/main.py
 ```
 
-Without valid IMAP credentials the pipeline will fail at the connection step. For local development without credentials, you can exercise the analysis modules directly by importing from `src.modules`.
+Without valid IMAP credentials the pipeline will fail at the connection step.
+For local development without credentials, you can exercise the analysis modules
+directly by importing from `src.modules`.
 
 ### Key gotchas
 
-- **Colima required:** LaunchAgent / compose path expects Colima. Fail fast if `colima` is missing; never `colima delete` (shared with Jellyfin / Control D host DNS). After code changes: `compose up --rebuild` — image COPY's `src/`, not a bind mount.
-- **Control D coexistence:** Colima/Lima must not forward guest `:53` to the host. Patch `~/.colima/_lima/_config/override.yaml` via `~/dev/personal-config/scripts/free-port53-for-controld.sh --patch-colima-ignore` (see personal-config `AGENTS.md` / Lesson 0dk). Otherwise limactl steals DNS from ctrld.
-- **Alert gating:** Do not gate solely on `overall_threat_score >= THREAT_LOW` — layer-flagged medium/high can sit below the floor.
-- **ML dependencies not installed by default**: `torch`, `transformers`, `sentencepiece` are commented out in `requirements.txt` and excluded from `requirements-ci.txt`. The NLP analyzer falls back to regex-based pattern matching when these are absent.
-- **Dependencies**: Use `requirements-ci.txt` for development to avoid installing multi-GB ML libraries (`torch`, `transformers`, etc.). Uncomment the optional ML dependencies in `requirements.txt` only when full model-backed analysis is needed.
-- **PATH for pip-installed scripts**: User-installed pip scripts land in `~/.local/bin`. Ensure this directory is in your `PATH`.
-- **`core.hooksPath` conflict**: If `pre-commit install` fails with a `core.hooksPath` error, first check where it is set with `git config --show-origin --get-all core.hooksPath`. If it is set in the local repo, run `git config --unset-all core.hooksPath`; if it is set globally or system-wide, unset it with `git config --global --unset-all core.hooksPath` or `git config --system --unset-all core.hooksPath` as appropriate.
+- **Colima required:** LaunchAgent / compose path expects Colima. Fail fast if
+  `colima` is missing; never `colima delete` (shared with Jellyfin / Control D
+  host DNS). After code changes: `compose up --rebuild` — image COPY's `src/`,
+  not a bind mount.
+- **Control D coexistence:** Colima/Lima must not forward guest `:53` to the
+  host. Patch `~/.colima/_lima/_config/override.yaml` via
+  `~/dev/personal-config/scripts/free-port53-for-controld.sh --patch-colima-ignore`
+  (see personal-config `AGENTS.md` / Lesson 0dk). Otherwise limactl steals DNS
+  from ctrld.
+- **Alert gating:** Do not gate solely on `overall_threat_score >= THREAT_LOW` —
+  layer-flagged medium/high can sit below the floor.
+- **ML dependencies not installed by default**: `torch`, `transformers`,
+  `sentencepiece` are commented out in `requirements.txt` and excluded from
+  `requirements-ci.txt`. The NLP analyzer falls back to regex-based pattern
+  matching when these are absent.
+- **Dependencies**: Use `requirements-ci.txt` for development to avoid
+  installing multi-GB ML libraries (`torch`, `transformers`, etc.). Uncomment
+  the optional ML dependencies in `requirements.txt` only when full model-backed
+  analysis is needed.
+- **PATH for pip-installed scripts**: User-installed pip scripts land in
+  `~/.local/bin`. Ensure this directory is in your `PATH`.
+- **`core.hooksPath` conflict**: If `pre-commit install` fails with a
+  `core.hooksPath` error, first check where it is set with
+  `git config --show-origin --get-all core.hooksPath`. If it is set in the local
+  repo, run `git config --unset-all core.hooksPath`; if it is set globally or
+  system-wide, unset it with `git config --global --unset-all core.hooksPath` or
+  `git config --system --unset-all core.hooksPath` as appropriate.
 
 ### CodeScene review/salvage trigger
 
-During automated PR review or salvage sessions, if CodeScene is red on a PR, post:
+During automated PR review or salvage sessions, if CodeScene is red on a PR,
+post:
 
 ```bash
 /cs-agent skill:fix-code-health-degradations

@@ -1,6 +1,7 @@
 # Environment File Setup Guide
 
-This guide explains how to securely set up your `.env` file with credentials for the Email Security Pipeline.
+This guide explains how to securely set up your `.env` file with credentials for
+the Email Security Pipeline.
 
 ## Quick Setup
 
@@ -27,11 +28,13 @@ vim .env
 ```
 
 **Pros:**
+
 - Simple and straightforward
 - No additional tools required
 - Works immediately
 
 **Cons:**
+
 - Credentials stored in plain text on disk
 - Requires manual updates when passwords change
 
@@ -84,12 +87,14 @@ vim .env
    - Note the item name for use in the script
 
 **Pros:**
+
 - Credentials stored securely in 1Password
 - No plain text credentials on disk
 - Easy to rotate passwords
 - Can be automated
 
 **Cons:**
+
 - Requires 1Password CLI setup
 - Requires 1Password account
 - Slightly more complex initial setup
@@ -118,11 +123,13 @@ secrets:
 ```
 
 **Pros:**
+
 - No credential files in container
 - Secure for production
 - Can use orchestration secrets management
 
 **Cons:**
+
 - More complex setup
 - Requires orchestration platform
 
@@ -139,7 +146,8 @@ If using 1Password's SSH agent integration:
 
 2. **Use setup script** that retrieves credentials securely
 
-**Note:** This is primarily for SSH keys, but can be combined with 1Password CLI for app passwords.
+**Note:** This is primarily for SSH keys, but can be combined with 1Password CLI
+for app passwords.
 
 ## Security Best Practices
 
@@ -168,27 +176,33 @@ If using 1Password's SSH agent integration:
 ## Recommended Approach
 
 For **development/local use:**
+
 - Use **Option 1** (Manual Entry) for quick setup
 - Or **Option 2** (1Password CLI) for better security
 
 For **production:**
+
 - Use **Option 3** (Environment Variables/Secrets)
-- Or orchestration platform secrets (Kubernetes Secrets, AWS Secrets Manager, etc.)
+- Or orchestration platform secrets (Kubernetes Secrets, AWS Secrets Manager,
+  etc.)
 
 ## Troubleshooting
 
 ### .env file not found
+
 ```bash
 cp .env.example .env
 # Then edit .env with your credentials
 ```
 
 ### Credentials not working
+
 - Verify app passwords are correct
 - Check that IMAP is enabled for your email account
 - Verify server and port settings match your provider
 
 ### 1Password CLI not working
+
 ```bash
 # Check if signed in
 op account list

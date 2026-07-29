@@ -749,9 +749,7 @@ class AlertSystem:
             risk_symbol=risk_symbol,
         )
 
-        self._print_alert_header(
-            report.risk_level, render_config
-        )
+        self._print_alert_header(report.risk_level, render_config)
         self._print_alert_metadata(report, WIDTH, risk_color, formatted_time)
         self._print_threat_score(
             report.overall_threat_score, report.risk_level, WIDTH, risk_color
@@ -1324,7 +1322,11 @@ def _calculate_overall_risk_level(
     media_result: MediaAnalysisResult,
 ) -> str:
     """Calculate overall risk level from individual analysis results."""
-    risk_levels = [spam_result.risk_level, nlp_result.risk_level, media_result.risk_level]
+    risk_levels = [
+        spam_result.risk_level,
+        nlp_result.risk_level,
+        media_result.risk_level,
+    ]
 
     if "high" in risk_levels:
         return "high"

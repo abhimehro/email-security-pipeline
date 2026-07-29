@@ -42,6 +42,7 @@ except ImportError:
 
 load_dotenv()
 
+
 @dataclass
 class ConnectionConfig:
     provider_name: str
@@ -51,7 +52,6 @@ class ConnectionConfig:
     user: str
     password: str
     help_text: Optional[str] = None
-
 
 
 def print_header(text):
@@ -186,26 +186,30 @@ def _check_gmail() -> List[dict]:
         email = os.getenv("GMAIL_EMAIL", "")
         password = os.getenv("GMAIL_APP_PASSWORD", "")
         results.append(
-            check_imap(ConnectionConfig(
-                "Gmail",
-                os.getenv("GMAIL_IMAP_SERVER", "imap.gmail.com"),
-                int(os.getenv("GMAIL_IMAP_PORT", "993")),
-                True,
-                email,
-                password,
-                help_text=gmail_help,
-            ))
+            check_imap(
+                ConnectionConfig(
+                    "Gmail",
+                    os.getenv("GMAIL_IMAP_SERVER", "imap.gmail.com"),
+                    int(os.getenv("GMAIL_IMAP_PORT", "993")),
+                    True,
+                    email,
+                    password,
+                    help_text=gmail_help,
+                )
+            )
         )
         results.append(
-            check_smtp(ConnectionConfig(
-                "Gmail",
-                os.getenv("GMAIL_SMTP_SERVER", "smtp.gmail.com"),
-                int(os.getenv("GMAIL_SMTP_PORT", "465")),
-                True,
-                email,
-                password,
-                help_text=gmail_help,
-            ))
+            check_smtp(
+                ConnectionConfig(
+                    "Gmail",
+                    os.getenv("GMAIL_SMTP_SERVER", "smtp.gmail.com"),
+                    int(os.getenv("GMAIL_SMTP_PORT", "465")),
+                    True,
+                    email,
+                    password,
+                    help_text=gmail_help,
+                )
+            )
         )
     return results
 
@@ -218,27 +222,31 @@ def _check_outlook() -> List[dict]:
         email = os.getenv("OUTLOOK_EMAIL", "")
         password = os.getenv("OUTLOOK_APP_PASSWORD", "")
         results.append(
-            check_imap(ConnectionConfig(
-                "Outlook",
-                os.getenv("OUTLOOK_IMAP_SERVER", "outlook.office365.com"),
-                int(os.getenv("OUTLOOK_IMAP_PORT", "993")),
-                True,
-                email,
-                password,
-                help_text=outlook_help,
-            ))
+            check_imap(
+                ConnectionConfig(
+                    "Outlook",
+                    os.getenv("OUTLOOK_IMAP_SERVER", "outlook.office365.com"),
+                    int(os.getenv("OUTLOOK_IMAP_PORT", "993")),
+                    True,
+                    email,
+                    password,
+                    help_text=outlook_help,
+                )
+            )
         )
         # Outlook SMTP typically uses STARTTLS on 587
         results.append(
-            check_smtp(ConnectionConfig(
-                "Outlook",
-                os.getenv("OUTLOOK_SMTP_SERVER", "smtp.office365.com"),
-                int(os.getenv("OUTLOOK_SMTP_PORT", "587")),
-                False,  # Outlook SMTP usually uses STARTTLS
-                email,
-                password,
-                help_text=outlook_help,
-            ))
+            check_smtp(
+                ConnectionConfig(
+                    "Outlook",
+                    os.getenv("OUTLOOK_SMTP_SERVER", "smtp.office365.com"),
+                    int(os.getenv("OUTLOOK_SMTP_PORT", "587")),
+                    False,  # Outlook SMTP usually uses STARTTLS
+                    email,
+                    password,
+                    help_text=outlook_help,
+                )
+            )
         )
     return results
 
@@ -251,26 +259,30 @@ def _check_proton() -> List[dict]:
         email = os.getenv("PROTON_EMAIL", "")
         password = os.getenv("PROTON_APP_PASSWORD", "")
         results.append(
-            check_imap(ConnectionConfig(
-                "Proton",
-                os.getenv("PROTON_IMAP_SERVER", "127.0.0.1"),
-                int(os.getenv("PROTON_IMAP_PORT", "1143")),
-                False,
-                email,
-                password,
-                help_text=proton_help,
-            ))
+            check_imap(
+                ConnectionConfig(
+                    "Proton",
+                    os.getenv("PROTON_IMAP_SERVER", "127.0.0.1"),
+                    int(os.getenv("PROTON_IMAP_PORT", "1143")),
+                    False,
+                    email,
+                    password,
+                    help_text=proton_help,
+                )
+            )
         )
         results.append(
-            check_smtp(ConnectionConfig(
-                "Proton",
-                os.getenv("PROTON_SMTP_SERVER", "127.0.0.1"),
-                int(os.getenv("PROTON_SMTP_PORT", "1025")),
-                False,
-                email,
-                password,
-                help_text=proton_help,
-            ))
+            check_smtp(
+                ConnectionConfig(
+                    "Proton",
+                    os.getenv("PROTON_SMTP_SERVER", "127.0.0.1"),
+                    int(os.getenv("PROTON_SMTP_PORT", "1025")),
+                    False,
+                    email,
+                    password,
+                    help_text=proton_help,
+                )
+            )
         )
     return results
 

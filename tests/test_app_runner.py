@@ -251,6 +251,9 @@ def test_print_help(mock_stdout, mock_app_runner):
     assert "Usage:" in output
     assert "python src/main.py [CONFIG_FILE]" in output
     assert "Arguments:" in output
-    assert "CONFIG_FILE    Path to the environment configuration file (default: .env)" in output
+    assert (
+        "CONFIG_FILE    Path to the environment configuration file (default: .env)"
+        in output
+    )
     assert "Options:" in output
     assert "-h, --help     Show this help message and exit" in output

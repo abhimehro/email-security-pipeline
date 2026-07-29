@@ -2,13 +2,16 @@
 
 ## ⚠️ CRITICAL UPDATE (November 2024)
 
-**Microsoft has discontinued app password support for personal Outlook accounts (outlook.com, hotmail.com, live.com, msn.com) as of October 1, 2024.**
+**Microsoft has discontinued app password support for personal Outlook accounts
+(outlook.com, hotmail.com, live.com, msn.com) as of October 1, 2024.**
 
 ### What This Means:
 
 - ❌ **Personal Outlook accounts**: App passwords NO LONGER WORK with IMAP
-- ✅ **Microsoft 365 Business/Enterprise accounts**: May still support app passwords (depends on tenant configuration)
-- ℹ️ **New requirement**: Personal Outlook accounts now require OAuth2 authentication only
+- ✅ **Microsoft 365 Business/Enterprise accounts**: May still support app
+  passwords (depends on tenant configuration)
+- ℹ️ **New requirement**: Personal Outlook accounts now require OAuth2
+  authentication only
 
 ### Current Pipeline Status:
 
@@ -20,11 +23,13 @@
 ## Why Outlook Stopped Working
 
 **Timeline:**
+
 - Before October 1, 2024: App passwords worked fine
 - After October 1, 2024: App passwords fail with "LOGIN failed" error
 - Current: OAuth2-only authentication for personal accounts
 
 **Sources:**
+
 - Microsoft Q&A community reports: Multiple users confirmed the change
 - Microsoft Learn documentation: References modern authentication requirements
 - Tech community forums: Widespread reports of the same issue
@@ -39,7 +44,8 @@ The pipeline works perfectly with Gmail and Proton Mail. Simply disable Outlook:
 OUTLOOK_ENABLED=false
 ```
 
-This is the **recommended approach** unless you need Outlook monitoring specifically.
+This is the **recommended approach** unless you need Outlook monitoring
+specifically.
 
 ### Option 2: Implement OAuth2 (Complex - Not Yet Supported)
 
@@ -247,8 +253,10 @@ The pipeline works perfectly with Gmail and Proton Mail. You can:
 ## Support Resources
 
 - **Microsoft Support:** https://support.microsoft.com/
-- **Outlook IMAP Settings:** https://support.microsoft.com/en-us/office/pop-imap-and-smtp-settings-8361e398-8af4-4e97-b147-6c6c4ac95353
-- **App Passwords:** https://support.microsoft.com/en-us/account-billing/using-app-passwords-with-apps-that-don-t-support-two-step-verification-5896ed9b-4263-e681-128a-a6f2979a7944
+- **Outlook IMAP Settings:**
+  https://support.microsoft.com/en-us/office/pop-imap-and-smtp-settings-8361e398-8af4-4e97-b147-6c6c4ac95353
+- **App Passwords:**
+  https://support.microsoft.com/en-us/account-billing/using-app-passwords-with-apps-that-don-t-support-two-step-verification-5896ed9b-4263-e681-128a-a6f2979a7944
 
 ---
 

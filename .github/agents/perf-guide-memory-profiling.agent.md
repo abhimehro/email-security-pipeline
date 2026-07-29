@@ -7,11 +7,14 @@ description: Identify and fix memory issues in processing
 
 ## Why Profile Memory?
 
-**SECURITY STORY**: Attacker sends 10×50MB attachments. Without profiling, your code might load all 500MB simultaneously, hitting Docker limits and crashing. Profiling reveals attack surface.
+**SECURITY STORY**: Attacker sends 10×50MB attachments. Without profiling, your
+code might load all 500MB simultaneously, hitting Docker limits and crashing.
+Profiling reveals attack surface.
 
 ## Quick Start
 
 **Install**:
+
 ```bash
 pip install memory_profiler psutil
 ```
@@ -58,11 +61,13 @@ def process_attachment_safely(part):
         analyze_chunk(chunk)  # Incremental analysis
 ```
 
-**MAINTENANCE WISDOM**: Peak = base + chunk_size × workers. 3 workers × 1MB = 3MB peak vs 500MB loading all.
+**MAINTENANCE WISDOM**: Peak = base + chunk_size × workers. 3 workers × 1MB =
+3MB peak vs 500MB loading all.
 
 ## Real Example
 
 Docker limits: 512M-1G (README.md)
+
 - **Current**: In-memory works for <10MB emails
 - **Future**: Streaming for 50MB+ attachments
 
@@ -85,4 +90,5 @@ assert peak < 100 * 1024 * 1024  # <100MB
 - **Circular refs**: Use `gc.get_referrers()`
 - **Caching**: Limit size or truncate inputs (see NLP optimization)
 
-**Professional teams**: Profile before production, set budgets, monitor with alerts.
+**Professional teams**: Profile before production, set budgets, monitor with
+alerts.

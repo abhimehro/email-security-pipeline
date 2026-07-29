@@ -173,7 +173,7 @@ class TestScanTextPatternsTwoPhase(_BaseNLPScanTest):
         self.assertGreater(
             len(matches["SE"]),
             0,
-            "Gate failed to detect mid-string pattern (regression: using match instead of search)"
+            "Gate failed to detect mid-string pattern (regression: using match instead of search)",
         )
 
     def test_neutral_text_bypasses_named_group_scan(self):

@@ -11,8 +11,8 @@ import unittest
 from io import StringIO
 from unittest.mock import MagicMock, patch
 
-from src.utils.ui import CountdownTimer
 from src.utils.colors import Colors
+from src.utils.ui import CountdownTimer
 
 
 class TestCountdownTimerNonTTY(unittest.TestCase):

@@ -5,7 +5,17 @@ from src.utils.config import AlertConfig, Config, EmailAccountConfig
 from src.utils.validators import check_default_credentials
 
 SCENARIOS = [
-    ("no_defaults_clean", True, "safe@domain.org", "mock_pass_val", False, None, False, None, []),
+    (
+        "no_defaults_clean",
+        True,
+        "safe@domain.org",
+        "mock_pass_val",
+        False,
+        None,
+        False,
+        None,
+        [],
+    ),
     (
         "default_email",
         True,

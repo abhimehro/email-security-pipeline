@@ -1,4 +1,5 @@
 import unittest
+
 from src.utils.security_validators import sanitize_filename
 
 
@@ -19,7 +20,9 @@ class TestSanitizeFilename(unittest.TestCase):
     def test_dots_and_spaces(self):
         self.assertEqual(sanitize_filename("file....txt"), "file.txt")
         self.assertEqual(sanitize_filename(".hidden_file"), "hidden_file")
-        self.assertEqual(sanitize_filename("file_with_trailing_dot."), "file_with_trailing_dot")
+        self.assertEqual(
+            sanitize_filename("file_with_trailing_dot."), "file_with_trailing_dot"
+        )
         self.assertEqual(sanitize_filename("  spaces  .txt  "), "spaces  .txt")
 
     def test_becomes_empty(self):

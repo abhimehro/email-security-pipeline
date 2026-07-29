@@ -2,8 +2,8 @@ import unittest
 from io import StringIO
 from unittest.mock import MagicMock, patch
 
-from src.utils.ui import CountdownTimer, Spinner
 from src.utils.colors import Colors
+from src.utils.ui import CountdownTimer, Spinner
 
 
 class TestUI(unittest.TestCase):

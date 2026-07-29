@@ -7,7 +7,8 @@ description: Non-blocking I/O for faster email processing
 
 ## Why Async?
 
-**SECURITY STORY**: Synchronous I/O means a slow webhook can delay your entire pipeline. With async, one slow alert doesn't block scanning 1000 more emails.
+**SECURITY STORY**: Synchronous I/O means a slow webhook can delay your entire
+pipeline. With async, one slow alert doesn't block scanning 1000 more emails.
 
 ## Current State (Synchronous)
 
@@ -45,8 +46,7 @@ class AlertSystem:
 
 ## Pattern 2: IMAP Connection Pooling
 
-**Current**: Open/close per operation (1s delay)
-**Better**: Reuse connections
+**Current**: Open/close per operation (1s delay) **Better**: Reuse connections
 
 ```python
 class IMAPPool:

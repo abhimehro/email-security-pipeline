@@ -1,7 +1,7 @@
 import sys
 
-filepath = 'src/modules/spam_analyzer.py'
-with open(filepath, 'r') as f:
+filepath = "src/modules/spam_analyzer.py"
+with open(filepath, "r") as f:
     content = f.read()
 
 search = """
@@ -27,7 +27,7 @@ replace = """
 
 if search in content:
     content = content.replace(search, replace, 1)
-    with open(filepath, 'w') as f:
+    with open(filepath, "w") as f:
         f.write(content)
     print("Patched successfully.")
 else:

@@ -220,13 +220,13 @@ class TestColoredFormatter(unittest.TestCase):
             expected_levels,
         )
 
-
     def test_no_new_emails_gets_grey(self):
         """'No new emails to analyze' messages are dimmed with GREY."""
         Formatter, C = self._reload_with_tty()
         record = self._make_record("No new emails to analyze")
         output = Formatter("%(message)s").format(record)
         self.assertIn(C.GREY, output)
+
 
 if __name__ == "__main__":
     unittest.main()

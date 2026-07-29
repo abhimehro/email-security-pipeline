@@ -21,7 +21,9 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def write_requested_variable(name: str, variables: dict[str, str], env_file: Path) -> int:
+def write_requested_variable(
+    name: str, variables: dict[str, str], env_file: Path
+) -> int:
     value = variables.get(name)
     if value is None:
         print(f"error: variable {name!r} not found in {env_file}", file=sys.stderr)
@@ -32,12 +34,21 @@ def write_requested_variable(name: str, variables: dict[str, str], env_file: Pat
 
 def write_exports(variables: dict[str, str]) -> None:
     if variables:
-        sys.stdout.write("".join([f"export {key}={_shell_escape(value)}\n" for key, value in variables.items()]))
+        sys.stdout.write(
+            "".join(
+                [
+                    f"export {key}={_shell_escape(value)}\n"
+                    for key, value in variables.items()
+                ]
+            )
+        )
 
 
 def write_assignments(variables: dict[str, str]) -> None:
     if variables:
-        sys.stdout.write("".join([f"{key}={value}\n" for key, value in variables.items()]))
+        sys.stdout.write(
+            "".join([f"{key}={value}\n" for key, value in variables.items()])
+        )
 
 
 def main(argv: list[str] | None = None) -> int:
