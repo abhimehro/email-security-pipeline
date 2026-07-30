@@ -77,3 +77,9 @@ pr_response.json
 *credentials*
 *secrets*
 *password*
+
+# Local scratch / editor noise
+.nvimlog
+dummy.txt
+test.txt
+*_project_code.txt

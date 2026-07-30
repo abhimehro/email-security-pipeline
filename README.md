@@ -88,7 +88,8 @@ folders for suspicious messages using multi-layered threat detection.
 
 ### Prerequisites
 
-- Python 3.11+ or Docker
+- Python 3.13+ preferred (CI/Docker use 3.13); Python 3.11+ may work for local
+  non-ML runs
 - Email account(s) with IMAP access
 - App passwords for email accounts (if 2FA enabled)
 - On macOS, Colima is supported as a lightweight Docker backend
@@ -130,6 +131,18 @@ folders for suspicious messages using multi-layered threat detection.
    ```bash
    docker compose logs -f
    ```
+
+### Option 2: Local Python
+
+For development without Docker (prefer `requirements-ci.txt` unless you need
+optional ML deps):
+
+```bash
+python3 -m pip install -r requirements-ci.txt
+cp .env.example .env
+# edit .env with IMAP credentials
+python3 src/main.py
+```
 
 ### Option 3: Background Execution (macOS/Darwin)
 
@@ -558,8 +571,8 @@ python -m pytest
 python -m pip install pytest-cov
 python -m pytest --cov=src --cov-report=html
 
-# Run specific test file
-python -m pytest tests/test_config.py
+# Run specific config tests
+python -m pytest test_config.py tests/test_config_edge_cases.py tests/test_config_security.py
 ```
 
 ### Code Quality Tools
