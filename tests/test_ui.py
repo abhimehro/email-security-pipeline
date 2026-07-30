@@ -29,7 +29,18 @@ class TestUI(unittest.TestCase):
         timer = CountdownTimer(duration=65, message="Testing", interval=70.0)
         timer.start()
         output = mock_stdout.getvalue()
-        self.assertIn("1:05", output)
+        self.assertIn("01:05", output)
+
+    @patch("sys.stdout", new_callable=StringIO)
+    @patch("time.sleep")
+    def test_countdown_timer_minutes_format_persists(self, mock_sleep, mock_stdout):
+        """Test MM:SS formatting persists when remaining time drops below 60s."""
+        mock_stdout.isatty = MagicMock(return_value=True)
+        timer = CountdownTimer(duration=65, message="Testing", interval=10.0)
+        timer.start()
+        output = mock_stdout.getvalue()
+        # Initial duration >= 60s, so it should use MM:SS even when remaining < 60s
+        self.assertIn("00:55", output)
 
     @patch("sys.stdout")
     @patch("threading.Thread")
