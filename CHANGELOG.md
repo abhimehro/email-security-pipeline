@@ -42,6 +42,8 @@
 
 **Closed issues:**
 
+- Daily QA & Agentic Review — 2026-07-29 [\#1385](https://github.com/abhimehro/email-security-pipeline/issues/1385)
+- \[repo-automation\] Daily Status Report - 2026-07-29 [\#1382](https://github.com/abhimehro/email-security-pipeline/issues/1382)
 - Daily QA & Agentic Review — 2026-07-28 [\#1378](https://github.com/abhimehro/email-security-pipeline/issues/1378)
 - \[repo-automation\] Daily Status Report - 2026-07-28 [\#1377](https://github.com/abhimehro/email-security-pipeline/issues/1377)
 - \[repo-automation\] Daily Status Report - 2026-07-27 [\#1371](https://github.com/abhimehro/email-security-pipeline/issues/1371)
@@ -440,6 +442,7 @@
 
 **Merged pull requests:**
 
+- chore\(actions\): bump release-drafter to v7.7.0 \(salvages \#1381\) [\#1383](https://github.com/abhimehro/email-security-pipeline/pull/1383) ([abhimehro](https://github.com/abhimehro))
 - Fix: Remove unused import in email\_parser.py [\#1380](https://github.com/abhimehro/email-security-pipeline/pull/1380) ([abhimehro](https://github.com/abhimehro))
 - chore\(deps\): bump actions/stale from 10.4.0 to 11.0.0 [\#1379](https://github.com/abhimehro/email-security-pipeline/pull/1379) ([dependabot[bot]](https://github.com/apps/dependabot))
 - Jules Daily QA & Agentic Review: Repository Healthy [\#1376](https://github.com/abhimehro/email-security-pipeline/pull/1376) ([abhimehro](https://github.com/abhimehro))
