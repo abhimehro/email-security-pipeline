@@ -6,1073 +6,2916 @@
 
 **Implemented enhancements:**
 
-- \[Code Quality\] Implement structured logging with JSON format support [\#313](https://github.com/abhimehro/email-security-pipeline/issues/313)
-- \[Code Quality\] Add OAuth2 authentication support for email providers [\#312](https://github.com/abhimehro/email-security-pipeline/issues/312)
-- \[Code Quality\] Add email analysis result caching to avoid redundant processing [\#305](https://github.com/abhimehro/email-security-pipeline/issues/305)
-- \[Code Quality\] Add comprehensive input validation and sanitization module [\#285](https://github.com/abhimehro/email-security-pipeline/issues/285)
-- \[Code Quality\] Implement database persistence for threat analysis history [\#284](https://github.com/abhimehro/email-security-pipeline/issues/284)
-- \[Code Quality\] Add async/await for parallel email processing [\#283](https://github.com/abhimehro/email-security-pipeline/issues/283)
-- \[Code Quality\] Add integration tests with mock IMAP server [\#249](https://github.com/abhimehro/email-security-pipeline/issues/249)
-- \[Code Quality\] Create metrics collection module for performance tracking [\#248](https://github.com/abhimehro/email-security-pipeline/issues/248)
-- \[Code Quality\] Implement comprehensive unit test suite with pytest [\#247](https://github.com/abhimehro/email-security-pipeline/issues/247)
-- \[Code Quality\] Implement structured JSON logging for production observability [\#246](https://github.com/abhimehro/email-security-pipeline/issues/246)
+- \[Code Quality\] Implement structured logging with JSON format support
+  [\#313](https://github.com/abhimehro/email-security-pipeline/issues/313)
+- \[Code Quality\] Add OAuth2 authentication support for email providers
+  [\#312](https://github.com/abhimehro/email-security-pipeline/issues/312)
+- \[Code Quality\] Add email analysis result caching to avoid redundant
+  processing
+  [\#305](https://github.com/abhimehro/email-security-pipeline/issues/305)
+- \[Code Quality\] Add comprehensive input validation and sanitization module
+  [\#285](https://github.com/abhimehro/email-security-pipeline/issues/285)
+- \[Code Quality\] Implement database persistence for threat analysis history
+  [\#284](https://github.com/abhimehro/email-security-pipeline/issues/284)
+- \[Code Quality\] Add async/await for parallel email processing
+  [\#283](https://github.com/abhimehro/email-security-pipeline/issues/283)
+- \[Code Quality\] Add integration tests with mock IMAP server
+  [\#249](https://github.com/abhimehro/email-security-pipeline/issues/249)
+- \[Code Quality\] Create metrics collection module for performance tracking
+  [\#248](https://github.com/abhimehro/email-security-pipeline/issues/248)
+- \[Code Quality\] Implement comprehensive unit test suite with pytest
+  [\#247](https://github.com/abhimehro/email-security-pipeline/issues/247)
+- \[Code Quality\] Implement structured JSON logging for production
+  observability
+  [\#246](https://github.com/abhimehro/email-security-pipeline/issues/246)
 
 **Fixed bugs:**
 
-- \[Code Quality\] Standardize file extension checking pattern for security consistency [\#363](https://github.com/abhimehro/email-security-pipeline/issues/363)
-- \[Code Quality\] Add TTL and size limits to NLP analyzer cache [\#341](https://github.com/abhimehro/email-security-pipeline/issues/341)
-- \[Code Quality\] Fix ThreadPoolExecutor resource leak in media\_analyzer [\#339](https://github.com/abhimehro/email-security-pipeline/issues/339)
+- \[Code Quality\] Standardize file extension checking pattern for security
+  consistency
+  [\#363](https://github.com/abhimehro/email-security-pipeline/issues/363)
+- \[Code Quality\] Add TTL and size limits to NLP analyzer cache
+  [\#341](https://github.com/abhimehro/email-security-pipeline/issues/341)
+- \[Code Quality\] Fix ThreadPoolExecutor resource leak in media\_analyzer
+  [\#339](https://github.com/abhimehro/email-security-pipeline/issues/339)
 
 **Security fixes:**
 
-- P0: Password Exposure via Shell Variable in setup.sh [\#1236](https://github.com/abhimehro/email-security-pipeline/issues/1236)
-- Security Review: No validated medium+ vulnerabilities \(2026-05-21\) [\#890](https://github.com/abhimehro/email-security-pipeline/issues/890)
-- \[Security\] Script injection via workflow\_dispatch input in copilot-setup-steps.yml \(CWE-94\) [\#882](https://github.com/abhimehro/email-security-pipeline/issues/882)
-- Security review: no validated medium+ vulnerabilities found \(2026-05-14\) [\#847](https://github.com/abhimehro/email-security-pipeline/issues/847)
-- \[CI\] Audit remaining workflow action versions and invalid gh-aw setup-cli pin [\#763](https://github.com/abhimehro/email-security-pipeline/issues/763)
-- \[Code Quality\] Fix duplicate nested archive detection in ZIP inspection [\#362](https://github.com/abhimehro/email-security-pipeline/issues/362)
-- \[Code Quality\] Centralize security validation patterns into validation registry [\#358](https://github.com/abhimehro/email-security-pipeline/issues/358)
-- \[Code Quality\] Add comprehensive unit tests for email\_parser module [\#354](https://github.com/abhimehro/email-security-pipeline/issues/354)
-- \[Code Quality\] Standardize output sanitization with unified registry pattern [\#353](https://github.com/abhimehro/email-security-pipeline/issues/353)
-- \[Code Quality\] Add input validation to URL redaction methods [\#347](https://github.com/abhimehro/email-security-pipeline/issues/347)
-- \[Code Quality\] Add comprehensive unit tests for EmailParser module [\#337](https://github.com/abhimehro/email-security-pipeline/issues/337)
-- \[Code Quality\] Add inline documentation for security-critical code paths [\#277](https://github.com/abhimehro/email-security-pipeline/issues/277)
-- \[Code Quality\] Add unit tests for EmailParser module [\#276](https://github.com/abhimehro/email-security-pipeline/issues/276)
-- \[Code Quality\] Integrate secrets management for production deployments [\#271](https://github.com/abhimehro/email-security-pipeline/issues/271)
+- P0: Password Exposure via Shell Variable in setup.sh
+  [\#1236](https://github.com/abhimehro/email-security-pipeline/issues/1236)
+- Security Review: No validated medium+ vulnerabilities \(2026-05-21\)
+  [\#890](https://github.com/abhimehro/email-security-pipeline/issues/890)
+- \[Security\] Script injection via workflow\_dispatch input in
+  copilot-setup-steps.yml \(CWE-94\)
+  [\#882](https://github.com/abhimehro/email-security-pipeline/issues/882)
+- Security review: no validated medium+ vulnerabilities found \(2026-05-14\)
+  [\#847](https://github.com/abhimehro/email-security-pipeline/issues/847)
+- \[CI\] Audit remaining workflow action versions and invalid gh-aw setup-cli
+  pin [\#763](https://github.com/abhimehro/email-security-pipeline/issues/763)
+- \[Code Quality\] Fix duplicate nested archive detection in ZIP inspection
+  [\#362](https://github.com/abhimehro/email-security-pipeline/issues/362)
+- \[Code Quality\] Centralize security validation patterns into validation
+  registry
+  [\#358](https://github.com/abhimehro/email-security-pipeline/issues/358)
+- \[Code Quality\] Add comprehensive unit tests for email\_parser module
+  [\#354](https://github.com/abhimehro/email-security-pipeline/issues/354)
+- \[Code Quality\] Standardize output sanitization with unified registry pattern
+  [\#353](https://github.com/abhimehro/email-security-pipeline/issues/353)
+- \[Code Quality\] Add input validation to URL redaction methods
+  [\#347](https://github.com/abhimehro/email-security-pipeline/issues/347)
+- \[Code Quality\] Add comprehensive unit tests for EmailParser module
+  [\#337](https://github.com/abhimehro/email-security-pipeline/issues/337)
+- \[Code Quality\] Add inline documentation for security-critical code paths
+  [\#277](https://github.com/abhimehro/email-security-pipeline/issues/277)
+- \[Code Quality\] Add unit tests for EmailParser module
+  [\#276](https://github.com/abhimehro/email-security-pipeline/issues/276)
+- \[Code Quality\] Integrate secrets management for production deployments
+  [\#271](https://github.com/abhimehro/email-security-pipeline/issues/271)
 
 **Closed issues:**
 
-- Daily QA & Agentic Review — 2026-07-29 [\#1385](https://github.com/abhimehro/email-security-pipeline/issues/1385)
-- \[repo-automation\] Daily Status Report - 2026-07-29 [\#1382](https://github.com/abhimehro/email-security-pipeline/issues/1382)
-- Daily QA & Agentic Review — 2026-07-28 [\#1378](https://github.com/abhimehro/email-security-pipeline/issues/1378)
-- \[repo-automation\] Daily Status Report - 2026-07-28 [\#1377](https://github.com/abhimehro/email-security-pipeline/issues/1377)
-- \[repo-automation\] Daily Status Report - 2026-07-27 [\#1371](https://github.com/abhimehro/email-security-pipeline/issues/1371)
-- Daily QA & Agentic Review — 2026-07-26 [\#1369](https://github.com/abhimehro/email-security-pipeline/issues/1369)
-- \[repo-automation\] Weekly Retrospective - 2026-07-26 [\#1368](https://github.com/abhimehro/email-security-pipeline/issues/1368)
-- \[repo-automation\] Daily Status Report - 2026-07-26 [\#1367](https://github.com/abhimehro/email-security-pipeline/issues/1367)
-- Daily QA & Agentic Review — 2026-07-25 [\#1361](https://github.com/abhimehro/email-security-pipeline/issues/1361)
-- email-security-pipeline close\_prs.sh still sources token helper [\#1358](https://github.com/abhimehro/email-security-pipeline/issues/1358)
-- Daily QA & Agentic Review — 2026-07-24 [\#1357](https://github.com/abhimehro/email-security-pipeline/issues/1357)
-- Daily QA & Agentic Review — 2026-07-23 [\#1349](https://github.com/abhimehro/email-security-pipeline/issues/1349)
-- Daily QA & Agentic Review — 2026-07-22 [\#1343](https://github.com/abhimehro/email-security-pipeline/issues/1343)
-- Daily QA & Agentic Review — 2026-07-21 [\#1336](https://github.com/abhimehro/email-security-pipeline/issues/1336)
-- Daily QA & Agentic Review — 2026-07-20 [\#1305](https://github.com/abhimehro/email-security-pipeline/issues/1305)
-- Daily QA & Agentic Review — 2026-07-19 [\#1302](https://github.com/abhimehro/email-security-pipeline/issues/1302)
-- Daily QA & Agentic Review — 2026-07-18 [\#1298](https://github.com/abhimehro/email-security-pipeline/issues/1298)
-- Daily QA Check - email-security-pipeline - 2026-07-17 [\#1295](https://github.com/abhimehro/email-security-pipeline/issues/1295)
-- Daily QA & Agentic Review — 2026-07-17 [\#1294](https://github.com/abhimehro/email-security-pipeline/issues/1294)
-- Daily QA & Agentic Review — 2026-07-16 [\#1290](https://github.com/abhimehro/email-security-pipeline/issues/1290)
-- Daily QA & Agentic Review - 2026-07-15 [\#1265](https://github.com/abhimehro/email-security-pipeline/issues/1265)
-- Daily QA & Agentic Review - 2026-07-14 [\#1261](https://github.com/abhimehro/email-security-pipeline/issues/1261)
-- Daily QA & Agentic Review - 2026-07-12 [\#1257](https://github.com/abhimehro/email-security-pipeline/issues/1257)
-- Daily QA & Agentic Review - 2026-07-12 [\#1256](https://github.com/abhimehro/email-security-pipeline/issues/1256)
-- Daily QA & Agentic Review - 2026-07-11 [\#1254](https://github.com/abhimehro/email-security-pipeline/issues/1254)
-- Daily QA & Agentic Review - 2026-07-10 [\#1250](https://github.com/abhimehro/email-security-pipeline/issues/1250)
-- Daily QA & Agentic Review - 2026-07-09 [\#1246](https://github.com/abhimehro/email-security-pipeline/issues/1246)
-- Daily QA & Agentic Review - 2026-07-08 [\#1242](https://github.com/abhimehro/email-security-pipeline/issues/1242)
-- Daily QA & Agentic Review - 2026-07-07 [\#1239](https://github.com/abhimehro/email-security-pipeline/issues/1239)
-- P2: Supply Chain - Unpinned Dependencies [\#1237](https://github.com/abhimehro/email-security-pipeline/issues/1237)
-- Daily QA & Agentic Review - 2026-07-06 [\#1234](https://github.com/abhimehro/email-security-pipeline/issues/1234)
-- Daily QA & Agentic Review - 2026-07-05 [\#1230](https://github.com/abhimehro/email-security-pipeline/issues/1230)
-- Daily QA & Agentic Review - 2026-07-04 [\#1226](https://github.com/abhimehro/email-security-pipeline/issues/1226)
-- Daily QA & Agentic Review - 2026-07-03 [\#1214](https://github.com/abhimehro/email-security-pipeline/issues/1214)
-- Daily QA & Agentic Review - 2026-07-02 [\#1209](https://github.com/abhimehro/email-security-pipeline/issues/1209)
-- Daily QA & Agentic Review - 2026-07-01 [\#1205](https://github.com/abhimehro/email-security-pipeline/issues/1205)
-- Daily QA & Agentic Review - 2026-06-30 [\#1197](https://github.com/abhimehro/email-security-pipeline/issues/1197)
-- Daily QA & Agentic Review - 2026-06-29 [\#1169](https://github.com/abhimehro/email-security-pipeline/issues/1169)
-- Daily QA & Agentic Review - 2026-06-28 [\#1165](https://github.com/abhimehro/email-security-pipeline/issues/1165)
-- Daily QA & Agentic Review - 2026-06-27 [\#1162](https://github.com/abhimehro/email-security-pipeline/issues/1162)
-- Daily QA & Agentic Review - 2026-06-26 [\#1159](https://github.com/abhimehro/email-security-pipeline/issues/1159)
-- Daily QA & Agentic Review - 2026-06-25 [\#1155](https://github.com/abhimehro/email-security-pipeline/issues/1155)
-- Daily QA & Agentic Review — 2026-06-24 [\#1150](https://github.com/abhimehro/email-security-pipeline/issues/1150)
-- Daily QA & Agentic Review — 2026-06-23 [\#1145](https://github.com/abhimehro/email-security-pipeline/issues/1145)
-- Daily QA & Agentic Review — 2026-06-22 [\#1141](https://github.com/abhimehro/email-security-pipeline/issues/1141)
-- Daily QA & Agentic Review — 2026-06-21 [\#1139](https://github.com/abhimehro/email-security-pipeline/issues/1139)
-- Daily QA & Agentic Review — 2026-06-20 [\#1137](https://github.com/abhimehro/email-security-pipeline/issues/1137)
-- Daily QA & Agentic Review — 2026-06-19 [\#1126](https://github.com/abhimehro/email-security-pipeline/issues/1126)
-- Daily QA & Agentic Review — 2026-06-18 [\#1124](https://github.com/abhimehro/email-security-pipeline/issues/1124)
-- Daily QA & Agentic Review — 2026-06-17 [\#1121](https://github.com/abhimehro/email-security-pipeline/issues/1121)
-- Daily QA & Agentic Review — 2026-06-16 [\#1119](https://github.com/abhimehro/email-security-pipeline/issues/1119)
-- Daily QA & Agentic Review — 2026-06-15 [\#1116](https://github.com/abhimehro/email-security-pipeline/issues/1116)
-- Daily QA & Agentic Review — 2026-06-14 [\#1113](https://github.com/abhimehro/email-security-pipeline/issues/1113)
-- Daily QA & Agentic Review — 2026-06-13 [\#1110](https://github.com/abhimehro/email-security-pipeline/issues/1110)
-- Daily QA & Agentic Review — 2026-06-12 [\#1089](https://github.com/abhimehro/email-security-pipeline/issues/1089)
-- \[repo-automation\] Daily Status Report - 2026-06-12 [\#1086](https://github.com/abhimehro/email-security-pipeline/issues/1086)
-- Daily QA Check - email-security-pipeline - 2026-06-11 [\#1083](https://github.com/abhimehro/email-security-pipeline/issues/1083)
-- \[repo-automation\] Daily Status Report - 2026-06-11 [\#1080](https://github.com/abhimehro/email-security-pipeline/issues/1080)
-- Daily QA & Agentic Review — 2026-06-11 [\#1069](https://github.com/abhimehro/email-security-pipeline/issues/1069)
-- \[repo-automation\] Daily Status Report - 2026-06-10 [\#1067](https://github.com/abhimehro/email-security-pipeline/issues/1067)
-- Daily QA Check - email-security-pipeline - 2026-06-10 [\#1063](https://github.com/abhimehro/email-security-pipeline/issues/1063)
-- \[repo-automation\] Daily Status Report - 2026-06-09 [\#1061](https://github.com/abhimehro/email-security-pipeline/issues/1061)
-- Jules Daily QA & Agentic Review - Completed [\#1059](https://github.com/abhimehro/email-security-pipeline/issues/1059)
-- Daily QA Check - email-security-pipeline - 2026-06-09 [\#1057](https://github.com/abhimehro/email-security-pipeline/issues/1057)
-- \[repo-automation\] Daily Status Report - 2026-06-08 [\#1055](https://github.com/abhimehro/email-security-pipeline/issues/1055)
-- Daily QA Check - email-security-pipeline - 2026-06-08 [\#1051](https://github.com/abhimehro/email-security-pipeline/issues/1051)
-- \[repo-automation\] Weekly Retrospective - 2026-06-07 [\#1048](https://github.com/abhimehro/email-security-pipeline/issues/1048)
-- \[repo-automation\] Daily Status Report - 2026-06-07 [\#1047](https://github.com/abhimehro/email-security-pipeline/issues/1047)
-- Jules Daily QA & Agentic Review - Spotless Health [\#1044](https://github.com/abhimehro/email-security-pipeline/issues/1044)
-- Daily QA Check - email-security-pipeline - 2026-06-07 [\#1043](https://github.com/abhimehro/email-security-pipeline/issues/1043)
-- \[repo-automation\] Daily Status Report - 2026-06-06 [\#1040](https://github.com/abhimehro/email-security-pipeline/issues/1040)
-- Daily QA Check - email-security-pipeline - 2026-06-06 [\#1038](https://github.com/abhimehro/email-security-pipeline/issues/1038)
-- \[repo-automation\] Daily Status Report - 2026-06-05 [\#1035](https://github.com/abhimehro/email-security-pipeline/issues/1035)
-- Daily QA Check - 2026-06-05 [\#1033](https://github.com/abhimehro/email-security-pipeline/issues/1033)
-- \[repo-automation\] Daily Status Report - 2026-06-04 [\#1032](https://github.com/abhimehro/email-security-pipeline/issues/1032)
-- \[repo-automation\] Daily Status Report - 2026-06-03 [\#1029](https://github.com/abhimehro/email-security-pipeline/issues/1029)
-- Daily QA Check - 2026-06-03 [\#1027](https://github.com/abhimehro/email-security-pipeline/issues/1027)
-- \[repo-automation\] Daily Status Report - 2026-06-02 [\#1015](https://github.com/abhimehro/email-security-pipeline/issues/1015)
-- Daily QA Check - email-security-pipeline - 2026-06-02 [\#1012](https://github.com/abhimehro/email-security-pipeline/issues/1012)
-- \[repo-automation\] Daily Status Report - 2026-06-01 [\#1007](https://github.com/abhimehro/email-security-pipeline/issues/1007)
-- Daily QA & Agentic Review — 2026-06-01 [\#971](https://github.com/abhimehro/email-security-pipeline/issues/971)
-- \[repo-automation\] Weekly Retrospective - 2026-05-31 [\#969](https://github.com/abhimehro/email-security-pipeline/issues/969)
-- \[repo-automation\] Daily Status Report - 2026-05-31 [\#967](https://github.com/abhimehro/email-security-pipeline/issues/967)
-- Daily QA & Agentic Review — 2026-05-31 [\#965](https://github.com/abhimehro/email-security-pipeline/issues/965)
-- \[repo-automation\] Daily Status Report - 2026-05-30 [\#964](https://github.com/abhimehro/email-security-pipeline/issues/964)
-- Daily QA & Agentic Review — 2026-05-30 [\#959](https://github.com/abhimehro/email-security-pipeline/issues/959)
-- Daily QA & Agentic Review — 2026-05-29 [\#955](https://github.com/abhimehro/email-security-pipeline/issues/955)
-- \[repo-automation\] Daily Status Report - 2026-05-28 [\#954](https://github.com/abhimehro/email-security-pipeline/issues/954)
-- Daily QA & Agentic Review — 2026-05-28 [\#951](https://github.com/abhimehro/email-security-pipeline/issues/951)
-- \[repo-automation\] Daily Status Report - 2026-05-27 [\#946](https://github.com/abhimehro/email-security-pipeline/issues/946)
-- Daily QA & Agentic Review — 2026-05-27 [\#941](https://github.com/abhimehro/email-security-pipeline/issues/941)
-- \[repo-automation\] Daily Status Report - 2026-05-26 [\#938](https://github.com/abhimehro/email-security-pipeline/issues/938)
-- Daily QA Check - email-security-pipeline - 2026-05-26 [\#934](https://github.com/abhimehro/email-security-pipeline/issues/934)
-- \[repo-automation\] Daily Status Report - 2026-05-25 [\#928](https://github.com/abhimehro/email-security-pipeline/issues/928)
-- Daily QA Check - email-security-pipeline - 2026-05-25 [\#924](https://github.com/abhimehro/email-security-pipeline/issues/924)
-- \[repo-automation\] Weekly Retrospective - 2026-05-24 [\#903](https://github.com/abhimehro/email-security-pipeline/issues/903)
-- \[repo-automation\] Daily Status Report - 2026-05-24 [\#902](https://github.com/abhimehro/email-security-pipeline/issues/902)
-- Daily QA Check - email-security-pipeline - 2026-05-24 [\#899](https://github.com/abhimehro/email-security-pipeline/issues/899)
-- \[repo-automation\] Daily Status Report - 2026-05-23 [\#898](https://github.com/abhimehro/email-security-pipeline/issues/898)
-- Daily QA Check - email-security-pipeline - 2026-05-23 [\#895](https://github.com/abhimehro/email-security-pipeline/issues/895)
-- \[repo-automation\] Daily Status Report - 2026-05-22 [\#893](https://github.com/abhimehro/email-security-pipeline/issues/893)
-- \[Jules Daily QA\] Repository is fully healthy [\#892](https://github.com/abhimehro/email-security-pipeline/issues/892)
-- Daily QA Check - email-security-pipeline - 2026-05-22 [\#891](https://github.com/abhimehro/email-security-pipeline/issues/891)
-- \[repo-automation\] Daily Status Report - 2026-05-21 [\#888](https://github.com/abhimehro/email-security-pipeline/issues/888)
-- Daily QA Check - email-security-pipeline - 2026-05-21 [\#884](https://github.com/abhimehro/email-security-pipeline/issues/884)
-- \[repo-automation\] Daily Status Report - 2026-05-20 [\#879](https://github.com/abhimehro/email-security-pipeline/issues/879)
-- \[repo-automation\] Daily Status Report - 2026-05-19 [\#873](https://github.com/abhimehro/email-security-pipeline/issues/873)
-- \[repo-automation\] Daily Status Report - 2026-05-18 [\#864](https://github.com/abhimehro/email-security-pipeline/issues/864)
-- \[repo-automation\] Weekly Retrospective - 2026-05-17 [\#858](https://github.com/abhimehro/email-security-pipeline/issues/858)
-- \[repo-automation\] Daily Status Report - 2026-05-17 [\#857](https://github.com/abhimehro/email-security-pipeline/issues/857)
-- \[repo-automation\] Daily Status Report - 2026-05-16 [\#853](https://github.com/abhimehro/email-security-pipeline/issues/853)
-- Jules Daily QA & Agentic Review - 2026-04-16 [\#852](https://github.com/abhimehro/email-security-pipeline/issues/852)
-- \[repo-automation\] Daily Status Report - 2026-05-15 [\#851](https://github.com/abhimehro/email-security-pipeline/issues/851)
-- \[repo-automation\] Daily Status Report - 2026-05-14 [\#821](https://github.com/abhimehro/email-security-pipeline/issues/821)
-- \[repo-automation\] Daily Status Report - 2026-05-13 [\#813](https://github.com/abhimehro/email-security-pipeline/issues/813)
-- Jules Daily QA & Agentic Review - All Checks Passed [\#812](https://github.com/abhimehro/email-security-pipeline/issues/812)
-- Jules Daily QA & Agentic Review - Email Security Pipeline [\#810](https://github.com/abhimehro/email-security-pipeline/issues/810)
-- \[repo-automation\] Daily Status Report - 2026-05-12 [\#808](https://github.com/abhimehro/email-security-pipeline/issues/808)
-- \[repo-automation\] Daily Status Report - 2026-05-11 [\#804](https://github.com/abhimehro/email-security-pipeline/issues/804)
-- \[repo-automation\] Weekly Retrospective - 2026-05-10 [\#803](https://github.com/abhimehro/email-security-pipeline/issues/803)
-- \[repo-automation\] Daily Status Report - 2026-05-10 [\#802](https://github.com/abhimehro/email-security-pipeline/issues/802)
-- Jules Daily QA & Agentic Review [\#801](https://github.com/abhimehro/email-security-pipeline/issues/801)
-- \[repo-automation\] Daily Status Report - 2026-05-09 [\#798](https://github.com/abhimehro/email-security-pipeline/issues/798)
-- Jules Daily QA & Agentic Review - Healthy [\#797](https://github.com/abhimehro/email-security-pipeline/issues/797)
-- \[repo-automation\] Daily Status Report - 2026-05-08 [\#794](https://github.com/abhimehro/email-security-pipeline/issues/794)
-- \[repo-automation\] Daily Status Report - 2026-05-07 [\#789](https://github.com/abhimehro/email-security-pipeline/issues/789)
-- Jules Daily QA & Agentic Review - Healthy [\#787](https://github.com/abhimehro/email-security-pipeline/issues/787)
-- \[repo-automation\] Daily Status Report - 2026-05-06 [\#783](https://github.com/abhimehro/email-security-pipeline/issues/783)
-- Jules Daily QA & Agentic Review [\#781](https://github.com/abhimehro/email-security-pipeline/issues/781)
-- Jules Daily QA & Agentic Review - 2026-04-17 [\#775](https://github.com/abhimehro/email-security-pipeline/issues/775)
-- \[repo-automation\] Daily Status Report - 2026-05-04 [\#772](https://github.com/abhimehro/email-security-pipeline/issues/772)
-- Jules Daily QA & Agentic Review - All Checks Passed [\#771](https://github.com/abhimehro/email-security-pipeline/issues/771)
-- \[repo-automation\] Weekly Retrospective - 2026-05-03 [\#767](https://github.com/abhimehro/email-security-pipeline/issues/767)
-- \[repo-automation\] Daily Status Report - 2026-05-03 [\#766](https://github.com/abhimehro/email-security-pipeline/issues/766)
-- Jules Daily QA & Agentic Review - All Clear [\#765](https://github.com/abhimehro/email-security-pipeline/issues/765)
-- \[repo-automation\] Daily Status Report - 2026-05-02 [\#756](https://github.com/abhimehro/email-security-pipeline/issues/756)
-- Jules Daily QA & Agentic Review [\#754](https://github.com/abhimehro/email-security-pipeline/issues/754)
-- \[repo-automation\] Daily Status Report - 2026-05-01 [\#750](https://github.com/abhimehro/email-security-pipeline/issues/750)
-- \[repo-automation\] Daily Status Report - 2026-04-30 [\#745](https://github.com/abhimehro/email-security-pipeline/issues/745)
-- Jules Daily QA & Agentic Review - Test Fix [\#741](https://github.com/abhimehro/email-security-pipeline/issues/741)
-- \[repo-automation\] Daily Status Report - 2026-04-28 [\#739](https://github.com/abhimehro/email-security-pipeline/issues/739)
-- Jules Daily QA & Agentic Review - Fixed test\_setup\_wizard [\#737](https://github.com/abhimehro/email-security-pipeline/issues/737)
-- \[repo-automation\] Daily Status Report - 2026-04-27 [\#735](https://github.com/abhimehro/email-security-pipeline/issues/735)
-- Jules Daily QA & Agentic Review - Automated Run [\#734](https://github.com/abhimehro/email-security-pipeline/issues/734)
-- \[repo-automation\] Weekly Retrospective - 2026-04-26 [\#730](https://github.com/abhimehro/email-security-pipeline/issues/730)
-- \[repo-automation\] Daily Status Report - 2026-04-26 [\#729](https://github.com/abhimehro/email-security-pipeline/issues/729)
-- Jules Daily QA & Agentic Review - Formatting Fixes [\#726](https://github.com/abhimehro/email-security-pipeline/issues/726)
-- \[repo-automation\] Daily Status Report - 2026-04-25 [\#722](https://github.com/abhimehro/email-security-pipeline/issues/722)
-- \[repo-automation\] Daily Status Report - 2026-04-24 [\#716](https://github.com/abhimehro/email-security-pipeline/issues/716)
-- \[repo-automation\] Daily Status Report - 2026-04-23 [\#714](https://github.com/abhimehro/email-security-pipeline/issues/714)
-- \[repo-automation\] Daily Status Report - 2026-04-22 [\#711](https://github.com/abhimehro/email-security-pipeline/issues/711)
-- \[repo-automation\] Daily Status Report - 2026-04-21 [\#706](https://github.com/abhimehro/email-security-pipeline/issues/706)
-- \[repo-automation\] Daily Status Report - 2026-04-20 [\#702](https://github.com/abhimehro/email-security-pipeline/issues/702)
-- Jules Daily QA & Agentic Review - 2025-03-09 [\#700](https://github.com/abhimehro/email-security-pipeline/issues/700)
-- Jules Daily QA & Agentic Review - 2025-03-09 [\#699](https://github.com/abhimehro/email-security-pipeline/issues/699)
-- \[repo-automation\] Weekly Retrospective - 2026-04-19 [\#697](https://github.com/abhimehro/email-security-pipeline/issues/697)
-- \[repo-automation\] Daily Status Report - 2026-04-19 [\#696](https://github.com/abhimehro/email-security-pipeline/issues/696)
-- Jules Daily QA & Agentic Review [\#694](https://github.com/abhimehro/email-security-pipeline/issues/694)
-- \[repo-automation\] Daily Status Report - 2026-04-18 [\#691](https://github.com/abhimehro/email-security-pipeline/issues/691)
-- Jules Daily QA & Agentic Review - 2025-04-18 [\#689](https://github.com/abhimehro/email-security-pipeline/issues/689)
-- \[repo-automation\] Daily Status Report - 2026-04-17 [\#686](https://github.com/abhimehro/email-security-pipeline/issues/686)
-- Daily QA Review - Repository fully healthy [\#685](https://github.com/abhimehro/email-security-pipeline/issues/685)
-- \[repo-automation\] Daily Status Report - 2026-04-16 [\#683](https://github.com/abhimehro/email-security-pipeline/issues/683)
-- Jules Daily QA & Agentic Review - All Checks Passed [\#682](https://github.com/abhimehro/email-security-pipeline/issues/682)
-- \[repo-automation\] Daily Status Report - 2026-04-15 [\#681](https://github.com/abhimehro/email-security-pipeline/issues/681)
-- Jules Daily QA & Agentic Review [\#680](https://github.com/abhimehro/email-security-pipeline/issues/680)
-- \[repo-automation\] Daily Status Report - 2026-04-14 [\#677](https://github.com/abhimehro/email-security-pipeline/issues/677)
-- Jules Daily QA & Agentic Review - 2026-04-12 [\#676](https://github.com/abhimehro/email-security-pipeline/issues/676)
-- \[repo-automation\] Daily Status Report - 2026-04-13 [\#672](https://github.com/abhimehro/email-security-pipeline/issues/672)
-- \[repo-automation\] Weekly Retrospective - 2026-04-12 [\#670](https://github.com/abhimehro/email-security-pipeline/issues/670)
-- \[repo-automation\] Daily Status Report - 2026-04-12 [\#669](https://github.com/abhimehro/email-security-pipeline/issues/669)
-- Jules Daily QA & Agentic Review - All Clear [\#667](https://github.com/abhimehro/email-security-pipeline/issues/667)
-- \[repo-automation\] Daily Status Report - 2026-04-11 [\#665](https://github.com/abhimehro/email-security-pipeline/issues/665)
-- Jules Daily QA & Agentic Review: No Issues Found [\#663](https://github.com/abhimehro/email-security-pipeline/issues/663)
-- \[repo-automation\] Daily Status Report - 2026-04-10 [\#661](https://github.com/abhimehro/email-security-pipeline/issues/661)
-- \[repo-automation\] Daily Status Report - 2026-04-09 [\#655](https://github.com/abhimehro/email-security-pipeline/issues/655)
-- chore: daily qa check completed [\#654](https://github.com/abhimehro/email-security-pipeline/issues/654)
-- \[repo-automation\] Daily Status Report - 2026-04-08 [\#653](https://github.com/abhimehro/email-security-pipeline/issues/653)
-- \[repo-automation\] Daily Status Report - 2026-04-07 [\#649](https://github.com/abhimehro/email-security-pipeline/issues/649)
-- \[repo-automation\] Daily Status Report - 2026-04-06 [\#645](https://github.com/abhimehro/email-security-pipeline/issues/645)
-- \[repo-automation\] Weekly Retrospective - 2026-04-05 [\#638](https://github.com/abhimehro/email-security-pipeline/issues/638)
-- \[repo-automation\] Daily Status Report - 2026-04-05 [\#637](https://github.com/abhimehro/email-security-pipeline/issues/637)
-- \[repo-automation\] Daily Status Report - 2026-04-04 [\#633](https://github.com/abhimehro/email-security-pipeline/issues/633)
-- \[repo-automation\] Daily Status Report - 2026-04-03 [\#627](https://github.com/abhimehro/email-security-pipeline/issues/627)
-- \[repo-automation\] Daily Status Report - 2026-04-02 [\#622](https://github.com/abhimehro/email-security-pipeline/issues/622)
-- \[repo-automation\] Daily Status Report - 2026-04-01 [\#619](https://github.com/abhimehro/email-security-pipeline/issues/619)
-- \[repo-automation\] Daily Status Report - 2026-03-31 [\#615](https://github.com/abhimehro/email-security-pipeline/issues/615)
-- \[repo-automation\] Daily Status Report - 2026-03-30 [\#613](https://github.com/abhimehro/email-security-pipeline/issues/613)
-- \[repo-automation\] Weekly Retrospective - 2026-03-29 [\#609](https://github.com/abhimehro/email-security-pipeline/issues/609)
-- \[repo-automation\] Daily Status Report - 2026-03-29 [\#608](https://github.com/abhimehro/email-security-pipeline/issues/608)
-- \[repo-automation\] Daily Status Report - 2026-03-28 [\#605](https://github.com/abhimehro/email-security-pipeline/issues/605)
-- Daily QA Check - 2026-03-28 [\#603](https://github.com/abhimehro/email-security-pipeline/issues/603)
-- \[repo-automation\] Daily Status Report - 2026-03-27 [\#601](https://github.com/abhimehro/email-security-pipeline/issues/601)
-- Daily QA Check - 2026-03-27 [\#598](https://github.com/abhimehro/email-security-pipeline/issues/598)
-- \[repo-automation\] Daily Status Report - 2026-03-26 [\#595](https://github.com/abhimehro/email-security-pipeline/issues/595)
-- Daily QA Check - 2026-03-26 [\#591](https://github.com/abhimehro/email-security-pipeline/issues/591)
-- \[repo-automation\] Daily Status Report - 2026-03-25 [\#589](https://github.com/abhimehro/email-security-pipeline/issues/589)
-- Daily QA Check - 2026-03-25 [\#586](https://github.com/abhimehro/email-security-pipeline/issues/586)
-- \[repo-automation\] Daily Status Report - 2026-03-24 [\#583](https://github.com/abhimehro/email-security-pipeline/issues/583)
-- Daily QA Check - 2026-03-24 [\#577](https://github.com/abhimehro/email-security-pipeline/issues/577)
-- \[repo-automation\] Daily Status Report - 2026-03-23 [\#574](https://github.com/abhimehro/email-security-pipeline/issues/574)
-- Daily QA Check - 2026-03-23 [\#572](https://github.com/abhimehro/email-security-pipeline/issues/572)
-- \[repo-automation\] Weekly Retrospective - 2026-03-22 [\#569](https://github.com/abhimehro/email-security-pipeline/issues/569)
-- \[repo-automation\] Daily Status Report - 2026-03-22 [\#568](https://github.com/abhimehro/email-security-pipeline/issues/568)
-- \[repo-automation\] Daily Status Report - 2026-03-21 [\#562](https://github.com/abhimehro/email-security-pipeline/issues/562)
-- \[repo-status\] Daily Status Report — March 7, 2026 [\#537](https://github.com/abhimehro/email-security-pipeline/issues/537)
-- \[Code Quality\] Add direct unit tests for EmailParser.\_append\_body\_part and \_add\_body\_content size-limiting logic [\#534](https://github.com/abhimehro/email-security-pipeline/issues/534)
-- \[Code Quality\] Add direct unit tests for MediaAnalyzer.\_inspect\_archive\_member scoring branches [\#533](https://github.com/abhimehro/email-security-pipeline/issues/533)
-- \[Code Quality\] Add direct unit tests for MediaAnalyzer.\_check\_size\_anomaly\(\) size threshold scoring [\#532](https://github.com/abhimehro/email-security-pipeline/issues/532)
-- \[Code Quality\] Add direct unit tests for MediaAnalyzer.\_validate\_signature\_match\(\) and \_validate\_missing\_signature\(\) [\#531](https://github.com/abhimehro/email-security-pipeline/issues/531)
-- \[Code Quality\] Add direct unit tests for IMAPConnection.\_parse\_email\_payload\(\) IMAP response parsing [\#528](https://github.com/abhimehro/email-security-pipeline/issues/528)
-- \[Code Quality\] Add direct unit tests for EmailParser.\_append\_body\_part\(\) body-size DoS protection [\#527](https://github.com/abhimehro/email-security-pipeline/issues/527)
-- \[Code Quality\] Add direct unit tests for \_apply\_ssl\_overrides\(\) SSL bypass function [\#526](https://github.com/abhimehro/email-security-pipeline/issues/526)
-- \[Code Quality\] Add unit tests to verify create\_secure\_ssl\_context\(\) enforces TLS 1.2+, hostname checking, and cert verification [\#525](https://github.com/abhimehro/email-security-pipeline/issues/525)
-- \[Code Quality\] Add unit tests for SpamAnalyzer.\_analyze\_headers\(\) DKIM, SPF softfail, and Return-Path coverage gaps [\#524](https://github.com/abhimehro/email-security-pipeline/issues/524)
-- \[Code Quality\] Add direct unit tests for TTLCache constructor validation and API methods [\#523](https://github.com/abhimehro/email-security-pipeline/issues/523)
-- \[Code Quality\] Add unit tests for MediaAnalyzer.\_check\_file\_extension scoring contracts [\#522](https://github.com/abhimehro/email-security-pipeline/issues/522)
-- \[Code Quality\] Add direct unit tests for SpamAnalyzer.\_analyze\_body, \_analyze\_headers, and \_check\_sender [\#521](https://github.com/abhimehro/email-security-pipeline/issues/521)
-- \[Code Quality\] Add unit tests for NLPThreatAnalyzer.\_detect\_urgency and \_detect\_psychological\_triggers [\#520](https://github.com/abhimehro/email-security-pipeline/issues/520)
-- \[repo-status\] Daily Status Report — March 6, 2026 [\#516](https://github.com/abhimehro/email-security-pipeline/issues/516)
-- \[Code Quality\] Add direct unit tests for security\_validators DoS-prevention functions [\#513](https://github.com/abhimehro/email-security-pipeline/issues/513)
-- \[Code Quality\] Add unit tests for CountdownTimer \(start, stop, wait\) in test\_ui\_countdown.py [\#512](https://github.com/abhimehro/email-security-pipeline/issues/512)
-- \[Code Quality\] Add unit tests for NLPThreatAnalyzer.\_detect\_urgency and \_detect\_psychological\_triggers [\#511](https://github.com/abhimehro/email-security-pipeline/issues/511)
-- \[Code Quality\] Add dedicated unit tests for TTLCache init validation, \_\_contains\_\_ expiry, and keys\(\) filtering [\#509](https://github.com/abhimehro/email-security-pipeline/issues/509)
-- \[Code Quality\] Add direct unit tests for SpamAnalyzer.\_analyze\_headers DKIM, SPF auth-results, and Return-Path mismatch [\#508](https://github.com/abhimehro/email-security-pipeline/issues/508)
-- \[Code Quality\] Add direct unit tests for SpamAnalyzer.\_analyze\_body image-only and hidden text detection [\#507](https://github.com/abhimehro/email-security-pipeline/issues/507)
-- \[Code Quality\] Add unit tests for CountdownTimer non-TTY path, stop\(\), and wait\(\) hint injection [\#504](https://github.com/abhimehro/email-security-pipeline/issues/504)
-- \[Code Quality\] Add direct unit tests for security boundary functions in security\_validators.py [\#503](https://github.com/abhimehro/email-security-pipeline/issues/503)
-- \[Code Quality\] Add unit tests for \_apply\_ssl\_overrides verify\_ssl=False code path [\#502](https://github.com/abhimehro/email-security-pipeline/issues/502)
-- \[Code Quality\] Remove development artifact files from repository root [\#501](https://github.com/abhimehro/email-security-pipeline/issues/501)
-- \[Code Quality\] Add unit tests for MediaAnalyzer.\_inspect\_archive\_member dangerous extension early-exit gate [\#500](https://github.com/abhimehro/email-security-pipeline/issues/500)
-- \[Code Quality\] Add unit tests for MediaAnalyzer signature validation score thresholds [\#499](https://github.com/abhimehro/email-security-pipeline/issues/499)
-- \[repo-status\] Daily Status Report — March 5, 2026 [\#494](https://github.com/abhimehro/email-security-pipeline/issues/494)
-- \[Code Quality\] Implement \_should\_use\_ml\_model\(\) to respect config \(currently hardcoded True\) [\#492](https://github.com/abhimehro/email-security-pipeline/issues/492)
-- \[Code Quality\] Add unit tests for NLPThreatAnalyzer.\_scan\_text\_patterns\(\) [\#491](https://github.com/abhimehro/email-security-pipeline/issues/491)
-- \[Code Quality\] Add unit tests for AlertSystem.\_on\_enqueue\_done callback branches [\#488](https://github.com/abhimehro/email-security-pipeline/issues/488)
-- \[Code Quality\] Add unit tests for CountdownTimer in src/utils/ui.py [\#483](https://github.com/abhimehro/email-security-pipeline/issues/483)
-- \[repo-status\] Daily Status Report — March 4, 2026 🛡️⚡ [\#482](https://github.com/abhimehro/email-security-pipeline/issues/482)
-- fix: convert SPAM\_KEYWORDS capturing groups to non-capturing \(closes \#477\) [\#480](https://github.com/abhimehro/email-security-pipeline/issues/480)
-- \[Code Quality\] Convert SPAM\_KEYWORDS capturing groups to non-capturing to fix findall\(\) tuple allocation [\#477](https://github.com/abhimehro/email-security-pipeline/issues/477)
-- \[Code Quality\] Add direct unit tests for EmailParser.\_format\_addresses address parsing edge cases [\#476](https://github.com/abhimehro/email-security-pipeline/issues/476)
-- \[Code Quality\] Add direct unit tests for AlertSystem.\_generate\_recommendations branch logic [\#475](https://github.com/abhimehro/email-security-pipeline/issues/475)
-- \[Code Quality\] Add direct unit tests for NLPThreatAnalyzer.\_run\_transformer\_analysis scoring logic [\#472](https://github.com/abhimehro/email-security-pipeline/issues/472)
-- \[Code Quality\] Add direct unit tests for NLPThreatAnalyzer.\_scan\_text\_patterns category aggregation [\#471](https://github.com/abhimehro/email-security-pipeline/issues/471)
-- \[Code Quality\] Add direct unit tests for SpamAnalyzer.\_analyze\_body hidden-text and image-heavy detection [\#470](https://github.com/abhimehro/email-security-pipeline/issues/470)
-- \[Code Quality\] Add direct unit tests for SpamAnalyzer.\_analyze\_headers SPF/DKIM detection [\#469](https://github.com/abhimehro/email-security-pipeline/issues/469)
-- \[repo-status\] Daily Repo Status — 2026-03-03 [\#465](https://github.com/abhimehro/email-security-pipeline/issues/465)
-- \[Code Quality\] Add unit tests for SpamAnalyzer.\_analyze\_subject and \_calculate\_risk\_level [\#463](https://github.com/abhimehro/email-security-pipeline/issues/463)
-- \[Code Quality\] Add unit tests for NLPThreatAnalyzer social engineering and authority impersonation detection [\#462](https://github.com/abhimehro/email-security-pipeline/issues/462)
-- \[Code Quality\] Add unit tests for IMAPClient.\_parse\_email\_payload, \_fetch\_batch, and \_get\_auth\_tip [\#461](https://github.com/abhimehro/email-security-pipeline/issues/461)
-- \[Code Quality\] Add direct unit tests for EmailIngestionManager multi-account orchestration [\#458](https://github.com/abhimehro/email-security-pipeline/issues/458)
-- \[Code Quality\] Add direct unit tests for SpamAnalyzer.\_check\_sender\(\) corporate spoofing detection [\#457](https://github.com/abhimehro/email-security-pipeline/issues/457)
-- \[Code Quality\] Discussion Task Miner - Code Quality Improvement Agent - Issue Group [\#456](https://github.com/abhimehro/email-security-pipeline/issues/456)
-- \[Code Quality\] Add direct unit tests for NLPThreatAnalyzer urgency and psychological trigger detection [\#455](https://github.com/abhimehro/email-security-pipeline/issues/455)
-- \[Code Quality\] Add unit tests for CountdownTimer in src/utils/ui.py [\#454](https://github.com/abhimehro/email-security-pipeline/issues/454)
-- \[Code Quality\] Add direct unit tests for TTLCache in src/utils/caching.py [\#453](https://github.com/abhimehro/email-security-pipeline/issues/453)
-- \[Code Quality\] Add unit tests for AppRunner.print\_banner\(\) and AppRunner.run\(\) in src/app\_runner.py [\#451](https://github.com/abhimehro/email-security-pipeline/issues/451)
-- \[Code Quality\] Add direct unit tests for Config static utility methods in src/utils/config.py [\#450](https://github.com/abhimehro/email-security-pipeline/issues/450)
-- \[Code Quality\] Add direct unit tests for TTLCache in src/utils/caching.py [\#449](https://github.com/abhimehro/email-security-pipeline/issues/449)
-- \[repo-status\] Daily Repo Status — 2026-03-02 [\#448](https://github.com/abhimehro/email-security-pipeline/issues/448)
-- Daily QA— 2026-03-02 [\#445](https://github.com/abhimehro/email-security-pipeline/issues/445)
-- \[Code Quality\] Add unit tests for AlertSystem console rendering helpers [\#444](https://github.com/abhimehro/email-security-pipeline/issues/444)
-- \[Code Quality\] Add unit tests for ColoredFormatter in src/utils/logging\_utils.py [\#443](https://github.com/abhimehro/email-security-pipeline/issues/443)
-- \[Code Quality\] Add unit tests for CountdownTimer in src/utils/ui.py [\#442](https://github.com/abhimehro/email-security-pipeline/issues/442)
-- \[Code Quality\] Add unit tests for security boundary utility functions in security\_validators.py [\#441](https://github.com/abhimehro/email-security-pipeline/issues/441)
-- \[Code Quality\] Add tests for ConnectionDiagnostic.\_check\_credentials and diagnose\_connection\_issues\(\) [\#438](https://github.com/abhimehro/email-security-pipeline/issues/438)
-- \[Code Quality\] Add unit tests for ColoredFormatter in src/utils/logging\_utils.py [\#437](https://github.com/abhimehro/email-security-pipeline/issues/437)
-- \[Code Quality\] Add direct unit tests for create\_secure\_ssl\_context\(\) in security\_validators.py [\#436](https://github.com/abhimehro/email-security-pipeline/issues/436)
-- \[Code Quality\] Move module-level \_generate\_recommendations into AlertSystem class [\#433](https://github.com/abhimehro/email-security-pipeline/issues/433)
-- \[Code Quality\] Add CountdownTimer unit tests to expand test\_ui\_spinner.py [\#432](https://github.com/abhimehro/email-security-pipeline/issues/432)
-- \[Code Quality\] Add unit tests for ColoredFormatter in src/utils/logging\_utils.py [\#431](https://github.com/abhimehro/email-security-pipeline/issues/431)
-- \[Code Quality\] Add dedicated unit tests for src/utils/security\_validators.py [\#429](https://github.com/abhimehro/email-security-pipeline/issues/429)
-- \[Code Quality\] Remove backward-compatibility wrapper methods from email\_ingestion.py [\#428](https://github.com/abhimehro/email-security-pipeline/issues/428)
-- \[Code Quality\] Add unit tests for EmailSecurityPipeline.\_analyze\_email\(\) in src/main.py [\#427](https://github.com/abhimehro/email-security-pipeline/issues/427)
-- \[repo-status\] Daily Status Report — 2026-03-01 🚀 [\#426](https://github.com/abhimehro/email-security-pipeline/issues/426)
-- Daily QA— 2026-03-01 [\#425](https://github.com/abhimehro/email-security-pipeline/issues/425)
-- \[Code Quality\] Fix indirect EmailData imports — import from email\_data not email\_ingestion [\#423](https://github.com/abhimehro/email-security-pipeline/issues/423)
-- \[Code Quality\] Add unit tests for IMAPConnection and ConnectionDiagnostics classes [\#422](https://github.com/abhimehro/email-security-pipeline/issues/422)
-- \[Code Quality\] Add unit tests for TTLCache in src/utils/caching.py [\#421](https://github.com/abhimehro/email-security-pipeline/issues/421)
-- \[aw\] No-Op Runs [\#410](https://github.com/abhimehro/email-security-pipeline/issues/410)
-- \[Code Quality\] Replace bare exception handlers with specific logging in email\_parser [\#364](https://github.com/abhimehro/email-security-pipeline/issues/364)
-- \[repo-status\] Daily Status Report - February 19, 2026 🌟 [\#361](https://github.com/abhimehro/email-security-pipeline/issues/361)
-- Daily QAFebruary 19, 2026 - Documentation & Dependency Issues Found [\#360](https://github.com/abhimehro/email-security-pipeline/issues/360)
-- \[Code Quality\] Add comprehensive test coverage for email\_parser, email\_data, and imap\_connection modules [\#359](https://github.com/abhimehro/email-security-pipeline/issues/359)
-- \[Code Quality\] Extract repeated threat scoring pattern into reusable ThreatScorer utility [\#357](https://github.com/abhimehro/email-security-pipeline/issues/357)
-- \[Code Quality\] Document deepfake analysis pipeline implementation details [\#355](https://github.com/abhimehro/email-security-pipeline/issues/355)
-- \[Code Quality\] Extract duplicate risk level calculation logic into shared utility [\#352](https://github.com/abhimehro/email-security-pipeline/issues/352)
-- \[Code Quality\] Refactor duplicate body size tracking logic in email\_parser [\#349](https://github.com/abhimehro/email-security-pipeline/issues/349)
-- \[Code Quality\] Add docstrings to complex private methods [\#348](https://github.com/abhimehro/email-security-pipeline/issues/348)
-- \[Code Quality\] Extract duplicate nested archive detection logic in media\_analyzer [\#346](https://github.com/abhimehro/email-security-pipeline/issues/346)
-- \[Code Quality\] Replace overly broad exception handling with specific exception types [\#345](https://github.com/abhimehro/email-security-pipeline/issues/345)
-- Daily Perf ImproverResearch and Plan [\#344](https://github.com/abhimehro/email-security-pipeline/issues/344)
-- \[Code Quality\] Add unit tests for Config and Metrics utilities [\#343](https://github.com/abhimehro/email-security-pipeline/issues/343)
-- \[Code Quality\] Extract duplicate regex pattern compilation logic [\#342](https://github.com/abhimehro/email-security-pipeline/issues/342)
-- \[Code Quality\] Refactor long methods in media\_analyzer.py [\#340](https://github.com/abhimehro/email-security-pipeline/issues/340)
-- \[Code Quality\] Refactor alert formatting to reduce parameter passing [\#338](https://github.com/abhimehro/email-security-pipeline/issues/338)
-- \[Code Quality\] Discussion Task Miner - Code Quality Improvement Agent - Issue Group [\#336](https://github.com/abhimehro/email-security-pipeline/issues/336)
-- \[Code Quality\] Extract duplicate error handling patterns into reusable helper [\#335](https://github.com/abhimehro/email-security-pipeline/issues/335)
-- \[Code Quality\] Create custom exception hierarchy for structured error handling [\#332](https://github.com/abhimehro/email-security-pipeline/issues/332)
-- \[Code Quality\] Update documentation to reflect PII protection and performance optimizations [\#331](https://github.com/abhimehro/email-security-pipeline/issues/331)
-- \[Code Quality\] Extract caching strategy into reusable utility for all analyzers [\#330](https://github.com/abhimehro/email-security-pipeline/issues/330)
-- \[repo-status\] Daily Repo Status - February 18, 2026 🌟 [\#329](https://github.com/abhimehro/email-security-pipeline/issues/329)
-- Daily QA2026-02-18: Critical Syntax Error Fixed [\#328](https://github.com/abhimehro/email-security-pipeline/issues/328)
-- \[Code Quality\] Replace broad exception handling with specific exception types [\#326](https://github.com/abhimehro/email-security-pipeline/issues/326)
-- \[Code Quality\] Add comprehensive unit tests for IMAPConnection and EmailParser modules [\#325](https://github.com/abhimehro/email-security-pipeline/issues/325)
-- \[Code Quality\] Refactor EmailParser.\_extract\_multipart\_content\(\) to reduce complexity [\#324](https://github.com/abhimehro/email-security-pipeline/issues/324)
-- \[Code Quality\] Enhance pytest workflow with test result annotations [\#322](https://github.com/abhimehro/email-security-pipeline/issues/322)
-- \[Code Quality\] Create async IMAP proof-of-concept and migration guide [\#321](https://github.com/abhimehro/email-security-pipeline/issues/321)
-- \[Code Quality\] Add pytest-cov for test coverage tracking and reporting [\#320](https://github.com/abhimehro/email-security-pipeline/issues/320)
-- \[Code Quality\] Add mypy type checking to CI pipeline [\#319](https://github.com/abhimehro/email-security-pipeline/issues/319)
-- \[Code Quality\] Configure Ruff linter for fast Python code quality checks [\#318](https://github.com/abhimehro/email-security-pipeline/issues/318)
-- \[Code Quality\] Add pre-commit hooks for code quality enforcement [\#315](https://github.com/abhimehro/email-security-pipeline/issues/315)
-- \[Code Quality\] Add type checking with mypy to enforce type safety [\#314](https://github.com/abhimehro/email-security-pipeline/issues/314)
-- \[Code Quality\] Add comprehensive test coverage metrics and reporting [\#311](https://github.com/abhimehro/email-security-pipeline/issues/311)
-- Daily Perf ImproverResearch and Plan [\#310](https://github.com/abhimehro/email-security-pipeline/issues/310)
-- \[Code Quality\] Extract duplicate URL/text sanitization logic into shared utility module [\#309](https://github.com/abhimehro/email-security-pipeline/issues/309)
-- \[Code Quality\] Refactor complex email size checking method into smaller focused functions [\#308](https://github.com/abhimehro/email-security-pipeline/issues/308)
-- \[Code Quality\] Replace bare exception handlers with specific types in email parser [\#307](https://github.com/abhimehro/email-security-pipeline/issues/307)
-- \[Code Quality\] Implement lazy loading for NLP model to reduce startup time and memory [\#306](https://github.com/abhimehro/email-security-pipeline/issues/306)
-- \[Code Quality\] Discussion Task Miner - Code Quality Improvement Agent - Issue Group [\#304](https://github.com/abhimehro/email-security-pipeline/issues/304)
-- \[Code Quality\] Implement parallel email account processing to improve performance [\#303](https://github.com/abhimehro/email-security-pipeline/issues/303)
-- \[Code Quality\] Add integration tests for IMAP connection lifecycle with mock server [\#301](https://github.com/abhimehro/email-security-pipeline/issues/301)
-- \[Code Quality\] Add mypy static type checking to CI pipeline [\#300](https://github.com/abhimehro/email-security-pipeline/issues/300)
-- \[Code Quality\] Add pytest-cov and enforce minimum 75% test coverage in CI [\#299](https://github.com/abhimehro/email-security-pipeline/issues/299)
-- \[Code Quality\] Refactor broad exception handlers to use specific exception types [\#298](https://github.com/abhimehro/email-security-pipeline/issues/298)
-- \[Code Quality\] Replace print\(\) statements with structured logging in alert system [\#297](https://github.com/abhimehro/email-security-pipeline/issues/297)
-- \[repo-status\] Daily Status Report - February 17, 2026 🚀 [\#296](https://github.com/abhimehro/email-security-pipeline/issues/296)
-- Daily QAFebruary 17, 2026 - Duplicate Dependencies Issue Found [\#294](https://github.com/abhimehro/email-security-pipeline/issues/294)
-- \[Code Quality\] Create comprehensive input validation and sanitization module [\#292](https://github.com/abhimehro/email-security-pipeline/issues/292)
-- \[Code Quality\] Refactor I/O operations to use async/await for performance [\#291](https://github.com/abhimehro/email-security-pipeline/issues/291)
-- \[Code Quality\] Increase test coverage to \>80% with integration tests [\#290](https://github.com/abhimehro/email-security-pipeline/issues/290)
-- \[Code Quality\] Add comprehensive type hints and mypy static analysis [\#289](https://github.com/abhimehro/email-security-pipeline/issues/289)
-- \[Code Quality\] Add comprehensive API documentation with OpenAPI/Swagger [\#288](https://github.com/abhimehro/email-security-pipeline/issues/288)
-- \[Code Quality\] Expand integration tests to cover end-to-end workflows [\#280](https://github.com/abhimehro/email-security-pipeline/issues/280)
-- \[Code Quality\] Ensure ThreadPoolExecutor shutdown is called during pipeline cleanup [\#279](https://github.com/abhimehro/email-security-pipeline/issues/279)
-- \[Code Quality\] Refactor email processing to use async I/O for better throughput [\#278](https://github.com/abhimehro/email-security-pipeline/issues/278)
-- \[Code Quality\] Improve test coverage for core email parsing functionality [\#274](https://github.com/abhimehro/email-security-pipeline/issues/274)
-- \[Code Quality\] Add API documentation and architecture diagrams [\#273](https://github.com/abhimehro/email-security-pipeline/issues/273)
-- \[Code Quality\] Implement async/await for I/O operations to improve performance [\#272](https://github.com/abhimehro/email-security-pipeline/issues/272)
-- \[Code Quality\] Add comprehensive type hints to improve code maintainability [\#270](https://github.com/abhimehro/email-security-pipeline/issues/270)
-- \[repo-status\] 🌟 Daily Repo Status: February 16, 2026 [\#269](https://github.com/abhimehro/email-security-pipeline/issues/269)
-- Daily QA2026-02-16: Repository Health Check [\#268](https://github.com/abhimehro/email-security-pipeline/issues/268)
-- \[Code Quality\] Refactor file type validation into reusable FileTypeValidator class [\#267](https://github.com/abhimehro/email-security-pipeline/issues/267)
-- \[Code Quality\] Add thread pool health monitoring to prevent resource exhaustion [\#266](https://github.com/abhimehro/email-security-pipeline/issues/266)
-- \[Code Quality\] Unify risk calculation logic across all analyzers [\#265](https://github.com/abhimehro/email-security-pipeline/issues/265)
-- \[Code Quality\] Centralize exception handling with SafeParser base class [\#264](https://github.com/abhimehro/email-security-pipeline/issues/264)
-- \[Code Quality\] Refactor complex deepfake detection method to reduce cognitive complexity [\#262](https://github.com/abhimehro/email-security-pipeline/issues/262)
-- \[Code Quality\] Add comprehensive docstrings to NLPThreatAnalyzer private methods [\#261](https://github.com/abhimehro/email-security-pipeline/issues/261)
-- \[Code Quality\] Add comprehensive docstring to generate\_threat\_report\(\) function [\#260](https://github.com/abhimehro/email-security-pipeline/issues/260)
-- \[Code Quality\] Fix silent exception handling in ZIP inspection [\#259](https://github.com/abhimehro/email-security-pipeline/issues/259)
-- \[Code Quality\] Add missing test coverage for IMAPConnection.list\_folders\(\) [\#258](https://github.com/abhimehro/email-security-pipeline/issues/258)
-- Daily Backlog Burner - Research, Roadmap and Plan [\#256](https://github.com/abhimehro/email-security-pipeline/issues/256)
-- \[Code Quality\] Add CI performance regression detection with pytest-benchmark [\#255](https://github.com/abhimehro/email-security-pipeline/issues/255)
-- \[Code Quality\] Add parallel account processing for 3x throughput [\#254](https://github.com/abhimehro/email-security-pipeline/issues/254)
-- \[Code Quality\] Optimize CI duration with parallel testing and incremental linting [\#253](https://github.com/abhimehro/email-security-pipeline/issues/253)
-- \[Code Quality\] Implement IMAP connection pooling for 10x speedup [\#252](https://github.com/abhimehro/email-security-pipeline/issues/252)
-- \[Code Quality\] Implement async alert dispatch to prevent webhook blocking [\#251](https://github.com/abhimehro/email-security-pipeline/issues/251)
-- Daily Perf ImproverResearch and Plan [\#250](https://github.com/abhimehro/email-security-pipeline/issues/250)
-- \[Code Quality\] Move hardcoded magic numbers to centralized configuration [\#245](https://github.com/abhimehro/email-security-pipeline/issues/245)
-- \[Code Quality\] Add specific exception handling to media analyzer [\#244](https://github.com/abhimehro/email-security-pipeline/issues/244)
-- \[Code Quality\] Extract alert formatting logic into separate formatter classes [\#243](https://github.com/abhimehro/email-security-pipeline/issues/243)
-- \[Code Quality\] Add detailed validation helpers to config module [\#238](https://github.com/abhimehro/email-security-pipeline/issues/238)
-- \[Code Quality\] Add comprehensive docstrings to utility modules [\#237](https://github.com/abhimehro/email-security-pipeline/issues/237)
-- \[Code Quality\] Add comprehensive testing documentation [\#236](https://github.com/abhimehro/email-security-pipeline/issues/236)
-- \[Code Quality\] Add comprehensive pytest configuration with markers [\#235](https://github.com/abhimehro/email-security-pipeline/issues/235)
-- \[Code Quality\] Organize and archive historical analysis reports [\#234](https://github.com/abhimehro/email-security-pipeline/issues/234)
-- \[agentics\] Daily QA failed [\#233](https://github.com/abhimehro/email-security-pipeline/issues/233)
-- \[agentics\] Daily Backlog Burner failed [\#232](https://github.com/abhimehro/email-security-pipeline/issues/232)
-- \[repo-status\] Daily Repo Status - February 15, 2026 🌟 [\#231](https://github.com/abhimehro/email-security-pipeline/issues/231)
-- \[Code Quality\] Add docstrings to undocumented NLP analyzer helper methods [\#230](https://github.com/abhimehro/email-security-pipeline/issues/230)
-- \[Code Quality\] Replace synchronous file I/O with async cleanup in media analyzer [\#229](https://github.com/abhimehro/email-security-pipeline/issues/229)
-- \[Code Quality\] Add unit tests for EmailSecurityPipeline main analysis methods [\#228](https://github.com/abhimehro/email-security-pipeline/issues/228)
-- \[Code Quality\] Refactor deepfake detection logic in media\_analyzer.py to reduce complexity [\#227](https://github.com/abhimehro/email-security-pipeline/issues/227)
-- \[Code Quality\] Add async/await support for parallel email fetching [\#225](https://github.com/abhimehro/email-security-pipeline/issues/225)
-- \[Code Quality\] Create domain-specific exception hierarchy for better error handling [\#224](https://github.com/abhimehro/email-security-pipeline/issues/224)
-- \[Code Quality\] Add unit tests for untested utility modules [\#223](https://github.com/abhimehro/email-security-pipeline/issues/223)
-- \[Code Quality\] Refactor exception handling to use specific exception types [\#222](https://github.com/abhimehro/email-security-pipeline/issues/222)
-- \[agentics\] Daily Perf Improver failed [\#221](https://github.com/abhimehro/email-security-pipeline/issues/221)
-- \[Code Quality\] Refactor MediaAnalyzer file validation logic to eliminate dead code paths [\#219](https://github.com/abhimehro/email-security-pipeline/issues/219)
-- \[Code Quality\] Validate regex patterns in nlp\_analyzer.py for ReDoS vulnerabilities [\#218](https://github.com/abhimehro/email-security-pipeline/issues/218)
-- \[Code Quality\] Replace bare pass statements with explicit logging in exception handlers [\#217](https://github.com/abhimehro/email-security-pipeline/issues/217)
-- \[Code Quality\] Fix bare except clauses that silently swallow exceptions in analyzer modules [\#216](https://github.com/abhimehro/email-security-pipeline/issues/216)
-- \[Code Quality\] Add comprehensive test coverage for email\_data.py and imap\_connection.py modules [\#215](https://github.com/abhimehro/email-security-pipeline/issues/215)
-- \[Code Quality\] Add integration and error recovery test coverage [\#210](https://github.com/abhimehro/email-security-pipeline/issues/210)
-- \[Code Quality\] Refactor email\_ingestion.py into smaller focused modules [\#209](https://github.com/abhimehro/email-security-pipeline/issues/209)
-- \[Code Quality\] Discussion Task Miner - Code Quality Improvement Agent - Issue Group [\#208](https://github.com/abhimehro/email-security-pipeline/issues/208)
-- \[Code Quality\] Implement structured logging and metrics collection [\#207](https://github.com/abhimehro/email-security-pipeline/issues/207)
-- \[repo-status\] 🌟 Daily Repo Status - February 14, 2026 [\#198](https://github.com/abhimehro/email-security-pipeline/issues/198)
-- Daily QAReport - Feb 14, 2026 [\#197](https://github.com/abhimehro/email-security-pipeline/issues/197)
-- Daily Backlog BurnerResearch, Roadmap and Plan [\#194](https://github.com/abhimehro/email-security-pipeline/issues/194)
-- Daily Perf ImproverResearch and Plan [\#193](https://github.com/abhimehro/email-security-pipeline/issues/193)
-- \[agentics\] Agentic Workflow Audit Agent failed [\#190](https://github.com/abhimehro/email-security-pipeline/issues/190)
-- \[agentics\] No-Op Runs [\#188](https://github.com/abhimehro/email-security-pipeline/issues/188)
-- \[agentics\] Daily Perf Improver failed [\#186](https://github.com/abhimehro/email-security-pipeline/issues/186)
-- \[agentics\] Daily Backlog Burner failed [\#185](https://github.com/abhimehro/email-security-pipeline/issues/185)
-- \[agentics\] Failed runs [\#184](https://github.com/abhimehro/email-security-pipeline/issues/184)
-- \[repo-status\] Daily Status Report - February 13, 2026 🌟 [\#178](https://github.com/abhimehro/email-security-pipeline/issues/178)
+- Daily QA & Agentic Review — 2026-07-29
+  [\#1385](https://github.com/abhimehro/email-security-pipeline/issues/1385)
+- \[repo-automation\] Daily Status Report - 2026-07-29
+  [\#1382](https://github.com/abhimehro/email-security-pipeline/issues/1382)
+- Daily QA & Agentic Review — 2026-07-28
+  [\#1378](https://github.com/abhimehro/email-security-pipeline/issues/1378)
+- \[repo-automation\] Daily Status Report - 2026-07-28
+  [\#1377](https://github.com/abhimehro/email-security-pipeline/issues/1377)
+- \[repo-automation\] Daily Status Report - 2026-07-27
+  [\#1371](https://github.com/abhimehro/email-security-pipeline/issues/1371)
+- Daily QA & Agentic Review — 2026-07-26
+  [\#1369](https://github.com/abhimehro/email-security-pipeline/issues/1369)
+- \[repo-automation\] Weekly Retrospective - 2026-07-26
+  [\#1368](https://github.com/abhimehro/email-security-pipeline/issues/1368)
+- \[repo-automation\] Daily Status Report - 2026-07-26
+  [\#1367](https://github.com/abhimehro/email-security-pipeline/issues/1367)
+- Daily QA & Agentic Review — 2026-07-25
+  [\#1361](https://github.com/abhimehro/email-security-pipeline/issues/1361)
+- email-security-pipeline close\_prs.sh still sources token helper
+  [\#1358](https://github.com/abhimehro/email-security-pipeline/issues/1358)
+- Daily QA & Agentic Review — 2026-07-24
+  [\#1357](https://github.com/abhimehro/email-security-pipeline/issues/1357)
+- Daily QA & Agentic Review — 2026-07-23
+  [\#1349](https://github.com/abhimehro/email-security-pipeline/issues/1349)
+- Daily QA & Agentic Review — 2026-07-22
+  [\#1343](https://github.com/abhimehro/email-security-pipeline/issues/1343)
+- Daily QA & Agentic Review — 2026-07-21
+  [\#1336](https://github.com/abhimehro/email-security-pipeline/issues/1336)
+- Daily QA & Agentic Review — 2026-07-20
+  [\#1305](https://github.com/abhimehro/email-security-pipeline/issues/1305)
+- Daily QA & Agentic Review — 2026-07-19
+  [\#1302](https://github.com/abhimehro/email-security-pipeline/issues/1302)
+- Daily QA & Agentic Review — 2026-07-18
+  [\#1298](https://github.com/abhimehro/email-security-pipeline/issues/1298)
+- Daily QA Check - email-security-pipeline - 2026-07-17
+  [\#1295](https://github.com/abhimehro/email-security-pipeline/issues/1295)
+- Daily QA & Agentic Review — 2026-07-17
+  [\#1294](https://github.com/abhimehro/email-security-pipeline/issues/1294)
+- Daily QA & Agentic Review — 2026-07-16
+  [\#1290](https://github.com/abhimehro/email-security-pipeline/issues/1290)
+- Daily QA & Agentic Review - 2026-07-15
+  [\#1265](https://github.com/abhimehro/email-security-pipeline/issues/1265)
+- Daily QA & Agentic Review - 2026-07-14
+  [\#1261](https://github.com/abhimehro/email-security-pipeline/issues/1261)
+- Daily QA & Agentic Review - 2026-07-12
+  [\#1257](https://github.com/abhimehro/email-security-pipeline/issues/1257)
+- Daily QA & Agentic Review - 2026-07-12
+  [\#1256](https://github.com/abhimehro/email-security-pipeline/issues/1256)
+- Daily QA & Agentic Review - 2026-07-11
+  [\#1254](https://github.com/abhimehro/email-security-pipeline/issues/1254)
+- Daily QA & Agentic Review - 2026-07-10
+  [\#1250](https://github.com/abhimehro/email-security-pipeline/issues/1250)
+- Daily QA & Agentic Review - 2026-07-09
+  [\#1246](https://github.com/abhimehro/email-security-pipeline/issues/1246)
+- Daily QA & Agentic Review - 2026-07-08
+  [\#1242](https://github.com/abhimehro/email-security-pipeline/issues/1242)
+- Daily QA & Agentic Review - 2026-07-07
+  [\#1239](https://github.com/abhimehro/email-security-pipeline/issues/1239)
+- P2: Supply Chain - Unpinned Dependencies
+  [\#1237](https://github.com/abhimehro/email-security-pipeline/issues/1237)
+- Daily QA & Agentic Review - 2026-07-06
+  [\#1234](https://github.com/abhimehro/email-security-pipeline/issues/1234)
+- Daily QA & Agentic Review - 2026-07-05
+  [\#1230](https://github.com/abhimehro/email-security-pipeline/issues/1230)
+- Daily QA & Agentic Review - 2026-07-04
+  [\#1226](https://github.com/abhimehro/email-security-pipeline/issues/1226)
+- Daily QA & Agentic Review - 2026-07-03
+  [\#1214](https://github.com/abhimehro/email-security-pipeline/issues/1214)
+- Daily QA & Agentic Review - 2026-07-02
+  [\#1209](https://github.com/abhimehro/email-security-pipeline/issues/1209)
+- Daily QA & Agentic Review - 2026-07-01
+  [\#1205](https://github.com/abhimehro/email-security-pipeline/issues/1205)
+- Daily QA & Agentic Review - 2026-06-30
+  [\#1197](https://github.com/abhimehro/email-security-pipeline/issues/1197)
+- Daily QA & Agentic Review - 2026-06-29
+  [\#1169](https://github.com/abhimehro/email-security-pipeline/issues/1169)
+- Daily QA & Agentic Review - 2026-06-28
+  [\#1165](https://github.com/abhimehro/email-security-pipeline/issues/1165)
+- Daily QA & Agentic Review - 2026-06-27
+  [\#1162](https://github.com/abhimehro/email-security-pipeline/issues/1162)
+- Daily QA & Agentic Review - 2026-06-26
+  [\#1159](https://github.com/abhimehro/email-security-pipeline/issues/1159)
+- Daily QA & Agentic Review - 2026-06-25
+  [\#1155](https://github.com/abhimehro/email-security-pipeline/issues/1155)
+- Daily QA & Agentic Review — 2026-06-24
+  [\#1150](https://github.com/abhimehro/email-security-pipeline/issues/1150)
+- Daily QA & Agentic Review — 2026-06-23
+  [\#1145](https://github.com/abhimehro/email-security-pipeline/issues/1145)
+- Daily QA & Agentic Review — 2026-06-22
+  [\#1141](https://github.com/abhimehro/email-security-pipeline/issues/1141)
+- Daily QA & Agentic Review — 2026-06-21
+  [\#1139](https://github.com/abhimehro/email-security-pipeline/issues/1139)
+- Daily QA & Agentic Review — 2026-06-20
+  [\#1137](https://github.com/abhimehro/email-security-pipeline/issues/1137)
+- Daily QA & Agentic Review — 2026-06-19
+  [\#1126](https://github.com/abhimehro/email-security-pipeline/issues/1126)
+- Daily QA & Agentic Review — 2026-06-18
+  [\#1124](https://github.com/abhimehro/email-security-pipeline/issues/1124)
+- Daily QA & Agentic Review — 2026-06-17
+  [\#1121](https://github.com/abhimehro/email-security-pipeline/issues/1121)
+- Daily QA & Agentic Review — 2026-06-16
+  [\#1119](https://github.com/abhimehro/email-security-pipeline/issues/1119)
+- Daily QA & Agentic Review — 2026-06-15
+  [\#1116](https://github.com/abhimehro/email-security-pipeline/issues/1116)
+- Daily QA & Agentic Review — 2026-06-14
+  [\#1113](https://github.com/abhimehro/email-security-pipeline/issues/1113)
+- Daily QA & Agentic Review — 2026-06-13
+  [\#1110](https://github.com/abhimehro/email-security-pipeline/issues/1110)
+- Daily QA & Agentic Review — 2026-06-12
+  [\#1089](https://github.com/abhimehro/email-security-pipeline/issues/1089)
+- \[repo-automation\] Daily Status Report - 2026-06-12
+  [\#1086](https://github.com/abhimehro/email-security-pipeline/issues/1086)
+- Daily QA Check - email-security-pipeline - 2026-06-11
+  [\#1083](https://github.com/abhimehro/email-security-pipeline/issues/1083)
+- \[repo-automation\] Daily Status Report - 2026-06-11
+  [\#1080](https://github.com/abhimehro/email-security-pipeline/issues/1080)
+- Daily QA & Agentic Review — 2026-06-11
+  [\#1069](https://github.com/abhimehro/email-security-pipeline/issues/1069)
+- \[repo-automation\] Daily Status Report - 2026-06-10
+  [\#1067](https://github.com/abhimehro/email-security-pipeline/issues/1067)
+- Daily QA Check - email-security-pipeline - 2026-06-10
+  [\#1063](https://github.com/abhimehro/email-security-pipeline/issues/1063)
+- \[repo-automation\] Daily Status Report - 2026-06-09
+  [\#1061](https://github.com/abhimehro/email-security-pipeline/issues/1061)
+- Jules Daily QA & Agentic Review - Completed
+  [\#1059](https://github.com/abhimehro/email-security-pipeline/issues/1059)
+- Daily QA Check - email-security-pipeline - 2026-06-09
+  [\#1057](https://github.com/abhimehro/email-security-pipeline/issues/1057)
+- \[repo-automation\] Daily Status Report - 2026-06-08
+  [\#1055](https://github.com/abhimehro/email-security-pipeline/issues/1055)
+- Daily QA Check - email-security-pipeline - 2026-06-08
+  [\#1051](https://github.com/abhimehro/email-security-pipeline/issues/1051)
+- \[repo-automation\] Weekly Retrospective - 2026-06-07
+  [\#1048](https://github.com/abhimehro/email-security-pipeline/issues/1048)
+- \[repo-automation\] Daily Status Report - 2026-06-07
+  [\#1047](https://github.com/abhimehro/email-security-pipeline/issues/1047)
+- Jules Daily QA & Agentic Review - Spotless Health
+  [\#1044](https://github.com/abhimehro/email-security-pipeline/issues/1044)
+- Daily QA Check - email-security-pipeline - 2026-06-07
+  [\#1043](https://github.com/abhimehro/email-security-pipeline/issues/1043)
+- \[repo-automation\] Daily Status Report - 2026-06-06
+  [\#1040](https://github.com/abhimehro/email-security-pipeline/issues/1040)
+- Daily QA Check - email-security-pipeline - 2026-06-06
+  [\#1038](https://github.com/abhimehro/email-security-pipeline/issues/1038)
+- \[repo-automation\] Daily Status Report - 2026-06-05
+  [\#1035](https://github.com/abhimehro/email-security-pipeline/issues/1035)
+- Daily QA Check - 2026-06-05
+  [\#1033](https://github.com/abhimehro/email-security-pipeline/issues/1033)
+- \[repo-automation\] Daily Status Report - 2026-06-04
+  [\#1032](https://github.com/abhimehro/email-security-pipeline/issues/1032)
+- \[repo-automation\] Daily Status Report - 2026-06-03
+  [\#1029](https://github.com/abhimehro/email-security-pipeline/issues/1029)
+- Daily QA Check - 2026-06-03
+  [\#1027](https://github.com/abhimehro/email-security-pipeline/issues/1027)
+- \[repo-automation\] Daily Status Report - 2026-06-02
+  [\#1015](https://github.com/abhimehro/email-security-pipeline/issues/1015)
+- Daily QA Check - email-security-pipeline - 2026-06-02
+  [\#1012](https://github.com/abhimehro/email-security-pipeline/issues/1012)
+- \[repo-automation\] Daily Status Report - 2026-06-01
+  [\#1007](https://github.com/abhimehro/email-security-pipeline/issues/1007)
+- Daily QA & Agentic Review — 2026-06-01
+  [\#971](https://github.com/abhimehro/email-security-pipeline/issues/971)
+- \[repo-automation\] Weekly Retrospective - 2026-05-31
+  [\#969](https://github.com/abhimehro/email-security-pipeline/issues/969)
+- \[repo-automation\] Daily Status Report - 2026-05-31
+  [\#967](https://github.com/abhimehro/email-security-pipeline/issues/967)
+- Daily QA & Agentic Review — 2026-05-31
+  [\#965](https://github.com/abhimehro/email-security-pipeline/issues/965)
+- \[repo-automation\] Daily Status Report - 2026-05-30
+  [\#964](https://github.com/abhimehro/email-security-pipeline/issues/964)
+- Daily QA & Agentic Review — 2026-05-30
+  [\#959](https://github.com/abhimehro/email-security-pipeline/issues/959)
+- Daily QA & Agentic Review — 2026-05-29
+  [\#955](https://github.com/abhimehro/email-security-pipeline/issues/955)
+- \[repo-automation\] Daily Status Report - 2026-05-28
+  [\#954](https://github.com/abhimehro/email-security-pipeline/issues/954)
+- Daily QA & Agentic Review — 2026-05-28
+  [\#951](https://github.com/abhimehro/email-security-pipeline/issues/951)
+- \[repo-automation\] Daily Status Report - 2026-05-27
+  [\#946](https://github.com/abhimehro/email-security-pipeline/issues/946)
+- Daily QA & Agentic Review — 2026-05-27
+  [\#941](https://github.com/abhimehro/email-security-pipeline/issues/941)
+- \[repo-automation\] Daily Status Report - 2026-05-26
+  [\#938](https://github.com/abhimehro/email-security-pipeline/issues/938)
+- Daily QA Check - email-security-pipeline - 2026-05-26
+  [\#934](https://github.com/abhimehro/email-security-pipeline/issues/934)
+- \[repo-automation\] Daily Status Report - 2026-05-25
+  [\#928](https://github.com/abhimehro/email-security-pipeline/issues/928)
+- Daily QA Check - email-security-pipeline - 2026-05-25
+  [\#924](https://github.com/abhimehro/email-security-pipeline/issues/924)
+- \[repo-automation\] Weekly Retrospective - 2026-05-24
+  [\#903](https://github.com/abhimehro/email-security-pipeline/issues/903)
+- \[repo-automation\] Daily Status Report - 2026-05-24
+  [\#902](https://github.com/abhimehro/email-security-pipeline/issues/902)
+- Daily QA Check - email-security-pipeline - 2026-05-24
+  [\#899](https://github.com/abhimehro/email-security-pipeline/issues/899)
+- \[repo-automation\] Daily Status Report - 2026-05-23
+  [\#898](https://github.com/abhimehro/email-security-pipeline/issues/898)
+- Daily QA Check - email-security-pipeline - 2026-05-23
+  [\#895](https://github.com/abhimehro/email-security-pipeline/issues/895)
+- \[repo-automation\] Daily Status Report - 2026-05-22
+  [\#893](https://github.com/abhimehro/email-security-pipeline/issues/893)
+- \[Jules Daily QA\] Repository is fully healthy
+  [\#892](https://github.com/abhimehro/email-security-pipeline/issues/892)
+- Daily QA Check - email-security-pipeline - 2026-05-22
+  [\#891](https://github.com/abhimehro/email-security-pipeline/issues/891)
+- \[repo-automation\] Daily Status Report - 2026-05-21
+  [\#888](https://github.com/abhimehro/email-security-pipeline/issues/888)
+- Daily QA Check - email-security-pipeline - 2026-05-21
+  [\#884](https://github.com/abhimehro/email-security-pipeline/issues/884)
+- \[repo-automation\] Daily Status Report - 2026-05-20
+  [\#879](https://github.com/abhimehro/email-security-pipeline/issues/879)
+- \[repo-automation\] Daily Status Report - 2026-05-19
+  [\#873](https://github.com/abhimehro/email-security-pipeline/issues/873)
+- \[repo-automation\] Daily Status Report - 2026-05-18
+  [\#864](https://github.com/abhimehro/email-security-pipeline/issues/864)
+- \[repo-automation\] Weekly Retrospective - 2026-05-17
+  [\#858](https://github.com/abhimehro/email-security-pipeline/issues/858)
+- \[repo-automation\] Daily Status Report - 2026-05-17
+  [\#857](https://github.com/abhimehro/email-security-pipeline/issues/857)
+- \[repo-automation\] Daily Status Report - 2026-05-16
+  [\#853](https://github.com/abhimehro/email-security-pipeline/issues/853)
+- Jules Daily QA & Agentic Review - 2026-04-16
+  [\#852](https://github.com/abhimehro/email-security-pipeline/issues/852)
+- \[repo-automation\] Daily Status Report - 2026-05-15
+  [\#851](https://github.com/abhimehro/email-security-pipeline/issues/851)
+- \[repo-automation\] Daily Status Report - 2026-05-14
+  [\#821](https://github.com/abhimehro/email-security-pipeline/issues/821)
+- \[repo-automation\] Daily Status Report - 2026-05-13
+  [\#813](https://github.com/abhimehro/email-security-pipeline/issues/813)
+- Jules Daily QA & Agentic Review - All Checks Passed
+  [\#812](https://github.com/abhimehro/email-security-pipeline/issues/812)
+- Jules Daily QA & Agentic Review - Email Security Pipeline
+  [\#810](https://github.com/abhimehro/email-security-pipeline/issues/810)
+- \[repo-automation\] Daily Status Report - 2026-05-12
+  [\#808](https://github.com/abhimehro/email-security-pipeline/issues/808)
+- \[repo-automation\] Daily Status Report - 2026-05-11
+  [\#804](https://github.com/abhimehro/email-security-pipeline/issues/804)
+- \[repo-automation\] Weekly Retrospective - 2026-05-10
+  [\#803](https://github.com/abhimehro/email-security-pipeline/issues/803)
+- \[repo-automation\] Daily Status Report - 2026-05-10
+  [\#802](https://github.com/abhimehro/email-security-pipeline/issues/802)
+- Jules Daily QA & Agentic Review
+  [\#801](https://github.com/abhimehro/email-security-pipeline/issues/801)
+- \[repo-automation\] Daily Status Report - 2026-05-09
+  [\#798](https://github.com/abhimehro/email-security-pipeline/issues/798)
+- Jules Daily QA & Agentic Review - Healthy
+  [\#797](https://github.com/abhimehro/email-security-pipeline/issues/797)
+- \[repo-automation\] Daily Status Report - 2026-05-08
+  [\#794](https://github.com/abhimehro/email-security-pipeline/issues/794)
+- \[repo-automation\] Daily Status Report - 2026-05-07
+  [\#789](https://github.com/abhimehro/email-security-pipeline/issues/789)
+- Jules Daily QA & Agentic Review - Healthy
+  [\#787](https://github.com/abhimehro/email-security-pipeline/issues/787)
+- \[repo-automation\] Daily Status Report - 2026-05-06
+  [\#783](https://github.com/abhimehro/email-security-pipeline/issues/783)
+- Jules Daily QA & Agentic Review
+  [\#781](https://github.com/abhimehro/email-security-pipeline/issues/781)
+- Jules Daily QA & Agentic Review - 2026-04-17
+  [\#775](https://github.com/abhimehro/email-security-pipeline/issues/775)
+- \[repo-automation\] Daily Status Report - 2026-05-04
+  [\#772](https://github.com/abhimehro/email-security-pipeline/issues/772)
+- Jules Daily QA & Agentic Review - All Checks Passed
+  [\#771](https://github.com/abhimehro/email-security-pipeline/issues/771)
+- \[repo-automation\] Weekly Retrospective - 2026-05-03
+  [\#767](https://github.com/abhimehro/email-security-pipeline/issues/767)
+- \[repo-automation\] Daily Status Report - 2026-05-03
+  [\#766](https://github.com/abhimehro/email-security-pipeline/issues/766)
+- Jules Daily QA & Agentic Review - All Clear
+  [\#765](https://github.com/abhimehro/email-security-pipeline/issues/765)
+- \[repo-automation\] Daily Status Report - 2026-05-02
+  [\#756](https://github.com/abhimehro/email-security-pipeline/issues/756)
+- Jules Daily QA & Agentic Review
+  [\#754](https://github.com/abhimehro/email-security-pipeline/issues/754)
+- \[repo-automation\] Daily Status Report - 2026-05-01
+  [\#750](https://github.com/abhimehro/email-security-pipeline/issues/750)
+- \[repo-automation\] Daily Status Report - 2026-04-30
+  [\#745](https://github.com/abhimehro/email-security-pipeline/issues/745)
+- Jules Daily QA & Agentic Review - Test Fix
+  [\#741](https://github.com/abhimehro/email-security-pipeline/issues/741)
+- \[repo-automation\] Daily Status Report - 2026-04-28
+  [\#739](https://github.com/abhimehro/email-security-pipeline/issues/739)
+- Jules Daily QA & Agentic Review - Fixed test\_setup\_wizard
+  [\#737](https://github.com/abhimehro/email-security-pipeline/issues/737)
+- \[repo-automation\] Daily Status Report - 2026-04-27
+  [\#735](https://github.com/abhimehro/email-security-pipeline/issues/735)
+- Jules Daily QA & Agentic Review - Automated Run
+  [\#734](https://github.com/abhimehro/email-security-pipeline/issues/734)
+- \[repo-automation\] Weekly Retrospective - 2026-04-26
+  [\#730](https://github.com/abhimehro/email-security-pipeline/issues/730)
+- \[repo-automation\] Daily Status Report - 2026-04-26
+  [\#729](https://github.com/abhimehro/email-security-pipeline/issues/729)
+- Jules Daily QA & Agentic Review - Formatting Fixes
+  [\#726](https://github.com/abhimehro/email-security-pipeline/issues/726)
+- \[repo-automation\] Daily Status Report - 2026-04-25
+  [\#722](https://github.com/abhimehro/email-security-pipeline/issues/722)
+- \[repo-automation\] Daily Status Report - 2026-04-24
+  [\#716](https://github.com/abhimehro/email-security-pipeline/issues/716)
+- \[repo-automation\] Daily Status Report - 2026-04-23
+  [\#714](https://github.com/abhimehro/email-security-pipeline/issues/714)
+- \[repo-automation\] Daily Status Report - 2026-04-22
+  [\#711](https://github.com/abhimehro/email-security-pipeline/issues/711)
+- \[repo-automation\] Daily Status Report - 2026-04-21
+  [\#706](https://github.com/abhimehro/email-security-pipeline/issues/706)
+- \[repo-automation\] Daily Status Report - 2026-04-20
+  [\#702](https://github.com/abhimehro/email-security-pipeline/issues/702)
+- Jules Daily QA & Agentic Review - 2025-03-09
+  [\#700](https://github.com/abhimehro/email-security-pipeline/issues/700)
+- Jules Daily QA & Agentic Review - 2025-03-09
+  [\#699](https://github.com/abhimehro/email-security-pipeline/issues/699)
+- \[repo-automation\] Weekly Retrospective - 2026-04-19
+  [\#697](https://github.com/abhimehro/email-security-pipeline/issues/697)
+- \[repo-automation\] Daily Status Report - 2026-04-19
+  [\#696](https://github.com/abhimehro/email-security-pipeline/issues/696)
+- Jules Daily QA & Agentic Review
+  [\#694](https://github.com/abhimehro/email-security-pipeline/issues/694)
+- \[repo-automation\] Daily Status Report - 2026-04-18
+  [\#691](https://github.com/abhimehro/email-security-pipeline/issues/691)
+- Jules Daily QA & Agentic Review - 2025-04-18
+  [\#689](https://github.com/abhimehro/email-security-pipeline/issues/689)
+- \[repo-automation\] Daily Status Report - 2026-04-17
+  [\#686](https://github.com/abhimehro/email-security-pipeline/issues/686)
+- Daily QA Review - Repository fully healthy
+  [\#685](https://github.com/abhimehro/email-security-pipeline/issues/685)
+- \[repo-automation\] Daily Status Report - 2026-04-16
+  [\#683](https://github.com/abhimehro/email-security-pipeline/issues/683)
+- Jules Daily QA & Agentic Review - All Checks Passed
+  [\#682](https://github.com/abhimehro/email-security-pipeline/issues/682)
+- \[repo-automation\] Daily Status Report - 2026-04-15
+  [\#681](https://github.com/abhimehro/email-security-pipeline/issues/681)
+- Jules Daily QA & Agentic Review
+  [\#680](https://github.com/abhimehro/email-security-pipeline/issues/680)
+- \[repo-automation\] Daily Status Report - 2026-04-14
+  [\#677](https://github.com/abhimehro/email-security-pipeline/issues/677)
+- Jules Daily QA & Agentic Review - 2026-04-12
+  [\#676](https://github.com/abhimehro/email-security-pipeline/issues/676)
+- \[repo-automation\] Daily Status Report - 2026-04-13
+  [\#672](https://github.com/abhimehro/email-security-pipeline/issues/672)
+- \[repo-automation\] Weekly Retrospective - 2026-04-12
+  [\#670](https://github.com/abhimehro/email-security-pipeline/issues/670)
+- \[repo-automation\] Daily Status Report - 2026-04-12
+  [\#669](https://github.com/abhimehro/email-security-pipeline/issues/669)
+- Jules Daily QA & Agentic Review - All Clear
+  [\#667](https://github.com/abhimehro/email-security-pipeline/issues/667)
+- \[repo-automation\] Daily Status Report - 2026-04-11
+  [\#665](https://github.com/abhimehro/email-security-pipeline/issues/665)
+- Jules Daily QA & Agentic Review: No Issues Found
+  [\#663](https://github.com/abhimehro/email-security-pipeline/issues/663)
+- \[repo-automation\] Daily Status Report - 2026-04-10
+  [\#661](https://github.com/abhimehro/email-security-pipeline/issues/661)
+- \[repo-automation\] Daily Status Report - 2026-04-09
+  [\#655](https://github.com/abhimehro/email-security-pipeline/issues/655)
+- chore: daily qa check completed
+  [\#654](https://github.com/abhimehro/email-security-pipeline/issues/654)
+- \[repo-automation\] Daily Status Report - 2026-04-08
+  [\#653](https://github.com/abhimehro/email-security-pipeline/issues/653)
+- \[repo-automation\] Daily Status Report - 2026-04-07
+  [\#649](https://github.com/abhimehro/email-security-pipeline/issues/649)
+- \[repo-automation\] Daily Status Report - 2026-04-06
+  [\#645](https://github.com/abhimehro/email-security-pipeline/issues/645)
+- \[repo-automation\] Weekly Retrospective - 2026-04-05
+  [\#638](https://github.com/abhimehro/email-security-pipeline/issues/638)
+- \[repo-automation\] Daily Status Report - 2026-04-05
+  [\#637](https://github.com/abhimehro/email-security-pipeline/issues/637)
+- \[repo-automation\] Daily Status Report - 2026-04-04
+  [\#633](https://github.com/abhimehro/email-security-pipeline/issues/633)
+- \[repo-automation\] Daily Status Report - 2026-04-03
+  [\#627](https://github.com/abhimehro/email-security-pipeline/issues/627)
+- \[repo-automation\] Daily Status Report - 2026-04-02
+  [\#622](https://github.com/abhimehro/email-security-pipeline/issues/622)
+- \[repo-automation\] Daily Status Report - 2026-04-01
+  [\#619](https://github.com/abhimehro/email-security-pipeline/issues/619)
+- \[repo-automation\] Daily Status Report - 2026-03-31
+  [\#615](https://github.com/abhimehro/email-security-pipeline/issues/615)
+- \[repo-automation\] Daily Status Report - 2026-03-30
+  [\#613](https://github.com/abhimehro/email-security-pipeline/issues/613)
+- \[repo-automation\] Weekly Retrospective - 2026-03-29
+  [\#609](https://github.com/abhimehro/email-security-pipeline/issues/609)
+- \[repo-automation\] Daily Status Report - 2026-03-29
+  [\#608](https://github.com/abhimehro/email-security-pipeline/issues/608)
+- \[repo-automation\] Daily Status Report - 2026-03-28
+  [\#605](https://github.com/abhimehro/email-security-pipeline/issues/605)
+- Daily QA Check - 2026-03-28
+  [\#603](https://github.com/abhimehro/email-security-pipeline/issues/603)
+- \[repo-automation\] Daily Status Report - 2026-03-27
+  [\#601](https://github.com/abhimehro/email-security-pipeline/issues/601)
+- Daily QA Check - 2026-03-27
+  [\#598](https://github.com/abhimehro/email-security-pipeline/issues/598)
+- \[repo-automation\] Daily Status Report - 2026-03-26
+  [\#595](https://github.com/abhimehro/email-security-pipeline/issues/595)
+- Daily QA Check - 2026-03-26
+  [\#591](https://github.com/abhimehro/email-security-pipeline/issues/591)
+- \[repo-automation\] Daily Status Report - 2026-03-25
+  [\#589](https://github.com/abhimehro/email-security-pipeline/issues/589)
+- Daily QA Check - 2026-03-25
+  [\#586](https://github.com/abhimehro/email-security-pipeline/issues/586)
+- \[repo-automation\] Daily Status Report - 2026-03-24
+  [\#583](https://github.com/abhimehro/email-security-pipeline/issues/583)
+- Daily QA Check - 2026-03-24
+  [\#577](https://github.com/abhimehro/email-security-pipeline/issues/577)
+- \[repo-automation\] Daily Status Report - 2026-03-23
+  [\#574](https://github.com/abhimehro/email-security-pipeline/issues/574)
+- Daily QA Check - 2026-03-23
+  [\#572](https://github.com/abhimehro/email-security-pipeline/issues/572)
+- \[repo-automation\] Weekly Retrospective - 2026-03-22
+  [\#569](https://github.com/abhimehro/email-security-pipeline/issues/569)
+- \[repo-automation\] Daily Status Report - 2026-03-22
+  [\#568](https://github.com/abhimehro/email-security-pipeline/issues/568)
+- \[repo-automation\] Daily Status Report - 2026-03-21
+  [\#562](https://github.com/abhimehro/email-security-pipeline/issues/562)
+- \[repo-status\] Daily Status Report — March 7, 2026
+  [\#537](https://github.com/abhimehro/email-security-pipeline/issues/537)
+- \[Code Quality\] Add direct unit tests for EmailParser.\_append\_body\_part
+  and \_add\_body\_content size-limiting logic
+  [\#534](https://github.com/abhimehro/email-security-pipeline/issues/534)
+- \[Code Quality\] Add direct unit tests for
+  MediaAnalyzer.\_inspect\_archive\_member scoring branches
+  [\#533](https://github.com/abhimehro/email-security-pipeline/issues/533)
+- \[Code Quality\] Add direct unit tests for
+  MediaAnalyzer.\_check\_size\_anomaly\(\) size threshold scoring
+  [\#532](https://github.com/abhimehro/email-security-pipeline/issues/532)
+- \[Code Quality\] Add direct unit tests for
+  MediaAnalyzer.\_validate\_signature\_match\(\) and
+  \_validate\_missing\_signature\(\)
+  [\#531](https://github.com/abhimehro/email-security-pipeline/issues/531)
+- \[Code Quality\] Add direct unit tests for
+  IMAPConnection.\_parse\_email\_payload\(\) IMAP response parsing
+  [\#528](https://github.com/abhimehro/email-security-pipeline/issues/528)
+- \[Code Quality\] Add direct unit tests for
+  EmailParser.\_append\_body\_part\(\) body-size DoS protection
+  [\#527](https://github.com/abhimehro/email-security-pipeline/issues/527)
+- \[Code Quality\] Add direct unit tests for \_apply\_ssl\_overrides\(\) SSL
+  bypass function
+  [\#526](https://github.com/abhimehro/email-security-pipeline/issues/526)
+- \[Code Quality\] Add unit tests to verify create\_secure\_ssl\_context\(\)
+  enforces TLS 1.2+, hostname checking, and cert verification
+  [\#525](https://github.com/abhimehro/email-security-pipeline/issues/525)
+- \[Code Quality\] Add unit tests for SpamAnalyzer.\_analyze\_headers\(\) DKIM,
+  SPF softfail, and Return-Path coverage gaps
+  [\#524](https://github.com/abhimehro/email-security-pipeline/issues/524)
+- \[Code Quality\] Add direct unit tests for TTLCache constructor validation and
+  API methods
+  [\#523](https://github.com/abhimehro/email-security-pipeline/issues/523)
+- \[Code Quality\] Add unit tests for MediaAnalyzer.\_check\_file\_extension
+  scoring contracts
+  [\#522](https://github.com/abhimehro/email-security-pipeline/issues/522)
+- \[Code Quality\] Add direct unit tests for SpamAnalyzer.\_analyze\_body,
+  \_analyze\_headers, and \_check\_sender
+  [\#521](https://github.com/abhimehro/email-security-pipeline/issues/521)
+- \[Code Quality\] Add unit tests for NLPThreatAnalyzer.\_detect\_urgency and
+  \_detect\_psychological\_triggers
+  [\#520](https://github.com/abhimehro/email-security-pipeline/issues/520)
+- \[repo-status\] Daily Status Report — March 6, 2026
+  [\#516](https://github.com/abhimehro/email-security-pipeline/issues/516)
+- \[Code Quality\] Add direct unit tests for security\_validators DoS-prevention
+  functions
+  [\#513](https://github.com/abhimehro/email-security-pipeline/issues/513)
+- \[Code Quality\] Add unit tests for CountdownTimer \(start, stop, wait\) in
+  test\_ui\_countdown.py
+  [\#512](https://github.com/abhimehro/email-security-pipeline/issues/512)
+- \[Code Quality\] Add unit tests for NLPThreatAnalyzer.\_detect\_urgency and
+  \_detect\_psychological\_triggers
+  [\#511](https://github.com/abhimehro/email-security-pipeline/issues/511)
+- \[Code Quality\] Add dedicated unit tests for TTLCache init validation,
+  \_\_contains\_\_ expiry, and keys\(\) filtering
+  [\#509](https://github.com/abhimehro/email-security-pipeline/issues/509)
+- \[Code Quality\] Add direct unit tests for SpamAnalyzer.\_analyze\_headers
+  DKIM, SPF auth-results, and Return-Path mismatch
+  [\#508](https://github.com/abhimehro/email-security-pipeline/issues/508)
+- \[Code Quality\] Add direct unit tests for SpamAnalyzer.\_analyze\_body
+  image-only and hidden text detection
+  [\#507](https://github.com/abhimehro/email-security-pipeline/issues/507)
+- \[Code Quality\] Add unit tests for CountdownTimer non-TTY path, stop\(\), and
+  wait\(\) hint injection
+  [\#504](https://github.com/abhimehro/email-security-pipeline/issues/504)
+- \[Code Quality\] Add direct unit tests for security boundary functions in
+  security\_validators.py
+  [\#503](https://github.com/abhimehro/email-security-pipeline/issues/503)
+- \[Code Quality\] Add unit tests for \_apply\_ssl\_overrides verify\_ssl=False
+  code path
+  [\#502](https://github.com/abhimehro/email-security-pipeline/issues/502)
+- \[Code Quality\] Remove development artifact files from repository root
+  [\#501](https://github.com/abhimehro/email-security-pipeline/issues/501)
+- \[Code Quality\] Add unit tests for MediaAnalyzer.\_inspect\_archive\_member
+  dangerous extension early-exit gate
+  [\#500](https://github.com/abhimehro/email-security-pipeline/issues/500)
+- \[Code Quality\] Add unit tests for MediaAnalyzer signature validation score
+  thresholds
+  [\#499](https://github.com/abhimehro/email-security-pipeline/issues/499)
+- \[repo-status\] Daily Status Report — March 5, 2026
+  [\#494](https://github.com/abhimehro/email-security-pipeline/issues/494)
+- \[Code Quality\] Implement \_should\_use\_ml\_model\(\) to respect config
+  \(currently hardcoded True\)
+  [\#492](https://github.com/abhimehro/email-security-pipeline/issues/492)
+- \[Code Quality\] Add unit tests for
+  NLPThreatAnalyzer.\_scan\_text\_patterns\(\)
+  [\#491](https://github.com/abhimehro/email-security-pipeline/issues/491)
+- \[Code Quality\] Add unit tests for AlertSystem.\_on\_enqueue\_done callback
+  branches
+  [\#488](https://github.com/abhimehro/email-security-pipeline/issues/488)
+- \[Code Quality\] Add unit tests for CountdownTimer in src/utils/ui.py
+  [\#483](https://github.com/abhimehro/email-security-pipeline/issues/483)
+- \[repo-status\] Daily Status Report — March 4, 2026 🛡️⚡
+  [\#482](https://github.com/abhimehro/email-security-pipeline/issues/482)
+- fix: convert SPAM\_KEYWORDS capturing groups to non-capturing \(closes \#477\)
+  [\#480](https://github.com/abhimehro/email-security-pipeline/issues/480)
+- \[Code Quality\] Convert SPAM\_KEYWORDS capturing groups to non-capturing to
+  fix findall\(\) tuple allocation
+  [\#477](https://github.com/abhimehro/email-security-pipeline/issues/477)
+- \[Code Quality\] Add direct unit tests for EmailParser.\_format\_addresses
+  address parsing edge cases
+  [\#476](https://github.com/abhimehro/email-security-pipeline/issues/476)
+- \[Code Quality\] Add direct unit tests for
+  AlertSystem.\_generate\_recommendations branch logic
+  [\#475](https://github.com/abhimehro/email-security-pipeline/issues/475)
+- \[Code Quality\] Add direct unit tests for
+  NLPThreatAnalyzer.\_run\_transformer\_analysis scoring logic
+  [\#472](https://github.com/abhimehro/email-security-pipeline/issues/472)
+- \[Code Quality\] Add direct unit tests for
+  NLPThreatAnalyzer.\_scan\_text\_patterns category aggregation
+  [\#471](https://github.com/abhimehro/email-security-pipeline/issues/471)
+- \[Code Quality\] Add direct unit tests for SpamAnalyzer.\_analyze\_body
+  hidden-text and image-heavy detection
+  [\#470](https://github.com/abhimehro/email-security-pipeline/issues/470)
+- \[Code Quality\] Add direct unit tests for SpamAnalyzer.\_analyze\_headers
+  SPF/DKIM detection
+  [\#469](https://github.com/abhimehro/email-security-pipeline/issues/469)
+- \[repo-status\] Daily Repo Status — 2026-03-03
+  [\#465](https://github.com/abhimehro/email-security-pipeline/issues/465)
+- \[Code Quality\] Add unit tests for SpamAnalyzer.\_analyze\_subject and
+  \_calculate\_risk\_level
+  [\#463](https://github.com/abhimehro/email-security-pipeline/issues/463)
+- \[Code Quality\] Add unit tests for NLPThreatAnalyzer social engineering and
+  authority impersonation detection
+  [\#462](https://github.com/abhimehro/email-security-pipeline/issues/462)
+- \[Code Quality\] Add unit tests for IMAPClient.\_parse\_email\_payload,
+  \_fetch\_batch, and \_get\_auth\_tip
+  [\#461](https://github.com/abhimehro/email-security-pipeline/issues/461)
+- \[Code Quality\] Add direct unit tests for EmailIngestionManager multi-account
+  orchestration
+  [\#458](https://github.com/abhimehro/email-security-pipeline/issues/458)
+- \[Code Quality\] Add direct unit tests for SpamAnalyzer.\_check\_sender\(\)
+  corporate spoofing detection
+  [\#457](https://github.com/abhimehro/email-security-pipeline/issues/457)
+- \[Code Quality\] Discussion Task Miner - Code Quality Improvement Agent -
+  Issue Group
+  [\#456](https://github.com/abhimehro/email-security-pipeline/issues/456)
+- \[Code Quality\] Add direct unit tests for NLPThreatAnalyzer urgency and
+  psychological trigger detection
+  [\#455](https://github.com/abhimehro/email-security-pipeline/issues/455)
+- \[Code Quality\] Add unit tests for CountdownTimer in src/utils/ui.py
+  [\#454](https://github.com/abhimehro/email-security-pipeline/issues/454)
+- \[Code Quality\] Add direct unit tests for TTLCache in src/utils/caching.py
+  [\#453](https://github.com/abhimehro/email-security-pipeline/issues/453)
+- \[Code Quality\] Add unit tests for AppRunner.print\_banner\(\) and
+  AppRunner.run\(\) in src/app\_runner.py
+  [\#451](https://github.com/abhimehro/email-security-pipeline/issues/451)
+- \[Code Quality\] Add direct unit tests for Config static utility methods in
+  src/utils/config.py
+  [\#450](https://github.com/abhimehro/email-security-pipeline/issues/450)
+- \[Code Quality\] Add direct unit tests for TTLCache in src/utils/caching.py
+  [\#449](https://github.com/abhimehro/email-security-pipeline/issues/449)
+- \[repo-status\] Daily Repo Status — 2026-03-02
+  [\#448](https://github.com/abhimehro/email-security-pipeline/issues/448)
+- Daily QA— 2026-03-02
+  [\#445](https://github.com/abhimehro/email-security-pipeline/issues/445)
+- \[Code Quality\] Add unit tests for AlertSystem console rendering helpers
+  [\#444](https://github.com/abhimehro/email-security-pipeline/issues/444)
+- \[Code Quality\] Add unit tests for ColoredFormatter in
+  src/utils/logging\_utils.py
+  [\#443](https://github.com/abhimehro/email-security-pipeline/issues/443)
+- \[Code Quality\] Add unit tests for CountdownTimer in src/utils/ui.py
+  [\#442](https://github.com/abhimehro/email-security-pipeline/issues/442)
+- \[Code Quality\] Add unit tests for security boundary utility functions in
+  security\_validators.py
+  [\#441](https://github.com/abhimehro/email-security-pipeline/issues/441)
+- \[Code Quality\] Add tests for ConnectionDiagnostic.\_check\_credentials and
+  diagnose\_connection\_issues\(\)
+  [\#438](https://github.com/abhimehro/email-security-pipeline/issues/438)
+- \[Code Quality\] Add unit tests for ColoredFormatter in
+  src/utils/logging\_utils.py
+  [\#437](https://github.com/abhimehro/email-security-pipeline/issues/437)
+- \[Code Quality\] Add direct unit tests for create\_secure\_ssl\_context\(\) in
+  security\_validators.py
+  [\#436](https://github.com/abhimehro/email-security-pipeline/issues/436)
+- \[Code Quality\] Move module-level \_generate\_recommendations into
+  AlertSystem class
+  [\#433](https://github.com/abhimehro/email-security-pipeline/issues/433)
+- \[Code Quality\] Add CountdownTimer unit tests to expand test\_ui\_spinner.py
+  [\#432](https://github.com/abhimehro/email-security-pipeline/issues/432)
+- \[Code Quality\] Add unit tests for ColoredFormatter in
+  src/utils/logging\_utils.py
+  [\#431](https://github.com/abhimehro/email-security-pipeline/issues/431)
+- \[Code Quality\] Add dedicated unit tests for
+  src/utils/security\_validators.py
+  [\#429](https://github.com/abhimehro/email-security-pipeline/issues/429)
+- \[Code Quality\] Remove backward-compatibility wrapper methods from
+  email\_ingestion.py
+  [\#428](https://github.com/abhimehro/email-security-pipeline/issues/428)
+- \[Code Quality\] Add unit tests for EmailSecurityPipeline.\_analyze\_email\(\)
+  in src/main.py
+  [\#427](https://github.com/abhimehro/email-security-pipeline/issues/427)
+- \[repo-status\] Daily Status Report — 2026-03-01 🚀
+  [\#426](https://github.com/abhimehro/email-security-pipeline/issues/426)
+- Daily QA— 2026-03-01
+  [\#425](https://github.com/abhimehro/email-security-pipeline/issues/425)
+- \[Code Quality\] Fix indirect EmailData imports — import from email\_data not
+  email\_ingestion
+  [\#423](https://github.com/abhimehro/email-security-pipeline/issues/423)
+- \[Code Quality\] Add unit tests for IMAPConnection and ConnectionDiagnostics
+  classes
+  [\#422](https://github.com/abhimehro/email-security-pipeline/issues/422)
+- \[Code Quality\] Add unit tests for TTLCache in src/utils/caching.py
+  [\#421](https://github.com/abhimehro/email-security-pipeline/issues/421)
+- \[aw\] No-Op Runs
+  [\#410](https://github.com/abhimehro/email-security-pipeline/issues/410)
+- \[Code Quality\] Replace bare exception handlers with specific logging in
+  email\_parser
+  [\#364](https://github.com/abhimehro/email-security-pipeline/issues/364)
+- \[repo-status\] Daily Status Report - February 19, 2026 🌟
+  [\#361](https://github.com/abhimehro/email-security-pipeline/issues/361)
+- Daily QAFebruary 19, 2026 - Documentation & Dependency Issues Found
+  [\#360](https://github.com/abhimehro/email-security-pipeline/issues/360)
+- \[Code Quality\] Add comprehensive test coverage for email\_parser,
+  email\_data, and imap\_connection modules
+  [\#359](https://github.com/abhimehro/email-security-pipeline/issues/359)
+- \[Code Quality\] Extract repeated threat scoring pattern into reusable
+  ThreatScorer utility
+  [\#357](https://github.com/abhimehro/email-security-pipeline/issues/357)
+- \[Code Quality\] Document deepfake analysis pipeline implementation details
+  [\#355](https://github.com/abhimehro/email-security-pipeline/issues/355)
+- \[Code Quality\] Extract duplicate risk level calculation logic into shared
+  utility
+  [\#352](https://github.com/abhimehro/email-security-pipeline/issues/352)
+- \[Code Quality\] Refactor duplicate body size tracking logic in email\_parser
+  [\#349](https://github.com/abhimehro/email-security-pipeline/issues/349)
+- \[Code Quality\] Add docstrings to complex private methods
+  [\#348](https://github.com/abhimehro/email-security-pipeline/issues/348)
+- \[Code Quality\] Extract duplicate nested archive detection logic in
+  media\_analyzer
+  [\#346](https://github.com/abhimehro/email-security-pipeline/issues/346)
+- \[Code Quality\] Replace overly broad exception handling with specific
+  exception types
+  [\#345](https://github.com/abhimehro/email-security-pipeline/issues/345)
+- Daily Perf ImproverResearch and Plan
+  [\#344](https://github.com/abhimehro/email-security-pipeline/issues/344)
+- \[Code Quality\] Add unit tests for Config and Metrics utilities
+  [\#343](https://github.com/abhimehro/email-security-pipeline/issues/343)
+- \[Code Quality\] Extract duplicate regex pattern compilation logic
+  [\#342](https://github.com/abhimehro/email-security-pipeline/issues/342)
+- \[Code Quality\] Refactor long methods in media\_analyzer.py
+  [\#340](https://github.com/abhimehro/email-security-pipeline/issues/340)
+- \[Code Quality\] Refactor alert formatting to reduce parameter passing
+  [\#338](https://github.com/abhimehro/email-security-pipeline/issues/338)
+- \[Code Quality\] Discussion Task Miner - Code Quality Improvement Agent -
+  Issue Group
+  [\#336](https://github.com/abhimehro/email-security-pipeline/issues/336)
+- \[Code Quality\] Extract duplicate error handling patterns into reusable
+  helper
+  [\#335](https://github.com/abhimehro/email-security-pipeline/issues/335)
+- \[Code Quality\] Create custom exception hierarchy for structured error
+  handling
+  [\#332](https://github.com/abhimehro/email-security-pipeline/issues/332)
+- \[Code Quality\] Update documentation to reflect PII protection and
+  performance optimizations
+  [\#331](https://github.com/abhimehro/email-security-pipeline/issues/331)
+- \[Code Quality\] Extract caching strategy into reusable utility for all
+  analyzers
+  [\#330](https://github.com/abhimehro/email-security-pipeline/issues/330)
+- \[repo-status\] Daily Repo Status - February 18, 2026 🌟
+  [\#329](https://github.com/abhimehro/email-security-pipeline/issues/329)
+- Daily QA2026-02-18: Critical Syntax Error Fixed
+  [\#328](https://github.com/abhimehro/email-security-pipeline/issues/328)
+- \[Code Quality\] Replace broad exception handling with specific exception
+  types [\#326](https://github.com/abhimehro/email-security-pipeline/issues/326)
+- \[Code Quality\] Add comprehensive unit tests for IMAPConnection and
+  EmailParser modules
+  [\#325](https://github.com/abhimehro/email-security-pipeline/issues/325)
+- \[Code Quality\] Refactor EmailParser.\_extract\_multipart\_content\(\) to
+  reduce complexity
+  [\#324](https://github.com/abhimehro/email-security-pipeline/issues/324)
+- \[Code Quality\] Enhance pytest workflow with test result annotations
+  [\#322](https://github.com/abhimehro/email-security-pipeline/issues/322)
+- \[Code Quality\] Create async IMAP proof-of-concept and migration guide
+  [\#321](https://github.com/abhimehro/email-security-pipeline/issues/321)
+- \[Code Quality\] Add pytest-cov for test coverage tracking and reporting
+  [\#320](https://github.com/abhimehro/email-security-pipeline/issues/320)
+- \[Code Quality\] Add mypy type checking to CI pipeline
+  [\#319](https://github.com/abhimehro/email-security-pipeline/issues/319)
+- \[Code Quality\] Configure Ruff linter for fast Python code quality checks
+  [\#318](https://github.com/abhimehro/email-security-pipeline/issues/318)
+- \[Code Quality\] Add pre-commit hooks for code quality enforcement
+  [\#315](https://github.com/abhimehro/email-security-pipeline/issues/315)
+- \[Code Quality\] Add type checking with mypy to enforce type safety
+  [\#314](https://github.com/abhimehro/email-security-pipeline/issues/314)
+- \[Code Quality\] Add comprehensive test coverage metrics and reporting
+  [\#311](https://github.com/abhimehro/email-security-pipeline/issues/311)
+- Daily Perf ImproverResearch and Plan
+  [\#310](https://github.com/abhimehro/email-security-pipeline/issues/310)
+- \[Code Quality\] Extract duplicate URL/text sanitization logic into shared
+  utility module
+  [\#309](https://github.com/abhimehro/email-security-pipeline/issues/309)
+- \[Code Quality\] Refactor complex email size checking method into smaller
+  focused functions
+  [\#308](https://github.com/abhimehro/email-security-pipeline/issues/308)
+- \[Code Quality\] Replace bare exception handlers with specific types in email
+  parser
+  [\#307](https://github.com/abhimehro/email-security-pipeline/issues/307)
+- \[Code Quality\] Implement lazy loading for NLP model to reduce startup time
+  and memory
+  [\#306](https://github.com/abhimehro/email-security-pipeline/issues/306)
+- \[Code Quality\] Discussion Task Miner - Code Quality Improvement Agent -
+  Issue Group
+  [\#304](https://github.com/abhimehro/email-security-pipeline/issues/304)
+- \[Code Quality\] Implement parallel email account processing to improve
+  performance
+  [\#303](https://github.com/abhimehro/email-security-pipeline/issues/303)
+- \[Code Quality\] Add integration tests for IMAP connection lifecycle with mock
+  server
+  [\#301](https://github.com/abhimehro/email-security-pipeline/issues/301)
+- \[Code Quality\] Add mypy static type checking to CI pipeline
+  [\#300](https://github.com/abhimehro/email-security-pipeline/issues/300)
+- \[Code Quality\] Add pytest-cov and enforce minimum 75% test coverage in CI
+  [\#299](https://github.com/abhimehro/email-security-pipeline/issues/299)
+- \[Code Quality\] Refactor broad exception handlers to use specific exception
+  types [\#298](https://github.com/abhimehro/email-security-pipeline/issues/298)
+- \[Code Quality\] Replace print\(\) statements with structured logging in alert
+  system
+  [\#297](https://github.com/abhimehro/email-security-pipeline/issues/297)
+- \[repo-status\] Daily Status Report - February 17, 2026 🚀
+  [\#296](https://github.com/abhimehro/email-security-pipeline/issues/296)
+- Daily QAFebruary 17, 2026 - Duplicate Dependencies Issue Found
+  [\#294](https://github.com/abhimehro/email-security-pipeline/issues/294)
+- \[Code Quality\] Create comprehensive input validation and sanitization module
+  [\#292](https://github.com/abhimehro/email-security-pipeline/issues/292)
+- \[Code Quality\] Refactor I/O operations to use async/await for performance
+  [\#291](https://github.com/abhimehro/email-security-pipeline/issues/291)
+- \[Code Quality\] Increase test coverage to \>80% with integration tests
+  [\#290](https://github.com/abhimehro/email-security-pipeline/issues/290)
+- \[Code Quality\] Add comprehensive type hints and mypy static analysis
+  [\#289](https://github.com/abhimehro/email-security-pipeline/issues/289)
+- \[Code Quality\] Add comprehensive API documentation with OpenAPI/Swagger
+  [\#288](https://github.com/abhimehro/email-security-pipeline/issues/288)
+- \[Code Quality\] Expand integration tests to cover end-to-end workflows
+  [\#280](https://github.com/abhimehro/email-security-pipeline/issues/280)
+- \[Code Quality\] Ensure ThreadPoolExecutor shutdown is called during pipeline
+  cleanup
+  [\#279](https://github.com/abhimehro/email-security-pipeline/issues/279)
+- \[Code Quality\] Refactor email processing to use async I/O for better
+  throughput
+  [\#278](https://github.com/abhimehro/email-security-pipeline/issues/278)
+- \[Code Quality\] Improve test coverage for core email parsing functionality
+  [\#274](https://github.com/abhimehro/email-security-pipeline/issues/274)
+- \[Code Quality\] Add API documentation and architecture diagrams
+  [\#273](https://github.com/abhimehro/email-security-pipeline/issues/273)
+- \[Code Quality\] Implement async/await for I/O operations to improve
+  performance
+  [\#272](https://github.com/abhimehro/email-security-pipeline/issues/272)
+- \[Code Quality\] Add comprehensive type hints to improve code maintainability
+  [\#270](https://github.com/abhimehro/email-security-pipeline/issues/270)
+- \[repo-status\] 🌟 Daily Repo Status: February 16, 2026
+  [\#269](https://github.com/abhimehro/email-security-pipeline/issues/269)
+- Daily QA2026-02-16: Repository Health Check
+  [\#268](https://github.com/abhimehro/email-security-pipeline/issues/268)
+- \[Code Quality\] Refactor file type validation into reusable FileTypeValidator
+  class [\#267](https://github.com/abhimehro/email-security-pipeline/issues/267)
+- \[Code Quality\] Add thread pool health monitoring to prevent resource
+  exhaustion
+  [\#266](https://github.com/abhimehro/email-security-pipeline/issues/266)
+- \[Code Quality\] Unify risk calculation logic across all analyzers
+  [\#265](https://github.com/abhimehro/email-security-pipeline/issues/265)
+- \[Code Quality\] Centralize exception handling with SafeParser base class
+  [\#264](https://github.com/abhimehro/email-security-pipeline/issues/264)
+- \[Code Quality\] Refactor complex deepfake detection method to reduce
+  cognitive complexity
+  [\#262](https://github.com/abhimehro/email-security-pipeline/issues/262)
+- \[Code Quality\] Add comprehensive docstrings to NLPThreatAnalyzer private
+  methods
+  [\#261](https://github.com/abhimehro/email-security-pipeline/issues/261)
+- \[Code Quality\] Add comprehensive docstring to generate\_threat\_report\(\)
+  function
+  [\#260](https://github.com/abhimehro/email-security-pipeline/issues/260)
+- \[Code Quality\] Fix silent exception handling in ZIP inspection
+  [\#259](https://github.com/abhimehro/email-security-pipeline/issues/259)
+- \[Code Quality\] Add missing test coverage for
+  IMAPConnection.list\_folders\(\)
+  [\#258](https://github.com/abhimehro/email-security-pipeline/issues/258)
+- Daily Backlog Burner - Research, Roadmap and Plan
+  [\#256](https://github.com/abhimehro/email-security-pipeline/issues/256)
+- \[Code Quality\] Add CI performance regression detection with pytest-benchmark
+  [\#255](https://github.com/abhimehro/email-security-pipeline/issues/255)
+- \[Code Quality\] Add parallel account processing for 3x throughput
+  [\#254](https://github.com/abhimehro/email-security-pipeline/issues/254)
+- \[Code Quality\] Optimize CI duration with parallel testing and incremental
+  linting
+  [\#253](https://github.com/abhimehro/email-security-pipeline/issues/253)
+- \[Code Quality\] Implement IMAP connection pooling for 10x speedup
+  [\#252](https://github.com/abhimehro/email-security-pipeline/issues/252)
+- \[Code Quality\] Implement async alert dispatch to prevent webhook blocking
+  [\#251](https://github.com/abhimehro/email-security-pipeline/issues/251)
+- Daily Perf ImproverResearch and Plan
+  [\#250](https://github.com/abhimehro/email-security-pipeline/issues/250)
+- \[Code Quality\] Move hardcoded magic numbers to centralized configuration
+  [\#245](https://github.com/abhimehro/email-security-pipeline/issues/245)
+- \[Code Quality\] Add specific exception handling to media analyzer
+  [\#244](https://github.com/abhimehro/email-security-pipeline/issues/244)
+- \[Code Quality\] Extract alert formatting logic into separate formatter
+  classes
+  [\#243](https://github.com/abhimehro/email-security-pipeline/issues/243)
+- \[Code Quality\] Add detailed validation helpers to config module
+  [\#238](https://github.com/abhimehro/email-security-pipeline/issues/238)
+- \[Code Quality\] Add comprehensive docstrings to utility modules
+  [\#237](https://github.com/abhimehro/email-security-pipeline/issues/237)
+- \[Code Quality\] Add comprehensive testing documentation
+  [\#236](https://github.com/abhimehro/email-security-pipeline/issues/236)
+- \[Code Quality\] Add comprehensive pytest configuration with markers
+  [\#235](https://github.com/abhimehro/email-security-pipeline/issues/235)
+- \[Code Quality\] Organize and archive historical analysis reports
+  [\#234](https://github.com/abhimehro/email-security-pipeline/issues/234)
+- \[agentics\] Daily QA failed
+  [\#233](https://github.com/abhimehro/email-security-pipeline/issues/233)
+- \[agentics\] Daily Backlog Burner failed
+  [\#232](https://github.com/abhimehro/email-security-pipeline/issues/232)
+- \[repo-status\] Daily Repo Status - February 15, 2026 🌟
+  [\#231](https://github.com/abhimehro/email-security-pipeline/issues/231)
+- \[Code Quality\] Add docstrings to undocumented NLP analyzer helper methods
+  [\#230](https://github.com/abhimehro/email-security-pipeline/issues/230)
+- \[Code Quality\] Replace synchronous file I/O with async cleanup in media
+  analyzer
+  [\#229](https://github.com/abhimehro/email-security-pipeline/issues/229)
+- \[Code Quality\] Add unit tests for EmailSecurityPipeline main analysis
+  methods
+  [\#228](https://github.com/abhimehro/email-security-pipeline/issues/228)
+- \[Code Quality\] Refactor deepfake detection logic in media\_analyzer.py to
+  reduce complexity
+  [\#227](https://github.com/abhimehro/email-security-pipeline/issues/227)
+- \[Code Quality\] Add async/await support for parallel email fetching
+  [\#225](https://github.com/abhimehro/email-security-pipeline/issues/225)
+- \[Code Quality\] Create domain-specific exception hierarchy for better error
+  handling
+  [\#224](https://github.com/abhimehro/email-security-pipeline/issues/224)
+- \[Code Quality\] Add unit tests for untested utility modules
+  [\#223](https://github.com/abhimehro/email-security-pipeline/issues/223)
+- \[Code Quality\] Refactor exception handling to use specific exception types
+  [\#222](https://github.com/abhimehro/email-security-pipeline/issues/222)
+- \[agentics\] Daily Perf Improver failed
+  [\#221](https://github.com/abhimehro/email-security-pipeline/issues/221)
+- \[Code Quality\] Refactor MediaAnalyzer file validation logic to eliminate
+  dead code paths
+  [\#219](https://github.com/abhimehro/email-security-pipeline/issues/219)
+- \[Code Quality\] Validate regex patterns in nlp\_analyzer.py for ReDoS
+  vulnerabilities
+  [\#218](https://github.com/abhimehro/email-security-pipeline/issues/218)
+- \[Code Quality\] Replace bare pass statements with explicit logging in
+  exception handlers
+  [\#217](https://github.com/abhimehro/email-security-pipeline/issues/217)
+- \[Code Quality\] Fix bare except clauses that silently swallow exceptions in
+  analyzer modules
+  [\#216](https://github.com/abhimehro/email-security-pipeline/issues/216)
+- \[Code Quality\] Add comprehensive test coverage for email\_data.py and
+  imap\_connection.py modules
+  [\#215](https://github.com/abhimehro/email-security-pipeline/issues/215)
+- \[Code Quality\] Add integration and error recovery test coverage
+  [\#210](https://github.com/abhimehro/email-security-pipeline/issues/210)
+- \[Code Quality\] Refactor email\_ingestion.py into smaller focused modules
+  [\#209](https://github.com/abhimehro/email-security-pipeline/issues/209)
+- \[Code Quality\] Discussion Task Miner - Code Quality Improvement Agent -
+  Issue Group
+  [\#208](https://github.com/abhimehro/email-security-pipeline/issues/208)
+- \[Code Quality\] Implement structured logging and metrics collection
+  [\#207](https://github.com/abhimehro/email-security-pipeline/issues/207)
+- \[repo-status\] 🌟 Daily Repo Status - February 14, 2026
+  [\#198](https://github.com/abhimehro/email-security-pipeline/issues/198)
+- Daily QAReport - Feb 14, 2026
+  [\#197](https://github.com/abhimehro/email-security-pipeline/issues/197)
+- Daily Backlog BurnerResearch, Roadmap and Plan
+  [\#194](https://github.com/abhimehro/email-security-pipeline/issues/194)
+- Daily Perf ImproverResearch and Plan
+  [\#193](https://github.com/abhimehro/email-security-pipeline/issues/193)
+- \[agentics\] Agentic Workflow Audit Agent failed
+  [\#190](https://github.com/abhimehro/email-security-pipeline/issues/190)
+- \[agentics\] No-Op Runs
+  [\#188](https://github.com/abhimehro/email-security-pipeline/issues/188)
+- \[agentics\] Daily Perf Improver failed
+  [\#186](https://github.com/abhimehro/email-security-pipeline/issues/186)
+- \[agentics\] Daily Backlog Burner failed
+  [\#185](https://github.com/abhimehro/email-security-pipeline/issues/185)
+- \[agentics\] Failed runs
+  [\#184](https://github.com/abhimehro/email-security-pipeline/issues/184)
+- \[repo-status\] Daily Status Report - February 13, 2026 🌟
+  [\#178](https://github.com/abhimehro/email-security-pipeline/issues/178)
 
 **Merged pull requests:**
 
-- chore\(deps\): bump github/codeql-action from codeql-bundle-v2.26.2 to 2.26.1 [\#1393](https://github.com/abhimehro/email-security-pipeline/pull/1393) ([dependabot[bot]](https://github.com/apps/dependabot))
-- chore\(repo-health\): purge root junk and fix Quick Start docs [\#1390](https://github.com/abhimehro/email-security-pipeline/pull/1390) ([cursor[bot]](https://github.com/apps/cursor))
-- chore\(actions\): consolidate workflow automation [\#1388](https://github.com/abhimehro/email-security-pipeline/pull/1388) ([abhimehro](https://github.com/abhimehro))
-- chore\(deps\): bump release-drafter/release-drafter from 7.6.0 to 7.7.0 [\#1387](https://github.com/abhimehro/email-security-pipeline/pull/1387) ([dependabot[bot]](https://github.com/apps/dependabot))
-- chore\(deps\): bump github/codeql-action from codeql-bundle-v2.26.1 to 2.26.2 [\#1386](https://github.com/abhimehro/email-security-pipeline/pull/1386) ([dependabot[bot]](https://github.com/apps/dependabot))
-- 🎨 Palette: Make countdown timer format consistent [\#1384](https://github.com/abhimehro/email-security-pipeline/pull/1384) ([abhimehro](https://github.com/abhimehro))
-- chore\(actions\): bump release-drafter to v7.7.0 \(salvages \#1381\) [\#1383](https://github.com/abhimehro/email-security-pipeline/pull/1383) ([abhimehro](https://github.com/abhimehro))
-- Fix: Remove unused import in email\_parser.py [\#1380](https://github.com/abhimehro/email-security-pipeline/pull/1380) ([abhimehro](https://github.com/abhimehro))
-- chore\(deps\): bump actions/stale from 10.4.0 to 11.0.0 [\#1379](https://github.com/abhimehro/email-security-pipeline/pull/1379) ([dependabot[bot]](https://github.com/apps/dependabot))
-- Jules Daily QA & Agentic Review: Repository Healthy [\#1376](https://github.com/abhimehro/email-security-pipeline/pull/1376) ([abhimehro](https://github.com/abhimehro))
-- 🛡️ Sentinel: \[HIGH\] Fix TOCTOU vulnerability in file permission logic [\#1375](https://github.com/abhimehro/email-security-pipeline/pull/1375) ([abhimehro](https://github.com/abhimehro))
-- chore\(deps\): bump github/gh-aw/actions/setup-cli from 0.83.1 to 0.83.4 [\#1374](https://github.com/abhimehro/email-security-pipeline/pull/1374) ([dependabot[bot]](https://github.com/apps/dependabot))
-- chore\(deps\): bump github/gh-aw/actions/setup from 0.83.1 to 0.83.4 [\#1373](https://github.com/abhimehro/email-security-pipeline/pull/1373) ([dependabot[bot]](https://github.com/apps/dependabot))
-- 🎨 Palette: Dim repetitive "No new emails" log message [\#1372](https://github.com/abhimehro/email-security-pipeline/pull/1372) ([abhimehro](https://github.com/abhimehro))
-- chore\(actions\): consolidate workflow automation [\#1366](https://github.com/abhimehro/email-security-pipeline/pull/1366) ([abhimehro](https://github.com/abhimehro))
-- Jules Daily QA & Agentic Review - Healthy [\#1365](https://github.com/abhimehro/email-security-pipeline/pull/1365) ([abhimehro](https://github.com/abhimehro))
-- fix\(ci\): restore repository\_automation\_common and SHA-pin workflows [\#1364](https://github.com/abhimehro/email-security-pipeline/pull/1364) ([abhimehro](https://github.com/abhimehro))
-- fix\(security\): ABHI-1561 stop sourcing load\_gh\_token.sh [\#1363](https://github.com/abhimehro/email-security-pipeline/pull/1363) ([abhimehro](https://github.com/abhimehro))
-- Jules Daily QA & Agentic Review: Repository Healthy [\#1360](https://github.com/abhimehro/email-security-pipeline/pull/1360) ([abhimehro](https://github.com/abhimehro))
-- ⚡ Bolt: Fast-path Authentication Results Checking [\#1359](https://github.com/abhimehro/email-security-pipeline/pull/1359) ([abhimehro](https://github.com/abhimehro))
-- 🎨 Palette: Add typing hint to password prompt [\#1356](https://github.com/abhimehro/email-security-pipeline/pull/1356) ([abhimehro](https://github.com/abhimehro))
-- Agentic QA: Fix E303 too many blank lines in email\_ingestion.py [\#1355](https://github.com/abhimehro/email-security-pipeline/pull/1355) ([abhimehro](https://github.com/abhimehro))
-- ⚡ Bolt: Optimize email address formatting loop [\#1354](https://github.com/abhimehro/email-security-pipeline/pull/1354) ([abhimehro](https://github.com/abhimehro))
-- 🛡️ Sentinel: \[CRITICAL\] Fix TOCTOU vulnerability in file permissions fallback [\#1353](https://github.com/abhimehro/email-security-pipeline/pull/1353) ([abhimehro](https://github.com/abhimehro))
-- chore\(deps\): bump github/gh-aw/actions/setup from 0.82.14 to 0.83.1 [\#1352](https://github.com/abhimehro/email-security-pipeline/pull/1352) ([dependabot[bot]](https://github.com/apps/dependabot))
-- chore\(deps\): bump github/gh-aw/actions/setup-cli from 0.82.14 to 0.83.1 [\#1351](https://github.com/abhimehro/email-security-pipeline/pull/1351) ([dependabot[bot]](https://github.com/apps/dependabot))
-- chore\(deps\): bump ruby/setup-ruby from 1.320.0 to 1.321.0 [\#1350](https://github.com/abhimehro/email-security-pipeline/pull/1350) ([dependabot[bot]](https://github.com/apps/dependabot))
-- docs\(agents\): remove stale \_get\_terminal\_width bug note [\#1348](https://github.com/abhimehro/email-security-pipeline/pull/1348) ([cursor[bot]](https://github.com/apps/cursor))
-- refactor\(parser\): validate\_subject\_length + restore warning assert \(salvages \#1320\) [\#1347](https://github.com/abhimehro/email-security-pipeline/pull/1347) ([abhimehro](https://github.com/abhimehro))
-- perf\(spam\): SPF join fast-path helper \(salvages \#1327\) [\#1346](https://github.com/abhimehro/email-security-pipeline/pull/1346) ([abhimehro](https://github.com/abhimehro))
-- ⚡ Bolt: Optimization - Fast-path string check for URL extraction regex [\#1344](https://github.com/abhimehro/email-security-pipeline/pull/1344) ([abhimehro](https://github.com/abhimehro))
-- refactor\(ingestion\): IMAPClient takes EmailIngestionConfig \(salvages \#1330\) [\#1342](https://github.com/abhimehro/email-security-pipeline/pull/1342) ([abhimehro](https://github.com/abhimehro))
-- perf\(ingestion\): extend+comprehension parse collect \(salvages \#1335/\#1314\) [\#1341](https://github.com/abhimehro/email-security-pipeline/pull/1341) ([abhimehro](https://github.com/abhimehro))
-- chore: Fix flake8 spacing issues [\#1340](https://github.com/abhimehro/email-security-pipeline/pull/1340) ([abhimehro](https://github.com/abhimehro))
-- Jules Daily QA & Agentic Review - Minor Fixes [\#1339](https://github.com/abhimehro/email-security-pipeline/pull/1339) ([abhimehro](https://github.com/abhimehro))
-- chore\(deps\): bump actions/labeler from 6.2.0 to 7.0.0 [\#1338](https://github.com/abhimehro/email-security-pipeline/pull/1338) ([dependabot[bot]](https://github.com/apps/dependabot))
-- chore\(deps\): bump ruby/setup-ruby from 1.319.0 to 1.320.0 [\#1337](https://github.com/abhimehro/email-security-pipeline/pull/1337) ([dependabot[bot]](https://github.com/apps/dependabot))
-- perf\(imap\): list-comp size parse filter \(salvages \#1331\) [\#1334](https://github.com/abhimehro/email-security-pipeline/pull/1334) ([abhimehro](https://github.com/abhimehro))
-- ⚡ Bolt: Optimize IP validation in webhook checker [\#1333](https://github.com/abhimehro/email-security-pipeline/pull/1333) ([abhimehro](https://github.com/abhimehro))
-- 🧹 Refactor \_print\_alert\_header to use RenderConfig [\#1329](https://github.com/abhimehro/email-security-pipeline/pull/1329) ([abhimehro](https://github.com/abhimehro))
-- 🔒 Fix TOCTOU Vulnerability in Configuration File Permission Setup [\#1328](https://github.com/abhimehro/email-security-pipeline/pull/1328) ([abhimehro](https://github.com/abhimehro))
-- 🧪 Add thread-safety and TTL contains tests for TTLCache [\#1326](https://github.com/abhimehro/email-security-pipeline/pull/1326) ([abhimehro](https://github.com/abhimehro))
-- 🧹 Code Health: Remove unused reset method from Metrics class [\#1325](https://github.com/abhimehro/email-security-pipeline/pull/1325) ([abhimehro](https://github.com/abhimehro))
-- ⚡ Bolt: Optimize \_check\_auth\_results string checks [\#1324](https://github.com/abhimehro/email-security-pipeline/pull/1324) ([abhimehro](https://github.com/abhimehro))
-- 🧪 Add keyword and integer tests for calculate\_risk\_level [\#1323](https://github.com/abhimehro/email-security-pipeline/pull/1323) ([abhimehro](https://github.com/abhimehro))
-- 🧹 \[Code Health\] Refactor \_extract\_frames\_sampled to use options dataclass [\#1322](https://github.com/abhimehro/email-security-pipeline/pull/1322) ([abhimehro](https://github.com/abhimehro))
-- ⚡ Bolt: Optimize sequential writes in gh\_token\_cli.py [\#1319](https://github.com/abhimehro/email-security-pipeline/pull/1319) ([abhimehro](https://github.com/abhimehro))
-- 🧪 test: add coverage for CountdownTimer tty loops and exception handling [\#1317](https://github.com/abhimehro/email-security-pipeline/pull/1317) ([abhimehro](https://github.com/abhimehro))
-- 🧪 \[testing improvement\] Add comprehensive tests for sanitize\_filename [\#1316](https://github.com/abhimehro/email-security-pipeline/pull/1316) ([abhimehro](https://github.com/abhimehro))
-- ⚡ Optimize ReDoS signature checking with compiled regex [\#1315](https://github.com/abhimehro/email-security-pipeline/pull/1315) ([abhimehro](https://github.com/abhimehro))
-- 🔒 Fix path traversal vulnerability via tar symlinks/hardlinks [\#1313](https://github.com/abhimehro/email-security-pipeline/pull/1313) ([abhimehro](https://github.com/abhimehro))
-- 🧹 Refactor \_fetch\_folder to use FetchContext [\#1311](https://github.com/abhimehro/email-security-pipeline/pull/1311) ([abhimehro](https://github.com/abhimehro))
-- 🧪 Add unit tests for Spinner class [\#1310](https://github.com/abhimehro/email-security-pipeline/pull/1310) ([abhimehro](https://github.com/abhimehro))
-- chore\(deps\): bump github/gh-aw/actions/setup-cli from 0.81.6 to 0.82.14 [\#1309](https://github.com/abhimehro/email-security-pipeline/pull/1309) ([dependabot[bot]](https://github.com/apps/dependabot))
-- chore\(deps\): bump github/gh-aw/actions/setup from 0.81.6 to 0.82.14 [\#1308](https://github.com/abhimehro/email-security-pipeline/pull/1308) ([dependabot[bot]](https://github.com/apps/dependabot))
-- chore\(deps\): bump release-drafter/release-drafter from 7.5.1 to 7.6.0 [\#1307](https://github.com/abhimehro/email-security-pipeline/pull/1307) ([dependabot[bot]](https://github.com/apps/dependabot))
-- chore\(deps\): bump actions/setup-python from 6.3.0 to 7.0.0 [\#1306](https://github.com/abhimehro/email-security-pipeline/pull/1306) ([dependabot[bot]](https://github.com/apps/dependabot))
-- Jules Daily QA & Agentic Review: Fix F541 Flake8 warnings [\#1304](https://github.com/abhimehro/email-security-pipeline/pull/1304) ([abhimehro](https://github.com/abhimehro))
-- ⚡ Bolt: Optimize NLP pattern scanning by minimizing Python loop overhead [\#1303](https://github.com/abhimehro/email-security-pipeline/pull/1303) ([abhimehro](https://github.com/abhimehro))
-- 🎨 Palette: Enhance CLI error visual hierarchy for input validation [\#1301](https://github.com/abhimehro/email-security-pipeline/pull/1301) ([abhimehro](https://github.com/abhimehro))
-- Jules Daily QA & Agentic Review: Linting Fixes [\#1300](https://github.com/abhimehro/email-security-pipeline/pull/1300) ([abhimehro](https://github.com/abhimehro))
-- fix\(setup\): ABHI-1365 remove shell-variable password exposure in setup.sh [\#1299](https://github.com/abhimehro/email-security-pipeline/pull/1299) ([abhimehro](https://github.com/abhimehro))
-- chore\(deps\): bump actions/first-interaction from 1 to 3 [\#1296](https://github.com/abhimehro/email-security-pipeline/pull/1296) ([dependabot[bot]](https://github.com/apps/dependabot))
-- chore\(deps\): bump ruby/setup-ruby from 1.318.0 to 1.319.0 [\#1292](https://github.com/abhimehro/email-security-pipeline/pull/1292) ([dependabot[bot]](https://github.com/apps/dependabot))
-- chore\(deps\): bump github/codeql-action from codeql-bundle-v2.26.0 to 2.26.1 [\#1291](https://github.com/abhimehro/email-security-pipeline/pull/1291) ([dependabot[bot]](https://github.com/apps/dependabot))
-- Draft: Salvage \#1284 setup wizard helper extraction [\#1289](https://github.com/abhimehro/email-security-pipeline/pull/1289) ([abhimehro](https://github.com/abhimehro))
-- Draft: Salvage \#1278 GhTokenCli EnvParseError test [\#1288](https://github.com/abhimehro/email-security-pipeline/pull/1288) ([abhimehro](https://github.com/abhimehro))
-- Draft: Salvage \#1279 email size boundary tests [\#1287](https://github.com/abhimehro/email-security-pipeline/pull/1287) ([abhimehro](https://github.com/abhimehro))
-- 🎨 Palette: Standardize CLI error styling and actionable hints [\#1286](https://github.com/abhimehro/email-security-pipeline/pull/1286) ([abhimehro](https://github.com/abhimehro))
-- 🧹 \[code health improvement\] Refactor EmailParser config to fix Too Many Parameters issue [\#1283](https://github.com/abhimehro/email-security-pipeline/pull/1283) ([abhimehro](https://github.com/abhimehro))
-- 🧪 Add missing empty list tests and fix empty compilation bug [\#1282](https://github.com/abhimehro/email-security-pipeline/pull/1282) ([abhimehro](https://github.com/abhimehro))
-- 🧪 \[testing improvement\] Add more boundary cases for validate\_subject\_length [\#1281](https://github.com/abhimehro/email-security-pipeline/pull/1281) ([abhimehro](https://github.com/abhimehro))
-- 🧪 Add test for print\_help in AppRunner [\#1280](https://github.com/abhimehro/email-security-pipeline/pull/1280) ([abhimehro](https://github.com/abhimehro))
-- 🧹 Refactor \_handle\_missing\_config\_interactive to reduce complexity [\#1277](https://github.com/abhimehro/email-security-pipeline/pull/1277) ([abhimehro](https://github.com/abhimehro))
-- 🧹 \[code health\] Remove unused annotations import in gh\_token\_cli.py [\#1275](https://github.com/abhimehro/email-security-pipeline/pull/1275) ([abhimehro](https://github.com/abhimehro))
-- 🧪 Improve test coverage for SSRF prevention [\#1274](https://github.com/abhimehro/email-security-pipeline/pull/1274) ([abhimehro](https://github.com/abhimehro))
-- Add test for simple\_master\_pattern search vs match gate bug [\#1273](https://github.com/abhimehro/email-security-pipeline/pull/1273) ([abhimehro](https://github.com/abhimehro))
-- 🧪 Add comprehensive schema validation test for Metrics.get\_summary [\#1272](https://github.com/abhimehro/email-security-pipeline/pull/1272) ([abhimehro](https://github.com/abhimehro))
-- ⚡ Bolt: Remove unnecessary sleep in IMAP fetch batching [\#1271](https://github.com/abhimehro/email-security-pipeline/pull/1271) ([abhimehro](https://github.com/abhimehro))
-- 🧹 \[Refactor\] Extract helpers to reduce complexity of \_write\_config\_file [\#1270](https://github.com/abhimehro/email-security-pipeline/pull/1270) ([abhimehro](https://github.com/abhimehro))
-- 🧹 \[Code Health\] Remove unused concurrent.futures import in media\_analyzer [\#1269](https://github.com/abhimehro/email-security-pipeline/pull/1269) ([abhimehro](https://github.com/abhimehro))
-- 🧹 Refactor IMAPConnection.connect\(\) to reduce complexity [\#1268](https://github.com/abhimehro/email-security-pipeline/pull/1268) ([abhimehro](https://github.com/abhimehro))
-- 🧪 Refactor check\_default\_credentials tests to use self.subTest\(\) [\#1267](https://github.com/abhimehro/email-security-pipeline/pull/1267) ([abhimehro](https://github.com/abhimehro))
-- 🧹 \[code health\] Remove unused annotations import in env\_file\_parser.py [\#1266](https://github.com/abhimehro/email-security-pipeline/pull/1266) ([abhimehro](https://github.com/abhimehro))
-- Jules Daily QA: Fix pre-commit hook failures and exclude patch files [\#1264](https://github.com/abhimehro/email-security-pipeline/pull/1264) ([abhimehro](https://github.com/abhimehro))
-- chore\(deps\): bump actions/setup-node from 6.4.0 to 7.0.0 [\#1263](https://github.com/abhimehro/email-security-pipeline/pull/1263) ([dependabot[bot]](https://github.com/apps/dependabot))
-- chore\(deps\): bump ruby/setup-ruby from 1.316.0 to 1.318.0 [\#1262](https://github.com/abhimehro/email-security-pipeline/pull/1262) ([dependabot[bot]](https://github.com/apps/dependabot))
-- 🎨 Palette: Improve visual hierarchy for fatal errors [\#1260](https://github.com/abhimehro/email-security-pipeline/pull/1260) ([abhimehro](https://github.com/abhimehro))
-- fix\(deps\): pin Python dependencies to exact versions \(ABHI-1370\) [\#1259](https://github.com/abhimehro/email-security-pipeline/pull/1259) ([abhimehro](https://github.com/abhimehro))
-- 🎨 Palette: Add call-to-action to empty alert configuration [\#1253](https://github.com/abhimehro/email-security-pipeline/pull/1253) ([abhimehro](https://github.com/abhimehro))
-- chore\(deps\): bump actions/stale from 10.3.0 to 10.4.0 [\#1251](https://github.com/abhimehro/email-security-pipeline/pull/1251) ([dependabot[bot]](https://github.com/apps/dependabot))
-- 🎨 Palette: Add actionable empty state for unconfigured accounts [\#1249](https://github.com/abhimehro/email-security-pipeline/pull/1249) ([abhimehro](https://github.com/abhimehro))
-- chore\(deps\): bump actions/labeler from 6.1.0 to 6.2.0 [\#1247](https://github.com/abhimehro/email-security-pipeline/pull/1247) ([dependabot[bot]](https://github.com/apps/dependabot))
-- 🎨 Palette: Improve terminal validation visual hierarchy [\#1245](https://github.com/abhimehro/email-security-pipeline/pull/1245) ([abhimehro](https://github.com/abhimehro))
-- Fix password exposure in setup.sh [\#1244](https://github.com/abhimehro/email-security-pipeline/pull/1244) ([abhimehro](https://github.com/abhimehro))
-- chore\(deps\): bump github/codeql-action from codeql-bundle-v2.25.6 to 2.26.0 [\#1243](https://github.com/abhimehro/email-security-pipeline/pull/1243) ([dependabot[bot]](https://github.com/apps/dependabot))
-- security\(ABHI-1358–1361\): fix command injection in PR automation scripts [\#1240](https://github.com/abhimehro/email-security-pipeline/pull/1240) ([abhimehro](https://github.com/abhimehro))
-- chore: Jules Daily QA & Agentic Review \(Minor Fixes\) [\#1238](https://github.com/abhimehro/email-security-pipeline/pull/1238) ([abhimehro](https://github.com/abhimehro))
-- chore\(deps\): bump codescene-oss/pr-refactoring-agent from 841e34c7ddd7a8ec887d632ac51432d6c71e2fe1 to bbc72fbfb8e514ed2dd0a1ba2dda2e0083abac73 [\#1235](https://github.com/abhimehro/email-security-pipeline/pull/1235) ([dependabot[bot]](https://github.com/apps/dependabot))
-- 🎨 Palette: Improve error styling in CLI output using heavy multiplication cross [\#1233](https://github.com/abhimehro/email-security-pipeline/pull/1233) ([abhimehro](https://github.com/abhimehro))
-- Daily QA Review [\#1232](https://github.com/abhimehro/email-security-pipeline/pull/1232) ([abhimehro](https://github.com/abhimehro))
-- ⚡ Bolt: Use Aho-Corasick automaton for fast subject keyword pre-checks [\#1231](https://github.com/abhimehro/email-security-pipeline/pull/1231) ([abhimehro](https://github.com/abhimehro))
-- chore: Daily Agentic QA Review \(No Findings\) [\#1229](https://github.com/abhimehro/email-security-pipeline/pull/1229) ([abhimehro](https://github.com/abhimehro))
-- Harden refactor workflow command extraction for multiline PR comments [\#1228](https://github.com/abhimehro/email-security-pipeline/pull/1228) ([Copilot](https://github.com/apps/copilot-swe-agent))
-- Harden refactor workflow against transient push races [\#1227](https://github.com/abhimehro/email-security-pipeline/pull/1227) ([Copilot](https://github.com/apps/copilot-swe-agent))
-- 🎨 Palette: Improve CLI UX and Error Styling [\#1225](https://github.com/abhimehro/email-security-pipeline/pull/1225) ([abhimehro](https://github.com/abhimehro))
-- 🧹 \[code health improvement\] Refactor generate\_threat\_report complexity [\#1224](https://github.com/abhimehro/email-security-pipeline/pull/1224) ([abhimehro](https://github.com/abhimehro))
-- ⚡ Bolt: Optimize Spam Keyword Search with Aho-Corasick [\#1223](https://github.com/abhimehro/email-security-pipeline/pull/1223) ([abhimehro](https://github.com/abhimehro))
-- 🧹 Extract mock email creation in multi-account tests [\#1221](https://github.com/abhimehro/email-security-pipeline/pull/1221) ([abhimehro](https://github.com/abhimehro))
-- 🧹 \[code health\] Refactor complex `analyze` method in NLPAnalyzer [\#1220](https://github.com/abhimehro/email-security-pipeline/pull/1220) ([abhimehro](https://github.com/abhimehro))
-- 🧹 Code Health: Refactor test\_diagnostics\_script to reduce complexity [\#1218](https://github.com/abhimehro/email-security-pipeline/pull/1218) ([abhimehro](https://github.com/abhimehro))
-- 🧹 Code Health: Refactor \_inspect\_tar\_contents to reduce complexity [\#1217](https://github.com/abhimehro/email-security-pipeline/pull/1217) ([abhimehro](https://github.com/abhimehro))
-- 🧹 \[code health improvement\] Refactor `_console_clean_report` [\#1216](https://github.com/abhimehro/email-security-pipeline/pull/1216) ([abhimehro](https://github.com/abhimehro))
-- 🧹 \[code health\] automated code quality improvements and QA notes [\#1215](https://github.com/abhimehro/email-security-pipeline/pull/1215) ([abhimehro](https://github.com/abhimehro))
-- 🎨 Palette: Unify error status icons [\#1213](https://github.com/abhimehro/email-security-pipeline/pull/1213) ([abhimehro](https://github.com/abhimehro))
-- Fix opencv-python-headless version inconsistency [\#1212](https://github.com/abhimehro/email-security-pipeline/pull/1212) ([abhimehro](https://github.com/abhimehro))
-- chore\(deps\): bump ruby/setup-ruby from 1.315.0 to 1.316.0 [\#1210](https://github.com/abhimehro/email-security-pipeline/pull/1210) ([dependabot[bot]](https://github.com/apps/dependabot))
-- ⚡ Bolt: Optimize regex performance in alert system by removing re.IGNORECASE penalty [\#1207](https://github.com/abhimehro/email-security-pipeline/pull/1207) ([abhimehro](https://github.com/abhimehro))
-- 🛡️ Sentinel: \[HIGH\] Fix URL Parsing for domain checks [\#1206](https://github.com/abhimehro/email-security-pipeline/pull/1206) ([abhimehro](https://github.com/abhimehro))
-- test: setup wizard edge-case integration tests \(salvages \#1179\) [\#1204](https://github.com/abhimehro/email-security-pipeline/pull/1204) ([abhimehro](https://github.com/abhimehro))
-- perf\(imap\): pre-compile RFC822.SIZE regex \(salvages \#1178\) [\#1203](https://github.com/abhimehro/email-security-pipeline/pull/1203) ([abhimehro](https://github.com/abhimehro))
-- chore: Daily QA Review - Apply Black Formatting [\#1201](https://github.com/abhimehro/email-security-pipeline/pull/1201) ([abhimehro](https://github.com/abhimehro))
-- chore\(deps\): bump ruby/setup-ruby from 1.314.0 to 1.315.0 [\#1198](https://github.com/abhimehro/email-security-pipeline/pull/1198) ([dependabot[bot]](https://github.com/apps/dependabot))
-- Fix mypy type annotation error in \_validate\_alerts [\#1196](https://github.com/abhimehro/email-security-pipeline/pull/1196) ([abhimehro](https://github.com/abhimehro))
-- Potential fix for code scanning alert no. 7845: Workflow does not contain permissions [\#1195](https://github.com/abhimehro/email-security-pipeline/pull/1195) ([abhimehro](https://github.com/abhimehro))
-- fix\(ui\): forgiving CLI provider selection \(salvages \#1191\) [\#1194](https://github.com/abhimehro/email-security-pipeline/pull/1194) ([abhimehro](https://github.com/abhimehro))
-- test: NLP transformer core \(salvages \#1175\) [\#1193](https://github.com/abhimehro/email-security-pipeline/pull/1193) ([abhimehro](https://github.com/abhimehro))
-- fix\(ui\): Palette fallback instructions \(salvages \#1168\) [\#1192](https://github.com/abhimehro/email-security-pipeline/pull/1192) ([abhimehro](https://github.com/abhimehro))
-- 🛡️ Sentinel: \[HIGH\] Fix Webhook Token Leak & Validation Bypass via parsed.netloc [\#1189](https://github.com/abhimehro/email-security-pipeline/pull/1189) ([abhimehro](https://github.com/abhimehro))
-- 🧹 Fix ignored exceptions in media\_analyzer [\#1186](https://github.com/abhimehro/email-security-pipeline/pull/1186) ([abhimehro](https://github.com/abhimehro))
-- 🔒 Fix: Sanitize absolute paths and backward slashes in archive member path traversal checks [\#1185](https://github.com/abhimehro/email-security-pipeline/pull/1185) ([abhimehro](https://github.com/abhimehro))
-- 🧪 Add edge case tests for JSONFormatter format method [\#1184](https://github.com/abhimehro/email-security-pipeline/pull/1184) ([abhimehro](https://github.com/abhimehro))
-- 🧪 Add missing error test in email\_ingestion close\_all\_connections [\#1183](https://github.com/abhimehro/email-security-pipeline/pull/1183) ([abhimehro](https://github.com/abhimehro))
-- chore\(deps\): bump github/gh-aw/actions/setup from 0.80.9 to 0.81.6 [\#1182](https://github.com/abhimehro/email-security-pipeline/pull/1182) ([dependabot[bot]](https://github.com/apps/dependabot))
-- chore\(deps\): bump github/gh-aw/actions/setup-cli from 0.80.9 to 0.81.6 [\#1181](https://github.com/abhimehro/email-security-pipeline/pull/1181) ([dependabot[bot]](https://github.com/apps/dependabot))
-- 🧪 \[Testing Improvement\] Add comprehensive tests for `generate_threat_report` [\#1180](https://github.com/abhimehro/email-security-pipeline/pull/1180) ([abhimehro](https://github.com/abhimehro))
-- 🧹 \[code health improvement\] Remove silent KeyboardInterrupt catch in ui spinner [\#1177](https://github.com/abhimehro/email-security-pipeline/pull/1177) ([abhimehro](https://github.com/abhimehro))
-- 🧪 Add truncation edge cases for sanitize\_for\_logging [\#1176](https://github.com/abhimehro/email-security-pipeline/pull/1176) ([abhimehro](https://github.com/abhimehro))
-- 🧪 Add missing tests for ui.py [\#1174](https://github.com/abhimehro/email-security-pipeline/pull/1174) ([abhimehro](https://github.com/abhimehro))
-- 🧹 Replace silent exception handling with logging in email ingestion [\#1173](https://github.com/abhimehro/email-security-pipeline/pull/1173) ([abhimehro](https://github.com/abhimehro))
-- 🧪 test: verify deterministic behavior on inverted thresholds [\#1172](https://github.com/abhimehro/email-security-pipeline/pull/1172) ([abhimehro](https://github.com/abhimehro))
-- 🧹 Remove unnecessary empty else block in src/main.py [\#1171](https://github.com/abhimehro/email-security-pipeline/pull/1171) ([abhimehro](https://github.com/abhimehro))
-- 🧹 fix: log BadZipFile exception instead of ignoring it [\#1170](https://github.com/abhimehro/email-security-pipeline/pull/1170) ([abhimehro](https://github.com/abhimehro))
-- ⚡ Bolt: Optimize MASTER\_SPAM\_PATTERN by removing re.IGNORECASE penalty [\#1166](https://github.com/abhimehro/email-security-pipeline/pull/1166) ([abhimehro](https://github.com/abhimehro))
-- 🎨 Palette: Consolidate verification feedback into Spinner [\#1164](https://github.com/abhimehro/email-security-pipeline/pull/1164) ([abhimehro](https://github.com/abhimehro))
-- 🎨 Palette: format codebase with black and isort [\#1161](https://github.com/abhimehro/email-security-pipeline/pull/1161) ([abhimehro](https://github.com/abhimehro))
-- chore\(deps\): bump actions/cache from 6.0.0 to 6.1.0 [\#1160](https://github.com/abhimehro/email-security-pipeline/pull/1160) ([dependabot[bot]](https://github.com/apps/dependabot))
-- 🎨 Palette: Enhance input validation error styling [\#1158](https://github.com/abhimehro/email-security-pipeline/pull/1158) ([abhimehro](https://github.com/abhimehro))
-- chore\(deps\): bump release-drafter/release-drafter from 7.4.0 to 7.5.1 [\#1156](https://github.com/abhimehro/email-security-pipeline/pull/1156) ([dependabot[bot]](https://github.com/apps/dependabot))
-- 🎨 Palette: Improve error message clarity with actionable steps [\#1154](https://github.com/abhimehro/email-security-pipeline/pull/1154) ([abhimehro](https://github.com/abhimehro))
-- fix\(security\): lowercase URL host/netloc + UI error semantics \(salvages \#1152\) [\#1153](https://github.com/abhimehro/email-security-pipeline/pull/1153) ([abhimehro](https://github.com/abhimehro))
-- ⚡ Bolt: \[Performance Optimization: Fast-path whitespace translation in text sanitization\] [\#1151](https://github.com/abhimehro/email-security-pipeline/pull/1151) ([abhimehro](https://github.com/abhimehro))
-- 🎨 Palette: Actionable Error Paths UX Consistency [\#1149](https://github.com/abhimehro/email-security-pipeline/pull/1149) ([abhimehro](https://github.com/abhimehro))
-- chore\(deps\): bump actions/setup-python from 0cb1a84326b90186fcd211036c65b42819794c87 to ece7cb06caefa5fff74198d8649806c4678c61a1 [\#1147](https://github.com/abhimehro/email-security-pipeline/pull/1147) ([dependabot[bot]](https://github.com/apps/dependabot))
-- chore\(deps\): bump actions/cache from 5.0.5 to 6.0.0 [\#1146](https://github.com/abhimehro/email-security-pipeline/pull/1146) ([dependabot[bot]](https://github.com/apps/dependabot))
-- 🎨 Palette: Standardize actionable error paths and styling [\#1144](https://github.com/abhimehro/email-security-pipeline/pull/1144) ([abhimehro](https://github.com/abhimehro))
-- chore\(deps\): bump ruby/setup-ruby from 1.313.0 to 1.314.0 [\#1143](https://github.com/abhimehro/email-security-pipeline/pull/1143) ([dependabot[bot]](https://github.com/apps/dependabot))
-- chore\(deps\): bump github/gh-aw from 0.80.5 to 0.80.9 [\#1142](https://github.com/abhimehro/email-security-pipeline/pull/1142) ([dependabot[bot]](https://github.com/apps/dependabot))
-- 🎨 Palette: Separate error messages and instructions visually in setup wizard [\#1140](https://github.com/abhimehro/email-security-pipeline/pull/1140) ([abhimehro](https://github.com/abhimehro))
-- 🎨 Palette: Apply consistent color styling to spinner error and cancellation messages [\#1138](https://github.com/abhimehro/email-security-pipeline/pull/1138) ([abhimehro](https://github.com/abhimehro))
-- 🎨 Palette: Add styling to configuration template creation output [\#1136](https://github.com/abhimehro/email-security-pipeline/pull/1136) ([abhimehro](https://github.com/abhimehro))
-- chore\(deps\): bump actions/cache from 4.2.3 to 5.0.5 [\#1135](https://github.com/abhimehro/email-security-pipeline/pull/1135) ([dependabot[bot]](https://github.com/apps/dependabot))
-- chore\(deps\): bump pnpm/action-setup from 6.0.8 to 6.0.9 [\#1134](https://github.com/abhimehro/email-security-pipeline/pull/1134) ([dependabot[bot]](https://github.com/apps/dependabot))
-- chore: fix missing EOF newlines in github workflows [\#1133](https://github.com/abhimehro/email-security-pipeline/pull/1133) ([abhimehro](https://github.com/abhimehro))
-- ⚡ Bolt: Remove re.IGNORECASE penalty from Suspicious URL checks [\#1132](https://github.com/abhimehro/email-security-pipeline/pull/1132) ([abhimehro](https://github.com/abhimehro))
-- chore\(deps\): bump ruby/setup-ruby from 1.308.0 to 1.313.0 [\#1131](https://github.com/abhimehro/email-security-pipeline/pull/1131) ([dependabot[bot]](https://github.com/apps/dependabot))
-- chore\(deps\): bump release-drafter/release-drafter from 7.2.1 to 7.4.0 [\#1129](https://github.com/abhimehro/email-security-pipeline/pull/1129) ([dependabot[bot]](https://github.com/apps/dependabot))
-- chore\(deps\): bump github/gh-aw from 0.55.0 to 0.80.5 [\#1128](https://github.com/abhimehro/email-security-pipeline/pull/1128) ([dependabot[bot]](https://github.com/apps/dependabot))
-- chore\(deps\): bump actions/setup-python from c8813ba1bc76ebf779b911ad8ffccbf2e449cb48 to 0cb1a84326b90186fcd211036c65b42819794c87 [\#1127](https://github.com/abhimehro/email-security-pipeline/pull/1127) ([dependabot[bot]](https://github.com/apps/dependabot))
-- 🎨 Palette: Style CLI help and error fallback paths [\#1125](https://github.com/abhimehro/email-security-pipeline/pull/1125) ([abhimehro](https://github.com/abhimehro))
-- 🎨 Palette: Distinguish actionable commands in CLI UX [\#1123](https://github.com/abhimehro/email-security-pipeline/pull/1123) ([abhimehro](https://github.com/abhimehro))
-- ⚡ Bolt: \[Performance optimization: Explicit flags=0 for pre-lowercased regex\] [\#1122](https://github.com/abhimehro/email-security-pipeline/pull/1122) ([abhimehro](https://github.com/abhimehro))
-- 🎨 Palette: Prevent ANSI style leakage in interactive terminal prompts [\#1120](https://github.com/abhimehro/email-security-pipeline/pull/1120) ([abhimehro](https://github.com/abhimehro))
-- 🎨 Palette: Actionable Commands in Terminal Errors [\#1118](https://github.com/abhimehro/email-security-pipeline/pull/1118) ([abhimehro](https://github.com/abhimehro))
-- ⚡ Bolt: \[Performance optimization: Fast String Count Over Regex Findall\] [\#1117](https://github.com/abhimehro/email-security-pipeline/pull/1117) ([abhimehro](https://github.com/abhimehro))
-- 🎨 Palette: De-emphasize input options in terminal prompts [\#1115](https://github.com/abhimehro/email-security-pipeline/pull/1115) ([abhimehro](https://github.com/abhimehro))
-- ⚡ Bolt: Avoid redundant lower\(\) calls in SpamAnalyzer [\#1114](https://github.com/abhimehro/email-security-pipeline/pull/1114) ([abhimehro](https://github.com/abhimehro))
-- 🎨 Palette: Make terminal color resets robust [\#1112](https://github.com/abhimehro/email-security-pipeline/pull/1112) ([abhimehro](https://github.com/abhimehro))
-- Jules Daily QA & Agentic Review: Formatting and Linting Fixes [\#1111](https://github.com/abhimehro/email-security-pipeline/pull/1111) ([abhimehro](https://github.com/abhimehro))
-- perf\(media\): parallelize attachment metadata and deepfake analysis \(salvages \#1103\) [\#1108](https://github.com/abhimehro/email-security-pipeline/pull/1108) ([abhimehro](https://github.com/abhimehro))
-- refactor\(connectivity\): group IMAP/SMTP params in ConnectionConfig \(salvages \#1096\) [\#1107](https://github.com/abhimehro/email-security-pipeline/pull/1107) ([abhimehro](https://github.com/abhimehro))
-- T2: Apply Black formatting to resolve styling violations in src/ [\#1106](https://github.com/abhimehro/email-security-pipeline/pull/1106) ([abhimehro](https://github.com/abhimehro))
-- ⚡ Bolt: Optimize image tag counting in spam analysis [\#1105](https://github.com/abhimehro/email-security-pipeline/pull/1105) ([abhimehro](https://github.com/abhimehro))
-- 🧪 \[test improvement\] Add boundary and float edge case coverage to calculate\_risk\_level [\#1104](https://github.com/abhimehro/email-security-pipeline/pull/1104) ([abhimehro](https://github.com/abhimehro))
-- 🧪 Add integration test for cache clearing [\#1102](https://github.com/abhimehro/email-security-pipeline/pull/1102) ([abhimehro](https://github.com/abhimehro))
-- 🧹 Refactor EmailIngestionManager to use configuration object [\#1100](https://github.com/abhimehro/email-security-pipeline/pull/1100) ([abhimehro](https://github.com/abhimehro))
-- ⚡ Bolt: Optimize synchronous delay in batch fetching loop [\#1099](https://github.com/abhimehro/email-security-pipeline/pull/1099) ([abhimehro](https://github.com/abhimehro))
-- 🧹 Refactor check\_mail\_connectivity to use ConnectionConfig dataclass [\#1097](https://github.com/abhimehro/email-security-pipeline/pull/1097) ([abhimehro](https://github.com/abhimehro))
-- 🧪 Add error handling tests for pipeline startup [\#1095](https://github.com/abhimehro/email-security-pipeline/pull/1095) ([abhimehro](https://github.com/abhimehro))
-- 🧹 \[Code Health\] Remove unused future import in conftest.py [\#1094](https://github.com/abhimehro/email-security-pipeline/pull/1094) ([abhimehro](https://github.com/abhimehro))
-- 🧹 Remove unused 're' import in imap\_connection.py [\#1093](https://github.com/abhimehro/email-security-pipeline/pull/1093) ([abhimehro](https://github.com/abhimehro))
-- 🧪 \[testing improvement\] Add edge-case test coverage for JSONFormatter [\#1092](https://github.com/abhimehro/email-security-pipeline/pull/1092) ([abhimehro](https://github.com/abhimehro))
-- 🧹 Refactor: Reduce parameter count in test\_connection [\#1091](https://github.com/abhimehro/email-security-pipeline/pull/1091) ([abhimehro](https://github.com/abhimehro))
-- 🧪 Add missing edge case tests in dos\_prevention [\#1090](https://github.com/abhimehro/email-security-pipeline/pull/1090) ([abhimehro](https://github.com/abhimehro))
-- test\(setup\_wizard\): connection exception redaction coverage \(salvages \#1075\) [\#1088](https://github.com/abhimehro/email-security-pipeline/pull/1088) ([abhimehro](https://github.com/abhimehro))
-- chore\(actions\): consolidate workflow automation [\#1085](https://github.com/abhimehro/email-security-pipeline/pull/1085) ([abhimehro](https://github.com/abhimehro))
-- ⚡ Bolt: Optimize regex performance by removing re.IGNORECASE penalty [\#1084](https://github.com/abhimehro/email-security-pipeline/pull/1084) ([abhimehro](https://github.com/abhimehro))
-- 🎨 Palette: De-emphasize secondary terminal hints [\#1082](https://github.com/abhimehro/email-security-pipeline/pull/1082) ([abhimehro](https://github.com/abhimehro))
-- perf\(alert\): optimize alert dispatch throughput \(salvages \#1071\) [\#1081](https://github.com/abhimehro/email-security-pipeline/pull/1081) ([abhimehro](https://github.com/abhimehro))
-- Jules Daily QA & Agentic Review - Completed [\#1079](https://github.com/abhimehro/email-security-pipeline/pull/1079) ([abhimehro](https://github.com/abhimehro))
-- 🧪 \[Testing Improvement\] Add unit test for config writing exception handling [\#1078](https://github.com/abhimehro/email-security-pipeline/pull/1078) ([abhimehro](https://github.com/abhimehro))
-- 🧪 Add test coverage for email redaction exception fallback [\#1077](https://github.com/abhimehro/email-security-pipeline/pull/1077) ([abhimehro](https://github.com/abhimehro))
-- ⚡ Bolt: Remove redundant string lowercasing in nested archive check [\#1076](https://github.com/abhimehro/email-security-pipeline/pull/1076) ([abhimehro](https://github.com/abhimehro))
-- 🧹 Refactor \_process\_multipart\_part to use ParseContext [\#1074](https://github.com/abhimehro/email-security-pipeline/pull/1074) ([abhimehro](https://github.com/abhimehro))
-- 🧹 Reduce cyclomatic complexity in is\_safe\_webhook\_url [\#1073](https://github.com/abhimehro/email-security-pipeline/pull/1073) ([abhimehro](https://github.com/abhimehro))
-- 🧪 Add tests for AppRunner.\_styled\_input [\#1072](https://github.com/abhimehro/email-security-pipeline/pull/1072) ([abhimehro](https://github.com/abhimehro))
-- 🧹 Refactor validate method to reduce Cyclomatic Complexity [\#1070](https://github.com/abhimehro/email-security-pipeline/pull/1070) ([abhimehro](https://github.com/abhimehro))
-- 🎨 Palette: Refactor ANSI string concatenations to fix non-TTY accessibility [\#1068](https://github.com/abhimehro/email-security-pipeline/pull/1068) ([abhimehro](https://github.com/abhimehro))
-- chore: Perform daily QA review [\#1065](https://github.com/abhimehro/email-security-pipeline/pull/1065) ([abhimehro](https://github.com/abhimehro))
-- ⚡ Bolt: Optimize image count in spam analyzer [\#1064](https://github.com/abhimehro/email-security-pipeline/pull/1064) ([abhimehro](https://github.com/abhimehro))
-- 🛡️ Sentinel: \[CRITICAL\] Fix Path Traversal Log Leakage [\#1062](https://github.com/abhimehro/email-security-pipeline/pull/1062) ([abhimehro](https://github.com/abhimehro))
-- 🔧 Jules: Daily QA & Agentic Review Fixes [\#1060](https://github.com/abhimehro/email-security-pipeline/pull/1060) ([abhimehro](https://github.com/abhimehro))
-- ⚡ Bolt: Optimize URL checking in spam analyzer [\#1058](https://github.com/abhimehro/email-security-pipeline/pull/1058) ([abhimehro](https://github.com/abhimehro))
-- 🎨 Palette: Fix unstyled ANSI escape sequences in CLI output [\#1056](https://github.com/abhimehro/email-security-pipeline/pull/1056) ([abhimehro](https://github.com/abhimehro))
-- Lint Fix: Remove unused sys import [\#1054](https://github.com/abhimehro/email-security-pipeline/pull/1054) ([abhimehro](https://github.com/abhimehro))
-- ⚡ Bolt: Remove re.IGNORECASE penalty from SpamAnalyzer regex [\#1052](https://github.com/abhimehro/email-security-pipeline/pull/1052) ([abhimehro](https://github.com/abhimehro))
-- 🎨 Palette: Graceful exit on EOF inputs [\#1050](https://github.com/abhimehro/email-security-pipeline/pull/1050) ([abhimehro](https://github.com/abhimehro))
-- chore\(actions\): consolidate workflow automation [\#1046](https://github.com/abhimehro/email-security-pipeline/pull/1046) ([abhimehro](https://github.com/abhimehro))
-- Jules Daily QA & Agentic Review - Spotless Health [\#1045](https://github.com/abhimehro/email-security-pipeline/pull/1045) ([abhimehro](https://github.com/abhimehro))
-- 🎨 Palette: Use semantic Colors.colorize for configuration summary UI [\#1042](https://github.com/abhimehro/email-security-pipeline/pull/1042) ([abhimehro](https://github.com/abhimehro))
-- Jules Daily QA & Agentic Review - Minor fixes [\#1041](https://github.com/abhimehro/email-security-pipeline/pull/1041) ([abhimehro](https://github.com/abhimehro))
-- Jules Daily QA & Agentic Review - Minor fixes [\#1039](https://github.com/abhimehro/email-security-pipeline/pull/1039) ([abhimehro](https://github.com/abhimehro))
-- refactor\(app\_runner\): move import os to top \(salvages \#996, v3\) [\#1037](https://github.com/abhimehro/email-security-pipeline/pull/1037) ([abhimehro](https://github.com/abhimehro))
-- refactor\(main\): flatten \_record\_threat\_metrics \(salvages \#972, v4\) [\#1036](https://github.com/abhimehro/email-security-pipeline/pull/1036) ([abhimehro](https://github.com/abhimehro))
-- fix\(app\_runner\): restore \_set\_secure\_permissions for secure config creation [\#1034](https://github.com/abhimehro/email-security-pipeline/pull/1034) ([abhimehro](https://github.com/abhimehro))
-- 🧹 chore: Resolve CodeScene and CodeQL CI Failures [\#1025](https://github.com/abhimehro/email-security-pipeline/pull/1025) ([abhimehro](https://github.com/abhimehro))
-- fix\(security\): NLP eval false positive \(salvages \#973\) [\#1023](https://github.com/abhimehro/email-security-pipeline/pull/1023) ([abhimehro](https://github.com/abhimehro))
-- test\(email\_parser\): singlepart body error \(salvages \#989\) [\#1020](https://github.com/abhimehro/email-security-pipeline/pull/1020) ([abhimehro](https://github.com/abhimehro))
-- test\(error\_recovery\): monitoring loop error path \(salvages \#982\) [\#1019](https://github.com/abhimehro/email-security-pipeline/pull/1019) ([abhimehro](https://github.com/abhimehro))
-- test\(imap\): fetch batch error handling \(salvages \#984\) [\#1018](https://github.com/abhimehro/email-security-pipeline/pull/1018) ([abhimehro](https://github.com/abhimehro))
-- 🎨 Palette: Strip keyboard hint from Spinner on completion [\#1017](https://github.com/abhimehro/email-security-pipeline/pull/1017) ([abhimehro](https://github.com/abhimehro))
-- 🧹 chore: Resolve CodeScene and CodeQL CI Failures [\#1013](https://github.com/abhimehro/email-security-pipeline/pull/1013) ([abhimehro](https://github.com/abhimehro))
-- 🎨 Palette: Improve CLI output formatting accessibility in config summary [\#1010](https://github.com/abhimehro/email-security-pipeline/pull/1010) ([abhimehro](https://github.com/abhimehro))
-- 🧪 \[Testing\] Cover secure permissions error path [\#1009](https://github.com/abhimehro/email-security-pipeline/pull/1009) ([abhimehro](https://github.com/abhimehro))
-- fix\(security\): tarfile Zip Slip guard \(salvages \#999\) [\#1008](https://github.com/abhimehro/email-security-pipeline/pull/1008) ([abhimehro](https://github.com/abhimehro))
-- 🧹 Daily QA Review Completed \(No Findings\) [\#1005](https://github.com/abhimehro/email-security-pipeline/pull/1005) ([abhimehro](https://github.com/abhimehro))
-- 🔒 Sentinel: \[HIGH\] Fix TOCTOU vulnerability in file permissions [\#1004](https://github.com/abhimehro/email-security-pipeline/pull/1004) ([abhimehro](https://github.com/abhimehro))
-- ⚡ Bolt: Parallelize email parsing with ThreadPoolExecutor [\#1000](https://github.com/abhimehro/email-security-pipeline/pull/1000) ([abhimehro](https://github.com/abhimehro))
-- 🧪 \[Test nested TAR member error handling\] [\#995](https://github.com/abhimehro/email-security-pipeline/pull/995) ([abhimehro](https://github.com/abhimehro))
-- 🧹 \[Code Health\] Refactor `_analyze_email` to extract metric/alert logic [\#994](https://github.com/abhimehro/email-security-pipeline/pull/994) ([abhimehro](https://github.com/abhimehro))
-- 🧪 \[testing improvement\] Add test coverage for \_fetch\_emails\_internal error recovery [\#993](https://github.com/abhimehro/email-security-pipeline/pull/993) ([abhimehro](https://github.com/abhimehro))
-- 🧪 Add tests for single alert retry logic [\#992](https://github.com/abhimehro/email-security-pipeline/pull/992) ([abhimehro](https://github.com/abhimehro))
-- 🧪 Add test for error path in EmailSecurityPipeline.\_analyze\_email [\#988](https://github.com/abhimehro/email-security-pipeline/pull/988) ([abhimehro](https://github.com/abhimehro))
-- 🧪 \[testing improvement\] Add tests for frame resize error handling [\#986](https://github.com/abhimehro/email-security-pipeline/pull/986) ([abhimehro](https://github.com/abhimehro))
-- 🧪 \[testing improvement\] Add test for alert worker loop exception cleanup [\#983](https://github.com/abhimehro/email-security-pipeline/pull/983) ([abhimehro](https://github.com/abhimehro))
-- 🧪 Add exception test for singlepart attachment processing [\#978](https://github.com/abhimehro/email-security-pipeline/pull/978) ([abhimehro](https://github.com/abhimehro))
-- 🧹 \[Code Health\] Extract helper method for address formatting to reduce nesting [\#977](https://github.com/abhimehro/email-security-pipeline/pull/977) ([abhimehro](https://github.com/abhimehro))
-- 🧪 \[testing improvement\] Add coverage for test fetch from folder error path [\#976](https://github.com/abhimehro/email-security-pipeline/pull/976) ([abhimehro](https://github.com/abhimehro))
-- 🧪 \[Add test coverage for video frame advance error path\] [\#975](https://github.com/abhimehro/email-security-pipeline/pull/975) ([abhimehro](https://github.com/abhimehro))
-- 🎨 Palette: Improve connection retry menu scannability [\#970](https://github.com/abhimehro/email-security-pipeline/pull/970) ([abhimehro](https://github.com/abhimehro))
-- 🧹 chore: minor formatting fixes [\#968](https://github.com/abhimehro/email-security-pipeline/pull/968) ([abhimehro](https://github.com/abhimehro))
-- chore\(actions\): consolidate workflow automation [\#966](https://github.com/abhimehro/email-security-pipeline/pull/966) ([abhimehro](https://github.com/abhimehro))
-- 🧹 Fix: Remove trailing whitespace in config files [\#963](https://github.com/abhimehro/email-security-pipeline/pull/963) ([abhimehro](https://github.com/abhimehro))
-- ⚡ Bolt: Remove re.IGNORECASE penalty in hidden text regex evaluation [\#961](https://github.com/abhimehro/email-security-pipeline/pull/961) ([abhimehro](https://github.com/abhimehro))
-- Jules 6594818209076343297 c1158f9c [\#958](https://github.com/abhimehro/email-security-pipeline/pull/958) ([abhimehro](https://github.com/abhimehro))
-- No UX Changes Required [\#957](https://github.com/abhimehro/email-security-pipeline/pull/957) ([abhimehro](https://github.com/abhimehro))
-- automation: resolve QA and bandit findings [\#956](https://github.com/abhimehro/email-security-pipeline/pull/956) ([abhimehro](https://github.com/abhimehro))
-- 🧹 Jules Daily QA: Minor linting and security fixes [\#953](https://github.com/abhimehro/email-security-pipeline/pull/953) ([abhimehro](https://github.com/abhimehro))
-- 🎨 Palette: Add keyboard shortcut hint to spinner [\#950](https://github.com/abhimehro/email-security-pipeline/pull/950) ([abhimehro](https://github.com/abhimehro))
-- 🎨 Palette: Add keyboard shortcut hint to spinner [\#949](https://github.com/abhimehro/email-security-pipeline/pull/949) ([abhimehro](https://github.com/abhimehro))
-- perf\(imap\): concurrent folder fetch \(salvages \#921, v4\) [\#948](https://github.com/abhimehro/email-security-pipeline/pull/948) ([abhimehro](https://github.com/abhimehro))
-- fix\(security\): TOCTOU config permissions \(salvages \#919, v4\) [\#947](https://github.com/abhimehro/email-security-pipeline/pull/947) ([abhimehro](https://github.com/abhimehro))
-- 🧹 style: fix long lines in setup\_wizard.py via black [\#945](https://github.com/abhimehro/email-security-pipeline/pull/945) ([abhimehro](https://github.com/abhimehro))
-- 🧹 style: fix long lines in setup\_wizard.py via black [\#944](https://github.com/abhimehro/email-security-pipeline/pull/944) ([abhimehro](https://github.com/abhimehro))
-- ⚡ Bolt: Remove re.IGNORECASE penalty in NLPAnalyzer [\#943](https://github.com/abhimehro/email-security-pipeline/pull/943) ([abhimehro](https://github.com/abhimehro))
-- ⚡ Bolt: Replace regex search with fast substring pre-checks for spam keywords [\#936](https://github.com/abhimehro/email-security-pipeline/pull/936) ([abhimehro](https://github.com/abhimehro))
-- 🎨 Palette: Enhance setup wizard menu with semantic colors [\#929](https://github.com/abhimehro/email-security-pipeline/pull/929) ([abhimehro](https://github.com/abhimehro))
-- Provide final QA notes [\#927](https://github.com/abhimehro/email-security-pipeline/pull/927) ([abhimehro](https://github.com/abhimehro))
-- 🧹 \[Formatting\] Run Black to resolve formatting drift [\#926](https://github.com/abhimehro/email-security-pipeline/pull/926) ([abhimehro](https://github.com/abhimehro))
-- ⚡ Bolt: Optimize regex performance by removing re.IGNORECASE [\#925](https://github.com/abhimehro/email-security-pipeline/pull/925) ([abhimehro](https://github.com/abhimehro))
-- 🛡️ Sentinel: \[CRITICAL\] Fix re.error vulnerability in setup wizard regex replacements [\#923](https://github.com/abhimehro/email-security-pipeline/pull/923) ([abhimehro](https://github.com/abhimehro))
-- ⚡ Bolt: \[Performance\] Optimize spam keyword substring pre-check [\#922](https://github.com/abhimehro/email-security-pipeline/pull/922) ([abhimehro](https://github.com/abhimehro))
-- 🧹 convert comment to variable docstring in pattern\_compiler [\#920](https://github.com/abhimehro/email-security-pipeline/pull/920) ([abhimehro](https://github.com/abhimehro))
-- 🧹 \[code health\] Remove unused function validate\_mime\_parts\_count [\#918](https://github.com/abhimehro/email-security-pipeline/pull/918) ([abhimehro](https://github.com/abhimehro))
-- 🧹 Refactor unused `replace_secret` method to lambda in setup\_wizard [\#917](https://github.com/abhimehro/email-security-pipeline/pull/917) ([abhimehro](https://github.com/abhimehro))
-- 🧹 Extract header checks into single-purpose methods [\#916](https://github.com/abhimehro/email-security-pipeline/pull/916) ([abhimehro](https://github.com/abhimehro))
-- 🧹 Refactor \_check\_email\_sizes to improve readability [\#915](https://github.com/abhimehro/email-security-pipeline/pull/915) ([abhimehro](https://github.com/abhimehro))
-- 🧹 Refactor \_extract\_attachment in EmailParser for improved readability [\#914](https://github.com/abhimehro/email-security-pipeline/pull/914) ([abhimehro](https://github.com/abhimehro))
-- ⚡ Bolt: Optimize authority impersonation domain matching [\#912](https://github.com/abhimehro/email-security-pipeline/pull/912) ([abhimehro](https://github.com/abhimehro))
-- 🧹 \[code health\] Remove unused function validate\_mime\_parts\_count [\#911](https://github.com/abhimehro/email-security-pipeline/pull/911) ([abhimehro](https://github.com/abhimehro))
-- ⚡ Bolt: Optimize authority impersonation domain matching [\#910](https://github.com/abhimehro/email-security-pipeline/pull/910) ([abhimehro](https://github.com/abhimehro))
-- 🧹 Refactor \_check\_email\_sizes to improve readability [\#909](https://github.com/abhimehro/email-security-pipeline/pull/909) ([abhimehro](https://github.com/abhimehro))
-- 🎨 Palette: Display all NLP threat indicators in console alerts [\#904](https://github.com/abhimehro/email-security-pipeline/pull/904) ([abhimehro](https://github.com/abhimehro))
-- Refactor: Remove unused `unicodedata` import from `alert_system.py` [\#901](https://github.com/abhimehro/email-security-pipeline/pull/901) ([abhimehro](https://github.com/abhimehro))
-- ⚡ Bolt: replace FAST\_HIDDEN\_PATTERN with string matching for faster case-insensitive substring checks [\#900](https://github.com/abhimehro/email-security-pipeline/pull/900) ([abhimehro](https://github.com/abhimehro))
-- ⚡ Bolt: Optimize uptime tracking with time.monotonic\(\) [\#896](https://github.com/abhimehro/email-security-pipeline/pull/896) ([abhimehro](https://github.com/abhimehro))
-- feat\(palette\): console media threat indicators \(salvages \#867\) [\#894](https://github.com/abhimehro/email-security-pipeline/pull/894) ([abhimehro](https://github.com/abhimehro))
-- chore\(deps\): bump pre-commit-hooks v4.5.0 → v5.0.0 [\#889](https://github.com/abhimehro/email-security-pipeline/pull/889) ([abhimehro](https://github.com/abhimehro))
-- chore\(actions\): consolidate workflow automation [\#887](https://github.com/abhimehro/email-security-pipeline/pull/887) ([abhimehro](https://github.com/abhimehro))
-- chore: QA format fixes for daily review [\#886](https://github.com/abhimehro/email-security-pipeline/pull/886) ([abhimehro](https://github.com/abhimehro))
-- chore: remove empty JSON artifacts and add to .gitignore [\#883](https://github.com/abhimehro/email-security-pipeline/pull/883) ([abhimehro](https://github.com/abhimehro))
-- fix\(security\): prevent script injection via workflow\_dispatch input in copilot-setup-steps \(CWE-94\) [\#881](https://github.com/abhimehro/email-security-pipeline/pull/881) ([abhimehro](https://github.com/abhimehro))
-- 🎨 Palette: Fix omitted threat indicators in CLI output [\#880](https://github.com/abhimehro/email-security-pipeline/pull/880) ([abhimehro](https://github.com/abhimehro))
-- Automated QA: formatting fix and repository check [\#878](https://github.com/abhimehro/email-security-pipeline/pull/878) ([abhimehro](https://github.com/abhimehro))
-- Automated QA: formatting fix and repository check [\#877](https://github.com/abhimehro/email-security-pipeline/pull/877) ([abhimehro](https://github.com/abhimehro))
-- ⚡ Bolt: \[Performance Optimization\] Increase IMAP fetch batch size [\#876](https://github.com/abhimehro/email-security-pipeline/pull/876) ([abhimehro](https://github.com/abhimehro))
-- ci: audit and pin workflow actions [\#872](https://github.com/abhimehro/email-security-pipeline/pull/872) ([abhimehro](https://github.com/abhimehro))
-- 🧹 fix: remove unused unicodedata import \(salvages \#822\) [\#869](https://github.com/abhimehro/email-security-pipeline/pull/869) ([abhimehro](https://github.com/abhimehro))
-- 🧹 fix: remove unused unicodedata import \(salvages \#824\) [\#868](https://github.com/abhimehro/email-security-pipeline/pull/868) ([abhimehro](https://github.com/abhimehro))
-- 🎨 Palette: Bold CLI User Input \(Refactored\) [\#866](https://github.com/abhimehro/email-security-pipeline/pull/866) ([abhimehro](https://github.com/abhimehro))
-- chore: auto-fix minor linting and import issues from Daily QA [\#863](https://github.com/abhimehro/email-security-pipeline/pull/863) ([abhimehro](https://github.com/abhimehro))
-- chore: complete daily QA and Agentic Review [\#856](https://github.com/abhimehro/email-security-pipeline/pull/856) ([abhimehro](https://github.com/abhimehro))
-- 🎨 Palette: Add visual warning symbol to missing config message [\#850](https://github.com/abhimehro/email-security-pipeline/pull/850) ([abhimehro](https://github.com/abhimehro))
-- 🧹 Refactor \_check\_deepfake\_indicators to reduce complexity [\#844](https://github.com/abhimehro/email-security-pipeline/pull/844) ([abhimehro](https://github.com/abhimehro))
-- Fix missing whitespace filenames in email parser [\#843](https://github.com/abhimehro/email-security-pipeline/pull/843) ([abhimehro](https://github.com/abhimehro))
-- ⚡ Bolt: Optimize dictionary get operations in media\_analyzer [\#841](https://github.com/abhimehro/email-security-pipeline/pull/841) ([abhimehro](https://github.com/abhimehro))
-- 🧪 test: add test for setup wizard replacing secret [\#840](https://github.com/abhimehro/email-security-pipeline/pull/840) ([abhimehro](https://github.com/abhimehro))
-- 🧪 \[testing improvement\] Add test case for very large base64 attachments [\#839](https://github.com/abhimehro/email-security-pipeline/pull/839) ([abhimehro](https://github.com/abhimehro))
-- 🧪 Testing Improvement: Add test for config defaults on empty environment [\#835](https://github.com/abhimehro/email-security-pipeline/pull/835) ([abhimehro](https://github.com/abhimehro))
-- 🧹 Refactor concurrent.futures import to optimize ThreadPoolExecutor instantiation [\#833](https://github.com/abhimehro/email-security-pipeline/pull/833) ([abhimehro](https://github.com/abhimehro))
-- 🧹 Refactor \_analyze\_email to reduce complexity [\#832](https://github.com/abhimehro/email-security-pipeline/pull/832) ([abhimehro](https://github.com/abhimehro))
-- 🧪 test: add test for setup wizard replacing secret [\#826](https://github.com/abhimehro/email-security-pipeline/pull/826) ([abhimehro](https://github.com/abhimehro))
-- 🧹 code health: Remove unused security constants from email\_ingestion.py [\#823](https://github.com/abhimehro/email-security-pipeline/pull/823) ([abhimehro](https://github.com/abhimehro))
-- 🧹 Refactor \_analyze\_email to reduce complexity [\#820](https://github.com/abhimehro/email-security-pipeline/pull/820) ([abhimehro](https://github.com/abhimehro))
-- feat: pin Hugging Face model revision for NLP analysis [\#819](https://github.com/abhimehro/email-security-pipeline/pull/819) ([abhimehro](https://github.com/abhimehro))
-- 🧪 Testing Improvement: Add dedicated test cases for empty string sanitization [\#818](https://github.com/abhimehro/email-security-pipeline/pull/818) ([abhimehro](https://github.com/abhimehro))
-- 🧹 Cleanup: Remove unused MAX\_MIME\_PARTS from email\_ingestion.py [\#817](https://github.com/abhimehro/email-security-pipeline/pull/817) ([abhimehro](https://github.com/abhimehro))
-- ci: fix placeholder in agentics maintenance workflow [\#811](https://github.com/abhimehro/email-security-pipeline/pull/811) ([abhimehro](https://github.com/abhimehro))
-- ⚡ Bolt: Use time.monotonic\(\) for TTLCache [\#800](https://github.com/abhimehro/email-security-pipeline/pull/800) ([abhimehro](https://github.com/abhimehro))
-- 🛡️ Sentinel: Fix password logging in setup wizard and refactor complex method [\#799](https://github.com/abhimehro/email-security-pipeline/pull/799) ([abhimehro](https://github.com/abhimehro))
-- 🎨 Palette: Improve NO\_COLOR fallback by using Colors.colorize consistently [\#796](https://github.com/abhimehro/email-security-pipeline/pull/796) ([abhimehro](https://github.com/abhimehro))
-- ⚡ Bolt: Use time.monotonic\(\) for TTLCache [\#793](https://github.com/abhimehro/email-security-pipeline/pull/793) ([abhimehro](https://github.com/abhimehro))
-- 🎨 Palette: Improve CLI output accessibility for non-TTY environments [\#791](https://github.com/abhimehro/email-security-pipeline/pull/791) ([abhimehro](https://github.com/abhimehro))
-- ⚡ Bolt: Use time.monotonic for faster TTLCache eviction [\#785](https://github.com/abhimehro/email-security-pipeline/pull/785) ([abhimehro](https://github.com/abhimehro))
-- 🎨 Palette: Refactor ANSI color codes in configuration summary [\#784](https://github.com/abhimehro/email-security-pipeline/pull/784) ([abhimehro](https://github.com/abhimehro))
-- fix\(ci\): prevent shell injection in summary.yml \(salvages \#777\) [\#780](https://github.com/abhimehro/email-security-pipeline/pull/780) ([abhimehro](https://github.com/abhimehro))
-- Fix CodeScene hotspot in `_print_analysis_details` [\#779](https://github.com/abhimehro/email-security-pipeline/pull/779) ([abhimehro](https://github.com/abhimehro))
-- 🎨 Palette: Add missing suspicious URLs display to CLI alerts [\#778](https://github.com/abhimehro/email-security-pipeline/pull/778) ([abhimehro](https://github.com/abhimehro))
-- ⚡ Bolt: optimize video frame extraction with hybrid sampling [\#770](https://github.com/abhimehro/email-security-pipeline/pull/770) ([abhimehro](https://github.com/abhimehro))
-- 🎨 Palette: Improve clarity of configuration empty states [\#768](https://github.com/abhimehro/email-security-pipeline/pull/768) ([abhimehro](https://github.com/abhimehro))
-- Add GitHub Actions workflow testing skill [\#762](https://github.com/abhimehro/email-security-pipeline/pull/762) ([abhimehro](https://github.com/abhimehro))
-- ci: pass changelog token via environment [\#761](https://github.com/abhimehro/email-security-pipeline/pull/761) ([abhimehro](https://github.com/abhimehro))
-- ⚡ Bolt: Add global URL cache to SpamAnalyzer [\#759](https://github.com/abhimehro/email-security-pipeline/pull/759) ([abhimehro](https://github.com/abhimehro))
-- 🛡️ Sentinel: \[MEDIUM\] Enforce explicit TLS verification in webhook alerts [\#758](https://github.com/abhimehro/email-security-pipeline/pull/758) ([abhimehro](https://github.com/abhimehro))
-- Fix O\_NOFOLLOW in app\_runner [\#751](https://github.com/abhimehro/email-security-pipeline/pull/751) ([abhimehro](https://github.com/abhimehro))
-- 🧪 Jules Daily QA: Fix test\_setup\_wizard mock\_os\_open assertion [\#749](https://github.com/abhimehro/email-security-pipeline/pull/749) ([abhimehro](https://github.com/abhimehro))
-- Fix formatting issues \(Jules Daily QA\) [\#728](https://github.com/abhimehro/email-security-pipeline/pull/728) ([abhimehro](https://github.com/abhimehro))
-- autofix\(\): PR 0 \(cycle 1\) -- fix black formatting in main.py, test\_caching.py, and test\_setup\_wizard.py [\#727](https://github.com/abhimehro/email-security-pipeline/pull/727) ([abhimehro](https://github.com/abhimehro))
-- docs: record development environment setup [\#725](https://github.com/abhimehro/email-security-pipeline/pull/725) ([abhimehro](https://github.com/abhimehro))
-- Sentinel fix symlink attacks 1790347126622582166 [\#724](https://github.com/abhimehro/email-security-pipeline/pull/724) ([abhimehro](https://github.com/abhimehro))
-- fix\(media\_analyzer\): revert PR \#693 \(corrupted JSON-encoded blob\) — unblocks pytest on main [\#723](https://github.com/abhimehro/email-security-pipeline/pull/723) ([abhimehro](https://github.com/abhimehro))
-- 🛡️ Sentinel: \[Critical\] Handle missing filenames to prevent analysis bypass [\#721](https://github.com/abhimehro/email-security-pipeline/pull/721) ([abhimehro](https://github.com/abhimehro))
-- 🧹 Code health: Refactor imports and fix lint issues in src/main.py [\#720](https://github.com/abhimehro/email-security-pipeline/pull/720) ([abhimehro](https://github.com/abhimehro))
-- 🔒 \[security fix\] Hardened configuration file permissions and TOCTOU protection [\#719](https://github.com/abhimehro/email-security-pipeline/pull/719) ([abhimehro](https://github.com/abhimehro))
-- 🧪 Test cache eviction logic in caching.py [\#718](https://github.com/abhimehro/email-security-pipeline/pull/718) ([abhimehro](https://github.com/abhimehro))
-- 🎨 Palette: Add explicit empty state for unconfigured accounts [\#717](https://github.com/abhimehro/email-security-pipeline/pull/717) ([abhimehro](https://github.com/abhimehro))
-- 🛡️ Sentinel: \[MEDIUM\] Add O\_NOFOLLOW to prevent symlink attacks [\#715](https://github.com/abhimehro/email-security-pipeline/pull/715) ([abhimehro](https://github.com/abhimehro))
-- 🎨 Palette: Add explicit progress bounds to email processing logs [\#713](https://github.com/abhimehro/email-security-pipeline/pull/713) ([abhimehro](https://github.com/abhimehro))
-- style: fix formatting in alert\_system.py \(Daily QA\) [\#710](https://github.com/abhimehro/email-security-pipeline/pull/710) ([abhimehro](https://github.com/abhimehro))
-- ⚡ Bolt: Replace Counter with defaultdict\(int\) for faster metric tracking [\#708](https://github.com/abhimehro/email-security-pipeline/pull/708) ([abhimehro](https://github.com/abhimehro))
-- style: fix formatting in alert\_system.py [\#705](https://github.com/abhimehro/email-security-pipeline/pull/705) ([abhimehro](https://github.com/abhimehro))
-- 🎨 Palette: Ensure textual statuses in CLI output use consistent semantic colors and indicators [\#687](https://github.com/abhimehro/email-security-pipeline/pull/687) ([abhimehro](https://github.com/abhimehro))
-- 🛡️ Sentinel: \[CRITICAL\] Fix insecure deserialization in Hugging Face models [\#674](https://github.com/abhimehro/email-security-pipeline/pull/674) ([abhimehro](https://github.com/abhimehro))
-- 🎨 Palette: Add explicit bounds to batch processing logs [\#666](https://github.com/abhimehro/email-security-pipeline/pull/666) ([abhimehro](https://github.com/abhimehro))
-- chore\(actions\): consolidate workflow automation [\#664](https://github.com/abhimehro/email-security-pipeline/pull/664) ([abhimehro](https://github.com/abhimehro))
-- 🎨 Palette: Improve CLI configuration summary with semantic emojis [\#662](https://github.com/abhimehro/email-security-pipeline/pull/662) ([abhimehro](https://github.com/abhimehro))
-- chore: fix formatting in src/main.py [\#659](https://github.com/abhimehro/email-security-pipeline/pull/659) ([abhimehro](https://github.com/abhimehro))
-- ⚡ Bolt: Optimize Unicode sanitization in alert system [\#658](https://github.com/abhimehro/email-security-pipeline/pull/658) ([abhimehro](https://github.com/abhimehro))
-- 🛡️ Sentinel: \[Low\] Fix B101 assert vulnerability [\#657](https://github.com/abhimehro/email-security-pipeline/pull/657) ([abhimehro](https://github.com/abhimehro))
-- Bump transformers from 4.53.0 to 5.0.0rc3 in the pip group across 1 directory [\#651](https://github.com/abhimehro/email-security-pipeline/pull/651) ([dependabot[bot]](https://github.com/apps/dependabot))
-- ⚡ Bolt: \[performance improvement\] Avoid np.mean overhead for small lists and arrays [\#647](https://github.com/abhimehro/email-security-pipeline/pull/647) ([abhimehro](https://github.com/abhimehro))
-- chore\(actions\): consolidate workflow automation [\#644](https://github.com/abhimehro/email-security-pipeline/pull/644) ([abhimehro](https://github.com/abhimehro))
-- 🛡️ Sentinel: \[MEDIUM\] Fix cross-platform file permission handling [\#643](https://github.com/abhimehro/email-security-pipeline/pull/643) ([abhimehro](https://github.com/abhimehro))
-- ⚡ Bolt: \[performance improvement\] Optimize character filtering in sanitization [\#642](https://github.com/abhimehro/email-security-pipeline/pull/642) ([abhimehro](https://github.com/abhimehro))
-- 🛡️ Sentinel: \[CRITICAL\] Fix MITM Vulnerability by Enforcing SSL Verification [\#640](https://github.com/abhimehro/email-security-pipeline/pull/640) ([abhimehro](https://github.com/abhimehro))
-- 🎨 Palette: Add visual symbols to configuration statuses [\#639](https://github.com/abhimehro/email-security-pipeline/pull/639) ([abhimehro](https://github.com/abhimehro))
-- chore\(actions\): consolidate workflow automation [\#632](https://github.com/abhimehro/email-security-pipeline/pull/632) ([abhimehro](https://github.com/abhimehro))
-- 🛡️ Sentinel: \[MEDIUM\] Fix cross-platform file permission handling [\#630](https://github.com/abhimehro/email-security-pipeline/pull/630) ([abhimehro](https://github.com/abhimehro))
-- chore: update AGENTS.md with corrected test count and dev setup fixes [\#629](https://github.com/abhimehro/email-security-pipeline/pull/629) ([abhimehro](https://github.com/abhimehro))
-- 🎨 Palette: Pad log levels for vertical alignment [\#628](https://github.com/abhimehro/email-security-pipeline/pull/628) ([abhimehro](https://github.com/abhimehro))
-- ⚡ Bolt: \[performance improvement\] fast-path ANSI code stripping [\#624](https://github.com/abhimehro/email-security-pipeline/pull/624) ([abhimehro](https://github.com/abhimehro))
-- 🎨 Palette: Actionable Commands in Terminal Errors [\#623](https://github.com/abhimehro/email-security-pipeline/pull/623) ([abhimehro](https://github.com/abhimehro))
-- style: fix trailing whitespace in docker-compose.yml [\#620](https://github.com/abhimehro/email-security-pipeline/pull/620) ([abhimehro](https://github.com/abhimehro))
-- ⚡ Bolt: Optimize facial blurriness detection using cv2.meanStdDev [\#617](https://github.com/abhimehro/email-security-pipeline/pull/617) ([abhimehro](https://github.com/abhimehro))
-- 🎨 Palette: Add progress indicator to CLI setup wizard [\#616](https://github.com/abhimehro/email-security-pipeline/pull/616) ([abhimehro](https://github.com/abhimehro))
-- ⚡ Bolt: \[Performance\] Add fast path for spam keyword evaluation [\#614](https://github.com/abhimehro/email-security-pipeline/pull/614) ([abhimehro](https://github.com/abhimehro))
-- 🎨 Palette: Improve CLI onboarding and cancellation UX [\#610](https://github.com/abhimehro/email-security-pipeline/pull/610) ([abhimehro](https://github.com/abhimehro))
-- Automated Daily QA Review [\#606](https://github.com/abhimehro/email-security-pipeline/pull/606) ([abhimehro](https://github.com/abhimehro))
-- ⚡ Bolt: Optimize email header parsing by bypassing unnecessary decoding [\#604](https://github.com/abhimehro/email-security-pipeline/pull/604) ([abhimehro](https://github.com/abhimehro))
-- 🎨 Palette: Add required field indicators to setup wizard [\#602](https://github.com/abhimehro/email-security-pipeline/pull/602) ([abhimehro](https://github.com/abhimehro))
-- 🛡️ Sentinel: \[CRITICAL\] Fix malware bypass in attachment parsing [\#597](https://github.com/abhimehro/email-security-pipeline/pull/597) ([abhimehro](https://github.com/abhimehro))
-- 🎨 Palette: Improve CLI screen reader accessibility for loading states [\#596](https://github.com/abhimehro/email-security-pipeline/pull/596) ([abhimehro](https://github.com/abhimehro))
-- ⚡ Bolt: Optimize file signature detection in media analyzer [\#592](https://github.com/abhimehro/email-security-pipeline/pull/592) ([abhimehro](https://github.com/abhimehro))
-- 🎨 Palette: No UX enhancements identified [\#590](https://github.com/abhimehro/email-security-pipeline/pull/590) ([abhimehro](https://github.com/abhimehro))
-- Fix pre-commit configuration errors [\#587](https://github.com/abhimehro/email-security-pipeline/pull/587) ([abhimehro](https://github.com/abhimehro))
-- 🎨 Palette: Add elapsed time to long-running CLI spinners [\#584](https://github.com/abhimehro/email-security-pipeline/pull/584) ([abhimehro](https://github.com/abhimehro))
-- Daily QA Agentic Review [\#581](https://github.com/abhimehro/email-security-pipeline/pull/581) ([abhimehro](https://github.com/abhimehro))
-- chore: Daily QA Review - No issues found [\#580](https://github.com/abhimehro/email-security-pipeline/pull/580) ([abhimehro](https://github.com/abhimehro))
-- fix\(nlp\): pin revision for Hugging Face model downloads \(Bandit B615\) [\#579](https://github.com/abhimehro/email-security-pipeline/pull/579) ([abhimehro](https://github.com/abhimehro))
-- ⚡ Bolt: Optimize short-circuit evaluation in string sanitization [\#578](https://github.com/abhimehro/email-security-pipeline/pull/578) ([abhimehro](https://github.com/abhimehro))
-- 🛡️ Sentinel: \[HIGH\] Fix TOCTOU vulnerability in configuration file creation [\#576](https://github.com/abhimehro/email-security-pipeline/pull/576) ([abhimehro](https://github.com/abhimehro))
-- 🎨 Palette: Explicit positive reinforcement for clean threat reports [\#575](https://github.com/abhimehro/email-security-pipeline/pull/575) ([abhimehro](https://github.com/abhimehro))
-- chore\(ci\): update github actions to latest stable versions [\#571](https://github.com/abhimehro/email-security-pipeline/pull/571) ([abhimehro](https://github.com/abhimehro))
-- 🎨 Palette: Add visual indicator to interactive CLI prompts [\#570](https://github.com/abhimehro/email-security-pipeline/pull/570) ([abhimehro](https://github.com/abhimehro))
-- ⚡ Bolt: Optimize SpamAnalyzer header parsing by hoisting inner helper function [\#567](https://github.com/abhimehro/email-security-pipeline/pull/567) ([abhimehro](https://github.com/abhimehro))
-- 🎨 Palette: Improve CountdownTimer Cancellation UX [\#566](https://github.com/abhimehro/email-security-pipeline/pull/566) ([abhimehro](https://github.com/abhimehro))
-- chore\(actions\): consolidate workflow automation [\#565](https://github.com/abhimehro/email-security-pipeline/pull/565) ([abhimehro](https://github.com/abhimehro))
-- fix\(actions\): stabilize email daily quality assurance [\#563](https://github.com/abhimehro/email-security-pipeline/pull/563) ([abhimehro](https://github.com/abhimehro))
-- fix\(actions\): restore automation workflow permissions and archive stale agentic artifacts [\#560](https://github.com/abhimehro/email-security-pipeline/pull/560) ([abhimehro](https://github.com/abhimehro))
-- 🎨 Palette: Consistent Input Prompt Styling [\#559](https://github.com/abhimehro/email-security-pipeline/pull/559) ([abhimehro](https://github.com/abhimehro))
-- ⚡ Bolt: Optimize `sanitize_text` and `sanitize_for_logging` with List Comprehension [\#558](https://github.com/abhimehro/email-security-pipeline/pull/558) ([abhimehro](https://github.com/abhimehro))
-- chore\(actions\): sync automation polish [\#557](https://github.com/abhimehro/email-security-pipeline/pull/557) ([abhimehro](https://github.com/abhimehro))
-- chore\(actions\): consolidate repository automation [\#556](https://github.com/abhimehro/email-security-pipeline/pull/556) ([abhimehro](https://github.com/abhimehro))
-- 🎨 Palette: Improve Spinner Failure Feedback [\#555](https://github.com/abhimehro/email-security-pipeline/pull/555) ([abhimehro](https://github.com/abhimehro))
-- ⚡ Bolt: Optimize sender display name extraction [\#554](https://github.com/abhimehro/email-security-pipeline/pull/554) ([abhimehro](https://github.com/abhimehro))
-- chore\(ux\): no suitable UX enhancement identified [\#553](https://github.com/abhimehro/email-security-pipeline/pull/553) ([abhimehro](https://github.com/abhimehro))
-- 🎨 Palette: Add specific troubleshooting tip for Outlook connection failures [\#552](https://github.com/abhimehro/email-security-pipeline/pull/552) ([abhimehro](https://github.com/abhimehro))
-- 🎨 Palette: Graceful KeyboardInterrupt handling during config setup [\#551](https://github.com/abhimehro/email-security-pipeline/pull/551) ([abhimehro](https://github.com/abhimehro))
-- ⚡ Bolt: Optimize substring checks by replacing any\(\) generator with compiled regex [\#550](https://github.com/abhimehro/email-security-pipeline/pull/550) ([abhimehro](https://github.com/abhimehro))
-- 🎨 Palette: Graceful spinner cancellation on KeyboardInterrupt [\#549](https://github.com/abhimehro/email-security-pipeline/pull/549) ([abhimehro](https://github.com/abhimehro))
-- ⚡ Bolt: Optimize SENSITIVE\_FIELDS check in JSONFormatter [\#548](https://github.com/abhimehro/email-security-pipeline/pull/548) ([abhimehro](https://github.com/abhimehro))
-- 🎨 Palette: Add visual feedback for graceful shutdown [\#547](https://github.com/abhimehro/email-security-pipeline/pull/547) ([abhimehro](https://github.com/abhimehro))
-- ⚡ Bolt: Optimize sender checking in SpamAnalyzer [\#546](https://github.com/abhimehro/email-security-pipeline/pull/546) ([abhimehro](https://github.com/abhimehro))
-- Palette 🎨: Add graceful KeyboardInterrupt handling to setup wizard [\#544](https://github.com/abhimehro/email-security-pipeline/pull/544) ([abhimehro](https://github.com/abhimehro))
-- Add regression coverage for alert recommendation regex initialization [\#543](https://github.com/abhimehro/email-security-pipeline/pull/543) ([Copilot](https://github.com/apps/copilot-swe-agent))
-- ⚡ Bolt: Optimize string recommendation checks [\#542](https://github.com/abhimehro/email-security-pipeline/pull/542) ([abhimehro](https://github.com/abhimehro))
-- 🎨 Palette: Colorize spinner success/failure symbols [\#541](https://github.com/abhimehro/email-security-pipeline/pull/541) ([abhimehro](https://github.com/abhimehro))
-- 🎨 Palette: Add explicit "No issues detected" feedback to clean alerts [\#540](https://github.com/abhimehro/email-security-pipeline/pull/540) ([abhimehro](https://github.com/abhimehro))
-- ⚡ Bolt: Optimize `_validate_signature_match` in Media Analyzer [\#539](https://github.com/abhimehro/email-security-pipeline/pull/539) ([abhimehro](https://github.com/abhimehro))
-- Add direct unit tests for `_inspect_archive_member` scoring branches [\#538](https://github.com/abhimehro/email-security-pipeline/pull/538) ([Copilot](https://github.com/apps/copilot-swe-agent))
-- Add direct unit tests for EmailParser body size limiting methods [\#536](https://github.com/abhimehro/email-security-pipeline/pull/536) ([Copilot](https://github.com/apps/copilot-swe-agent))
-- ⚡ Bolt: Optimize sender domain check in SpamAnalyzer [\#530](https://github.com/abhimehro/email-security-pipeline/pull/530) ([abhimehro](https://github.com/abhimehro))
-- Daily Backlog Burner: Add unit tests for IMAPConnection.\_parse\_email\_payload\(\) \(closes \#528\) [\#529](https://github.com/abhimehro/email-security-pipeline/pull/529) ([github-actions[bot]](https://github.com/apps/github-actions))
-- chore: remove stale development artifact files from repo root [\#519](https://github.com/abhimehro/email-security-pipeline/pull/519) ([Copilot](https://github.com/apps/copilot-swe-agent))
-- Add unit tests for CountdownTimer \(start, stop, wait\) in test\_ui\_countdown.py [\#518](https://github.com/abhimehro/email-security-pipeline/pull/518) ([Copilot](https://github.com/apps/copilot-swe-agent))
-- Add direct unit tests for security\_validators DoS-prevention functions [\#517](https://github.com/abhimehro/email-security-pipeline/pull/517) ([Copilot](https://github.com/apps/copilot-swe-agent))
-- 🎨 Palette: Hide terminal cursor during CLI animations for smoother UX [\#514](https://github.com/abhimehro/email-security-pipeline/pull/514) ([abhimehro](https://github.com/abhimehro))
-- ⚡ Bolt: Pre-compile URL extraction regex in AlertSystem [\#506](https://github.com/abhimehro/email-security-pipeline/pull/506) ([abhimehro](https://github.com/abhimehro))
-- Daily Backlog Burner: Add unit tests for CountdownTimer \(closes \#504\) [\#505](https://github.com/abhimehro/email-security-pipeline/pull/505) ([github-actions[bot]](https://github.com/apps/github-actions))
-- Add unit tests for NLPThreatAnalyzer.\_scan\_text\_patterns\(\) [\#497](https://github.com/abhimehro/email-security-pipeline/pull/497) ([Copilot](https://github.com/apps/copilot-swe-agent))
-- Implement `_should_use_ml_model()` to respect `NLP_ENABLE_ML` config [\#496](https://github.com/abhimehro/email-security-pipeline/pull/496) ([Copilot](https://github.com/apps/copilot-swe-agent))
-- 🎨 Palette: Add positive reinforcement to clean alert reports [\#490](https://github.com/abhimehro/email-security-pipeline/pull/490) ([abhimehro](https://github.com/abhimehro))
-- Daily Backlog Burner: Add unit tests for AlertSystem.\_on\_enqueue\_done callback \(closes \#488\) [\#489](https://github.com/abhimehro/email-security-pipeline/pull/489) ([github-actions[bot]](https://github.com/apps/github-actions))
-- test: Add direct unit tests for AlertSystem.\_generate\_recommendations branch logic [\#487](https://github.com/abhimehro/email-security-pipeline/pull/487) ([Copilot](https://github.com/apps/copilot-swe-agent))
-- feat: Parallel account ingestion via ThreadPoolExecutor \(3x throughput\) [\#486](https://github.com/abhimehro/email-security-pipeline/pull/486) ([Copilot](https://github.com/apps/copilot-swe-agent))
-- Implement async alert dispatch to prevent webhook blocking [\#485](https://github.com/abhimehro/email-security-pipeline/pull/485) ([Copilot](https://github.com/apps/copilot-swe-agent))
-- Add test\_email\_data.py: comprehensive unit tests for EmailData dataclass [\#484](https://github.com/abhimehro/email-security-pipeline/pull/484) ([Copilot](https://github.com/apps/copilot-swe-agent))
-- fix: convert SPAM\_KEYWORDS capturing groups to non-capturing \(closes \#477\) [\#479](https://github.com/abhimehro/email-security-pipeline/pull/479) ([github-actions[bot]](https://github.com/apps/github-actions))
-- 🎨 Palette: Add Ctrl+C hint to CountdownTimer [\#478](https://github.com/abhimehro/email-security-pipeline/pull/478) ([abhimehro](https://github.com/abhimehro))
-- ⚡ Bolt: Optimize simple regex occurrence counting [\#474](https://github.com/abhimehro/email-security-pipeline/pull/474) ([abhimehro](https://github.com/abhimehro))
-- Daily Backlog Burner: Add unit tests for NLPThreatAnalyzer.\_run\_transformer\_analysis \(closes \#472\) [\#473](https://github.com/abhimehro/email-security-pipeline/pull/473) ([github-actions[bot]](https://github.com/apps/github-actions))
-- 🛡️ Sentinel: \[HIGH\] Fix SSRF bypass in webhooks [\#468](https://github.com/abhimehro/email-security-pipeline/pull/468) ([abhimehro](https://github.com/abhimehro))
-- test: add unit tests for NLPThreatAnalyzer social engineering and authority impersonation detection [\#467](https://github.com/abhimehro/email-security-pipeline/pull/467) ([Copilot](https://github.com/apps/copilot-swe-agent))
-- test: Add direct unit tests for SpamAnalyzer.\_analyze\_subject and \_calculate\_risk\_level [\#466](https://github.com/abhimehro/email-security-pipeline/pull/466) ([Copilot](https://github.com/apps/copilot-swe-agent))
-- ⚡ Bolt: Optimize Regex Counting using findall\(\) [\#460](https://github.com/abhimehro/email-security-pipeline/pull/460) ([abhimehro](https://github.com/abhimehro))
-- Daily Backlog Burner: Add unit tests for EmailIngestionManager multi-account orchestration [\#459](https://github.com/abhimehro/email-security-pipeline/pull/459) ([github-actions[bot]](https://github.com/apps/github-actions))
-- docs: add CONTRIBUTING.md and PR template [\#452](https://github.com/abhimehro/email-security-pipeline/pull/452) ([Copilot](https://github.com/apps/copilot-swe-agent))
-- test: Add unit tests for AlertSystem console rendering helpers [\#447](https://github.com/abhimehro/email-security-pipeline/pull/447) ([Copilot](https://github.com/apps/copilot-swe-agent))
-- Add unit tests for ColoredFormatter in logging\_utils.py [\#446](https://github.com/abhimehro/email-security-pipeline/pull/446) ([Copilot](https://github.com/apps/copilot-swe-agent))
-- Daily Backlog Burner: Add unit tests for ColoredFormatter in logging\_utils [\#440](https://github.com/abhimehro/email-security-pipeline/pull/440) ([github-actions[bot]](https://github.com/apps/github-actions))
-- Remove backward-compatibility wrapper methods from IMAPClient [\#439](https://github.com/abhimehro/email-security-pipeline/pull/439) ([Copilot](https://github.com/apps/copilot-swe-agent))
-- refactor: move `_generate_recommendations` into `AlertSystem` as `@staticmethod` [\#435](https://github.com/abhimehro/email-security-pipeline/pull/435) ([Copilot](https://github.com/apps/copilot-swe-agent))
-- 🛡️ Sentinel: \[HIGH\] Fix Server-Side Request Forgery in webhook URLs [\#434](https://github.com/abhimehro/email-security-pipeline/pull/434) ([abhimehro](https://github.com/abhimehro))
-- Add unit tests for IMAPConnection and IMAPDiagnostics [\#430](https://github.com/abhimehro/email-security-pipeline/pull/430) ([Copilot](https://github.com/apps/copilot-swe-agent))
-- fix: import EmailData directly from email\_data in all analyzer modules [\#424](https://github.com/abhimehro/email-security-pipeline/pull/424) ([github-actions[bot]](https://github.com/apps/github-actions))
-- ⚡ Bolt: Optimize file extension checking loops [\#420](https://github.com/abhimehro/email-security-pipeline/pull/420) ([abhimehro](https://github.com/abhimehro))
-- Daily Backlog Burner: Replace magic numbers with named class constants [\#418](https://github.com/abhimehro/email-security-pipeline/pull/418) ([github-actions[bot]](https://github.com/apps/github-actions))
-- 🧹 \[Code Health\] Refactor \_fetch\_batch for improved readability and maintainability [\#416](https://github.com/abhimehro/email-security-pipeline/pull/416) ([abhimehro](https://github.com/abhimehro))
-- 🧹 Code Health Improvement: Refactor \_check\_content\_type\_mismatch [\#415](https://github.com/abhimehro/email-security-pipeline/pull/415) ([abhimehro](https://github.com/abhimehro))
-- 🛡️ Sentinel: \[MEDIUM\] Fix timezone-naive datetime fallback in email parser [\#414](https://github.com/abhimehro/email-security-pipeline/pull/414) ([abhimehro](https://github.com/abhimehro))
-- 🧹 Code Health: Refactor `main()` to reduce nesting depth [\#412](https://github.com/abhimehro/email-security-pipeline/pull/412) ([abhimehro](https://github.com/abhimehro))
-- 🧪 Add test coverage for Spinner custom success/failure messages in non-TTY environments [\#411](https://github.com/abhimehro/email-security-pipeline/pull/411) ([abhimehro](https://github.com/abhimehro))
-- fix\(alert\_system\): add missing terminal formatting helper methods [\#409](https://github.com/abhimehro/email-security-pipeline/pull/409) ([abhimehro](https://github.com/abhimehro))
-- ⚡ Bolt: Optimize Numpy Mean Calculation with cv2.mean in MediaAnalyzer [\#408](https://github.com/abhimehro/email-security-pipeline/pull/408) ([abhimehro](https://github.com/abhimehro))
-- 🛡️ Sentinel: \[HIGH\] Fix Path Traversal & Log Spoofing in Archive Extraction [\#407](https://github.com/abhimehro/email-security-pipeline/pull/407) ([abhimehro](https://github.com/abhimehro))
-- 🎨 Palette: Add CYAN color to CLI Spinner [\#406](https://github.com/abhimehro/email-security-pipeline/pull/406) ([abhimehro](https://github.com/abhimehro))
-- ⚡ Bolt: Optimize Spam Analyzer Regex [\#405](https://github.com/abhimehro/email-security-pipeline/pull/405) ([abhimehro](https://github.com/abhimehro))
-- 🛡️ Sentinel: \[MEDIUM\] Fix credentials leakage in URLs [\#404](https://github.com/abhimehro/email-security-pipeline/pull/404) ([abhimehro](https://github.com/abhimehro))
-- 🎨 Palette: Improved Console Alert Readability [\#403](https://github.com/abhimehro/email-security-pipeline/pull/403) ([abhimehro](https://github.com/abhimehro))
-- Development environment setup [\#402](https://github.com/abhimehro/email-security-pipeline/pull/402) ([abhimehro](https://github.com/abhimehro))
-- 🎨 Palette: Smart Spinner with dynamic status messages [\#399](https://github.com/abhimehro/email-security-pipeline/pull/399) ([abhimehro](https://github.com/abhimehro))
-- 🛡️ Sentinel: \[HIGH\] Fix DoS vulnerability in metrics collection [\#397](https://github.com/abhimehro/email-security-pipeline/pull/397) ([abhimehro](https://github.com/abhimehro))
-- Add credential verification to setup wizard [\#396](https://github.com/abhimehro/email-security-pipeline/pull/396) ([abhimehro](https://github.com/abhimehro))
-- 🎨 Palette: Enhanced Slack Alerts with Detailed Threat Breakdown [\#387](https://github.com/abhimehro/email-security-pipeline/pull/387) ([abhimehro](https://github.com/abhimehro))
-- feat\(security\): add recursive tar archive inspection [\#385](https://github.com/abhimehro/email-security-pipeline/pull/385) ([abhimehro](https://github.com/abhimehro))
-- Replace silent bare exception handlers with specific logging in email\_parser [\#380](https://github.com/abhimehro/email-security-pipeline/pull/380) ([Copilot](https://github.com/apps/copilot-swe-agent))
-- fix: use endswith\(\) for suspicious extension check, matching dangerous extension pattern [\#378](https://github.com/abhimehro/email-security-pipeline/pull/378) ([Copilot](https://github.com/apps/copilot-swe-agent))
-- Add comprehensive unit tests for email\_parser module [\#375](https://github.com/abhimehro/email-security-pipeline/pull/375) ([Copilot](https://github.com/apps/copilot-swe-agent))
-- \[Code Quality\] Fix static analysis issues: undefined name, unused imports, dead code, f-strings, indentation [\#374](https://github.com/abhimehro/email-security-pipeline/pull/374) ([Copilot](https://github.com/apps/copilot-swe-agent))
-- Extract duplicate regex pattern compilation into shared utility [\#369](https://github.com/abhimehro/email-security-pipeline/pull/369) ([Copilot](https://github.com/apps/copilot-swe-agent))
-- Add TTL and size limits to NLP analyzer cache [\#368](https://github.com/abhimehro/email-security-pipeline/pull/368) ([Copilot](https://github.com/apps/copilot-swe-agent))
-- Fix broken symlinks and update documentation commands [\#367](https://github.com/abhimehro/email-security-pipeline/pull/367) ([Copilot](https://github.com/apps/copilot-swe-agent))
-- Fix docker compose command deprecation issues in documentation [\#366](https://github.com/abhimehro/email-security-pipeline/pull/366) ([Copilot](https://github.com/apps/copilot-swe-agent))
-- 🎨 Palette: Add email validation to setup wizard [\#365](https://github.com/abhimehro/email-security-pipeline/pull/365) ([abhimehro](https://github.com/abhimehro))
-- ⚡ Bolt: Optimize facial analysis frame sampling [\#356](https://github.com/abhimehro/email-security-pipeline/pull/356) ([abhimehro](https://github.com/abhimehro))
-- Daily Backlog Burner: Fix ThreadPoolExecutor resource leak in media\_analyzer [\#351](https://github.com/abhimehro/email-security-pipeline/pull/351) ([github-actions[bot]](https://github.com/apps/github-actions))
-- 🛡️ Sentinel: Fix Zip Bomb vulnerability in Media Analyzer [\#350](https://github.com/abhimehro/email-security-pipeline/pull/350) ([abhimehro](https://github.com/abhimehro))
-- Refactor: Centralize SSL context configuration in IMAP connection [\#334](https://github.com/abhimehro/email-security-pipeline/pull/334) ([Copilot](https://github.com/apps/copilot-swe-agent))
-- feat\(ui\): Make console alerts responsive to terminal width [\#333](https://github.com/abhimehro/email-security-pipeline/pull/333) ([abhimehro](https://github.com/abhimehro))
-- Fix syntax error in sanitization.py [\#327](https://github.com/abhimehro/email-security-pipeline/pull/327) ([github-actions[bot]](https://github.com/apps/github-actions))
-- ⚡ Bolt: Optimize video frame extraction and fix sanitization syntax error [\#323](https://github.com/abhimehro/email-security-pipeline/pull/323) ([abhimehro](https://github.com/abhimehro))
-- Daily Backlog Burner: Add pre-commit hooks for code quality enforcement [\#317](https://github.com/abhimehro/email-security-pipeline/pull/317) ([github-actions[bot]](https://github.com/apps/github-actions))
-- 🛡️ Sentinel: \[HIGH\] Enhance media analyzer with missing dangerous extensions & nested zip check [\#316](https://github.com/abhimehro/email-security-pipeline/pull/316) ([abhimehro](https://github.com/abhimehro))
-- 🎨 Palette: Enhance console alert visualization [\#302](https://github.com/abhimehro/email-security-pipeline/pull/302) ([abhimehro](https://github.com/abhimehro))
-- Fix duplicate dependencies in requirements.txt [\#295](https://github.com/abhimehro/email-security-pipeline/pull/295) ([github-actions[bot]](https://github.com/apps/github-actions))
-- ⚡ Bolt: Optimize video frame extraction and fix syntax error [\#293](https://github.com/abhimehro/email-security-pipeline/pull/293) ([abhimehro](https://github.com/abhimehro))
-- 🛡️ Sentinel: \[HIGH\] Enhance media security \(new extensions + nested zip\) [\#287](https://github.com/abhimehro/email-security-pipeline/pull/287) ([abhimehro](https://github.com/abhimehro))
-- Daily Backlog Burner: Fix ThreadPoolExecutor resource leak in pipeline shutdown [\#286](https://github.com/abhimehro/email-security-pipeline/pull/286) ([github-actions[bot]](https://github.com/apps/github-actions))
-- Optimize alert dispatch with async HTTP delivery [\#282](https://github.com/abhimehro/email-security-pipeline/pull/282) ([github-actions[bot]](https://github.com/apps/github-actions))
-- Complete card layout borders and implement text wrapping for console alerts [\#281](https://github.com/abhimehro/email-security-pipeline/pull/281) ([Copilot](https://github.com/apps/copilot-swe-agent))
-- 🎨 Palette: Enhance console alert visualization with card layout [\#275](https://github.com/abhimehro/email-security-pipeline/pull/275) ([abhimehro](https://github.com/abhimehro))
-- ⚡ Bolt: Optimize SpamAnalyzer URL checking [\#263](https://github.com/abhimehro/email-security-pipeline/pull/263) ([abhimehro](https://github.com/abhimehro))
-- 🛡️ Sentinel: \[HIGH\] Redact PII \(email addresses\) in logs [\#257](https://github.com/abhimehro/email-security-pipeline/pull/257) ([abhimehro](https://github.com/abhimehro))
-- Document GitHub Discussions requirement for agentic workflows [\#242](https://github.com/abhimehro/email-security-pipeline/pull/242) ([Copilot](https://github.com/apps/copilot-swe-agent))
-- Fix daily-backlog-burner: use Issues instead of Discussions [\#241](https://github.com/abhimehro/email-security-pipeline/pull/241) ([Copilot](https://github.com/apps/copilot-swe-agent))
-- Fix Daily QA workflow: invalid discussion category "q-a" → "General" [\#240](https://github.com/abhimehro/email-security-pipeline/pull/240) ([Copilot](https://github.com/apps/copilot-swe-agent))
-- 🎨 Palette: Improve Spinner UX with persistence and feedback [\#239](https://github.com/abhimehro/email-security-pipeline/pull/239) ([abhimehro](https://github.com/abhimehro))
-- ⚡ Bolt: Optimize MediaAuthenticityAnalyzer ThreadPool usage [\#226](https://github.com/abhimehro/email-security-pipeline/pull/226) ([abhimehro](https://github.com/abhimehro))
-- 🛡️ Sentinel: \[HIGH\] Fix Unicode spoofing in alert system [\#220](https://github.com/abhimehro/email-security-pipeline/pull/220) ([abhimehro](https://github.com/abhimehro))
-- Add integration and error recovery test coverage \(59 tests\) [\#214](https://github.com/abhimehro/email-security-pipeline/pull/214) ([Copilot](https://github.com/apps/copilot-swe-agent))
-- Refactor email\_ingestion.py into focused modules \(867 → 5 modules\) [\#213](https://github.com/abhimehro/email-security-pipeline/pull/213) ([Copilot](https://github.com/apps/copilot-swe-agent))
-- Add structured logging and metrics collection [\#212](https://github.com/abhimehro/email-security-pipeline/pull/212) ([Copilot](https://github.com/apps/copilot-swe-agent))
-- Fix/align workflows [\#211](https://github.com/abhimehro/email-security-pipeline/pull/211) ([abhimehro](https://github.com/abhimehro))
-- Add agentic workflow discussion-task-miner [\#206](https://github.com/abhimehro/email-security-pipeline/pull/206) ([abhimehro](https://github.com/abhimehro))
-- Add agentic workflow daily-workflow-updater [\#205](https://github.com/abhimehro/email-security-pipeline/pull/205) ([abhimehro](https://github.com/abhimehro))
-- Update SECURITY.md and remove obsolete docker-compose version [\#204](https://github.com/abhimehro/email-security-pipeline/pull/204) ([Copilot](https://github.com/apps/copilot-swe-agent))
-- Backlog Burner Phase 2A: Issue verification and PR \#192 review [\#203](https://github.com/abhimehro/email-security-pipeline/pull/203) ([Copilot](https://github.com/apps/copilot-swe-agent))
-- Add performance engineering infrastructure: build steps action and guides [\#202](https://github.com/abhimehro/email-security-pipeline/pull/202) ([Copilot](https://github.com/apps/copilot-swe-agent))
-- Add agentic workflow plan [\#201](https://github.com/abhimehro/email-security-pipeline/pull/201) ([abhimehro](https://github.com/abhimehro))
-- 🎨 Palette: Add Sender info to Clean Report logs [\#200](https://github.com/abhimehro/email-security-pipeline/pull/200) ([abhimehro](https://github.com/abhimehro))
-- Convert agentic workflows from Discussions to Issues [\#199](https://github.com/abhimehro/email-security-pipeline/pull/199) ([Copilot](https://github.com/apps/copilot-swe-agent))
-- ⚡ Bolt: Optimize media analysis by removing fftshift [\#196](https://github.com/abhimehro/email-security-pipeline/pull/196) ([abhimehro](https://github.com/abhimehro))
-- Redact sensitive URLs from alert error logs [\#195](https://github.com/abhimehro/email-security-pipeline/pull/195) ([abhimehro](https://github.com/abhimehro))
-- 🎨 Palette: Add NO\_COLOR support and auto-disable colors in non-TTY [\#192](https://github.com/abhimehro/email-security-pipeline/pull/192) ([abhimehro](https://github.com/abhimehro))
-- Add agentic workflow audit-workflows [\#189](https://github.com/abhimehro/email-security-pipeline/pull/189) ([abhimehro](https://github.com/abhimehro))
-- Add agentic workflow daily-doc-updater [\#187](https://github.com/abhimehro/email-security-pipeline/pull/187) ([abhimehro](https://github.com/abhimehro))
-- Add agentic workflow pr-fix [\#183](https://github.com/abhimehro/email-security-pipeline/pull/183) ([abhimehro](https://github.com/abhimehro))
-- Add agentic workflow daily-qa [\#182](https://github.com/abhimehro/email-security-pipeline/pull/182) ([abhimehro](https://github.com/abhimehro))
-- Add agentic workflow daily-perf-improver [\#181](https://github.com/abhimehro/email-security-pipeline/pull/181) ([abhimehro](https://github.com/abhimehro))
-- Add agentic workflow daily-backlog-burner [\#180](https://github.com/abhimehro/email-security-pipeline/pull/180) ([abhimehro](https://github.com/abhimehro))
-- Document recent performance optimizations in README [\#179](https://github.com/abhimehro/email-security-pipeline/pull/179) ([Copilot](https://github.com/apps/copilot-swe-agent))
-- Add agentic workflow daily-repo-status [\#177](https://github.com/abhimehro/email-security-pipeline/pull/177) ([abhimehro](https://github.com/abhimehro))
-- ⚡ Bolt: Optimize media analysis performance [\#176](https://github.com/abhimehro/email-security-pipeline/pull/176) ([abhimehro](https://github.com/abhimehro))
-- 🛡️ Sentinel: \[HIGH\] Fix DoS vulnerability via MIME Bomb [\#175](https://github.com/abhimehro/email-security-pipeline/pull/175) ([abhimehro](https://github.com/abhimehro))
-- test: add pytest CI runner [\#174](https://github.com/abhimehro/email-security-pipeline/pull/174) ([abhimehro](https://github.com/abhimehro))
-- ⚡ Bolt: Optimize sanitize\_for\_logging performance [\#172](https://github.com/abhimehro/email-security-pipeline/pull/172) ([abhimehro](https://github.com/abhimehro))
-- 🛡️ Sentinel: Fix CSV Injection via Percent Sign [\#171](https://github.com/abhimehro/email-security-pipeline/pull/171) ([abhimehro](https://github.com/abhimehro))
-- 🎨 Palette: Interactive Setup Wizard [\#170](https://github.com/abhimehro/email-security-pipeline/pull/170) ([abhimehro](https://github.com/abhimehro))
-- ⚡ Bolt: Optimize URL extraction in SpamAnalyzer [\#169](https://github.com/abhimehro/email-security-pipeline/pull/169) ([abhimehro](https://github.com/abhimehro))
-- 🛡️ Sentinel: \[CRITICAL\] Fix file extension check bypass via trailing dots [\#168](https://github.com/abhimehro/email-security-pipeline/pull/168) ([abhimehro](https://github.com/abhimehro))
-- 🎨 Palette: Improve console UX for clean email reports [\#167](https://github.com/abhimehro/email-security-pipeline/pull/167) ([abhimehro](https://github.com/abhimehro))
-- ⚡ Bolt: Optimize Media Analysis Performance [\#166](https://github.com/abhimehro/email-security-pipeline/pull/166) ([abhimehro](https://github.com/abhimehro))
-- ⚡ Bolt: Optimize email body parsing efficiency [\#162](https://github.com/abhimehro/email-security-pipeline/pull/162) ([abhimehro](https://github.com/abhimehro))
-- 🛡️ Sentinel: \[CRITICAL\] Fix media file type validation bypass and DoS risk [\#161](https://github.com/abhimehro/email-security-pipeline/pull/161) ([abhimehro](https://github.com/abhimehro))
-- \[WIP\] Consolidate open pull requests into single update [\#160](https://github.com/abhimehro/email-security-pipeline/pull/160) ([Copilot](https://github.com/apps/copilot-swe-agent))
-- Triage 24 open Jules PRs: merge/close recommendations with conflict analysis [\#159](https://github.com/abhimehro/email-security-pipeline/pull/159) ([Copilot](https://github.com/apps/copilot-swe-agent))
-- Fix YAML unmarshal error: remove non-breaking spaces in copilot-setup-steps.yml [\#158](https://github.com/abhimehro/email-security-pipeline/pull/158) ([Copilot](https://github.com/apps/copilot-swe-agent))
-- Consolidate Jules PRs \#153-\#156 with review fixes; triage 36 open PRs [\#157](https://github.com/abhimehro/email-security-pipeline/pull/157) ([Copilot](https://github.com/apps/copilot-swe-agent))
-- ⚡ Bolt: Parallelize email analysis pipeline [\#152](https://github.com/abhimehro/email-security-pipeline/pull/152) ([abhimehro](https://github.com/abhimehro))
-- 🎨 Palette: Add CLI startup configuration summary [\#151](https://github.com/abhimehro/email-security-pipeline/pull/151) ([abhimehro](https://github.com/abhimehro))
-- 🛡️ Sentinel: \[HIGH\] Fix DoS vulnerability in Deepfake Detection [\#149](https://github.com/abhimehro/email-security-pipeline/pull/149) ([abhimehro](https://github.com/abhimehro))
-- 🎨 Palette: Add summary table to connectivity check script [\#148](https://github.com/abhimehro/email-security-pipeline/pull/148) ([abhimehro](https://github.com/abhimehro))
-- 🛡️ Sentinel: \[HIGH\] Fix archive bypass vulnerability [\#146](https://github.com/abhimehro/email-security-pipeline/pull/146) ([abhimehro](https://github.com/abhimehro))
-- 🎨 Palette: Add CLI loading spinner [\#145](https://github.com/abhimehro/email-security-pipeline/pull/145) ([abhimehro](https://github.com/abhimehro))
-- 🛡️ Sentinel: \[HIGH\] Fix Log Spoofing via BiDi Characters [\#143](https://github.com/abhimehro/email-security-pipeline/pull/143) ([abhimehro](https://github.com/abhimehro))
-- 🎨 Palette: Improve setup script UX with venv support [\#142](https://github.com/abhimehro/email-security-pipeline/pull/142) ([abhimehro](https://github.com/abhimehro))
-- ⚡ Bolt: Optimize deepfake detection loop \(20x speedup\) [\#141](https://github.com/abhimehro/email-security-pipeline/pull/141) ([abhimehro](https://github.com/abhimehro))
-- 🛡️ Sentinel: \[MEDIUM\] Prevent sensitive data caching in NLP analyzer [\#140](https://github.com/abhimehro/email-security-pipeline/pull/140) ([abhimehro](https://github.com/abhimehro))
-- ⚡ Bolt: Optimize \_sanitize\_filename performance [\#138](https://github.com/abhimehro/email-security-pipeline/pull/138) ([abhimehro](https://github.com/abhimehro))
-- Shield: Prevent DoS in media analysis and handle missing dependencies [\#137](https://github.com/abhimehro/email-security-pipeline/pull/137) ([abhimehro](https://github.com/abhimehro))
-- 🎨 Palette: Add actionable error tips for CLI authentication failures [\#136](https://github.com/abhimehro/email-security-pipeline/pull/136) ([abhimehro](https://github.com/abhimehro))
-- 🛡️ Sentinel: \[HIGH\] Fix sensitive webhook exposure in logs [\#134](https://github.com/abhimehro/email-security-pipeline/pull/134) ([abhimehro](https://github.com/abhimehro))
-- 🛡️ Sentinel: \[HIGH\] Fix missing dangerous file extensions [\#128](https://github.com/abhimehro/email-security-pipeline/pull/128) ([abhimehro](https://github.com/abhimehro))
-- ⚡ Bolt: Optimize NLP analyzer text processing [\#126](https://github.com/abhimehro/email-security-pipeline/pull/126) ([abhimehro](https://github.com/abhimehro))
-- 🛡️ Sentinel: \[MEDIUM\] Redact sensitive query parameters in webhook alerts [\#125](https://github.com/abhimehro/email-security-pipeline/pull/125) ([abhimehro](https://github.com/abhimehro))
-- 🎨 Palette: Improve configuration error reporting [\#124](https://github.com/abhimehro/email-security-pipeline/pull/124) ([abhimehro](https://github.com/abhimehro))
-- 🛡️ Sentinel: \[MEDIUM\] Fix DoS risks in logging and IMAP [\#123](https://github.com/abhimehro/email-security-pipeline/pull/123) ([abhimehro](https://github.com/abhimehro))
-- 🎨 Palette: Add clean report for low-risk emails [\#121](https://github.com/abhimehro/email-security-pipeline/pull/121) ([abhimehro](https://github.com/abhimehro))
-- ⚡ Bolt: optimize email filename sanitization [\#120](https://github.com/abhimehro/email-security-pipeline/pull/120) ([abhimehro](https://github.com/abhimehro))
-- 🛡️ Sentinel: \[MEDIUM\] Fix resource leak in media analyzer [\#119](https://github.com/abhimehro/email-security-pipeline/pull/119) ([abhimehro](https://github.com/abhimehro))
-- 🎨 Palette: Improve alert recommendation visibility [\#116](https://github.com/abhimehro/email-security-pipeline/pull/116) ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
-- ⚡ Bolt: Optimize NLP analyzer with regex guard clause [\#115](https://github.com/abhimehro/email-security-pipeline/pull/115) ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
-- 🛡️ Sentinel: \[HIGH\] Fix Authentication-Results validation bypass [\#114](https://github.com/abhimehro/email-security-pipeline/pull/114) ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
-- 🛡️ Sentinel: \[CRITICAL\] Prevent sensitive config fields from leaking in logs [\#111](https://github.com/abhimehro/email-security-pipeline/pull/111) ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
-- 🎨 Palette: Smart Configuration Validator for Better Developer Experience [\#110](https://github.com/abhimehro/email-security-pipeline/pull/110) ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
-- ⚡ Bolt: Optimize NLP Analyzer Caching [\#109](https://github.com/abhimehro/email-security-pipeline/pull/109) ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
-- 🎨 Palette: Add interactive countdown timer to CLI [\#108](https://github.com/abhimehro/email-security-pipeline/pull/108) ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
-- Bump sentencepiece from 0.1.99 to 0.2.1 in the pip group across 1 directory [\#107](https://github.com/abhimehro/email-security-pipeline/pull/107) ([dependabot[bot]](https://github.com/apps/dependabot))
-- 🎨 Palette: Improved connectivity check script with Outlook support and tips [\#105](https://github.com/abhimehro/email-security-pipeline/pull/105) ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
-- ⚡ Bolt: Optimize SpamAnalyzer URL extraction [\#104](https://github.com/abhimehro/email-security-pipeline/pull/104) ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
-- 🛡️ Sentinel: \[CRITICAL\] Fix DoS vulnerability in IMAP ingestion [\#103](https://github.com/abhimehro/email-security-pipeline/pull/103) ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
-- ⚡ Bolt: Optimize spam keyword detection [\#101](https://github.com/abhimehro/email-security-pipeline/pull/101) ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
-- 🛡️ Sentinel: \[MEDIUM\] Prevent CSV/Formula Injection in Alert System [\#100](https://github.com/abhimehro/email-security-pipeline/pull/100) ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
-- 🎨 Palette: Add pending state to connectivity check [\#99](https://github.com/abhimehro/email-security-pipeline/pull/99) ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
-- ⚡ Bolt: Combine NLP regex patterns for 30% speedup [\#98](https://github.com/abhimehro/email-security-pipeline/pull/98) ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
-- 🛡️ Sentinel: \[Enhancement\] Add magic byte verification for media files [\#97](https://github.com/abhimehro/email-security-pipeline/pull/97) ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
-- 🎨 Palette: Enhance Threat Alert Console UX [\#96](https://github.com/abhimehro/email-security-pipeline/pull/96) ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
-- 🎨 Palette: Improve CLI Alert UX with Icons and Empty States [\#62](https://github.com/abhimehro/email-security-pipeline/pull/62) ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
-- 🎨 Palette: Enhance CLI output with colors [\#61](https://github.com/abhimehro/email-security-pipeline/pull/61) ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
-- ⚡ Bolt: Cache OpenCV CascadeClassifier [\#60](https://github.com/abhimehro/email-security-pipeline/pull/60) ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
-- ⚡ Bolt: Optimize SpamAnalyzer regex usage and fix bugs [\#58](https://github.com/abhimehro/email-security-pipeline/pull/58) ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
-- ⚡ Bolt: Optimized face detection initialization [\#57](https://github.com/abhimehro/email-security-pipeline/pull/57) ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
-- Fix AttributeError in SpamAnalyzer URL checking [\#56](https://github.com/abhimehro/email-security-pipeline/pull/56) ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
-- ⚡ Bolt: Pre-compile regex in sanitization utility [\#52](https://github.com/abhimehro/email-security-pipeline/pull/52) ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
-- 🛡️ Sentinel: \[HIGH\] Fix broken URL check in SpamAnalyzer [\#46](https://github.com/abhimehro/email-security-pipeline/pull/46) ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
-- Fix AttributeError in SpamAnalyzer URL checking [\#44](https://github.com/abhimehro/email-security-pipeline/pull/44) ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
-- ⚡ Bolt: Optimize NLP Analyzer performance [\#42](https://github.com/abhimehro/email-security-pipeline/pull/42) ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
-- Prevent DoS via large email bodies [\#39](https://github.com/abhimehro/email-security-pipeline/pull/39) ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
-- ⚡ Bolt: Optimize NLP analyzer string processing [\#36](https://github.com/abhimehro/email-security-pipeline/pull/36) ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
-- 🛡️ Sentinel: \[CRITICAL\] Fix insecure IMAP SSL connection settings [\#35](https://github.com/abhimehro/email-security-pipeline/pull/35) ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
-- Potential fix for code scanning alert no. 1: Use of insecure SSL/TLS version [\#33](https://github.com/abhimehro/email-security-pipeline/pull/33) ([abhimehro](https://github.com/abhimehro))
-- Potential fix for code scanning alert no. 1: Use of insecure SSL/TLS version [\#32](https://github.com/abhimehro/email-security-pipeline/pull/32) ([abhimehro](https://github.com/abhimehro))
-- 🛡️ Sentinel: Fix Slack Injection Vulnerability [\#31](https://github.com/abhimehro/email-security-pipeline/pull/31) ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
-- Add visual threat meter to console alerts [\#30](https://github.com/abhimehro/email-security-pipeline/pull/30) ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
-- Optimize SpamAnalyzer regex patterns [\#29](https://github.com/abhimehro/email-security-pipeline/pull/29) ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
-- 🛡️ Sentinel: Fix DoS vulnerability in email ingestion [\#28](https://github.com/abhimehro/email-security-pipeline/pull/28) ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
-- ⚡ Bolt: Optimize NLP regex patterns and fix double inference [\#27](https://github.com/abhimehro/email-security-pipeline/pull/27) ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
-- build\(deps\): bump the pip group across 1 directory with 2 updates [\#26](https://github.com/abhimehro/email-security-pipeline/pull/26) ([dependabot[bot]](https://github.com/apps/dependabot))
-- ⚡ Bolt: Optimize URL checking in SpamAnalyzer [\#24](https://github.com/abhimehro/email-security-pipeline/pull/24) ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
-- 🎨 Palette: Improved Console Alert Visuals [\#23](https://github.com/abhimehro/email-security-pipeline/pull/23) ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
-- ⚡ Bolt: Pre-compile regex patterns in SpamAnalyzer [\#22](https://github.com/abhimehro/email-security-pipeline/pull/22) ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
-- ⚡ Bolt: Batch fetch emails for improved performance [\#21](https://github.com/abhimehro/email-security-pipeline/pull/21) ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
-- 🎨 Palette: Add color-coded console alerts [\#20](https://github.com/abhimehro/email-security-pipeline/pull/20) ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
-- ⚡ Bolt: Optimize SpamAnalyzer regex operations [\#19](https://github.com/abhimehro/email-security-pipeline/pull/19) ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
-- Palette: Enhance console alert with ANSI colors [\#18](https://github.com/abhimehro/email-security-pipeline/pull/18) ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
-- ⚡ Bolt: Batch fetch emails in IMAP client [\#17](https://github.com/abhimehro/email-security-pipeline/pull/17) ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
-- 🛡️ Sentinel: \[HIGH\] Fix file extension check bypass vulnerability [\#16](https://github.com/abhimehro/email-security-pipeline/pull/16) ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
-- Feat: Add Connection Diagnostics Tool [\#15](https://github.com/abhimehro/email-security-pipeline/pull/15) ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
-- Implement Deepfake Model Runner [\#14](https://github.com/abhimehro/email-security-pipeline/pull/14) ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
-- feat: Add PR labeler configuration and workflow [\#13](https://github.com/abhimehro/email-security-pipeline/pull/13) ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
-- Enable ML model loading in NLP analyzer [\#12](https://github.com/abhimehro/email-security-pipeline/pull/12) ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
-- Implement Transformer Analysis Logic [\#11](https://github.com/abhimehro/email-security-pipeline/pull/11) ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
-- Implement Advanced Deepfake Detection Pipeline [\#10](https://github.com/abhimehro/email-security-pipeline/pull/10) ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
-- Enable Transformer model in NLP Threat Analyzer [\#9](https://github.com/abhimehro/email-security-pipeline/pull/9) ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
-- 🛡️ Sentinel: \[HIGH\] Fix Log Injection Vulnerability [\#8](https://github.com/abhimehro/email-security-pipeline/pull/8) ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
-- ⚡ Bolt: Optimized SpamAnalyzer keyword scanning [\#5](https://github.com/abhimehro/email-security-pipeline/pull/5) ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
-- 🛡️ Sentinel: \[HIGH\] Fix Log Injection in Alert System [\#4](https://github.com/abhimehro/email-security-pipeline/pull/4) ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
-- build\(deps\): bump requests from 2.31.0 to 2.32.4 in the pip group across 1 directory [\#3](https://github.com/abhimehro/email-security-pipeline/pull/3) ([dependabot[bot]](https://github.com/apps/dependabot))
-- Project folder review and improvements [\#2](https://github.com/abhimehro/email-security-pipeline/pull/2) ([abhimehro](https://github.com/abhimehro))
-- build\(deps\): bump requests from 2.31.0 to 2.32.4 in the pip group across 1 directory [\#1](https://github.com/abhimehro/email-security-pipeline/pull/1) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps\): bump github/codeql-action from codeql-bundle-v2.26.2 to 2.26.1
+  [\#1393](https://github.com/abhimehro/email-security-pipeline/pull/1393)
+  ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(repo-health\): purge root junk and fix Quick Start docs
+  [\#1390](https://github.com/abhimehro/email-security-pipeline/pull/1390)
+  ([cursor[bot]](https://github.com/apps/cursor))
+- chore\(actions\): consolidate workflow automation
+  [\#1388](https://github.com/abhimehro/email-security-pipeline/pull/1388)
+  ([abhimehro](https://github.com/abhimehro))
+- chore\(deps\): bump release-drafter/release-drafter from 7.6.0 to 7.7.0
+  [\#1387](https://github.com/abhimehro/email-security-pipeline/pull/1387)
+  ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps\): bump github/codeql-action from codeql-bundle-v2.26.1 to 2.26.2
+  [\#1386](https://github.com/abhimehro/email-security-pipeline/pull/1386)
+  ([dependabot[bot]](https://github.com/apps/dependabot))
+- 🎨 Palette: Make countdown timer format consistent
+  [\#1384](https://github.com/abhimehro/email-security-pipeline/pull/1384)
+  ([abhimehro](https://github.com/abhimehro))
+- chore\(actions\): bump release-drafter to v7.7.0 \(salvages \#1381\)
+  [\#1383](https://github.com/abhimehro/email-security-pipeline/pull/1383)
+  ([abhimehro](https://github.com/abhimehro))
+- Fix: Remove unused import in email\_parser.py
+  [\#1380](https://github.com/abhimehro/email-security-pipeline/pull/1380)
+  ([abhimehro](https://github.com/abhimehro))
+- chore\(deps\): bump actions/stale from 10.4.0 to 11.0.0
+  [\#1379](https://github.com/abhimehro/email-security-pipeline/pull/1379)
+  ([dependabot[bot]](https://github.com/apps/dependabot))
+- Jules Daily QA & Agentic Review: Repository Healthy
+  [\#1376](https://github.com/abhimehro/email-security-pipeline/pull/1376)
+  ([abhimehro](https://github.com/abhimehro))
+- 🛡️ Sentinel: \[HIGH\] Fix TOCTOU vulnerability in file permission logic
+  [\#1375](https://github.com/abhimehro/email-security-pipeline/pull/1375)
+  ([abhimehro](https://github.com/abhimehro))
+- chore\(deps\): bump github/gh-aw/actions/setup-cli from 0.83.1 to 0.83.4
+  [\#1374](https://github.com/abhimehro/email-security-pipeline/pull/1374)
+  ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps\): bump github/gh-aw/actions/setup from 0.83.1 to 0.83.4
+  [\#1373](https://github.com/abhimehro/email-security-pipeline/pull/1373)
+  ([dependabot[bot]](https://github.com/apps/dependabot))
+- 🎨 Palette: Dim repetitive "No new emails" log message
+  [\#1372](https://github.com/abhimehro/email-security-pipeline/pull/1372)
+  ([abhimehro](https://github.com/abhimehro))
+- chore\(actions\): consolidate workflow automation
+  [\#1366](https://github.com/abhimehro/email-security-pipeline/pull/1366)
+  ([abhimehro](https://github.com/abhimehro))
+- Jules Daily QA & Agentic Review - Healthy
+  [\#1365](https://github.com/abhimehro/email-security-pipeline/pull/1365)
+  ([abhimehro](https://github.com/abhimehro))
+- fix\(ci\): restore repository\_automation\_common and SHA-pin workflows
+  [\#1364](https://github.com/abhimehro/email-security-pipeline/pull/1364)
+  ([abhimehro](https://github.com/abhimehro))
+- fix\(security\): ABHI-1561 stop sourcing load\_gh\_token.sh
+  [\#1363](https://github.com/abhimehro/email-security-pipeline/pull/1363)
+  ([abhimehro](https://github.com/abhimehro))
+- Jules Daily QA & Agentic Review: Repository Healthy
+  [\#1360](https://github.com/abhimehro/email-security-pipeline/pull/1360)
+  ([abhimehro](https://github.com/abhimehro))
+- ⚡ Bolt: Fast-path Authentication Results Checking
+  [\#1359](https://github.com/abhimehro/email-security-pipeline/pull/1359)
+  ([abhimehro](https://github.com/abhimehro))
+- 🎨 Palette: Add typing hint to password prompt
+  [\#1356](https://github.com/abhimehro/email-security-pipeline/pull/1356)
+  ([abhimehro](https://github.com/abhimehro))
+- Agentic QA: Fix E303 too many blank lines in email\_ingestion.py
+  [\#1355](https://github.com/abhimehro/email-security-pipeline/pull/1355)
+  ([abhimehro](https://github.com/abhimehro))
+- ⚡ Bolt: Optimize email address formatting loop
+  [\#1354](https://github.com/abhimehro/email-security-pipeline/pull/1354)
+  ([abhimehro](https://github.com/abhimehro))
+- 🛡️ Sentinel: \[CRITICAL\] Fix TOCTOU vulnerability in file permissions
+  fallback
+  [\#1353](https://github.com/abhimehro/email-security-pipeline/pull/1353)
+  ([abhimehro](https://github.com/abhimehro))
+- chore\(deps\): bump github/gh-aw/actions/setup from 0.82.14 to 0.83.1
+  [\#1352](https://github.com/abhimehro/email-security-pipeline/pull/1352)
+  ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps\): bump github/gh-aw/actions/setup-cli from 0.82.14 to 0.83.1
+  [\#1351](https://github.com/abhimehro/email-security-pipeline/pull/1351)
+  ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps\): bump ruby/setup-ruby from 1.320.0 to 1.321.0
+  [\#1350](https://github.com/abhimehro/email-security-pipeline/pull/1350)
+  ([dependabot[bot]](https://github.com/apps/dependabot))
+- docs\(agents\): remove stale \_get\_terminal\_width bug note
+  [\#1348](https://github.com/abhimehro/email-security-pipeline/pull/1348)
+  ([cursor[bot]](https://github.com/apps/cursor))
+- refactor\(parser\): validate\_subject\_length + restore warning assert
+  \(salvages \#1320\)
+  [\#1347](https://github.com/abhimehro/email-security-pipeline/pull/1347)
+  ([abhimehro](https://github.com/abhimehro))
+- perf\(spam\): SPF join fast-path helper \(salvages \#1327\)
+  [\#1346](https://github.com/abhimehro/email-security-pipeline/pull/1346)
+  ([abhimehro](https://github.com/abhimehro))
+- ⚡ Bolt: Optimization - Fast-path string check for URL extraction regex
+  [\#1344](https://github.com/abhimehro/email-security-pipeline/pull/1344)
+  ([abhimehro](https://github.com/abhimehro))
+- refactor\(ingestion\): IMAPClient takes EmailIngestionConfig \(salvages
+  \#1330\)
+  [\#1342](https://github.com/abhimehro/email-security-pipeline/pull/1342)
+  ([abhimehro](https://github.com/abhimehro))
+- perf\(ingestion\): extend+comprehension parse collect \(salvages
+  \#1335/\#1314\)
+  [\#1341](https://github.com/abhimehro/email-security-pipeline/pull/1341)
+  ([abhimehro](https://github.com/abhimehro))
+- chore: Fix flake8 spacing issues
+  [\#1340](https://github.com/abhimehro/email-security-pipeline/pull/1340)
+  ([abhimehro](https://github.com/abhimehro))
+- Jules Daily QA & Agentic Review - Minor Fixes
+  [\#1339](https://github.com/abhimehro/email-security-pipeline/pull/1339)
+  ([abhimehro](https://github.com/abhimehro))
+- chore\(deps\): bump actions/labeler from 6.2.0 to 7.0.0
+  [\#1338](https://github.com/abhimehro/email-security-pipeline/pull/1338)
+  ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps\): bump ruby/setup-ruby from 1.319.0 to 1.320.0
+  [\#1337](https://github.com/abhimehro/email-security-pipeline/pull/1337)
+  ([dependabot[bot]](https://github.com/apps/dependabot))
+- perf\(imap\): list-comp size parse filter \(salvages \#1331\)
+  [\#1334](https://github.com/abhimehro/email-security-pipeline/pull/1334)
+  ([abhimehro](https://github.com/abhimehro))
+- ⚡ Bolt: Optimize IP validation in webhook checker
+  [\#1333](https://github.com/abhimehro/email-security-pipeline/pull/1333)
+  ([abhimehro](https://github.com/abhimehro))
+- 🧹 Refactor \_print\_alert\_header to use RenderConfig
+  [\#1329](https://github.com/abhimehro/email-security-pipeline/pull/1329)
+  ([abhimehro](https://github.com/abhimehro))
+- 🔒 Fix TOCTOU Vulnerability in Configuration File Permission Setup
+  [\#1328](https://github.com/abhimehro/email-security-pipeline/pull/1328)
+  ([abhimehro](https://github.com/abhimehro))
+- 🧪 Add thread-safety and TTL contains tests for TTLCache
+  [\#1326](https://github.com/abhimehro/email-security-pipeline/pull/1326)
+  ([abhimehro](https://github.com/abhimehro))
+- 🧹 Code Health: Remove unused reset method from Metrics class
+  [\#1325](https://github.com/abhimehro/email-security-pipeline/pull/1325)
+  ([abhimehro](https://github.com/abhimehro))
+- ⚡ Bolt: Optimize \_check\_auth\_results string checks
+  [\#1324](https://github.com/abhimehro/email-security-pipeline/pull/1324)
+  ([abhimehro](https://github.com/abhimehro))
+- 🧪 Add keyword and integer tests for calculate\_risk\_level
+  [\#1323](https://github.com/abhimehro/email-security-pipeline/pull/1323)
+  ([abhimehro](https://github.com/abhimehro))
+- 🧹 \[Code Health\] Refactor \_extract\_frames\_sampled to use options
+  dataclass
+  [\#1322](https://github.com/abhimehro/email-security-pipeline/pull/1322)
+  ([abhimehro](https://github.com/abhimehro))
+- ⚡ Bolt: Optimize sequential writes in gh\_token\_cli.py
+  [\#1319](https://github.com/abhimehro/email-security-pipeline/pull/1319)
+  ([abhimehro](https://github.com/abhimehro))
+- 🧪 test: add coverage for CountdownTimer tty loops and exception handling
+  [\#1317](https://github.com/abhimehro/email-security-pipeline/pull/1317)
+  ([abhimehro](https://github.com/abhimehro))
+- 🧪 \[testing improvement\] Add comprehensive tests for sanitize\_filename
+  [\#1316](https://github.com/abhimehro/email-security-pipeline/pull/1316)
+  ([abhimehro](https://github.com/abhimehro))
+- ⚡ Optimize ReDoS signature checking with compiled regex
+  [\#1315](https://github.com/abhimehro/email-security-pipeline/pull/1315)
+  ([abhimehro](https://github.com/abhimehro))
+- 🔒 Fix path traversal vulnerability via tar symlinks/hardlinks
+  [\#1313](https://github.com/abhimehro/email-security-pipeline/pull/1313)
+  ([abhimehro](https://github.com/abhimehro))
+- 🧹 Refactor \_fetch\_folder to use FetchContext
+  [\#1311](https://github.com/abhimehro/email-security-pipeline/pull/1311)
+  ([abhimehro](https://github.com/abhimehro))
+- 🧪 Add unit tests for Spinner class
+  [\#1310](https://github.com/abhimehro/email-security-pipeline/pull/1310)
+  ([abhimehro](https://github.com/abhimehro))
+- chore\(deps\): bump github/gh-aw/actions/setup-cli from 0.81.6 to 0.82.14
+  [\#1309](https://github.com/abhimehro/email-security-pipeline/pull/1309)
+  ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps\): bump github/gh-aw/actions/setup from 0.81.6 to 0.82.14
+  [\#1308](https://github.com/abhimehro/email-security-pipeline/pull/1308)
+  ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps\): bump release-drafter/release-drafter from 7.5.1 to 7.6.0
+  [\#1307](https://github.com/abhimehro/email-security-pipeline/pull/1307)
+  ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps\): bump actions/setup-python from 6.3.0 to 7.0.0
+  [\#1306](https://github.com/abhimehro/email-security-pipeline/pull/1306)
+  ([dependabot[bot]](https://github.com/apps/dependabot))
+- Jules Daily QA & Agentic Review: Fix F541 Flake8 warnings
+  [\#1304](https://github.com/abhimehro/email-security-pipeline/pull/1304)
+  ([abhimehro](https://github.com/abhimehro))
+- ⚡ Bolt: Optimize NLP pattern scanning by minimizing Python loop overhead
+  [\#1303](https://github.com/abhimehro/email-security-pipeline/pull/1303)
+  ([abhimehro](https://github.com/abhimehro))
+- 🎨 Palette: Enhance CLI error visual hierarchy for input validation
+  [\#1301](https://github.com/abhimehro/email-security-pipeline/pull/1301)
+  ([abhimehro](https://github.com/abhimehro))
+- Jules Daily QA & Agentic Review: Linting Fixes
+  [\#1300](https://github.com/abhimehro/email-security-pipeline/pull/1300)
+  ([abhimehro](https://github.com/abhimehro))
+- fix\(setup\): ABHI-1365 remove shell-variable password exposure in setup.sh
+  [\#1299](https://github.com/abhimehro/email-security-pipeline/pull/1299)
+  ([abhimehro](https://github.com/abhimehro))
+- chore\(deps\): bump actions/first-interaction from 1 to 3
+  [\#1296](https://github.com/abhimehro/email-security-pipeline/pull/1296)
+  ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps\): bump ruby/setup-ruby from 1.318.0 to 1.319.0
+  [\#1292](https://github.com/abhimehro/email-security-pipeline/pull/1292)
+  ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps\): bump github/codeql-action from codeql-bundle-v2.26.0 to 2.26.1
+  [\#1291](https://github.com/abhimehro/email-security-pipeline/pull/1291)
+  ([dependabot[bot]](https://github.com/apps/dependabot))
+- Draft: Salvage \#1284 setup wizard helper extraction
+  [\#1289](https://github.com/abhimehro/email-security-pipeline/pull/1289)
+  ([abhimehro](https://github.com/abhimehro))
+- Draft: Salvage \#1278 GhTokenCli EnvParseError test
+  [\#1288](https://github.com/abhimehro/email-security-pipeline/pull/1288)
+  ([abhimehro](https://github.com/abhimehro))
+- Draft: Salvage \#1279 email size boundary tests
+  [\#1287](https://github.com/abhimehro/email-security-pipeline/pull/1287)
+  ([abhimehro](https://github.com/abhimehro))
+- 🎨 Palette: Standardize CLI error styling and actionable hints
+  [\#1286](https://github.com/abhimehro/email-security-pipeline/pull/1286)
+  ([abhimehro](https://github.com/abhimehro))
+- 🧹 \[code health improvement\] Refactor EmailParser config to fix Too Many
+  Parameters issue
+  [\#1283](https://github.com/abhimehro/email-security-pipeline/pull/1283)
+  ([abhimehro](https://github.com/abhimehro))
+- 🧪 Add missing empty list tests and fix empty compilation bug
+  [\#1282](https://github.com/abhimehro/email-security-pipeline/pull/1282)
+  ([abhimehro](https://github.com/abhimehro))
+- 🧪 \[testing improvement\] Add more boundary cases for
+  validate\_subject\_length
+  [\#1281](https://github.com/abhimehro/email-security-pipeline/pull/1281)
+  ([abhimehro](https://github.com/abhimehro))
+- 🧪 Add test for print\_help in AppRunner
+  [\#1280](https://github.com/abhimehro/email-security-pipeline/pull/1280)
+  ([abhimehro](https://github.com/abhimehro))
+- 🧹 Refactor \_handle\_missing\_config\_interactive to reduce complexity
+  [\#1277](https://github.com/abhimehro/email-security-pipeline/pull/1277)
+  ([abhimehro](https://github.com/abhimehro))
+- 🧹 \[code health\] Remove unused annotations import in gh\_token\_cli.py
+  [\#1275](https://github.com/abhimehro/email-security-pipeline/pull/1275)
+  ([abhimehro](https://github.com/abhimehro))
+- 🧪 Improve test coverage for SSRF prevention
+  [\#1274](https://github.com/abhimehro/email-security-pipeline/pull/1274)
+  ([abhimehro](https://github.com/abhimehro))
+- Add test for simple\_master\_pattern search vs match gate bug
+  [\#1273](https://github.com/abhimehro/email-security-pipeline/pull/1273)
+  ([abhimehro](https://github.com/abhimehro))
+- 🧪 Add comprehensive schema validation test for Metrics.get\_summary
+  [\#1272](https://github.com/abhimehro/email-security-pipeline/pull/1272)
+  ([abhimehro](https://github.com/abhimehro))
+- ⚡ Bolt: Remove unnecessary sleep in IMAP fetch batching
+  [\#1271](https://github.com/abhimehro/email-security-pipeline/pull/1271)
+  ([abhimehro](https://github.com/abhimehro))
+- 🧹 \[Refactor\] Extract helpers to reduce complexity of \_write\_config\_file
+  [\#1270](https://github.com/abhimehro/email-security-pipeline/pull/1270)
+  ([abhimehro](https://github.com/abhimehro))
+- 🧹 \[Code Health\] Remove unused concurrent.futures import in media\_analyzer
+  [\#1269](https://github.com/abhimehro/email-security-pipeline/pull/1269)
+  ([abhimehro](https://github.com/abhimehro))
+- 🧹 Refactor IMAPConnection.connect\(\) to reduce complexity
+  [\#1268](https://github.com/abhimehro/email-security-pipeline/pull/1268)
+  ([abhimehro](https://github.com/abhimehro))
+- 🧪 Refactor check\_default\_credentials tests to use self.subTest\(\)
+  [\#1267](https://github.com/abhimehro/email-security-pipeline/pull/1267)
+  ([abhimehro](https://github.com/abhimehro))
+- 🧹 \[code health\] Remove unused annotations import in env\_file\_parser.py
+  [\#1266](https://github.com/abhimehro/email-security-pipeline/pull/1266)
+  ([abhimehro](https://github.com/abhimehro))
+- Jules Daily QA: Fix pre-commit hook failures and exclude patch files
+  [\#1264](https://github.com/abhimehro/email-security-pipeline/pull/1264)
+  ([abhimehro](https://github.com/abhimehro))
+- chore\(deps\): bump actions/setup-node from 6.4.0 to 7.0.0
+  [\#1263](https://github.com/abhimehro/email-security-pipeline/pull/1263)
+  ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps\): bump ruby/setup-ruby from 1.316.0 to 1.318.0
+  [\#1262](https://github.com/abhimehro/email-security-pipeline/pull/1262)
+  ([dependabot[bot]](https://github.com/apps/dependabot))
+- 🎨 Palette: Improve visual hierarchy for fatal errors
+  [\#1260](https://github.com/abhimehro/email-security-pipeline/pull/1260)
+  ([abhimehro](https://github.com/abhimehro))
+- fix\(deps\): pin Python dependencies to exact versions \(ABHI-1370\)
+  [\#1259](https://github.com/abhimehro/email-security-pipeline/pull/1259)
+  ([abhimehro](https://github.com/abhimehro))
+- 🎨 Palette: Add call-to-action to empty alert configuration
+  [\#1253](https://github.com/abhimehro/email-security-pipeline/pull/1253)
+  ([abhimehro](https://github.com/abhimehro))
+- chore\(deps\): bump actions/stale from 10.3.0 to 10.4.0
+  [\#1251](https://github.com/abhimehro/email-security-pipeline/pull/1251)
+  ([dependabot[bot]](https://github.com/apps/dependabot))
+- 🎨 Palette: Add actionable empty state for unconfigured accounts
+  [\#1249](https://github.com/abhimehro/email-security-pipeline/pull/1249)
+  ([abhimehro](https://github.com/abhimehro))
+- chore\(deps\): bump actions/labeler from 6.1.0 to 6.2.0
+  [\#1247](https://github.com/abhimehro/email-security-pipeline/pull/1247)
+  ([dependabot[bot]](https://github.com/apps/dependabot))
+- 🎨 Palette: Improve terminal validation visual hierarchy
+  [\#1245](https://github.com/abhimehro/email-security-pipeline/pull/1245)
+  ([abhimehro](https://github.com/abhimehro))
+- Fix password exposure in setup.sh
+  [\#1244](https://github.com/abhimehro/email-security-pipeline/pull/1244)
+  ([abhimehro](https://github.com/abhimehro))
+- chore\(deps\): bump github/codeql-action from codeql-bundle-v2.25.6 to 2.26.0
+  [\#1243](https://github.com/abhimehro/email-security-pipeline/pull/1243)
+  ([dependabot[bot]](https://github.com/apps/dependabot))
+- security\(ABHI-1358–1361\): fix command injection in PR automation scripts
+  [\#1240](https://github.com/abhimehro/email-security-pipeline/pull/1240)
+  ([abhimehro](https://github.com/abhimehro))
+- chore: Jules Daily QA & Agentic Review \(Minor Fixes\)
+  [\#1238](https://github.com/abhimehro/email-security-pipeline/pull/1238)
+  ([abhimehro](https://github.com/abhimehro))
+- chore\(deps\): bump codescene-oss/pr-refactoring-agent from
+  841e34c7ddd7a8ec887d632ac51432d6c71e2fe1 to
+  bbc72fbfb8e514ed2dd0a1ba2dda2e0083abac73
+  [\#1235](https://github.com/abhimehro/email-security-pipeline/pull/1235)
+  ([dependabot[bot]](https://github.com/apps/dependabot))
+- 🎨 Palette: Improve error styling in CLI output using heavy multiplication
+  cross [\#1233](https://github.com/abhimehro/email-security-pipeline/pull/1233)
+  ([abhimehro](https://github.com/abhimehro))
+- Daily QA Review
+  [\#1232](https://github.com/abhimehro/email-security-pipeline/pull/1232)
+  ([abhimehro](https://github.com/abhimehro))
+- ⚡ Bolt: Use Aho-Corasick automaton for fast subject keyword pre-checks
+  [\#1231](https://github.com/abhimehro/email-security-pipeline/pull/1231)
+  ([abhimehro](https://github.com/abhimehro))
+- chore: Daily Agentic QA Review \(No Findings\)
+  [\#1229](https://github.com/abhimehro/email-security-pipeline/pull/1229)
+  ([abhimehro](https://github.com/abhimehro))
+- Harden refactor workflow command extraction for multiline PR comments
+  [\#1228](https://github.com/abhimehro/email-security-pipeline/pull/1228)
+  ([Copilot](https://github.com/apps/copilot-swe-agent))
+- Harden refactor workflow against transient push races
+  [\#1227](https://github.com/abhimehro/email-security-pipeline/pull/1227)
+  ([Copilot](https://github.com/apps/copilot-swe-agent))
+- 🎨 Palette: Improve CLI UX and Error Styling
+  [\#1225](https://github.com/abhimehro/email-security-pipeline/pull/1225)
+  ([abhimehro](https://github.com/abhimehro))
+- 🧹 \[code health improvement\] Refactor generate\_threat\_report complexity
+  [\#1224](https://github.com/abhimehro/email-security-pipeline/pull/1224)
+  ([abhimehro](https://github.com/abhimehro))
+- ⚡ Bolt: Optimize Spam Keyword Search with Aho-Corasick
+  [\#1223](https://github.com/abhimehro/email-security-pipeline/pull/1223)
+  ([abhimehro](https://github.com/abhimehro))
+- 🧹 Extract mock email creation in multi-account tests
+  [\#1221](https://github.com/abhimehro/email-security-pipeline/pull/1221)
+  ([abhimehro](https://github.com/abhimehro))
+- 🧹 \[code health\] Refactor complex `analyze` method in NLPAnalyzer
+  [\#1220](https://github.com/abhimehro/email-security-pipeline/pull/1220)
+  ([abhimehro](https://github.com/abhimehro))
+- 🧹 Code Health: Refactor test\_diagnostics\_script to reduce complexity
+  [\#1218](https://github.com/abhimehro/email-security-pipeline/pull/1218)
+  ([abhimehro](https://github.com/abhimehro))
+- 🧹 Code Health: Refactor \_inspect\_tar\_contents to reduce complexity
+  [\#1217](https://github.com/abhimehro/email-security-pipeline/pull/1217)
+  ([abhimehro](https://github.com/abhimehro))
+- 🧹 \[code health improvement\] Refactor `_console_clean_report`
+  [\#1216](https://github.com/abhimehro/email-security-pipeline/pull/1216)
+  ([abhimehro](https://github.com/abhimehro))
+- 🧹 \[code health\] automated code quality improvements and QA notes
+  [\#1215](https://github.com/abhimehro/email-security-pipeline/pull/1215)
+  ([abhimehro](https://github.com/abhimehro))
+- 🎨 Palette: Unify error status icons
+  [\#1213](https://github.com/abhimehro/email-security-pipeline/pull/1213)
+  ([abhimehro](https://github.com/abhimehro))
+- Fix opencv-python-headless version inconsistency
+  [\#1212](https://github.com/abhimehro/email-security-pipeline/pull/1212)
+  ([abhimehro](https://github.com/abhimehro))
+- chore\(deps\): bump ruby/setup-ruby from 1.315.0 to 1.316.0
+  [\#1210](https://github.com/abhimehro/email-security-pipeline/pull/1210)
+  ([dependabot[bot]](https://github.com/apps/dependabot))
+- ⚡ Bolt: Optimize regex performance in alert system by removing re.IGNORECASE
+  penalty
+  [\#1207](https://github.com/abhimehro/email-security-pipeline/pull/1207)
+  ([abhimehro](https://github.com/abhimehro))
+- 🛡️ Sentinel: \[HIGH\] Fix URL Parsing for domain checks
+  [\#1206](https://github.com/abhimehro/email-security-pipeline/pull/1206)
+  ([abhimehro](https://github.com/abhimehro))
+- test: setup wizard edge-case integration tests \(salvages \#1179\)
+  [\#1204](https://github.com/abhimehro/email-security-pipeline/pull/1204)
+  ([abhimehro](https://github.com/abhimehro))
+- perf\(imap\): pre-compile RFC822.SIZE regex \(salvages \#1178\)
+  [\#1203](https://github.com/abhimehro/email-security-pipeline/pull/1203)
+  ([abhimehro](https://github.com/abhimehro))
+- chore: Daily QA Review - Apply Black Formatting
+  [\#1201](https://github.com/abhimehro/email-security-pipeline/pull/1201)
+  ([abhimehro](https://github.com/abhimehro))
+- chore\(deps\): bump ruby/setup-ruby from 1.314.0 to 1.315.0
+  [\#1198](https://github.com/abhimehro/email-security-pipeline/pull/1198)
+  ([dependabot[bot]](https://github.com/apps/dependabot))
+- Fix mypy type annotation error in \_validate\_alerts
+  [\#1196](https://github.com/abhimehro/email-security-pipeline/pull/1196)
+  ([abhimehro](https://github.com/abhimehro))
+- Potential fix for code scanning alert no. 7845: Workflow does not contain
+  permissions
+  [\#1195](https://github.com/abhimehro/email-security-pipeline/pull/1195)
+  ([abhimehro](https://github.com/abhimehro))
+- fix\(ui\): forgiving CLI provider selection \(salvages \#1191\)
+  [\#1194](https://github.com/abhimehro/email-security-pipeline/pull/1194)
+  ([abhimehro](https://github.com/abhimehro))
+- test: NLP transformer core \(salvages \#1175\)
+  [\#1193](https://github.com/abhimehro/email-security-pipeline/pull/1193)
+  ([abhimehro](https://github.com/abhimehro))
+- fix\(ui\): Palette fallback instructions \(salvages \#1168\)
+  [\#1192](https://github.com/abhimehro/email-security-pipeline/pull/1192)
+  ([abhimehro](https://github.com/abhimehro))
+- 🛡️ Sentinel: \[HIGH\] Fix Webhook Token Leak & Validation Bypass via
+  parsed.netloc
+  [\#1189](https://github.com/abhimehro/email-security-pipeline/pull/1189)
+  ([abhimehro](https://github.com/abhimehro))
+- 🧹 Fix ignored exceptions in media\_analyzer
+  [\#1186](https://github.com/abhimehro/email-security-pipeline/pull/1186)
+  ([abhimehro](https://github.com/abhimehro))
+- 🔒 Fix: Sanitize absolute paths and backward slashes in archive member path
+  traversal checks
+  [\#1185](https://github.com/abhimehro/email-security-pipeline/pull/1185)
+  ([abhimehro](https://github.com/abhimehro))
+- 🧪 Add edge case tests for JSONFormatter format method
+  [\#1184](https://github.com/abhimehro/email-security-pipeline/pull/1184)
+  ([abhimehro](https://github.com/abhimehro))
+- 🧪 Add missing error test in email\_ingestion close\_all\_connections
+  [\#1183](https://github.com/abhimehro/email-security-pipeline/pull/1183)
+  ([abhimehro](https://github.com/abhimehro))
+- chore\(deps\): bump github/gh-aw/actions/setup from 0.80.9 to 0.81.6
+  [\#1182](https://github.com/abhimehro/email-security-pipeline/pull/1182)
+  ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps\): bump github/gh-aw/actions/setup-cli from 0.80.9 to 0.81.6
+  [\#1181](https://github.com/abhimehro/email-security-pipeline/pull/1181)
+  ([dependabot[bot]](https://github.com/apps/dependabot))
+- 🧪 \[Testing Improvement\] Add comprehensive tests for
+  `generate_threat_report`
+  [\#1180](https://github.com/abhimehro/email-security-pipeline/pull/1180)
+  ([abhimehro](https://github.com/abhimehro))
+- 🧹 \[code health improvement\] Remove silent KeyboardInterrupt catch in ui
+  spinner
+  [\#1177](https://github.com/abhimehro/email-security-pipeline/pull/1177)
+  ([abhimehro](https://github.com/abhimehro))
+- 🧪 Add truncation edge cases for sanitize\_for\_logging
+  [\#1176](https://github.com/abhimehro/email-security-pipeline/pull/1176)
+  ([abhimehro](https://github.com/abhimehro))
+- 🧪 Add missing tests for ui.py
+  [\#1174](https://github.com/abhimehro/email-security-pipeline/pull/1174)
+  ([abhimehro](https://github.com/abhimehro))
+- 🧹 Replace silent exception handling with logging in email ingestion
+  [\#1173](https://github.com/abhimehro/email-security-pipeline/pull/1173)
+  ([abhimehro](https://github.com/abhimehro))
+- 🧪 test: verify deterministic behavior on inverted thresholds
+  [\#1172](https://github.com/abhimehro/email-security-pipeline/pull/1172)
+  ([abhimehro](https://github.com/abhimehro))
+- 🧹 Remove unnecessary empty else block in src/main.py
+  [\#1171](https://github.com/abhimehro/email-security-pipeline/pull/1171)
+  ([abhimehro](https://github.com/abhimehro))
+- 🧹 fix: log BadZipFile exception instead of ignoring it
+  [\#1170](https://github.com/abhimehro/email-security-pipeline/pull/1170)
+  ([abhimehro](https://github.com/abhimehro))
+- ⚡ Bolt: Optimize MASTER\_SPAM\_PATTERN by removing re.IGNORECASE penalty
+  [\#1166](https://github.com/abhimehro/email-security-pipeline/pull/1166)
+  ([abhimehro](https://github.com/abhimehro))
+- 🎨 Palette: Consolidate verification feedback into Spinner
+  [\#1164](https://github.com/abhimehro/email-security-pipeline/pull/1164)
+  ([abhimehro](https://github.com/abhimehro))
+- 🎨 Palette: format codebase with black and isort
+  [\#1161](https://github.com/abhimehro/email-security-pipeline/pull/1161)
+  ([abhimehro](https://github.com/abhimehro))
+- chore\(deps\): bump actions/cache from 6.0.0 to 6.1.0
+  [\#1160](https://github.com/abhimehro/email-security-pipeline/pull/1160)
+  ([dependabot[bot]](https://github.com/apps/dependabot))
+- 🎨 Palette: Enhance input validation error styling
+  [\#1158](https://github.com/abhimehro/email-security-pipeline/pull/1158)
+  ([abhimehro](https://github.com/abhimehro))
+- chore\(deps\): bump release-drafter/release-drafter from 7.4.0 to 7.5.1
+  [\#1156](https://github.com/abhimehro/email-security-pipeline/pull/1156)
+  ([dependabot[bot]](https://github.com/apps/dependabot))
+- 🎨 Palette: Improve error message clarity with actionable steps
+  [\#1154](https://github.com/abhimehro/email-security-pipeline/pull/1154)
+  ([abhimehro](https://github.com/abhimehro))
+- fix\(security\): lowercase URL host/netloc + UI error semantics \(salvages
+  \#1152\)
+  [\#1153](https://github.com/abhimehro/email-security-pipeline/pull/1153)
+  ([abhimehro](https://github.com/abhimehro))
+- ⚡ Bolt: \[Performance Optimization: Fast-path whitespace translation in text
+  sanitization\]
+  [\#1151](https://github.com/abhimehro/email-security-pipeline/pull/1151)
+  ([abhimehro](https://github.com/abhimehro))
+- 🎨 Palette: Actionable Error Paths UX Consistency
+  [\#1149](https://github.com/abhimehro/email-security-pipeline/pull/1149)
+  ([abhimehro](https://github.com/abhimehro))
+- chore\(deps\): bump actions/setup-python from
+  0cb1a84326b90186fcd211036c65b42819794c87 to
+  ece7cb06caefa5fff74198d8649806c4678c61a1
+  [\#1147](https://github.com/abhimehro/email-security-pipeline/pull/1147)
+  ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps\): bump actions/cache from 5.0.5 to 6.0.0
+  [\#1146](https://github.com/abhimehro/email-security-pipeline/pull/1146)
+  ([dependabot[bot]](https://github.com/apps/dependabot))
+- 🎨 Palette: Standardize actionable error paths and styling
+  [\#1144](https://github.com/abhimehro/email-security-pipeline/pull/1144)
+  ([abhimehro](https://github.com/abhimehro))
+- chore\(deps\): bump ruby/setup-ruby from 1.313.0 to 1.314.0
+  [\#1143](https://github.com/abhimehro/email-security-pipeline/pull/1143)
+  ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps\): bump github/gh-aw from 0.80.5 to 0.80.9
+  [\#1142](https://github.com/abhimehro/email-security-pipeline/pull/1142)
+  ([dependabot[bot]](https://github.com/apps/dependabot))
+- 🎨 Palette: Separate error messages and instructions visually in setup wizard
+  [\#1140](https://github.com/abhimehro/email-security-pipeline/pull/1140)
+  ([abhimehro](https://github.com/abhimehro))
+- 🎨 Palette: Apply consistent color styling to spinner error and cancellation
+  messages
+  [\#1138](https://github.com/abhimehro/email-security-pipeline/pull/1138)
+  ([abhimehro](https://github.com/abhimehro))
+- 🎨 Palette: Add styling to configuration template creation output
+  [\#1136](https://github.com/abhimehro/email-security-pipeline/pull/1136)
+  ([abhimehro](https://github.com/abhimehro))
+- chore\(deps\): bump actions/cache from 4.2.3 to 5.0.5
+  [\#1135](https://github.com/abhimehro/email-security-pipeline/pull/1135)
+  ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps\): bump pnpm/action-setup from 6.0.8 to 6.0.9
+  [\#1134](https://github.com/abhimehro/email-security-pipeline/pull/1134)
+  ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore: fix missing EOF newlines in github workflows
+  [\#1133](https://github.com/abhimehro/email-security-pipeline/pull/1133)
+  ([abhimehro](https://github.com/abhimehro))
+- ⚡ Bolt: Remove re.IGNORECASE penalty from Suspicious URL checks
+  [\#1132](https://github.com/abhimehro/email-security-pipeline/pull/1132)
+  ([abhimehro](https://github.com/abhimehro))
+- chore\(deps\): bump ruby/setup-ruby from 1.308.0 to 1.313.0
+  [\#1131](https://github.com/abhimehro/email-security-pipeline/pull/1131)
+  ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps\): bump release-drafter/release-drafter from 7.2.1 to 7.4.0
+  [\#1129](https://github.com/abhimehro/email-security-pipeline/pull/1129)
+  ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps\): bump github/gh-aw from 0.55.0 to 0.80.5
+  [\#1128](https://github.com/abhimehro/email-security-pipeline/pull/1128)
+  ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps\): bump actions/setup-python from
+  c8813ba1bc76ebf779b911ad8ffccbf2e449cb48 to
+  0cb1a84326b90186fcd211036c65b42819794c87
+  [\#1127](https://github.com/abhimehro/email-security-pipeline/pull/1127)
+  ([dependabot[bot]](https://github.com/apps/dependabot))
+- 🎨 Palette: Style CLI help and error fallback paths
+  [\#1125](https://github.com/abhimehro/email-security-pipeline/pull/1125)
+  ([abhimehro](https://github.com/abhimehro))
+- 🎨 Palette: Distinguish actionable commands in CLI UX
+  [\#1123](https://github.com/abhimehro/email-security-pipeline/pull/1123)
+  ([abhimehro](https://github.com/abhimehro))
+- ⚡ Bolt: \[Performance optimization: Explicit flags=0 for pre-lowercased
+  regex\]
+  [\#1122](https://github.com/abhimehro/email-security-pipeline/pull/1122)
+  ([abhimehro](https://github.com/abhimehro))
+- 🎨 Palette: Prevent ANSI style leakage in interactive terminal prompts
+  [\#1120](https://github.com/abhimehro/email-security-pipeline/pull/1120)
+  ([abhimehro](https://github.com/abhimehro))
+- 🎨 Palette: Actionable Commands in Terminal Errors
+  [\#1118](https://github.com/abhimehro/email-security-pipeline/pull/1118)
+  ([abhimehro](https://github.com/abhimehro))
+- ⚡ Bolt: \[Performance optimization: Fast String Count Over Regex Findall\]
+  [\#1117](https://github.com/abhimehro/email-security-pipeline/pull/1117)
+  ([abhimehro](https://github.com/abhimehro))
+- 🎨 Palette: De-emphasize input options in terminal prompts
+  [\#1115](https://github.com/abhimehro/email-security-pipeline/pull/1115)
+  ([abhimehro](https://github.com/abhimehro))
+- ⚡ Bolt: Avoid redundant lower\(\) calls in SpamAnalyzer
+  [\#1114](https://github.com/abhimehro/email-security-pipeline/pull/1114)
+  ([abhimehro](https://github.com/abhimehro))
+- 🎨 Palette: Make terminal color resets robust
+  [\#1112](https://github.com/abhimehro/email-security-pipeline/pull/1112)
+  ([abhimehro](https://github.com/abhimehro))
+- Jules Daily QA & Agentic Review: Formatting and Linting Fixes
+  [\#1111](https://github.com/abhimehro/email-security-pipeline/pull/1111)
+  ([abhimehro](https://github.com/abhimehro))
+- perf\(media\): parallelize attachment metadata and deepfake analysis
+  \(salvages \#1103\)
+  [\#1108](https://github.com/abhimehro/email-security-pipeline/pull/1108)
+  ([abhimehro](https://github.com/abhimehro))
+- refactor\(connectivity\): group IMAP/SMTP params in ConnectionConfig
+  \(salvages \#1096\)
+  [\#1107](https://github.com/abhimehro/email-security-pipeline/pull/1107)
+  ([abhimehro](https://github.com/abhimehro))
+- T2: Apply Black formatting to resolve styling violations in src/
+  [\#1106](https://github.com/abhimehro/email-security-pipeline/pull/1106)
+  ([abhimehro](https://github.com/abhimehro))
+- ⚡ Bolt: Optimize image tag counting in spam analysis
+  [\#1105](https://github.com/abhimehro/email-security-pipeline/pull/1105)
+  ([abhimehro](https://github.com/abhimehro))
+- 🧪 \[test improvement\] Add boundary and float edge case coverage to
+  calculate\_risk\_level
+  [\#1104](https://github.com/abhimehro/email-security-pipeline/pull/1104)
+  ([abhimehro](https://github.com/abhimehro))
+- 🧪 Add integration test for cache clearing
+  [\#1102](https://github.com/abhimehro/email-security-pipeline/pull/1102)
+  ([abhimehro](https://github.com/abhimehro))
+- 🧹 Refactor EmailIngestionManager to use configuration object
+  [\#1100](https://github.com/abhimehro/email-security-pipeline/pull/1100)
+  ([abhimehro](https://github.com/abhimehro))
+- ⚡ Bolt: Optimize synchronous delay in batch fetching loop
+  [\#1099](https://github.com/abhimehro/email-security-pipeline/pull/1099)
+  ([abhimehro](https://github.com/abhimehro))
+- 🧹 Refactor check\_mail\_connectivity to use ConnectionConfig dataclass
+  [\#1097](https://github.com/abhimehro/email-security-pipeline/pull/1097)
+  ([abhimehro](https://github.com/abhimehro))
+- 🧪 Add error handling tests for pipeline startup
+  [\#1095](https://github.com/abhimehro/email-security-pipeline/pull/1095)
+  ([abhimehro](https://github.com/abhimehro))
+- 🧹 \[Code Health\] Remove unused future import in conftest.py
+  [\#1094](https://github.com/abhimehro/email-security-pipeline/pull/1094)
+  ([abhimehro](https://github.com/abhimehro))
+- 🧹 Remove unused 're' import in imap\_connection.py
+  [\#1093](https://github.com/abhimehro/email-security-pipeline/pull/1093)
+  ([abhimehro](https://github.com/abhimehro))
+- 🧪 \[testing improvement\] Add edge-case test coverage for JSONFormatter
+  [\#1092](https://github.com/abhimehro/email-security-pipeline/pull/1092)
+  ([abhimehro](https://github.com/abhimehro))
+- 🧹 Refactor: Reduce parameter count in test\_connection
+  [\#1091](https://github.com/abhimehro/email-security-pipeline/pull/1091)
+  ([abhimehro](https://github.com/abhimehro))
+- 🧪 Add missing edge case tests in dos\_prevention
+  [\#1090](https://github.com/abhimehro/email-security-pipeline/pull/1090)
+  ([abhimehro](https://github.com/abhimehro))
+- test\(setup\_wizard\): connection exception redaction coverage \(salvages
+  \#1075\)
+  [\#1088](https://github.com/abhimehro/email-security-pipeline/pull/1088)
+  ([abhimehro](https://github.com/abhimehro))
+- chore\(actions\): consolidate workflow automation
+  [\#1085](https://github.com/abhimehro/email-security-pipeline/pull/1085)
+  ([abhimehro](https://github.com/abhimehro))
+- ⚡ Bolt: Optimize regex performance by removing re.IGNORECASE penalty
+  [\#1084](https://github.com/abhimehro/email-security-pipeline/pull/1084)
+  ([abhimehro](https://github.com/abhimehro))
+- 🎨 Palette: De-emphasize secondary terminal hints
+  [\#1082](https://github.com/abhimehro/email-security-pipeline/pull/1082)
+  ([abhimehro](https://github.com/abhimehro))
+- perf\(alert\): optimize alert dispatch throughput \(salvages \#1071\)
+  [\#1081](https://github.com/abhimehro/email-security-pipeline/pull/1081)
+  ([abhimehro](https://github.com/abhimehro))
+- Jules Daily QA & Agentic Review - Completed
+  [\#1079](https://github.com/abhimehro/email-security-pipeline/pull/1079)
+  ([abhimehro](https://github.com/abhimehro))
+- 🧪 \[Testing Improvement\] Add unit test for config writing exception handling
+  [\#1078](https://github.com/abhimehro/email-security-pipeline/pull/1078)
+  ([abhimehro](https://github.com/abhimehro))
+- 🧪 Add test coverage for email redaction exception fallback
+  [\#1077](https://github.com/abhimehro/email-security-pipeline/pull/1077)
+  ([abhimehro](https://github.com/abhimehro))
+- ⚡ Bolt: Remove redundant string lowercasing in nested archive check
+  [\#1076](https://github.com/abhimehro/email-security-pipeline/pull/1076)
+  ([abhimehro](https://github.com/abhimehro))
+- 🧹 Refactor \_process\_multipart\_part to use ParseContext
+  [\#1074](https://github.com/abhimehro/email-security-pipeline/pull/1074)
+  ([abhimehro](https://github.com/abhimehro))
+- 🧹 Reduce cyclomatic complexity in is\_safe\_webhook\_url
+  [\#1073](https://github.com/abhimehro/email-security-pipeline/pull/1073)
+  ([abhimehro](https://github.com/abhimehro))
+- 🧪 Add tests for AppRunner.\_styled\_input
+  [\#1072](https://github.com/abhimehro/email-security-pipeline/pull/1072)
+  ([abhimehro](https://github.com/abhimehro))
+- 🧹 Refactor validate method to reduce Cyclomatic Complexity
+  [\#1070](https://github.com/abhimehro/email-security-pipeline/pull/1070)
+  ([abhimehro](https://github.com/abhimehro))
+- 🎨 Palette: Refactor ANSI string concatenations to fix non-TTY accessibility
+  [\#1068](https://github.com/abhimehro/email-security-pipeline/pull/1068)
+  ([abhimehro](https://github.com/abhimehro))
+- chore: Perform daily QA review
+  [\#1065](https://github.com/abhimehro/email-security-pipeline/pull/1065)
+  ([abhimehro](https://github.com/abhimehro))
+- ⚡ Bolt: Optimize image count in spam analyzer
+  [\#1064](https://github.com/abhimehro/email-security-pipeline/pull/1064)
+  ([abhimehro](https://github.com/abhimehro))
+- 🛡️ Sentinel: \[CRITICAL\] Fix Path Traversal Log Leakage
+  [\#1062](https://github.com/abhimehro/email-security-pipeline/pull/1062)
+  ([abhimehro](https://github.com/abhimehro))
+- 🔧 Jules: Daily QA & Agentic Review Fixes
+  [\#1060](https://github.com/abhimehro/email-security-pipeline/pull/1060)
+  ([abhimehro](https://github.com/abhimehro))
+- ⚡ Bolt: Optimize URL checking in spam analyzer
+  [\#1058](https://github.com/abhimehro/email-security-pipeline/pull/1058)
+  ([abhimehro](https://github.com/abhimehro))
+- 🎨 Palette: Fix unstyled ANSI escape sequences in CLI output
+  [\#1056](https://github.com/abhimehro/email-security-pipeline/pull/1056)
+  ([abhimehro](https://github.com/abhimehro))
+- Lint Fix: Remove unused sys import
+  [\#1054](https://github.com/abhimehro/email-security-pipeline/pull/1054)
+  ([abhimehro](https://github.com/abhimehro))
+- ⚡ Bolt: Remove re.IGNORECASE penalty from SpamAnalyzer regex
+  [\#1052](https://github.com/abhimehro/email-security-pipeline/pull/1052)
+  ([abhimehro](https://github.com/abhimehro))
+- 🎨 Palette: Graceful exit on EOF inputs
+  [\#1050](https://github.com/abhimehro/email-security-pipeline/pull/1050)
+  ([abhimehro](https://github.com/abhimehro))
+- chore\(actions\): consolidate workflow automation
+  [\#1046](https://github.com/abhimehro/email-security-pipeline/pull/1046)
+  ([abhimehro](https://github.com/abhimehro))
+- Jules Daily QA & Agentic Review - Spotless Health
+  [\#1045](https://github.com/abhimehro/email-security-pipeline/pull/1045)
+  ([abhimehro](https://github.com/abhimehro))
+- 🎨 Palette: Use semantic Colors.colorize for configuration summary UI
+  [\#1042](https://github.com/abhimehro/email-security-pipeline/pull/1042)
+  ([abhimehro](https://github.com/abhimehro))
+- Jules Daily QA & Agentic Review - Minor fixes
+  [\#1041](https://github.com/abhimehro/email-security-pipeline/pull/1041)
+  ([abhimehro](https://github.com/abhimehro))
+- Jules Daily QA & Agentic Review - Minor fixes
+  [\#1039](https://github.com/abhimehro/email-security-pipeline/pull/1039)
+  ([abhimehro](https://github.com/abhimehro))
+- refactor\(app\_runner\): move import os to top \(salvages \#996, v3\)
+  [\#1037](https://github.com/abhimehro/email-security-pipeline/pull/1037)
+  ([abhimehro](https://github.com/abhimehro))
+- refactor\(main\): flatten \_record\_threat\_metrics \(salvages \#972, v4\)
+  [\#1036](https://github.com/abhimehro/email-security-pipeline/pull/1036)
+  ([abhimehro](https://github.com/abhimehro))
+- fix\(app\_runner\): restore \_set\_secure\_permissions for secure config
+  creation
+  [\#1034](https://github.com/abhimehro/email-security-pipeline/pull/1034)
+  ([abhimehro](https://github.com/abhimehro))
+- 🧹 chore: Resolve CodeScene and CodeQL CI Failures
+  [\#1025](https://github.com/abhimehro/email-security-pipeline/pull/1025)
+  ([abhimehro](https://github.com/abhimehro))
+- fix\(security\): NLP eval false positive \(salvages \#973\)
+  [\#1023](https://github.com/abhimehro/email-security-pipeline/pull/1023)
+  ([abhimehro](https://github.com/abhimehro))
+- test\(email\_parser\): singlepart body error \(salvages \#989\)
+  [\#1020](https://github.com/abhimehro/email-security-pipeline/pull/1020)
+  ([abhimehro](https://github.com/abhimehro))
+- test\(error\_recovery\): monitoring loop error path \(salvages \#982\)
+  [\#1019](https://github.com/abhimehro/email-security-pipeline/pull/1019)
+  ([abhimehro](https://github.com/abhimehro))
+- test\(imap\): fetch batch error handling \(salvages \#984\)
+  [\#1018](https://github.com/abhimehro/email-security-pipeline/pull/1018)
+  ([abhimehro](https://github.com/abhimehro))
+- 🎨 Palette: Strip keyboard hint from Spinner on completion
+  [\#1017](https://github.com/abhimehro/email-security-pipeline/pull/1017)
+  ([abhimehro](https://github.com/abhimehro))
+- 🧹 chore: Resolve CodeScene and CodeQL CI Failures
+  [\#1013](https://github.com/abhimehro/email-security-pipeline/pull/1013)
+  ([abhimehro](https://github.com/abhimehro))
+- 🎨 Palette: Improve CLI output formatting accessibility in config summary
+  [\#1010](https://github.com/abhimehro/email-security-pipeline/pull/1010)
+  ([abhimehro](https://github.com/abhimehro))
+- 🧪 \[Testing\] Cover secure permissions error path
+  [\#1009](https://github.com/abhimehro/email-security-pipeline/pull/1009)
+  ([abhimehro](https://github.com/abhimehro))
+- fix\(security\): tarfile Zip Slip guard \(salvages \#999\)
+  [\#1008](https://github.com/abhimehro/email-security-pipeline/pull/1008)
+  ([abhimehro](https://github.com/abhimehro))
+- 🧹 Daily QA Review Completed \(No Findings\)
+  [\#1005](https://github.com/abhimehro/email-security-pipeline/pull/1005)
+  ([abhimehro](https://github.com/abhimehro))
+- 🔒 Sentinel: \[HIGH\] Fix TOCTOU vulnerability in file permissions
+  [\#1004](https://github.com/abhimehro/email-security-pipeline/pull/1004)
+  ([abhimehro](https://github.com/abhimehro))
+- ⚡ Bolt: Parallelize email parsing with ThreadPoolExecutor
+  [\#1000](https://github.com/abhimehro/email-security-pipeline/pull/1000)
+  ([abhimehro](https://github.com/abhimehro))
+- 🧪 \[Test nested TAR member error handling\]
+  [\#995](https://github.com/abhimehro/email-security-pipeline/pull/995)
+  ([abhimehro](https://github.com/abhimehro))
+- 🧹 \[Code Health\] Refactor `_analyze_email` to extract metric/alert logic
+  [\#994](https://github.com/abhimehro/email-security-pipeline/pull/994)
+  ([abhimehro](https://github.com/abhimehro))
+- 🧪 \[testing improvement\] Add test coverage for \_fetch\_emails\_internal
+  error recovery
+  [\#993](https://github.com/abhimehro/email-security-pipeline/pull/993)
+  ([abhimehro](https://github.com/abhimehro))
+- 🧪 Add tests for single alert retry logic
+  [\#992](https://github.com/abhimehro/email-security-pipeline/pull/992)
+  ([abhimehro](https://github.com/abhimehro))
+- 🧪 Add test for error path in EmailSecurityPipeline.\_analyze\_email
+  [\#988](https://github.com/abhimehro/email-security-pipeline/pull/988)
+  ([abhimehro](https://github.com/abhimehro))
+- 🧪 \[testing improvement\] Add tests for frame resize error handling
+  [\#986](https://github.com/abhimehro/email-security-pipeline/pull/986)
+  ([abhimehro](https://github.com/abhimehro))
+- 🧪 \[testing improvement\] Add test for alert worker loop exception cleanup
+  [\#983](https://github.com/abhimehro/email-security-pipeline/pull/983)
+  ([abhimehro](https://github.com/abhimehro))
+- 🧪 Add exception test for singlepart attachment processing
+  [\#978](https://github.com/abhimehro/email-security-pipeline/pull/978)
+  ([abhimehro](https://github.com/abhimehro))
+- 🧹 \[Code Health\] Extract helper method for address formatting to reduce
+  nesting [\#977](https://github.com/abhimehro/email-security-pipeline/pull/977)
+  ([abhimehro](https://github.com/abhimehro))
+- 🧪 \[testing improvement\] Add coverage for test fetch from folder error path
+  [\#976](https://github.com/abhimehro/email-security-pipeline/pull/976)
+  ([abhimehro](https://github.com/abhimehro))
+- 🧪 \[Add test coverage for video frame advance error path\]
+  [\#975](https://github.com/abhimehro/email-security-pipeline/pull/975)
+  ([abhimehro](https://github.com/abhimehro))
+- 🎨 Palette: Improve connection retry menu scannability
+  [\#970](https://github.com/abhimehro/email-security-pipeline/pull/970)
+  ([abhimehro](https://github.com/abhimehro))
+- 🧹 chore: minor formatting fixes
+  [\#968](https://github.com/abhimehro/email-security-pipeline/pull/968)
+  ([abhimehro](https://github.com/abhimehro))
+- chore\(actions\): consolidate workflow automation
+  [\#966](https://github.com/abhimehro/email-security-pipeline/pull/966)
+  ([abhimehro](https://github.com/abhimehro))
+- 🧹 Fix: Remove trailing whitespace in config files
+  [\#963](https://github.com/abhimehro/email-security-pipeline/pull/963)
+  ([abhimehro](https://github.com/abhimehro))
+- ⚡ Bolt: Remove re.IGNORECASE penalty in hidden text regex evaluation
+  [\#961](https://github.com/abhimehro/email-security-pipeline/pull/961)
+  ([abhimehro](https://github.com/abhimehro))
+- Jules 6594818209076343297 c1158f9c
+  [\#958](https://github.com/abhimehro/email-security-pipeline/pull/958)
+  ([abhimehro](https://github.com/abhimehro))
+- No UX Changes Required
+  [\#957](https://github.com/abhimehro/email-security-pipeline/pull/957)
+  ([abhimehro](https://github.com/abhimehro))
+- automation: resolve QA and bandit findings
+  [\#956](https://github.com/abhimehro/email-security-pipeline/pull/956)
+  ([abhimehro](https://github.com/abhimehro))
+- 🧹 Jules Daily QA: Minor linting and security fixes
+  [\#953](https://github.com/abhimehro/email-security-pipeline/pull/953)
+  ([abhimehro](https://github.com/abhimehro))
+- 🎨 Palette: Add keyboard shortcut hint to spinner
+  [\#950](https://github.com/abhimehro/email-security-pipeline/pull/950)
+  ([abhimehro](https://github.com/abhimehro))
+- 🎨 Palette: Add keyboard shortcut hint to spinner
+  [\#949](https://github.com/abhimehro/email-security-pipeline/pull/949)
+  ([abhimehro](https://github.com/abhimehro))
+- perf\(imap\): concurrent folder fetch \(salvages \#921, v4\)
+  [\#948](https://github.com/abhimehro/email-security-pipeline/pull/948)
+  ([abhimehro](https://github.com/abhimehro))
+- fix\(security\): TOCTOU config permissions \(salvages \#919, v4\)
+  [\#947](https://github.com/abhimehro/email-security-pipeline/pull/947)
+  ([abhimehro](https://github.com/abhimehro))
+- 🧹 style: fix long lines in setup\_wizard.py via black
+  [\#945](https://github.com/abhimehro/email-security-pipeline/pull/945)
+  ([abhimehro](https://github.com/abhimehro))
+- 🧹 style: fix long lines in setup\_wizard.py via black
+  [\#944](https://github.com/abhimehro/email-security-pipeline/pull/944)
+  ([abhimehro](https://github.com/abhimehro))
+- ⚡ Bolt: Remove re.IGNORECASE penalty in NLPAnalyzer
+  [\#943](https://github.com/abhimehro/email-security-pipeline/pull/943)
+  ([abhimehro](https://github.com/abhimehro))
+- ⚡ Bolt: Replace regex search with fast substring pre-checks for spam keywords
+  [\#936](https://github.com/abhimehro/email-security-pipeline/pull/936)
+  ([abhimehro](https://github.com/abhimehro))
+- 🎨 Palette: Enhance setup wizard menu with semantic colors
+  [\#929](https://github.com/abhimehro/email-security-pipeline/pull/929)
+  ([abhimehro](https://github.com/abhimehro))
+- Provide final QA notes
+  [\#927](https://github.com/abhimehro/email-security-pipeline/pull/927)
+  ([abhimehro](https://github.com/abhimehro))
+- 🧹 \[Formatting\] Run Black to resolve formatting drift
+  [\#926](https://github.com/abhimehro/email-security-pipeline/pull/926)
+  ([abhimehro](https://github.com/abhimehro))
+- ⚡ Bolt: Optimize regex performance by removing re.IGNORECASE
+  [\#925](https://github.com/abhimehro/email-security-pipeline/pull/925)
+  ([abhimehro](https://github.com/abhimehro))
+- 🛡️ Sentinel: \[CRITICAL\] Fix re.error vulnerability in setup wizard regex
+  replacements
+  [\#923](https://github.com/abhimehro/email-security-pipeline/pull/923)
+  ([abhimehro](https://github.com/abhimehro))
+- ⚡ Bolt: \[Performance\] Optimize spam keyword substring pre-check
+  [\#922](https://github.com/abhimehro/email-security-pipeline/pull/922)
+  ([abhimehro](https://github.com/abhimehro))
+- 🧹 convert comment to variable docstring in pattern\_compiler
+  [\#920](https://github.com/abhimehro/email-security-pipeline/pull/920)
+  ([abhimehro](https://github.com/abhimehro))
+- 🧹 \[code health\] Remove unused function validate\_mime\_parts\_count
+  [\#918](https://github.com/abhimehro/email-security-pipeline/pull/918)
+  ([abhimehro](https://github.com/abhimehro))
+- 🧹 Refactor unused `replace_secret` method to lambda in setup\_wizard
+  [\#917](https://github.com/abhimehro/email-security-pipeline/pull/917)
+  ([abhimehro](https://github.com/abhimehro))
+- 🧹 Extract header checks into single-purpose methods
+  [\#916](https://github.com/abhimehro/email-security-pipeline/pull/916)
+  ([abhimehro](https://github.com/abhimehro))
+- 🧹 Refactor \_check\_email\_sizes to improve readability
+  [\#915](https://github.com/abhimehro/email-security-pipeline/pull/915)
+  ([abhimehro](https://github.com/abhimehro))
+- 🧹 Refactor \_extract\_attachment in EmailParser for improved readability
+  [\#914](https://github.com/abhimehro/email-security-pipeline/pull/914)
+  ([abhimehro](https://github.com/abhimehro))
+- ⚡ Bolt: Optimize authority impersonation domain matching
+  [\#912](https://github.com/abhimehro/email-security-pipeline/pull/912)
+  ([abhimehro](https://github.com/abhimehro))
+- 🧹 \[code health\] Remove unused function validate\_mime\_parts\_count
+  [\#911](https://github.com/abhimehro/email-security-pipeline/pull/911)
+  ([abhimehro](https://github.com/abhimehro))
+- ⚡ Bolt: Optimize authority impersonation domain matching
+  [\#910](https://github.com/abhimehro/email-security-pipeline/pull/910)
+  ([abhimehro](https://github.com/abhimehro))
+- 🧹 Refactor \_check\_email\_sizes to improve readability
+  [\#909](https://github.com/abhimehro/email-security-pipeline/pull/909)
+  ([abhimehro](https://github.com/abhimehro))
+- 🎨 Palette: Display all NLP threat indicators in console alerts
+  [\#904](https://github.com/abhimehro/email-security-pipeline/pull/904)
+  ([abhimehro](https://github.com/abhimehro))
+- Refactor: Remove unused `unicodedata` import from `alert_system.py`
+  [\#901](https://github.com/abhimehro/email-security-pipeline/pull/901)
+  ([abhimehro](https://github.com/abhimehro))
+- ⚡ Bolt: replace FAST\_HIDDEN\_PATTERN with string matching for faster
+  case-insensitive substring checks
+  [\#900](https://github.com/abhimehro/email-security-pipeline/pull/900)
+  ([abhimehro](https://github.com/abhimehro))
+- ⚡ Bolt: Optimize uptime tracking with time.monotonic\(\)
+  [\#896](https://github.com/abhimehro/email-security-pipeline/pull/896)
+  ([abhimehro](https://github.com/abhimehro))
+- feat\(palette\): console media threat indicators \(salvages \#867\)
+  [\#894](https://github.com/abhimehro/email-security-pipeline/pull/894)
+  ([abhimehro](https://github.com/abhimehro))
+- chore\(deps\): bump pre-commit-hooks v4.5.0 → v5.0.0
+  [\#889](https://github.com/abhimehro/email-security-pipeline/pull/889)
+  ([abhimehro](https://github.com/abhimehro))
+- chore\(actions\): consolidate workflow automation
+  [\#887](https://github.com/abhimehro/email-security-pipeline/pull/887)
+  ([abhimehro](https://github.com/abhimehro))
+- chore: QA format fixes for daily review
+  [\#886](https://github.com/abhimehro/email-security-pipeline/pull/886)
+  ([abhimehro](https://github.com/abhimehro))
+- chore: remove empty JSON artifacts and add to .gitignore
+  [\#883](https://github.com/abhimehro/email-security-pipeline/pull/883)
+  ([abhimehro](https://github.com/abhimehro))
+- fix\(security\): prevent script injection via workflow\_dispatch input in
+  copilot-setup-steps \(CWE-94\)
+  [\#881](https://github.com/abhimehro/email-security-pipeline/pull/881)
+  ([abhimehro](https://github.com/abhimehro))
+- 🎨 Palette: Fix omitted threat indicators in CLI output
+  [\#880](https://github.com/abhimehro/email-security-pipeline/pull/880)
+  ([abhimehro](https://github.com/abhimehro))
+- Automated QA: formatting fix and repository check
+  [\#878](https://github.com/abhimehro/email-security-pipeline/pull/878)
+  ([abhimehro](https://github.com/abhimehro))
+- Automated QA: formatting fix and repository check
+  [\#877](https://github.com/abhimehro/email-security-pipeline/pull/877)
+  ([abhimehro](https://github.com/abhimehro))
+- ⚡ Bolt: \[Performance Optimization\] Increase IMAP fetch batch size
+  [\#876](https://github.com/abhimehro/email-security-pipeline/pull/876)
+  ([abhimehro](https://github.com/abhimehro))
+- ci: audit and pin workflow actions
+  [\#872](https://github.com/abhimehro/email-security-pipeline/pull/872)
+  ([abhimehro](https://github.com/abhimehro))
+- 🧹 fix: remove unused unicodedata import \(salvages \#822\)
+  [\#869](https://github.com/abhimehro/email-security-pipeline/pull/869)
+  ([abhimehro](https://github.com/abhimehro))
+- 🧹 fix: remove unused unicodedata import \(salvages \#824\)
+  [\#868](https://github.com/abhimehro/email-security-pipeline/pull/868)
+  ([abhimehro](https://github.com/abhimehro))
+- 🎨 Palette: Bold CLI User Input \(Refactored\)
+  [\#866](https://github.com/abhimehro/email-security-pipeline/pull/866)
+  ([abhimehro](https://github.com/abhimehro))
+- chore: auto-fix minor linting and import issues from Daily QA
+  [\#863](https://github.com/abhimehro/email-security-pipeline/pull/863)
+  ([abhimehro](https://github.com/abhimehro))
+- chore: complete daily QA and Agentic Review
+  [\#856](https://github.com/abhimehro/email-security-pipeline/pull/856)
+  ([abhimehro](https://github.com/abhimehro))
+- 🎨 Palette: Add visual warning symbol to missing config message
+  [\#850](https://github.com/abhimehro/email-security-pipeline/pull/850)
+  ([abhimehro](https://github.com/abhimehro))
+- 🧹 Refactor \_check\_deepfake\_indicators to reduce complexity
+  [\#844](https://github.com/abhimehro/email-security-pipeline/pull/844)
+  ([abhimehro](https://github.com/abhimehro))
+- Fix missing whitespace filenames in email parser
+  [\#843](https://github.com/abhimehro/email-security-pipeline/pull/843)
+  ([abhimehro](https://github.com/abhimehro))
+- ⚡ Bolt: Optimize dictionary get operations in media\_analyzer
+  [\#841](https://github.com/abhimehro/email-security-pipeline/pull/841)
+  ([abhimehro](https://github.com/abhimehro))
+- 🧪 test: add test for setup wizard replacing secret
+  [\#840](https://github.com/abhimehro/email-security-pipeline/pull/840)
+  ([abhimehro](https://github.com/abhimehro))
+- 🧪 \[testing improvement\] Add test case for very large base64 attachments
+  [\#839](https://github.com/abhimehro/email-security-pipeline/pull/839)
+  ([abhimehro](https://github.com/abhimehro))
+- 🧪 Testing Improvement: Add test for config defaults on empty environment
+  [\#835](https://github.com/abhimehro/email-security-pipeline/pull/835)
+  ([abhimehro](https://github.com/abhimehro))
+- 🧹 Refactor concurrent.futures import to optimize ThreadPoolExecutor
+  instantiation
+  [\#833](https://github.com/abhimehro/email-security-pipeline/pull/833)
+  ([abhimehro](https://github.com/abhimehro))
+- 🧹 Refactor \_analyze\_email to reduce complexity
+  [\#832](https://github.com/abhimehro/email-security-pipeline/pull/832)
+  ([abhimehro](https://github.com/abhimehro))
+- 🧪 test: add test for setup wizard replacing secret
+  [\#826](https://github.com/abhimehro/email-security-pipeline/pull/826)
+  ([abhimehro](https://github.com/abhimehro))
+- 🧹 code health: Remove unused security constants from email\_ingestion.py
+  [\#823](https://github.com/abhimehro/email-security-pipeline/pull/823)
+  ([abhimehro](https://github.com/abhimehro))
+- 🧹 Refactor \_analyze\_email to reduce complexity
+  [\#820](https://github.com/abhimehro/email-security-pipeline/pull/820)
+  ([abhimehro](https://github.com/abhimehro))
+- feat: pin Hugging Face model revision for NLP analysis
+  [\#819](https://github.com/abhimehro/email-security-pipeline/pull/819)
+  ([abhimehro](https://github.com/abhimehro))
+- 🧪 Testing Improvement: Add dedicated test cases for empty string sanitization
+  [\#818](https://github.com/abhimehro/email-security-pipeline/pull/818)
+  ([abhimehro](https://github.com/abhimehro))
+- 🧹 Cleanup: Remove unused MAX\_MIME\_PARTS from email\_ingestion.py
+  [\#817](https://github.com/abhimehro/email-security-pipeline/pull/817)
+  ([abhimehro](https://github.com/abhimehro))
+- ci: fix placeholder in agentics maintenance workflow
+  [\#811](https://github.com/abhimehro/email-security-pipeline/pull/811)
+  ([abhimehro](https://github.com/abhimehro))
+- ⚡ Bolt: Use time.monotonic\(\) for TTLCache
+  [\#800](https://github.com/abhimehro/email-security-pipeline/pull/800)
+  ([abhimehro](https://github.com/abhimehro))
+- 🛡️ Sentinel: Fix password logging in setup wizard and refactor complex method
+  [\#799](https://github.com/abhimehro/email-security-pipeline/pull/799)
+  ([abhimehro](https://github.com/abhimehro))
+- 🎨 Palette: Improve NO\_COLOR fallback by using Colors.colorize consistently
+  [\#796](https://github.com/abhimehro/email-security-pipeline/pull/796)
+  ([abhimehro](https://github.com/abhimehro))
+- ⚡ Bolt: Use time.monotonic\(\) for TTLCache
+  [\#793](https://github.com/abhimehro/email-security-pipeline/pull/793)
+  ([abhimehro](https://github.com/abhimehro))
+- 🎨 Palette: Improve CLI output accessibility for non-TTY environments
+  [\#791](https://github.com/abhimehro/email-security-pipeline/pull/791)
+  ([abhimehro](https://github.com/abhimehro))
+- ⚡ Bolt: Use time.monotonic for faster TTLCache eviction
+  [\#785](https://github.com/abhimehro/email-security-pipeline/pull/785)
+  ([abhimehro](https://github.com/abhimehro))
+- 🎨 Palette: Refactor ANSI color codes in configuration summary
+  [\#784](https://github.com/abhimehro/email-security-pipeline/pull/784)
+  ([abhimehro](https://github.com/abhimehro))
+- fix\(ci\): prevent shell injection in summary.yml \(salvages \#777\)
+  [\#780](https://github.com/abhimehro/email-security-pipeline/pull/780)
+  ([abhimehro](https://github.com/abhimehro))
+- Fix CodeScene hotspot in `_print_analysis_details`
+  [\#779](https://github.com/abhimehro/email-security-pipeline/pull/779)
+  ([abhimehro](https://github.com/abhimehro))
+- 🎨 Palette: Add missing suspicious URLs display to CLI alerts
+  [\#778](https://github.com/abhimehro/email-security-pipeline/pull/778)
+  ([abhimehro](https://github.com/abhimehro))
+- ⚡ Bolt: optimize video frame extraction with hybrid sampling
+  [\#770](https://github.com/abhimehro/email-security-pipeline/pull/770)
+  ([abhimehro](https://github.com/abhimehro))
+- 🎨 Palette: Improve clarity of configuration empty states
+  [\#768](https://github.com/abhimehro/email-security-pipeline/pull/768)
+  ([abhimehro](https://github.com/abhimehro))
+- Add GitHub Actions workflow testing skill
+  [\#762](https://github.com/abhimehro/email-security-pipeline/pull/762)
+  ([abhimehro](https://github.com/abhimehro))
+- ci: pass changelog token via environment
+  [\#761](https://github.com/abhimehro/email-security-pipeline/pull/761)
+  ([abhimehro](https://github.com/abhimehro))
+- ⚡ Bolt: Add global URL cache to SpamAnalyzer
+  [\#759](https://github.com/abhimehro/email-security-pipeline/pull/759)
+  ([abhimehro](https://github.com/abhimehro))
+- 🛡️ Sentinel: \[MEDIUM\] Enforce explicit TLS verification in webhook alerts
+  [\#758](https://github.com/abhimehro/email-security-pipeline/pull/758)
+  ([abhimehro](https://github.com/abhimehro))
+- Fix O\_NOFOLLOW in app\_runner
+  [\#751](https://github.com/abhimehro/email-security-pipeline/pull/751)
+  ([abhimehro](https://github.com/abhimehro))
+- 🧪 Jules Daily QA: Fix test\_setup\_wizard mock\_os\_open assertion
+  [\#749](https://github.com/abhimehro/email-security-pipeline/pull/749)
+  ([abhimehro](https://github.com/abhimehro))
+- Fix formatting issues \(Jules Daily QA\)
+  [\#728](https://github.com/abhimehro/email-security-pipeline/pull/728)
+  ([abhimehro](https://github.com/abhimehro))
+- autofix\(\): PR 0 \(cycle 1\) -- fix black formatting in main.py,
+  test\_caching.py, and test\_setup\_wizard.py
+  [\#727](https://github.com/abhimehro/email-security-pipeline/pull/727)
+  ([abhimehro](https://github.com/abhimehro))
+- docs: record development environment setup
+  [\#725](https://github.com/abhimehro/email-security-pipeline/pull/725)
+  ([abhimehro](https://github.com/abhimehro))
+- Sentinel fix symlink attacks 1790347126622582166
+  [\#724](https://github.com/abhimehro/email-security-pipeline/pull/724)
+  ([abhimehro](https://github.com/abhimehro))
+- fix\(media\_analyzer\): revert PR \#693 \(corrupted JSON-encoded blob\) —
+  unblocks pytest on main
+  [\#723](https://github.com/abhimehro/email-security-pipeline/pull/723)
+  ([abhimehro](https://github.com/abhimehro))
+- 🛡️ Sentinel: \[Critical\] Handle missing filenames to prevent analysis bypass
+  [\#721](https://github.com/abhimehro/email-security-pipeline/pull/721)
+  ([abhimehro](https://github.com/abhimehro))
+- 🧹 Code health: Refactor imports and fix lint issues in src/main.py
+  [\#720](https://github.com/abhimehro/email-security-pipeline/pull/720)
+  ([abhimehro](https://github.com/abhimehro))
+- 🔒 \[security fix\] Hardened configuration file permissions and TOCTOU
+  protection
+  [\#719](https://github.com/abhimehro/email-security-pipeline/pull/719)
+  ([abhimehro](https://github.com/abhimehro))
+- 🧪 Test cache eviction logic in caching.py
+  [\#718](https://github.com/abhimehro/email-security-pipeline/pull/718)
+  ([abhimehro](https://github.com/abhimehro))
+- 🎨 Palette: Add explicit empty state for unconfigured accounts
+  [\#717](https://github.com/abhimehro/email-security-pipeline/pull/717)
+  ([abhimehro](https://github.com/abhimehro))
+- 🛡️ Sentinel: \[MEDIUM\] Add O\_NOFOLLOW to prevent symlink attacks
+  [\#715](https://github.com/abhimehro/email-security-pipeline/pull/715)
+  ([abhimehro](https://github.com/abhimehro))
+- 🎨 Palette: Add explicit progress bounds to email processing logs
+  [\#713](https://github.com/abhimehro/email-security-pipeline/pull/713)
+  ([abhimehro](https://github.com/abhimehro))
+- style: fix formatting in alert\_system.py \(Daily QA\)
+  [\#710](https://github.com/abhimehro/email-security-pipeline/pull/710)
+  ([abhimehro](https://github.com/abhimehro))
+- ⚡ Bolt: Replace Counter with defaultdict\(int\) for faster metric tracking
+  [\#708](https://github.com/abhimehro/email-security-pipeline/pull/708)
+  ([abhimehro](https://github.com/abhimehro))
+- style: fix formatting in alert\_system.py
+  [\#705](https://github.com/abhimehro/email-security-pipeline/pull/705)
+  ([abhimehro](https://github.com/abhimehro))
+- 🎨 Palette: Ensure textual statuses in CLI output use consistent semantic
+  colors and indicators
+  [\#687](https://github.com/abhimehro/email-security-pipeline/pull/687)
+  ([abhimehro](https://github.com/abhimehro))
+- 🛡️ Sentinel: \[CRITICAL\] Fix insecure deserialization in Hugging Face models
+  [\#674](https://github.com/abhimehro/email-security-pipeline/pull/674)
+  ([abhimehro](https://github.com/abhimehro))
+- 🎨 Palette: Add explicit bounds to batch processing logs
+  [\#666](https://github.com/abhimehro/email-security-pipeline/pull/666)
+  ([abhimehro](https://github.com/abhimehro))
+- chore\(actions\): consolidate workflow automation
+  [\#664](https://github.com/abhimehro/email-security-pipeline/pull/664)
+  ([abhimehro](https://github.com/abhimehro))
+- 🎨 Palette: Improve CLI configuration summary with semantic emojis
+  [\#662](https://github.com/abhimehro/email-security-pipeline/pull/662)
+  ([abhimehro](https://github.com/abhimehro))
+- chore: fix formatting in src/main.py
+  [\#659](https://github.com/abhimehro/email-security-pipeline/pull/659)
+  ([abhimehro](https://github.com/abhimehro))
+- ⚡ Bolt: Optimize Unicode sanitization in alert system
+  [\#658](https://github.com/abhimehro/email-security-pipeline/pull/658)
+  ([abhimehro](https://github.com/abhimehro))
+- 🛡️ Sentinel: \[Low\] Fix B101 assert vulnerability
+  [\#657](https://github.com/abhimehro/email-security-pipeline/pull/657)
+  ([abhimehro](https://github.com/abhimehro))
+- Bump transformers from 4.53.0 to 5.0.0rc3 in the pip group across 1 directory
+  [\#651](https://github.com/abhimehro/email-security-pipeline/pull/651)
+  ([dependabot[bot]](https://github.com/apps/dependabot))
+- ⚡ Bolt: \[performance improvement\] Avoid np.mean overhead for small lists
+  and arrays
+  [\#647](https://github.com/abhimehro/email-security-pipeline/pull/647)
+  ([abhimehro](https://github.com/abhimehro))
+- chore\(actions\): consolidate workflow automation
+  [\#644](https://github.com/abhimehro/email-security-pipeline/pull/644)
+  ([abhimehro](https://github.com/abhimehro))
+- 🛡️ Sentinel: \[MEDIUM\] Fix cross-platform file permission handling
+  [\#643](https://github.com/abhimehro/email-security-pipeline/pull/643)
+  ([abhimehro](https://github.com/abhimehro))
+- ⚡ Bolt: \[performance improvement\] Optimize character filtering in
+  sanitization
+  [\#642](https://github.com/abhimehro/email-security-pipeline/pull/642)
+  ([abhimehro](https://github.com/abhimehro))
+- 🛡️ Sentinel: \[CRITICAL\] Fix MITM Vulnerability by Enforcing SSL Verification
+  [\#640](https://github.com/abhimehro/email-security-pipeline/pull/640)
+  ([abhimehro](https://github.com/abhimehro))
+- 🎨 Palette: Add visual symbols to configuration statuses
+  [\#639](https://github.com/abhimehro/email-security-pipeline/pull/639)
+  ([abhimehro](https://github.com/abhimehro))
+- chore\(actions\): consolidate workflow automation
+  [\#632](https://github.com/abhimehro/email-security-pipeline/pull/632)
+  ([abhimehro](https://github.com/abhimehro))
+- 🛡️ Sentinel: \[MEDIUM\] Fix cross-platform file permission handling
+  [\#630](https://github.com/abhimehro/email-security-pipeline/pull/630)
+  ([abhimehro](https://github.com/abhimehro))
+- chore: update AGENTS.md with corrected test count and dev setup fixes
+  [\#629](https://github.com/abhimehro/email-security-pipeline/pull/629)
+  ([abhimehro](https://github.com/abhimehro))
+- 🎨 Palette: Pad log levels for vertical alignment
+  [\#628](https://github.com/abhimehro/email-security-pipeline/pull/628)
+  ([abhimehro](https://github.com/abhimehro))
+- ⚡ Bolt: \[performance improvement\] fast-path ANSI code stripping
+  [\#624](https://github.com/abhimehro/email-security-pipeline/pull/624)
+  ([abhimehro](https://github.com/abhimehro))
+- 🎨 Palette: Actionable Commands in Terminal Errors
+  [\#623](https://github.com/abhimehro/email-security-pipeline/pull/623)
+  ([abhimehro](https://github.com/abhimehro))
+- style: fix trailing whitespace in docker-compose.yml
+  [\#620](https://github.com/abhimehro/email-security-pipeline/pull/620)
+  ([abhimehro](https://github.com/abhimehro))
+- ⚡ Bolt: Optimize facial blurriness detection using cv2.meanStdDev
+  [\#617](https://github.com/abhimehro/email-security-pipeline/pull/617)
+  ([abhimehro](https://github.com/abhimehro))
+- 🎨 Palette: Add progress indicator to CLI setup wizard
+  [\#616](https://github.com/abhimehro/email-security-pipeline/pull/616)
+  ([abhimehro](https://github.com/abhimehro))
+- ⚡ Bolt: \[Performance\] Add fast path for spam keyword evaluation
+  [\#614](https://github.com/abhimehro/email-security-pipeline/pull/614)
+  ([abhimehro](https://github.com/abhimehro))
+- 🎨 Palette: Improve CLI onboarding and cancellation UX
+  [\#610](https://github.com/abhimehro/email-security-pipeline/pull/610)
+  ([abhimehro](https://github.com/abhimehro))
+- Automated Daily QA Review
+  [\#606](https://github.com/abhimehro/email-security-pipeline/pull/606)
+  ([abhimehro](https://github.com/abhimehro))
+- ⚡ Bolt: Optimize email header parsing by bypassing unnecessary decoding
+  [\#604](https://github.com/abhimehro/email-security-pipeline/pull/604)
+  ([abhimehro](https://github.com/abhimehro))
+- 🎨 Palette: Add required field indicators to setup wizard
+  [\#602](https://github.com/abhimehro/email-security-pipeline/pull/602)
+  ([abhimehro](https://github.com/abhimehro))
+- 🛡️ Sentinel: \[CRITICAL\] Fix malware bypass in attachment parsing
+  [\#597](https://github.com/abhimehro/email-security-pipeline/pull/597)
+  ([abhimehro](https://github.com/abhimehro))
+- 🎨 Palette: Improve CLI screen reader accessibility for loading states
+  [\#596](https://github.com/abhimehro/email-security-pipeline/pull/596)
+  ([abhimehro](https://github.com/abhimehro))
+- ⚡ Bolt: Optimize file signature detection in media analyzer
+  [\#592](https://github.com/abhimehro/email-security-pipeline/pull/592)
+  ([abhimehro](https://github.com/abhimehro))
+- 🎨 Palette: No UX enhancements identified
+  [\#590](https://github.com/abhimehro/email-security-pipeline/pull/590)
+  ([abhimehro](https://github.com/abhimehro))
+- Fix pre-commit configuration errors
+  [\#587](https://github.com/abhimehro/email-security-pipeline/pull/587)
+  ([abhimehro](https://github.com/abhimehro))
+- 🎨 Palette: Add elapsed time to long-running CLI spinners
+  [\#584](https://github.com/abhimehro/email-security-pipeline/pull/584)
+  ([abhimehro](https://github.com/abhimehro))
+- Daily QA Agentic Review
+  [\#581](https://github.com/abhimehro/email-security-pipeline/pull/581)
+  ([abhimehro](https://github.com/abhimehro))
+- chore: Daily QA Review - No issues found
+  [\#580](https://github.com/abhimehro/email-security-pipeline/pull/580)
+  ([abhimehro](https://github.com/abhimehro))
+- fix\(nlp\): pin revision for Hugging Face model downloads \(Bandit B615\)
+  [\#579](https://github.com/abhimehro/email-security-pipeline/pull/579)
+  ([abhimehro](https://github.com/abhimehro))
+- ⚡ Bolt: Optimize short-circuit evaluation in string sanitization
+  [\#578](https://github.com/abhimehro/email-security-pipeline/pull/578)
+  ([abhimehro](https://github.com/abhimehro))
+- 🛡️ Sentinel: \[HIGH\] Fix TOCTOU vulnerability in configuration file creation
+  [\#576](https://github.com/abhimehro/email-security-pipeline/pull/576)
+  ([abhimehro](https://github.com/abhimehro))
+- 🎨 Palette: Explicit positive reinforcement for clean threat reports
+  [\#575](https://github.com/abhimehro/email-security-pipeline/pull/575)
+  ([abhimehro](https://github.com/abhimehro))
+- chore\(ci\): update github actions to latest stable versions
+  [\#571](https://github.com/abhimehro/email-security-pipeline/pull/571)
+  ([abhimehro](https://github.com/abhimehro))
+- 🎨 Palette: Add visual indicator to interactive CLI prompts
+  [\#570](https://github.com/abhimehro/email-security-pipeline/pull/570)
+  ([abhimehro](https://github.com/abhimehro))
+- ⚡ Bolt: Optimize SpamAnalyzer header parsing by hoisting inner helper
+  function
+  [\#567](https://github.com/abhimehro/email-security-pipeline/pull/567)
+  ([abhimehro](https://github.com/abhimehro))
+- 🎨 Palette: Improve CountdownTimer Cancellation UX
+  [\#566](https://github.com/abhimehro/email-security-pipeline/pull/566)
+  ([abhimehro](https://github.com/abhimehro))
+- chore\(actions\): consolidate workflow automation
+  [\#565](https://github.com/abhimehro/email-security-pipeline/pull/565)
+  ([abhimehro](https://github.com/abhimehro))
+- fix\(actions\): stabilize email daily quality assurance
+  [\#563](https://github.com/abhimehro/email-security-pipeline/pull/563)
+  ([abhimehro](https://github.com/abhimehro))
+- fix\(actions\): restore automation workflow permissions and archive stale
+  agentic artifacts
+  [\#560](https://github.com/abhimehro/email-security-pipeline/pull/560)
+  ([abhimehro](https://github.com/abhimehro))
+- 🎨 Palette: Consistent Input Prompt Styling
+  [\#559](https://github.com/abhimehro/email-security-pipeline/pull/559)
+  ([abhimehro](https://github.com/abhimehro))
+- ⚡ Bolt: Optimize `sanitize_text` and `sanitize_for_logging` with List
+  Comprehension
+  [\#558](https://github.com/abhimehro/email-security-pipeline/pull/558)
+  ([abhimehro](https://github.com/abhimehro))
+- chore\(actions\): sync automation polish
+  [\#557](https://github.com/abhimehro/email-security-pipeline/pull/557)
+  ([abhimehro](https://github.com/abhimehro))
+- chore\(actions\): consolidate repository automation
+  [\#556](https://github.com/abhimehro/email-security-pipeline/pull/556)
+  ([abhimehro](https://github.com/abhimehro))
+- 🎨 Palette: Improve Spinner Failure Feedback
+  [\#555](https://github.com/abhimehro/email-security-pipeline/pull/555)
+  ([abhimehro](https://github.com/abhimehro))
+- ⚡ Bolt: Optimize sender display name extraction
+  [\#554](https://github.com/abhimehro/email-security-pipeline/pull/554)
+  ([abhimehro](https://github.com/abhimehro))
+- chore\(ux\): no suitable UX enhancement identified
+  [\#553](https://github.com/abhimehro/email-security-pipeline/pull/553)
+  ([abhimehro](https://github.com/abhimehro))
+- 🎨 Palette: Add specific troubleshooting tip for Outlook connection failures
+  [\#552](https://github.com/abhimehro/email-security-pipeline/pull/552)
+  ([abhimehro](https://github.com/abhimehro))
+- 🎨 Palette: Graceful KeyboardInterrupt handling during config setup
+  [\#551](https://github.com/abhimehro/email-security-pipeline/pull/551)
+  ([abhimehro](https://github.com/abhimehro))
+- ⚡ Bolt: Optimize substring checks by replacing any\(\) generator with
+  compiled regex
+  [\#550](https://github.com/abhimehro/email-security-pipeline/pull/550)
+  ([abhimehro](https://github.com/abhimehro))
+- 🎨 Palette: Graceful spinner cancellation on KeyboardInterrupt
+  [\#549](https://github.com/abhimehro/email-security-pipeline/pull/549)
+  ([abhimehro](https://github.com/abhimehro))
+- ⚡ Bolt: Optimize SENSITIVE\_FIELDS check in JSONFormatter
+  [\#548](https://github.com/abhimehro/email-security-pipeline/pull/548)
+  ([abhimehro](https://github.com/abhimehro))
+- 🎨 Palette: Add visual feedback for graceful shutdown
+  [\#547](https://github.com/abhimehro/email-security-pipeline/pull/547)
+  ([abhimehro](https://github.com/abhimehro))
+- ⚡ Bolt: Optimize sender checking in SpamAnalyzer
+  [\#546](https://github.com/abhimehro/email-security-pipeline/pull/546)
+  ([abhimehro](https://github.com/abhimehro))
+- Palette 🎨: Add graceful KeyboardInterrupt handling to setup wizard
+  [\#544](https://github.com/abhimehro/email-security-pipeline/pull/544)
+  ([abhimehro](https://github.com/abhimehro))
+- Add regression coverage for alert recommendation regex initialization
+  [\#543](https://github.com/abhimehro/email-security-pipeline/pull/543)
+  ([Copilot](https://github.com/apps/copilot-swe-agent))
+- ⚡ Bolt: Optimize string recommendation checks
+  [\#542](https://github.com/abhimehro/email-security-pipeline/pull/542)
+  ([abhimehro](https://github.com/abhimehro))
+- 🎨 Palette: Colorize spinner success/failure symbols
+  [\#541](https://github.com/abhimehro/email-security-pipeline/pull/541)
+  ([abhimehro](https://github.com/abhimehro))
+- 🎨 Palette: Add explicit "No issues detected" feedback to clean alerts
+  [\#540](https://github.com/abhimehro/email-security-pipeline/pull/540)
+  ([abhimehro](https://github.com/abhimehro))
+- ⚡ Bolt: Optimize `_validate_signature_match` in Media Analyzer
+  [\#539](https://github.com/abhimehro/email-security-pipeline/pull/539)
+  ([abhimehro](https://github.com/abhimehro))
+- Add direct unit tests for `_inspect_archive_member` scoring branches
+  [\#538](https://github.com/abhimehro/email-security-pipeline/pull/538)
+  ([Copilot](https://github.com/apps/copilot-swe-agent))
+- Add direct unit tests for EmailParser body size limiting methods
+  [\#536](https://github.com/abhimehro/email-security-pipeline/pull/536)
+  ([Copilot](https://github.com/apps/copilot-swe-agent))
+- ⚡ Bolt: Optimize sender domain check in SpamAnalyzer
+  [\#530](https://github.com/abhimehro/email-security-pipeline/pull/530)
+  ([abhimehro](https://github.com/abhimehro))
+- Daily Backlog Burner: Add unit tests for
+  IMAPConnection.\_parse\_email\_payload\(\) \(closes \#528\)
+  [\#529](https://github.com/abhimehro/email-security-pipeline/pull/529)
+  ([github-actions[bot]](https://github.com/apps/github-actions))
+- chore: remove stale development artifact files from repo root
+  [\#519](https://github.com/abhimehro/email-security-pipeline/pull/519)
+  ([Copilot](https://github.com/apps/copilot-swe-agent))
+- Add unit tests for CountdownTimer \(start, stop, wait\) in
+  test\_ui\_countdown.py
+  [\#518](https://github.com/abhimehro/email-security-pipeline/pull/518)
+  ([Copilot](https://github.com/apps/copilot-swe-agent))
+- Add direct unit tests for security\_validators DoS-prevention functions
+  [\#517](https://github.com/abhimehro/email-security-pipeline/pull/517)
+  ([Copilot](https://github.com/apps/copilot-swe-agent))
+- 🎨 Palette: Hide terminal cursor during CLI animations for smoother UX
+  [\#514](https://github.com/abhimehro/email-security-pipeline/pull/514)
+  ([abhimehro](https://github.com/abhimehro))
+- ⚡ Bolt: Pre-compile URL extraction regex in AlertSystem
+  [\#506](https://github.com/abhimehro/email-security-pipeline/pull/506)
+  ([abhimehro](https://github.com/abhimehro))
+- Daily Backlog Burner: Add unit tests for CountdownTimer \(closes \#504\)
+  [\#505](https://github.com/abhimehro/email-security-pipeline/pull/505)
+  ([github-actions[bot]](https://github.com/apps/github-actions))
+- Add unit tests for NLPThreatAnalyzer.\_scan\_text\_patterns\(\)
+  [\#497](https://github.com/abhimehro/email-security-pipeline/pull/497)
+  ([Copilot](https://github.com/apps/copilot-swe-agent))
+- Implement `_should_use_ml_model()` to respect `NLP_ENABLE_ML` config
+  [\#496](https://github.com/abhimehro/email-security-pipeline/pull/496)
+  ([Copilot](https://github.com/apps/copilot-swe-agent))
+- 🎨 Palette: Add positive reinforcement to clean alert reports
+  [\#490](https://github.com/abhimehro/email-security-pipeline/pull/490)
+  ([abhimehro](https://github.com/abhimehro))
+- Daily Backlog Burner: Add unit tests for AlertSystem.\_on\_enqueue\_done
+  callback \(closes \#488\)
+  [\#489](https://github.com/abhimehro/email-security-pipeline/pull/489)
+  ([github-actions[bot]](https://github.com/apps/github-actions))
+- test: Add direct unit tests for AlertSystem.\_generate\_recommendations branch
+  logic [\#487](https://github.com/abhimehro/email-security-pipeline/pull/487)
+  ([Copilot](https://github.com/apps/copilot-swe-agent))
+- feat: Parallel account ingestion via ThreadPoolExecutor \(3x throughput\)
+  [\#486](https://github.com/abhimehro/email-security-pipeline/pull/486)
+  ([Copilot](https://github.com/apps/copilot-swe-agent))
+- Implement async alert dispatch to prevent webhook blocking
+  [\#485](https://github.com/abhimehro/email-security-pipeline/pull/485)
+  ([Copilot](https://github.com/apps/copilot-swe-agent))
+- Add test\_email\_data.py: comprehensive unit tests for EmailData dataclass
+  [\#484](https://github.com/abhimehro/email-security-pipeline/pull/484)
+  ([Copilot](https://github.com/apps/copilot-swe-agent))
+- fix: convert SPAM\_KEYWORDS capturing groups to non-capturing \(closes \#477\)
+  [\#479](https://github.com/abhimehro/email-security-pipeline/pull/479)
+  ([github-actions[bot]](https://github.com/apps/github-actions))
+- 🎨 Palette: Add Ctrl+C hint to CountdownTimer
+  [\#478](https://github.com/abhimehro/email-security-pipeline/pull/478)
+  ([abhimehro](https://github.com/abhimehro))
+- ⚡ Bolt: Optimize simple regex occurrence counting
+  [\#474](https://github.com/abhimehro/email-security-pipeline/pull/474)
+  ([abhimehro](https://github.com/abhimehro))
+- Daily Backlog Burner: Add unit tests for
+  NLPThreatAnalyzer.\_run\_transformer\_analysis \(closes \#472\)
+  [\#473](https://github.com/abhimehro/email-security-pipeline/pull/473)
+  ([github-actions[bot]](https://github.com/apps/github-actions))
+- 🛡️ Sentinel: \[HIGH\] Fix SSRF bypass in webhooks
+  [\#468](https://github.com/abhimehro/email-security-pipeline/pull/468)
+  ([abhimehro](https://github.com/abhimehro))
+- test: add unit tests for NLPThreatAnalyzer social engineering and authority
+  impersonation detection
+  [\#467](https://github.com/abhimehro/email-security-pipeline/pull/467)
+  ([Copilot](https://github.com/apps/copilot-swe-agent))
+- test: Add direct unit tests for SpamAnalyzer.\_analyze\_subject and
+  \_calculate\_risk\_level
+  [\#466](https://github.com/abhimehro/email-security-pipeline/pull/466)
+  ([Copilot](https://github.com/apps/copilot-swe-agent))
+- ⚡ Bolt: Optimize Regex Counting using findall\(\)
+  [\#460](https://github.com/abhimehro/email-security-pipeline/pull/460)
+  ([abhimehro](https://github.com/abhimehro))
+- Daily Backlog Burner: Add unit tests for EmailIngestionManager multi-account
+  orchestration
+  [\#459](https://github.com/abhimehro/email-security-pipeline/pull/459)
+  ([github-actions[bot]](https://github.com/apps/github-actions))
+- docs: add CONTRIBUTING.md and PR template
+  [\#452](https://github.com/abhimehro/email-security-pipeline/pull/452)
+  ([Copilot](https://github.com/apps/copilot-swe-agent))
+- test: Add unit tests for AlertSystem console rendering helpers
+  [\#447](https://github.com/abhimehro/email-security-pipeline/pull/447)
+  ([Copilot](https://github.com/apps/copilot-swe-agent))
+- Add unit tests for ColoredFormatter in logging\_utils.py
+  [\#446](https://github.com/abhimehro/email-security-pipeline/pull/446)
+  ([Copilot](https://github.com/apps/copilot-swe-agent))
+- Daily Backlog Burner: Add unit tests for ColoredFormatter in logging\_utils
+  [\#440](https://github.com/abhimehro/email-security-pipeline/pull/440)
+  ([github-actions[bot]](https://github.com/apps/github-actions))
+- Remove backward-compatibility wrapper methods from IMAPClient
+  [\#439](https://github.com/abhimehro/email-security-pipeline/pull/439)
+  ([Copilot](https://github.com/apps/copilot-swe-agent))
+- refactor: move `_generate_recommendations` into `AlertSystem` as
+  `@staticmethod`
+  [\#435](https://github.com/abhimehro/email-security-pipeline/pull/435)
+  ([Copilot](https://github.com/apps/copilot-swe-agent))
+- 🛡️ Sentinel: \[HIGH\] Fix Server-Side Request Forgery in webhook URLs
+  [\#434](https://github.com/abhimehro/email-security-pipeline/pull/434)
+  ([abhimehro](https://github.com/abhimehro))
+- Add unit tests for IMAPConnection and IMAPDiagnostics
+  [\#430](https://github.com/abhimehro/email-security-pipeline/pull/430)
+  ([Copilot](https://github.com/apps/copilot-swe-agent))
+- fix: import EmailData directly from email\_data in all analyzer modules
+  [\#424](https://github.com/abhimehro/email-security-pipeline/pull/424)
+  ([github-actions[bot]](https://github.com/apps/github-actions))
+- ⚡ Bolt: Optimize file extension checking loops
+  [\#420](https://github.com/abhimehro/email-security-pipeline/pull/420)
+  ([abhimehro](https://github.com/abhimehro))
+- Daily Backlog Burner: Replace magic numbers with named class constants
+  [\#418](https://github.com/abhimehro/email-security-pipeline/pull/418)
+  ([github-actions[bot]](https://github.com/apps/github-actions))
+- 🧹 \[Code Health\] Refactor \_fetch\_batch for improved readability and
+  maintainability
+  [\#416](https://github.com/abhimehro/email-security-pipeline/pull/416)
+  ([abhimehro](https://github.com/abhimehro))
+- 🧹 Code Health Improvement: Refactor \_check\_content\_type\_mismatch
+  [\#415](https://github.com/abhimehro/email-security-pipeline/pull/415)
+  ([abhimehro](https://github.com/abhimehro))
+- 🛡️ Sentinel: \[MEDIUM\] Fix timezone-naive datetime fallback in email parser
+  [\#414](https://github.com/abhimehro/email-security-pipeline/pull/414)
+  ([abhimehro](https://github.com/abhimehro))
+- 🧹 Code Health: Refactor `main()` to reduce nesting depth
+  [\#412](https://github.com/abhimehro/email-security-pipeline/pull/412)
+  ([abhimehro](https://github.com/abhimehro))
+- 🧪 Add test coverage for Spinner custom success/failure messages in non-TTY
+  environments
+  [\#411](https://github.com/abhimehro/email-security-pipeline/pull/411)
+  ([abhimehro](https://github.com/abhimehro))
+- fix\(alert\_system\): add missing terminal formatting helper methods
+  [\#409](https://github.com/abhimehro/email-security-pipeline/pull/409)
+  ([abhimehro](https://github.com/abhimehro))
+- ⚡ Bolt: Optimize Numpy Mean Calculation with cv2.mean in MediaAnalyzer
+  [\#408](https://github.com/abhimehro/email-security-pipeline/pull/408)
+  ([abhimehro](https://github.com/abhimehro))
+- 🛡️ Sentinel: \[HIGH\] Fix Path Traversal & Log Spoofing in Archive Extraction
+  [\#407](https://github.com/abhimehro/email-security-pipeline/pull/407)
+  ([abhimehro](https://github.com/abhimehro))
+- 🎨 Palette: Add CYAN color to CLI Spinner
+  [\#406](https://github.com/abhimehro/email-security-pipeline/pull/406)
+  ([abhimehro](https://github.com/abhimehro))
+- ⚡ Bolt: Optimize Spam Analyzer Regex
+  [\#405](https://github.com/abhimehro/email-security-pipeline/pull/405)
+  ([abhimehro](https://github.com/abhimehro))
+- 🛡️ Sentinel: \[MEDIUM\] Fix credentials leakage in URLs
+  [\#404](https://github.com/abhimehro/email-security-pipeline/pull/404)
+  ([abhimehro](https://github.com/abhimehro))
+- 🎨 Palette: Improved Console Alert Readability
+  [\#403](https://github.com/abhimehro/email-security-pipeline/pull/403)
+  ([abhimehro](https://github.com/abhimehro))
+- Development environment setup
+  [\#402](https://github.com/abhimehro/email-security-pipeline/pull/402)
+  ([abhimehro](https://github.com/abhimehro))
+- 🎨 Palette: Smart Spinner with dynamic status messages
+  [\#399](https://github.com/abhimehro/email-security-pipeline/pull/399)
+  ([abhimehro](https://github.com/abhimehro))
+- 🛡️ Sentinel: \[HIGH\] Fix DoS vulnerability in metrics collection
+  [\#397](https://github.com/abhimehro/email-security-pipeline/pull/397)
+  ([abhimehro](https://github.com/abhimehro))
+- Add credential verification to setup wizard
+  [\#396](https://github.com/abhimehro/email-security-pipeline/pull/396)
+  ([abhimehro](https://github.com/abhimehro))
+- 🎨 Palette: Enhanced Slack Alerts with Detailed Threat Breakdown
+  [\#387](https://github.com/abhimehro/email-security-pipeline/pull/387)
+  ([abhimehro](https://github.com/abhimehro))
+- feat\(security\): add recursive tar archive inspection
+  [\#385](https://github.com/abhimehro/email-security-pipeline/pull/385)
+  ([abhimehro](https://github.com/abhimehro))
+- Replace silent bare exception handlers with specific logging in email\_parser
+  [\#380](https://github.com/abhimehro/email-security-pipeline/pull/380)
+  ([Copilot](https://github.com/apps/copilot-swe-agent))
+- fix: use endswith\(\) for suspicious extension check, matching dangerous
+  extension pattern
+  [\#378](https://github.com/abhimehro/email-security-pipeline/pull/378)
+  ([Copilot](https://github.com/apps/copilot-swe-agent))
+- Add comprehensive unit tests for email\_parser module
+  [\#375](https://github.com/abhimehro/email-security-pipeline/pull/375)
+  ([Copilot](https://github.com/apps/copilot-swe-agent))
+- \[Code Quality\] Fix static analysis issues: undefined name, unused imports,
+  dead code, f-strings, indentation
+  [\#374](https://github.com/abhimehro/email-security-pipeline/pull/374)
+  ([Copilot](https://github.com/apps/copilot-swe-agent))
+- Extract duplicate regex pattern compilation into shared utility
+  [\#369](https://github.com/abhimehro/email-security-pipeline/pull/369)
+  ([Copilot](https://github.com/apps/copilot-swe-agent))
+- Add TTL and size limits to NLP analyzer cache
+  [\#368](https://github.com/abhimehro/email-security-pipeline/pull/368)
+  ([Copilot](https://github.com/apps/copilot-swe-agent))
+- Fix broken symlinks and update documentation commands
+  [\#367](https://github.com/abhimehro/email-security-pipeline/pull/367)
+  ([Copilot](https://github.com/apps/copilot-swe-agent))
+- Fix docker compose command deprecation issues in documentation
+  [\#366](https://github.com/abhimehro/email-security-pipeline/pull/366)
+  ([Copilot](https://github.com/apps/copilot-swe-agent))
+- 🎨 Palette: Add email validation to setup wizard
+  [\#365](https://github.com/abhimehro/email-security-pipeline/pull/365)
+  ([abhimehro](https://github.com/abhimehro))
+- ⚡ Bolt: Optimize facial analysis frame sampling
+  [\#356](https://github.com/abhimehro/email-security-pipeline/pull/356)
+  ([abhimehro](https://github.com/abhimehro))
+- Daily Backlog Burner: Fix ThreadPoolExecutor resource leak in media\_analyzer
+  [\#351](https://github.com/abhimehro/email-security-pipeline/pull/351)
+  ([github-actions[bot]](https://github.com/apps/github-actions))
+- 🛡️ Sentinel: Fix Zip Bomb vulnerability in Media Analyzer
+  [\#350](https://github.com/abhimehro/email-security-pipeline/pull/350)
+  ([abhimehro](https://github.com/abhimehro))
+- Refactor: Centralize SSL context configuration in IMAP connection
+  [\#334](https://github.com/abhimehro/email-security-pipeline/pull/334)
+  ([Copilot](https://github.com/apps/copilot-swe-agent))
+- feat\(ui\): Make console alerts responsive to terminal width
+  [\#333](https://github.com/abhimehro/email-security-pipeline/pull/333)
+  ([abhimehro](https://github.com/abhimehro))
+- Fix syntax error in sanitization.py
+  [\#327](https://github.com/abhimehro/email-security-pipeline/pull/327)
+  ([github-actions[bot]](https://github.com/apps/github-actions))
+- ⚡ Bolt: Optimize video frame extraction and fix sanitization syntax error
+  [\#323](https://github.com/abhimehro/email-security-pipeline/pull/323)
+  ([abhimehro](https://github.com/abhimehro))
+- Daily Backlog Burner: Add pre-commit hooks for code quality enforcement
+  [\#317](https://github.com/abhimehro/email-security-pipeline/pull/317)
+  ([github-actions[bot]](https://github.com/apps/github-actions))
+- 🛡️ Sentinel: \[HIGH\] Enhance media analyzer with missing dangerous extensions
+  & nested zip check
+  [\#316](https://github.com/abhimehro/email-security-pipeline/pull/316)
+  ([abhimehro](https://github.com/abhimehro))
+- 🎨 Palette: Enhance console alert visualization
+  [\#302](https://github.com/abhimehro/email-security-pipeline/pull/302)
+  ([abhimehro](https://github.com/abhimehro))
+- Fix duplicate dependencies in requirements.txt
+  [\#295](https://github.com/abhimehro/email-security-pipeline/pull/295)
+  ([github-actions[bot]](https://github.com/apps/github-actions))
+- ⚡ Bolt: Optimize video frame extraction and fix syntax error
+  [\#293](https://github.com/abhimehro/email-security-pipeline/pull/293)
+  ([abhimehro](https://github.com/abhimehro))
+- 🛡️ Sentinel: \[HIGH\] Enhance media security \(new extensions + nested zip\)
+  [\#287](https://github.com/abhimehro/email-security-pipeline/pull/287)
+  ([abhimehro](https://github.com/abhimehro))
+- Daily Backlog Burner: Fix ThreadPoolExecutor resource leak in pipeline
+  shutdown
+  [\#286](https://github.com/abhimehro/email-security-pipeline/pull/286)
+  ([github-actions[bot]](https://github.com/apps/github-actions))
+- Optimize alert dispatch with async HTTP delivery
+  [\#282](https://github.com/abhimehro/email-security-pipeline/pull/282)
+  ([github-actions[bot]](https://github.com/apps/github-actions))
+- Complete card layout borders and implement text wrapping for console alerts
+  [\#281](https://github.com/abhimehro/email-security-pipeline/pull/281)
+  ([Copilot](https://github.com/apps/copilot-swe-agent))
+- 🎨 Palette: Enhance console alert visualization with card layout
+  [\#275](https://github.com/abhimehro/email-security-pipeline/pull/275)
+  ([abhimehro](https://github.com/abhimehro))
+- ⚡ Bolt: Optimize SpamAnalyzer URL checking
+  [\#263](https://github.com/abhimehro/email-security-pipeline/pull/263)
+  ([abhimehro](https://github.com/abhimehro))
+- 🛡️ Sentinel: \[HIGH\] Redact PII \(email addresses\) in logs
+  [\#257](https://github.com/abhimehro/email-security-pipeline/pull/257)
+  ([abhimehro](https://github.com/abhimehro))
+- Document GitHub Discussions requirement for agentic workflows
+  [\#242](https://github.com/abhimehro/email-security-pipeline/pull/242)
+  ([Copilot](https://github.com/apps/copilot-swe-agent))
+- Fix daily-backlog-burner: use Issues instead of Discussions
+  [\#241](https://github.com/abhimehro/email-security-pipeline/pull/241)
+  ([Copilot](https://github.com/apps/copilot-swe-agent))
+- Fix Daily QA workflow: invalid discussion category "q-a" → "General"
+  [\#240](https://github.com/abhimehro/email-security-pipeline/pull/240)
+  ([Copilot](https://github.com/apps/copilot-swe-agent))
+- 🎨 Palette: Improve Spinner UX with persistence and feedback
+  [\#239](https://github.com/abhimehro/email-security-pipeline/pull/239)
+  ([abhimehro](https://github.com/abhimehro))
+- ⚡ Bolt: Optimize MediaAuthenticityAnalyzer ThreadPool usage
+  [\#226](https://github.com/abhimehro/email-security-pipeline/pull/226)
+  ([abhimehro](https://github.com/abhimehro))
+- 🛡️ Sentinel: \[HIGH\] Fix Unicode spoofing in alert system
+  [\#220](https://github.com/abhimehro/email-security-pipeline/pull/220)
+  ([abhimehro](https://github.com/abhimehro))
+- Add integration and error recovery test coverage \(59 tests\)
+  [\#214](https://github.com/abhimehro/email-security-pipeline/pull/214)
+  ([Copilot](https://github.com/apps/copilot-swe-agent))
+- Refactor email\_ingestion.py into focused modules \(867 → 5 modules\)
+  [\#213](https://github.com/abhimehro/email-security-pipeline/pull/213)
+  ([Copilot](https://github.com/apps/copilot-swe-agent))
+- Add structured logging and metrics collection
+  [\#212](https://github.com/abhimehro/email-security-pipeline/pull/212)
+  ([Copilot](https://github.com/apps/copilot-swe-agent))
+- Fix/align workflows
+  [\#211](https://github.com/abhimehro/email-security-pipeline/pull/211)
+  ([abhimehro](https://github.com/abhimehro))
+- Add agentic workflow discussion-task-miner
+  [\#206](https://github.com/abhimehro/email-security-pipeline/pull/206)
+  ([abhimehro](https://github.com/abhimehro))
+- Add agentic workflow daily-workflow-updater
+  [\#205](https://github.com/abhimehro/email-security-pipeline/pull/205)
+  ([abhimehro](https://github.com/abhimehro))
+- Update SECURITY.md and remove obsolete docker-compose version
+  [\#204](https://github.com/abhimehro/email-security-pipeline/pull/204)
+  ([Copilot](https://github.com/apps/copilot-swe-agent))
+- Backlog Burner Phase 2A: Issue verification and PR \#192 review
+  [\#203](https://github.com/abhimehro/email-security-pipeline/pull/203)
+  ([Copilot](https://github.com/apps/copilot-swe-agent))
+- Add performance engineering infrastructure: build steps action and guides
+  [\#202](https://github.com/abhimehro/email-security-pipeline/pull/202)
+  ([Copilot](https://github.com/apps/copilot-swe-agent))
+- Add agentic workflow plan
+  [\#201](https://github.com/abhimehro/email-security-pipeline/pull/201)
+  ([abhimehro](https://github.com/abhimehro))
+- 🎨 Palette: Add Sender info to Clean Report logs
+  [\#200](https://github.com/abhimehro/email-security-pipeline/pull/200)
+  ([abhimehro](https://github.com/abhimehro))
+- Convert agentic workflows from Discussions to Issues
+  [\#199](https://github.com/abhimehro/email-security-pipeline/pull/199)
+  ([Copilot](https://github.com/apps/copilot-swe-agent))
+- ⚡ Bolt: Optimize media analysis by removing fftshift
+  [\#196](https://github.com/abhimehro/email-security-pipeline/pull/196)
+  ([abhimehro](https://github.com/abhimehro))
+- Redact sensitive URLs from alert error logs
+  [\#195](https://github.com/abhimehro/email-security-pipeline/pull/195)
+  ([abhimehro](https://github.com/abhimehro))
+- 🎨 Palette: Add NO\_COLOR support and auto-disable colors in non-TTY
+  [\#192](https://github.com/abhimehro/email-security-pipeline/pull/192)
+  ([abhimehro](https://github.com/abhimehro))
+- Add agentic workflow audit-workflows
+  [\#189](https://github.com/abhimehro/email-security-pipeline/pull/189)
+  ([abhimehro](https://github.com/abhimehro))
+- Add agentic workflow daily-doc-updater
+  [\#187](https://github.com/abhimehro/email-security-pipeline/pull/187)
+  ([abhimehro](https://github.com/abhimehro))
+- Add agentic workflow pr-fix
+  [\#183](https://github.com/abhimehro/email-security-pipeline/pull/183)
+  ([abhimehro](https://github.com/abhimehro))
+- Add agentic workflow daily-qa
+  [\#182](https://github.com/abhimehro/email-security-pipeline/pull/182)
+  ([abhimehro](https://github.com/abhimehro))
+- Add agentic workflow daily-perf-improver
+  [\#181](https://github.com/abhimehro/email-security-pipeline/pull/181)
+  ([abhimehro](https://github.com/abhimehro))
+- Add agentic workflow daily-backlog-burner
+  [\#180](https://github.com/abhimehro/email-security-pipeline/pull/180)
+  ([abhimehro](https://github.com/abhimehro))
+- Document recent performance optimizations in README
+  [\#179](https://github.com/abhimehro/email-security-pipeline/pull/179)
+  ([Copilot](https://github.com/apps/copilot-swe-agent))
+- Add agentic workflow daily-repo-status
+  [\#177](https://github.com/abhimehro/email-security-pipeline/pull/177)
+  ([abhimehro](https://github.com/abhimehro))
+- ⚡ Bolt: Optimize media analysis performance
+  [\#176](https://github.com/abhimehro/email-security-pipeline/pull/176)
+  ([abhimehro](https://github.com/abhimehro))
+- 🛡️ Sentinel: \[HIGH\] Fix DoS vulnerability via MIME Bomb
+  [\#175](https://github.com/abhimehro/email-security-pipeline/pull/175)
+  ([abhimehro](https://github.com/abhimehro))
+- test: add pytest CI runner
+  [\#174](https://github.com/abhimehro/email-security-pipeline/pull/174)
+  ([abhimehro](https://github.com/abhimehro))
+- ⚡ Bolt: Optimize sanitize\_for\_logging performance
+  [\#172](https://github.com/abhimehro/email-security-pipeline/pull/172)
+  ([abhimehro](https://github.com/abhimehro))
+- 🛡️ Sentinel: Fix CSV Injection via Percent Sign
+  [\#171](https://github.com/abhimehro/email-security-pipeline/pull/171)
+  ([abhimehro](https://github.com/abhimehro))
+- 🎨 Palette: Interactive Setup Wizard
+  [\#170](https://github.com/abhimehro/email-security-pipeline/pull/170)
+  ([abhimehro](https://github.com/abhimehro))
+- ⚡ Bolt: Optimize URL extraction in SpamAnalyzer
+  [\#169](https://github.com/abhimehro/email-security-pipeline/pull/169)
+  ([abhimehro](https://github.com/abhimehro))
+- 🛡️ Sentinel: \[CRITICAL\] Fix file extension check bypass via trailing dots
+  [\#168](https://github.com/abhimehro/email-security-pipeline/pull/168)
+  ([abhimehro](https://github.com/abhimehro))
+- 🎨 Palette: Improve console UX for clean email reports
+  [\#167](https://github.com/abhimehro/email-security-pipeline/pull/167)
+  ([abhimehro](https://github.com/abhimehro))
+- ⚡ Bolt: Optimize Media Analysis Performance
+  [\#166](https://github.com/abhimehro/email-security-pipeline/pull/166)
+  ([abhimehro](https://github.com/abhimehro))
+- ⚡ Bolt: Optimize email body parsing efficiency
+  [\#162](https://github.com/abhimehro/email-security-pipeline/pull/162)
+  ([abhimehro](https://github.com/abhimehro))
+- 🛡️ Sentinel: \[CRITICAL\] Fix media file type validation bypass and DoS risk
+  [\#161](https://github.com/abhimehro/email-security-pipeline/pull/161)
+  ([abhimehro](https://github.com/abhimehro))
+- \[WIP\] Consolidate open pull requests into single update
+  [\#160](https://github.com/abhimehro/email-security-pipeline/pull/160)
+  ([Copilot](https://github.com/apps/copilot-swe-agent))
+- Triage 24 open Jules PRs: merge/close recommendations with conflict analysis
+  [\#159](https://github.com/abhimehro/email-security-pipeline/pull/159)
+  ([Copilot](https://github.com/apps/copilot-swe-agent))
+- Fix YAML unmarshal error: remove non-breaking spaces in
+  copilot-setup-steps.yml
+  [\#158](https://github.com/abhimehro/email-security-pipeline/pull/158)
+  ([Copilot](https://github.com/apps/copilot-swe-agent))
+- Consolidate Jules PRs \#153-\#156 with review fixes; triage 36 open PRs
+  [\#157](https://github.com/abhimehro/email-security-pipeline/pull/157)
+  ([Copilot](https://github.com/apps/copilot-swe-agent))
+- ⚡ Bolt: Parallelize email analysis pipeline
+  [\#152](https://github.com/abhimehro/email-security-pipeline/pull/152)
+  ([abhimehro](https://github.com/abhimehro))
+- 🎨 Palette: Add CLI startup configuration summary
+  [\#151](https://github.com/abhimehro/email-security-pipeline/pull/151)
+  ([abhimehro](https://github.com/abhimehro))
+- 🛡️ Sentinel: \[HIGH\] Fix DoS vulnerability in Deepfake Detection
+  [\#149](https://github.com/abhimehro/email-security-pipeline/pull/149)
+  ([abhimehro](https://github.com/abhimehro))
+- 🎨 Palette: Add summary table to connectivity check script
+  [\#148](https://github.com/abhimehro/email-security-pipeline/pull/148)
+  ([abhimehro](https://github.com/abhimehro))
+- 🛡️ Sentinel: \[HIGH\] Fix archive bypass vulnerability
+  [\#146](https://github.com/abhimehro/email-security-pipeline/pull/146)
+  ([abhimehro](https://github.com/abhimehro))
+- 🎨 Palette: Add CLI loading spinner
+  [\#145](https://github.com/abhimehro/email-security-pipeline/pull/145)
+  ([abhimehro](https://github.com/abhimehro))
+- 🛡️ Sentinel: \[HIGH\] Fix Log Spoofing via BiDi Characters
+  [\#143](https://github.com/abhimehro/email-security-pipeline/pull/143)
+  ([abhimehro](https://github.com/abhimehro))
+- 🎨 Palette: Improve setup script UX with venv support
+  [\#142](https://github.com/abhimehro/email-security-pipeline/pull/142)
+  ([abhimehro](https://github.com/abhimehro))
+- ⚡ Bolt: Optimize deepfake detection loop \(20x speedup\)
+  [\#141](https://github.com/abhimehro/email-security-pipeline/pull/141)
+  ([abhimehro](https://github.com/abhimehro))
+- 🛡️ Sentinel: \[MEDIUM\] Prevent sensitive data caching in NLP analyzer
+  [\#140](https://github.com/abhimehro/email-security-pipeline/pull/140)
+  ([abhimehro](https://github.com/abhimehro))
+- ⚡ Bolt: Optimize \_sanitize\_filename performance
+  [\#138](https://github.com/abhimehro/email-security-pipeline/pull/138)
+  ([abhimehro](https://github.com/abhimehro))
+- Shield: Prevent DoS in media analysis and handle missing dependencies
+  [\#137](https://github.com/abhimehro/email-security-pipeline/pull/137)
+  ([abhimehro](https://github.com/abhimehro))
+- 🎨 Palette: Add actionable error tips for CLI authentication failures
+  [\#136](https://github.com/abhimehro/email-security-pipeline/pull/136)
+  ([abhimehro](https://github.com/abhimehro))
+- 🛡️ Sentinel: \[HIGH\] Fix sensitive webhook exposure in logs
+  [\#134](https://github.com/abhimehro/email-security-pipeline/pull/134)
+  ([abhimehro](https://github.com/abhimehro))
+- 🛡️ Sentinel: \[HIGH\] Fix missing dangerous file extensions
+  [\#128](https://github.com/abhimehro/email-security-pipeline/pull/128)
+  ([abhimehro](https://github.com/abhimehro))
+- ⚡ Bolt: Optimize NLP analyzer text processing
+  [\#126](https://github.com/abhimehro/email-security-pipeline/pull/126)
+  ([abhimehro](https://github.com/abhimehro))
+- 🛡️ Sentinel: \[MEDIUM\] Redact sensitive query parameters in webhook alerts
+  [\#125](https://github.com/abhimehro/email-security-pipeline/pull/125)
+  ([abhimehro](https://github.com/abhimehro))
+- 🎨 Palette: Improve configuration error reporting
+  [\#124](https://github.com/abhimehro/email-security-pipeline/pull/124)
+  ([abhimehro](https://github.com/abhimehro))
+- 🛡️ Sentinel: \[MEDIUM\] Fix DoS risks in logging and IMAP
+  [\#123](https://github.com/abhimehro/email-security-pipeline/pull/123)
+  ([abhimehro](https://github.com/abhimehro))
+- 🎨 Palette: Add clean report for low-risk emails
+  [\#121](https://github.com/abhimehro/email-security-pipeline/pull/121)
+  ([abhimehro](https://github.com/abhimehro))
+- ⚡ Bolt: optimize email filename sanitization
+  [\#120](https://github.com/abhimehro/email-security-pipeline/pull/120)
+  ([abhimehro](https://github.com/abhimehro))
+- 🛡️ Sentinel: \[MEDIUM\] Fix resource leak in media analyzer
+  [\#119](https://github.com/abhimehro/email-security-pipeline/pull/119)
+  ([abhimehro](https://github.com/abhimehro))
+- 🎨 Palette: Improve alert recommendation visibility
+  [\#116](https://github.com/abhimehro/email-security-pipeline/pull/116)
+  ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
+- ⚡ Bolt: Optimize NLP analyzer with regex guard clause
+  [\#115](https://github.com/abhimehro/email-security-pipeline/pull/115)
+  ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
+- 🛡️ Sentinel: \[HIGH\] Fix Authentication-Results validation bypass
+  [\#114](https://github.com/abhimehro/email-security-pipeline/pull/114)
+  ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
+- 🛡️ Sentinel: \[CRITICAL\] Prevent sensitive config fields from leaking in logs
+  [\#111](https://github.com/abhimehro/email-security-pipeline/pull/111)
+  ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
+- 🎨 Palette: Smart Configuration Validator for Better Developer Experience
+  [\#110](https://github.com/abhimehro/email-security-pipeline/pull/110)
+  ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
+- ⚡ Bolt: Optimize NLP Analyzer Caching
+  [\#109](https://github.com/abhimehro/email-security-pipeline/pull/109)
+  ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
+- 🎨 Palette: Add interactive countdown timer to CLI
+  [\#108](https://github.com/abhimehro/email-security-pipeline/pull/108)
+  ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
+- Bump sentencepiece from 0.1.99 to 0.2.1 in the pip group across 1 directory
+  [\#107](https://github.com/abhimehro/email-security-pipeline/pull/107)
+  ([dependabot[bot]](https://github.com/apps/dependabot))
+- 🎨 Palette: Improved connectivity check script with Outlook support and tips
+  [\#105](https://github.com/abhimehro/email-security-pipeline/pull/105)
+  ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
+- ⚡ Bolt: Optimize SpamAnalyzer URL extraction
+  [\#104](https://github.com/abhimehro/email-security-pipeline/pull/104)
+  ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
+- 🛡️ Sentinel: \[CRITICAL\] Fix DoS vulnerability in IMAP ingestion
+  [\#103](https://github.com/abhimehro/email-security-pipeline/pull/103)
+  ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
+- ⚡ Bolt: Optimize spam keyword detection
+  [\#101](https://github.com/abhimehro/email-security-pipeline/pull/101)
+  ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
+- 🛡️ Sentinel: \[MEDIUM\] Prevent CSV/Formula Injection in Alert System
+  [\#100](https://github.com/abhimehro/email-security-pipeline/pull/100)
+  ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
+- 🎨 Palette: Add pending state to connectivity check
+  [\#99](https://github.com/abhimehro/email-security-pipeline/pull/99)
+  ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
+- ⚡ Bolt: Combine NLP regex patterns for 30% speedup
+  [\#98](https://github.com/abhimehro/email-security-pipeline/pull/98)
+  ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
+- 🛡️ Sentinel: \[Enhancement\] Add magic byte verification for media files
+  [\#97](https://github.com/abhimehro/email-security-pipeline/pull/97)
+  ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
+- 🎨 Palette: Enhance Threat Alert Console UX
+  [\#96](https://github.com/abhimehro/email-security-pipeline/pull/96)
+  ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
+- 🎨 Palette: Improve CLI Alert UX with Icons and Empty States
+  [\#62](https://github.com/abhimehro/email-security-pipeline/pull/62)
+  ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
+- 🎨 Palette: Enhance CLI output with colors
+  [\#61](https://github.com/abhimehro/email-security-pipeline/pull/61)
+  ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
+- ⚡ Bolt: Cache OpenCV CascadeClassifier
+  [\#60](https://github.com/abhimehro/email-security-pipeline/pull/60)
+  ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
+- ⚡ Bolt: Optimize SpamAnalyzer regex usage and fix bugs
+  [\#58](https://github.com/abhimehro/email-security-pipeline/pull/58)
+  ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
+- ⚡ Bolt: Optimized face detection initialization
+  [\#57](https://github.com/abhimehro/email-security-pipeline/pull/57)
+  ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
+- Fix AttributeError in SpamAnalyzer URL checking
+  [\#56](https://github.com/abhimehro/email-security-pipeline/pull/56)
+  ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
+- ⚡ Bolt: Pre-compile regex in sanitization utility
+  [\#52](https://github.com/abhimehro/email-security-pipeline/pull/52)
+  ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
+- 🛡️ Sentinel: \[HIGH\] Fix broken URL check in SpamAnalyzer
+  [\#46](https://github.com/abhimehro/email-security-pipeline/pull/46)
+  ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
+- Fix AttributeError in SpamAnalyzer URL checking
+  [\#44](https://github.com/abhimehro/email-security-pipeline/pull/44)
+  ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
+- ⚡ Bolt: Optimize NLP Analyzer performance
+  [\#42](https://github.com/abhimehro/email-security-pipeline/pull/42)
+  ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
+- Prevent DoS via large email bodies
+  [\#39](https://github.com/abhimehro/email-security-pipeline/pull/39)
+  ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
+- ⚡ Bolt: Optimize NLP analyzer string processing
+  [\#36](https://github.com/abhimehro/email-security-pipeline/pull/36)
+  ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
+- 🛡️ Sentinel: \[CRITICAL\] Fix insecure IMAP SSL connection settings
+  [\#35](https://github.com/abhimehro/email-security-pipeline/pull/35)
+  ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
+- Potential fix for code scanning alert no. 1: Use of insecure SSL/TLS version
+  [\#33](https://github.com/abhimehro/email-security-pipeline/pull/33)
+  ([abhimehro](https://github.com/abhimehro))
+- Potential fix for code scanning alert no. 1: Use of insecure SSL/TLS version
+  [\#32](https://github.com/abhimehro/email-security-pipeline/pull/32)
+  ([abhimehro](https://github.com/abhimehro))
+- 🛡️ Sentinel: Fix Slack Injection Vulnerability
+  [\#31](https://github.com/abhimehro/email-security-pipeline/pull/31)
+  ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
+- Add visual threat meter to console alerts
+  [\#30](https://github.com/abhimehro/email-security-pipeline/pull/30)
+  ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
+- Optimize SpamAnalyzer regex patterns
+  [\#29](https://github.com/abhimehro/email-security-pipeline/pull/29)
+  ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
+- 🛡️ Sentinel: Fix DoS vulnerability in email ingestion
+  [\#28](https://github.com/abhimehro/email-security-pipeline/pull/28)
+  ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
+- ⚡ Bolt: Optimize NLP regex patterns and fix double inference
+  [\#27](https://github.com/abhimehro/email-security-pipeline/pull/27)
+  ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
+- build\(deps\): bump the pip group across 1 directory with 2 updates
+  [\#26](https://github.com/abhimehro/email-security-pipeline/pull/26)
+  ([dependabot[bot]](https://github.com/apps/dependabot))
+- ⚡ Bolt: Optimize URL checking in SpamAnalyzer
+  [\#24](https://github.com/abhimehro/email-security-pipeline/pull/24)
+  ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
+- 🎨 Palette: Improved Console Alert Visuals
+  [\#23](https://github.com/abhimehro/email-security-pipeline/pull/23)
+  ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
+- ⚡ Bolt: Pre-compile regex patterns in SpamAnalyzer
+  [\#22](https://github.com/abhimehro/email-security-pipeline/pull/22)
+  ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
+- ⚡ Bolt: Batch fetch emails for improved performance
+  [\#21](https://github.com/abhimehro/email-security-pipeline/pull/21)
+  ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
+- 🎨 Palette: Add color-coded console alerts
+  [\#20](https://github.com/abhimehro/email-security-pipeline/pull/20)
+  ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
+- ⚡ Bolt: Optimize SpamAnalyzer regex operations
+  [\#19](https://github.com/abhimehro/email-security-pipeline/pull/19)
+  ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
+- Palette: Enhance console alert with ANSI colors
+  [\#18](https://github.com/abhimehro/email-security-pipeline/pull/18)
+  ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
+- ⚡ Bolt: Batch fetch emails in IMAP client
+  [\#17](https://github.com/abhimehro/email-security-pipeline/pull/17)
+  ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
+- 🛡️ Sentinel: \[HIGH\] Fix file extension check bypass vulnerability
+  [\#16](https://github.com/abhimehro/email-security-pipeline/pull/16)
+  ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
+- Feat: Add Connection Diagnostics Tool
+  [\#15](https://github.com/abhimehro/email-security-pipeline/pull/15)
+  ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
+- Implement Deepfake Model Runner
+  [\#14](https://github.com/abhimehro/email-security-pipeline/pull/14)
+  ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
+- feat: Add PR labeler configuration and workflow
+  [\#13](https://github.com/abhimehro/email-security-pipeline/pull/13)
+  ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
+- Enable ML model loading in NLP analyzer
+  [\#12](https://github.com/abhimehro/email-security-pipeline/pull/12)
+  ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
+- Implement Transformer Analysis Logic
+  [\#11](https://github.com/abhimehro/email-security-pipeline/pull/11)
+  ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
+- Implement Advanced Deepfake Detection Pipeline
+  [\#10](https://github.com/abhimehro/email-security-pipeline/pull/10)
+  ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
+- Enable Transformer model in NLP Threat Analyzer
+  [\#9](https://github.com/abhimehro/email-security-pipeline/pull/9)
+  ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
+- 🛡️ Sentinel: \[HIGH\] Fix Log Injection Vulnerability
+  [\#8](https://github.com/abhimehro/email-security-pipeline/pull/8)
+  ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
+- ⚡ Bolt: Optimized SpamAnalyzer keyword scanning
+  [\#5](https://github.com/abhimehro/email-security-pipeline/pull/5)
+  ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
+- 🛡️ Sentinel: \[HIGH\] Fix Log Injection in Alert System
+  [\#4](https://github.com/abhimehro/email-security-pipeline/pull/4)
+  ([google-labs-jules[bot]](https://github.com/apps/google-labs-jules))
+- build\(deps\): bump requests from 2.31.0 to 2.32.4 in the pip group across 1
+  directory [\#3](https://github.com/abhimehro/email-security-pipeline/pull/3)
+  ([dependabot[bot]](https://github.com/apps/dependabot))
+- Project folder review and improvements
+  [\#2](https://github.com/abhimehro/email-security-pipeline/pull/2)
+  ([abhimehro](https://github.com/abhimehro))
+- build\(deps\): bump requests from 2.31.0 to 2.32.4 in the pip group across 1
+  directory [\#1](https://github.com/abhimehro/email-security-pipeline/pull/1)
+  ([dependabot[bot]](https://github.com/apps/dependabot))
 
-
-
-\* *This Changelog was automatically generated by [github_changelog_generator](https://github.com/github-changelog-generator/github-changelog-generator)*
+\* _This Changelog was automatically generated by
+[github_changelog_generator](https://github.com/github-changelog-generator/github-changelog-generator)_

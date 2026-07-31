@@ -563,6 +563,11 @@ significant visual noise in the CLI, drowning out important events like threat
 detections. **Action:** Identify and apply subtle coloring (like GREY) to
 high-frequency, non-actionable log messages to improve the signal-to-noise ratio
 and visual hierarchy in the terminal UX.
+
 ## 2026-07-29 - Consistent Countdown Formatting
-**Learning:** When displaying dynamic textual time elements (like countdowns), dynamically switching formats mid-countdown (e.g. from 1:00 to 59s) causes abrupt visual layout shifts which are jarring for the user.
-**Action:** Use the initial total duration to determine the format and maintain it consistently throughout the entire lifecycle of the countdown element.
+
+**Learning:** When displaying dynamic textual time elements (like countdowns),
+dynamically switching formats mid-countdown (e.g. from 1:00 to 59s) causes
+abrupt visual layout shifts which are jarring for the user. **Action:** Use the
+initial total duration to determine the format and maintain it consistently
+throughout the entire lifecycle of the countdown element.
