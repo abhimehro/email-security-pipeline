@@ -5,24 +5,11 @@ Handles threat notifications and alerting across multiple channels.
 
 import asyncio
 import logging
-import re
-import shutil
-import textwrap
 import threading
-from dataclasses import asdict, dataclass
-from datetime import datetime
 from typing import Dict, List, Optional
-from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 
 import requests
 
-from ..utils.colors import Colors
-from ..utils.sanitization import (
-    _TRANSLATOR,
-    _WHITESPACE_TRANS,
-    ANSI_ESCAPE_PATTERN,
-    sanitize_for_csv,
-)
 from ..utils.security_validators import is_safe_webhook_url
 from .alert_recommendations import (
     DEFAULT_CLEAN_RECOMMENDATION,
@@ -36,10 +23,8 @@ from .alert_report import RenderConfig, ThreatReport, generate_threat_report
 from .media_analyzer import MediaAnalysisResult
 from .nlp_analyzer import NLPAnalysisResult
 from .spam_analyzer import SpamAnalysisResult
-
-# Regex pattern for extracting URLs from error messages (compiled once for performance)
-# Expanded to catch bare paths/hosts for complete redaction when scheme is missing.
-URL_PATTERN = re.compile(r'(?:https?://[^\s<>"]+|www\.[^\s<>"]+|/[^\s<>"]+)')
+from . import alert_channels
+from . import alert_console
 
 
 class AlertSystem:
@@ -56,8 +41,6 @@ class AlertSystem:
     RED_KEYWORDS_PATTERN = RED_KEYWORDS_PATTERN
     YELLOW_KEYWORDS_PATTERN = YELLOW_KEYWORDS_PATTERN
 
-    # Pre-compiled pattern for fast URL redaction replacement without re.IGNORECASE penalty
-    REDACTED_URL_PATTERN = re.compile(r"%5[bB]REDACTED%5[dD]", flags=0)
 
     # Maximum number of items shown per section in the console threat report.
     # Helps keep the output readable; lists may be truncated in the console view.
@@ -388,485 +371,62 @@ class AlertSystem:
             else:
                 self.logger.error("Failed to enqueue alert: %s", exc)
 
-    def _print_alert_row(self, text: str, risk_color: str, indent: int = 0):
-        """Helper to print a row with the left border."""
-        # Note: We don't print the right border '│' because calculating visual width
-        # with ANSI codes and unicode/emojis is complex without external dependencies.
-        # The design uses an open-sided card metaphor for text rows.
-        prefix = Colors.colorize("│", risk_color) + " " * (2 + indent)
-        print(f"{prefix}{text}")
-
-    def _print_alert_header(
-        self,
-        risk_level: str,
-        render_config: RenderConfig,
-    ):
-        """Print the alert header."""
-        print()
-        # Top Border (┌───┐)
-        # Width adjustment: -2 for the corners
-        border_len = render_config.width - 2
-        print(Colors.colorize(f"┌{'─'*border_len}┐", render_config.risk_color))
-
-        # Header Row
-        title = "🚨 SECURITY ALERT"
-        risk_label = f"{risk_level.upper()} RISK"
-
-        # Padding calculation:
-        # Width - (left_border + space) - title_len - padding - risk_label_len - (space + symbol + right_border)
-        # Visual estimation:
-        # │  (3 chars visual)
-        # title (~18 chars visual with emoji)
-        # risk_label (variable)
-        # symbol (1-2 chars visual)
-        # right_border (not printed in header row in original, but let's add it if we can align)
-
-        # Simpler approach for header: Just use the same layout but maybe without the right border for the text row
-        # strictly if alignment is hard. But the PR comment asked for closed borders.
-        # Let's try to close the top/bottom/separators first as requested.
-
-        # Padding for the header text row:
-        # We need to fill the space between title and risk label.
-        # Fixed width = render_config.width
-        # Content = "│  " + title + PADDING + risk_label + " " + symbol
-        # We don't print a right border '│' here because alignment is tricky with emojis.
-        # But we can try to approximate.
-
-        # Magic number explanation:
-        # 5 comes from: 3 chars for left prefix ("│  ") + 1 char space before symbol + 1 char approx for symbol/emoji width variance
-        padding_len = render_config.width - len(title) - len(risk_label) - 5
-        padding = " " * max(1, padding_len)
-
-        print(
-            Colors.colorize("│  ", render_config.risk_color)
-            + Colors.colorize(title, Colors.BOLD)
-            + padding
-            + Colors.colorize(risk_label, render_config.risk_color + Colors.BOLD)
-            + " "
-            + render_config.risk_symbol
-        )
-
-        # Separator (├───┤)
-        print(Colors.colorize(f"├{'─'*border_len}┤", render_config.risk_color))
-
-    def _print_alert_metadata(
-        self, report: ThreatReport, width: int, risk_color: str, formatted_time: str
-    ):
-        """Print alert metadata (Timestamp, Subject, From, To)."""
-        max_field_len = width - 15
-
-        def safe_field(val):
-            s = self._sanitize_text(val, csv_safe=True)
-            if len(s) > max_field_len:
-                return s[: max_field_len - 3] + "..."
-            return s
-
-        self._print_alert_row(
-            f"{Colors.colorize('Timestamp:', Colors.BOLD)} {formatted_time}", risk_color
-        )
-        self._print_alert_row(
-            f"{Colors.colorize('Subject:', Colors.BOLD)}   {safe_field(report.subject)}",
-            risk_color,
-        )
-        self._print_alert_row(
-            f"{Colors.colorize('From:', Colors.BOLD)}      {safe_field(report.sender)}",
-            risk_color,
-        )
-        self._print_alert_row(
-            f"{Colors.colorize('To:', Colors.BOLD)}        {safe_field(report.recipient)}",
-            risk_color,
-        )
-        self._print_alert_row("", risk_color)
-
-    def _print_threat_score(
-        self, score: float, risk_level: str, width: int, risk_color: str
-    ):
-        """Print the threat score and progress bar."""
-        score_val = min(max(score, 0), 100)
-        meter_len = 40
-        filled_len = int(score_val / 100 * meter_len)
-        bar = "█" * filled_len + "░" * (meter_len - filled_len)
-        meter_color = Colors.get_risk_color(risk_level)
-
-        self._print_alert_row(
-            f"{Colors.colorize('THREAT SCORE:', Colors.BOLD)} {score:.2f}/100",
-            risk_color,
-        )
-        self._print_alert_row(f"{Colors.colorize(bar, meter_color)}", risk_color)
-
-    def _print_analysis_details(
-        self, report: ThreatReport, width: int, risk_color: str
-    ):
-        """Print detailed analysis sections."""
-        border_len = width - 2
-        print(Colors.colorize(f"├{'─'*border_len}┤", risk_color))
-        self._print_alert_row(
-            Colors.colorize("ANALYSIS DETAILS", Colors.BOLD), risk_color
-        )
-        self._print_alert_row("", risk_color)
-
-        # Spam
-        self._print_analysis_section_header("📧 SPAM", report.spam_analysis, risk_color)
-        self._print_spam_details(report.spam_analysis, risk_color)
-        self._print_alert_row("", risk_color)
-
-        # NLP
-        self._print_analysis_section_header("🧠 NLP", report.nlp_analysis, risk_color)
-        self._print_nlp_details(report.nlp_analysis, risk_color)
-        self._print_alert_row("", risk_color)
-
-        # Media
-        self._print_analysis_section_header(
-            "📎 MEDIA", report.media_analysis, risk_color
-        )
-        self._print_media_details(report.media_analysis, risk_color)
-
-    def _print_nlp_details(self, nlp_analysis: Dict, risk_color: str) -> None:
-        has_nlp = False
-
-        indicator_configs = [
-            ("social_engineering_indicators", "Social Engineering:", Colors.RED),
-            ("urgency_markers", "Urgency Markers:", Colors.YELLOW),
-            ("authority_impersonation", "Authority Impersonation:", Colors.RED),
-            ("psychological_triggers", "Psychological Triggers:", Colors.YELLOW),
-        ]
-
-        for key, title, item_color in indicator_configs:
-            items = nlp_analysis.get(key)
-            if items:
-                self._print_alert_row(
-                    Colors.colorize(title, Colors.BOLD), risk_color, indent=3
-                )
-                for item in items[: self.MAX_NLP_INDICATORS_DISPLAY]:
-                    self._print_alert_row(
-                        f"{Colors.colorize('•', item_color)} {item}",
-                        risk_color,
-                        indent=5,
-                    )
-                has_nlp = True
-
-        if not has_nlp:
-            self._print_alert_row(
-                f"{Colors.colorize('✓', Colors.GREEN)} No NLP threats detected",
-                risk_color,
-                indent=3,
-            )
-
-    def _print_media_details(self, media_analysis: Dict, risk_color: str) -> None:
-        has_media_warnings = False
-
-        indicator_configs = [
-            ("file_type_warnings", "File Warnings:", Colors.YELLOW),
-            ("suspicious_attachments", "Suspicious Attachments:", Colors.RED),
-            ("size_anomalies", "Size Anomalies:", Colors.YELLOW),
-            ("potential_deepfakes", "Potential Deepfakes:", Colors.RED),
-        ]
-
-        for key, title, item_color in indicator_configs:
-            items = media_analysis.get(key)
-            if items:
-                self._print_alert_row(
-                    Colors.colorize(title, Colors.BOLD), risk_color, indent=3
-                )
-                for item in items[: self.MAX_MEDIA_WARNINGS_DISPLAY]:
-                    self._print_alert_row(
-                        f"{Colors.colorize('•', item_color)} {item}",
-                        risk_color,
-                        indent=5,
-                    )
-                has_media_warnings = True
-
-        if not has_media_warnings:
-            self._print_alert_row(
-                f"{Colors.colorize('✓', Colors.GREEN)} Attachments appear safe",
-                risk_color,
-                indent=3,
-            )
-
-    def _print_analysis_section_header(
-        self, title: str, analysis_data: Dict, risk_color: str
-    ) -> None:
-        level = analysis_data.get("risk_level", "unknown")
-        color = Colors.get_risk_color(level)
-        symbol = Colors.get_risk_symbol(level)
-        self._print_alert_row(
-            f"{Colors.colorize(title + ':', Colors.BOLD)} {Colors.colorize(level.upper(), color)} {symbol}",
-            risk_color,
-        )
-
-    def _print_spam_details(self, spam_analysis: Dict, risk_color: str) -> None:
-        spam_rows = self._spam_detail_rows(spam_analysis)
-        if not spam_rows:
-            self._print_alert_row(
-                f"{Colors.colorize('✓', Colors.GREEN)} No suspicious patterns",
-                risk_color,
-                indent=3,
-            )
-            return
-
-        for text, indent in spam_rows:
-            self._print_alert_row(text, risk_color, indent=indent)
-
-    def _spam_detail_rows(self, spam_analysis: Dict) -> List[tuple[str, int]]:
-        rows: List[tuple[str, int]] = []
-        rows.extend(self._spam_indicator_rows(spam_analysis.get("indicators") or []))
-        rows.extend(
-            self._spam_header_issue_rows(spam_analysis.get("header_issues") or [])
-        )
-        rows.extend(self._spam_url_rows(spam_analysis.get("suspicious_urls") or []))
-        return rows
-
-    def _spam_indicator_rows(self, indicators: List[str]) -> List[tuple[str, int]]:
-        return [
-            (f"{Colors.colorize('•', Colors.GREY)} {indicator}", 3)
-            for indicator in indicators[: self.MAX_SPAM_INDICATORS_DISPLAY]
-        ]
-
-    def _spam_header_issue_rows(
-        self, header_issues: List[str]
-    ) -> List[tuple[str, int]]:
-        rows: List[tuple[str, int]] = []
-        if header_issues:
-            rows.append((Colors.colorize("Header Issues:", Colors.BOLD), 3))
-        rows.extend(
-            (f"{Colors.colorize('•', Colors.YELLOW)} {issue}", 5)
-            for issue in header_issues[: self.MAX_HEADER_ISSUES_DISPLAY]
-        )
-        return rows
-
-    def _spam_url_rows(self, suspicious_urls: List[str]) -> List[tuple[str, int]]:
-        rows: List[tuple[str, int]] = []
-        if suspicious_urls:
-            rows.append((Colors.colorize("Suspicious URLs:", Colors.BOLD), 3))
-        rows.extend(
-            (f"{Colors.colorize('•', Colors.RED)} {self._safe_console_url(url)}", 5)
-            for url in suspicious_urls[: self.MAX_URLS_DISPLAY]
-        )
-        return rows
-
     def _safe_console_url(self, url: str) -> str:
-        redacted_url = self.REDACTED_URL_PATTERN.sub(
-            "[REDACTED]",
-            self._redact_sensitive_url_params(url),
-        )
-        return self._sanitize_text(redacted_url, csv_safe=True)
-
-    def _print_recommendations(
-        self, recommendations: List[str], width: int, risk_color: str
-    ):
-        """Print recommendations section."""
-        border_len = width - 2
-        print(Colors.colorize(f"├{'─'*border_len}┤", risk_color))
-        self._print_alert_row(
-            Colors.colorize("RECOMMENDATIONS", Colors.BOLD), risk_color
-        )
-        self._print_alert_row("", risk_color)
-
-        for rec in recommendations:
-            color = Colors.GREEN
-            rec_upper = rec.upper()
-            icon = "►"
-
-            # Remove existing prefixes to prevent double icons
-            # Optimization: tuple-based startswith executes entirely in C and avoids Python loop overhead
-            # We still need to find which prefix matched to slice it correctly, but the initial
-            # fast check filters out the vast majority of cases instantly.
-            if rec.startswith(self.RECOMMENDATION_PREFIXES_TUPLE):
-                for prefix in self.RECOMMENDATION_PREFIXES:
-                    if rec.startswith(prefix):
-                        rec = rec[len(prefix) :]
-
-            # Optimization: compiled regex search is faster than any() generator loop for substring matching
-            if self.RED_KEYWORDS_PATTERN.search(rec_upper):
-                color = Colors.RED
-            elif self.YELLOW_KEYWORDS_PATTERN.search(rec_upper):
-                color = Colors.YELLOW
-
-            # Calculate available width for text
-            # Width - 2 (left border/space) - 3 (icon + space) - 2 (right padding) = Width - 7
-            # We use 8 to be safe and consistent with previous layout
-            max_text_width = width - 8
-
-            # Wrap text nicely
-            wrapped_lines = textwrap.wrap(rec, width=max_text_width)
-
-            if not wrapped_lines:
-                continue
-
-            # First line gets the bullet point
-            first_line = wrapped_lines[0]
-            self._print_alert_row(
-                f"{Colors.colorize(icon, color)} {first_line}", risk_color
-            )
-
-            # Subsequent lines get indentation based on icon width
-            # ► is 1 char, ⚠️ is 2 chars (usually). We align to 3 spaces for visual consistency.
-            indent = "   " if icon == "⚠️ " else "  "
-
-            for line in wrapped_lines[1:]:
-                self._print_alert_row(f"{indent}{line}", risk_color)
-
-        # Bottom Border (└───┘)
-        print(Colors.colorize(f"└{'─'*border_len}┘", risk_color))
-        print()
-
-    def _console_alert(self, report: ThreatReport):
-        """Print alert to console with enhanced UX."""
-        # Configuration
-        WIDTH = 70
-        risk_color = Colors.get_risk_color(report.risk_level)
-        risk_symbol = Colors.get_risk_symbol(report.risk_level)
-
-        # Format timestamp
-        try:
-            dt = datetime.fromisoformat(report.timestamp)
-            formatted_time = dt.strftime("%b %d, %Y at %H:%M:%S")
-        except ValueError:
-            formatted_time = report.timestamp
-
-        render_config = RenderConfig(
-            width=WIDTH,
-            risk_color=risk_color,
-            risk_symbol=risk_symbol,
-        )
-
-        self._print_alert_header(report.risk_level, render_config)
-        self._print_alert_metadata(report, WIDTH, risk_color, formatted_time)
-        self._print_threat_score(
-            report.overall_threat_score, report.risk_level, WIDTH, risk_color
-        )
-        self._print_analysis_details(report, WIDTH, risk_color)
-        self._print_recommendations(report.recommendations, WIDTH, risk_color)
-
-    def _console_clean_report(self, report: ThreatReport):
-        """Print clean report to console."""
-        # Compact format for clean emails
-        score_val = max(0.0, report.overall_threat_score)
-
-        # Calculate risk relative to the low threshold (the "clean" budget)
-        threshold = self.config.threat_low
-        if threshold <= 0:
-            threshold = 30
-
-        percent_of_threshold = min(score_val / threshold, 1.0)
-
-        # Mini bar: 10 chars
-        bar_len = 10
-        filled = int(percent_of_threshold * bar_len)
-
-        # Bar construction
-        fill_char = "■"
-        empty_char = "·"
-
-        filled_part = fill_char * filled
-        empty_part = empty_char * (bar_len - filled)
-
-        # Color logic
-        bar_color = Colors.GREEN
-        if percent_of_threshold > 0.6:
-            bar_color = Colors.YELLOW
-
-        colored_filled = Colors.colorize(filled_part, bar_color)
-        colored_empty = Colors.colorize(empty_part, Colors.GREY)
-
-        visual_bar = f"[{colored_filled}{colored_empty}]"
-
-        # Short timestamp
-        try:
-            dt = datetime.fromisoformat(report.timestamp)
-            time_str = dt.strftime("%H:%M:%S")
-        except ValueError:
-            time_str = report.timestamp
-
-        # Determine available width based on terminal size
-        terminal_width = self._get_terminal_width()
-
-        # Calculate width of fixed parts dynamically
-        # Structure: "✓ CLEAN | HH:MM:SS | Score: XX.X [■■···] | From: " + sender + " | " + subject
-
-        sep = Colors.colorize("│", Colors.GREY)
-
-        clean_str = Colors.colorize("✓ CLEAN", Colors.GREEN)
-        prefix = f"{clean_str} {sep} {time_str} {sep} Score: {score_val:4.1f} {visual_bar} {sep} From: "
-        prefix_len = self._get_visual_length(prefix)
-
-        suffix_sep = f" {sep} "
-        suffix_sep_len = self._get_visual_length(suffix_sep)
-
-        # Fixed width is prefix + space for suffix separator
-        # We add 1 char buffer
-        fixed_width = prefix_len + suffix_sep_len + 1
-
-        available_width = max(20, terminal_width - fixed_width)
-
-        # Allocate width: 35% for sender, 65% for subject
-        sender_target = int(available_width * 0.35)
-        # Minimum reduced to 8 to fit 80-column terminals better
-        sender_width = max(8, sender_target)
-
-        subject_width = available_width - sender_width
-        # Ensure subject has at least some space
-        subject_width = max(10, subject_width)
-
-        # Sender truncated
-        sanitized_sender = self._sanitize_text(report.sender, csv_safe=True)
-        sender = self._truncate_text(sanitized_sender, sender_width)
-
-        # Subject truncated
-        sanitized_subject = self._sanitize_text(report.subject, csv_safe=True)
-        if not sanitized_subject:
-            sanitized_subject = "(No Subject)"
-
-        subject = self._truncate_text(sanitized_subject, subject_width)
-
-        # Format:
-        # ✓ CLEAN | HH:MM:SS | Score: XX.X [■■···] | From: Sender                       | Subject
-        clean_str = Colors.colorize("✓ CLEAN", Colors.GREEN)
-        print(
-            f"{clean_str} "
-            f"{sep} {time_str} "
-            f"{sep} Score: {score_val:4.1f} {visual_bar} "
-            f"{sep} From: {sender:<{sender_width}} "
-            f"{sep} {subject}"
-        )
+        """Return a URL safe for console output with tokens redacted."""
+        return alert_console.safe_console_url(url)
 
     def _get_terminal_width(self) -> int:
-        """Get the current terminal width or default to 80.
-
-        This is wrapped in a try/except so we don't crash in environments where
-        shutil.get_terminal_size is unavailable or cannot determine the size.
-        In those cases we conservatively fall back to 80 columns.
-        """
-        try:
-            return shutil.get_terminal_size((80, 20)).columns
-        except (AttributeError, OSError, ValueError):
-            # AttributeError: get_terminal_size might not exist (older/embedded runtimes)
-            # OSError/ValueError: terminal size can't be determined in this environment
-            return 80
+        """Get the current terminal width or default to 80."""
+        return alert_console.get_terminal_width()
 
     def _get_visual_length(self, text: str) -> int:
         """Get the character count of text after stripping ANSI color codes."""
-        if not text:
-            return 0
-        if "\x1b" in text:
-            return len(ANSI_ESCAPE_PATTERN.sub("", text))
-        return len(text)
+        return alert_console.get_visual_length(text)
 
     def _truncate_text(self, text: str, width: int) -> str:
-        """
-        Truncate text to a specified width based on character count.
-        Adds '...' if truncated. Assumes input text has no ANSI codes.
-        """
-        if not text:
-            return ""
+        """Truncate text to a specified width based on character count."""
+        return alert_console.truncate_text(text, width)
 
-        # Simple truncation since input (sanitized sender/subject) doesn't have ANSI codes
-        if len(text) > width:
-            # We need at least 3 chars for '...'
-            if width <= 3:
-                return "." * width
-            return text[: width - 3] + "..."
-        return text
+    def _console_alert(self, report: ThreatReport):
+        """Print alert to console with enhanced UX."""
+        alert_console.render_alert(
+            report,
+            limits={
+                "MAX_SPAM_INDICATORS_DISPLAY": self.MAX_SPAM_INDICATORS_DISPLAY,
+                "MAX_HEADER_ISSUES_DISPLAY": self.MAX_HEADER_ISSUES_DISPLAY,
+                "MAX_NLP_INDICATORS_DISPLAY": self.MAX_NLP_INDICATORS_DISPLAY,
+                "MAX_MEDIA_WARNINGS_DISPLAY": self.MAX_MEDIA_WARNINGS_DISPLAY,
+                "MAX_URLS_DISPLAY": self.MAX_URLS_DISPLAY,
+            },
+        )
+
+    def _console_clean_report(self, report: ThreatReport):
+        """Print clean report to console."""
+        alert_console.render_clean_report(
+            report,
+            self.config.threat_low,
+            self._get_terminal_width(),
+        )
+
+    def _sanitize_text(self, text: str, csv_safe: bool = False) -> str:
+        """Sanitize text for safe console output."""
+        return alert_channels.sanitize_text(text, csv_safe)
+
+    def _sanitize_for_slack(self, text: str) -> str:
+        """Sanitize text for Slack to prevent injection and spoofing."""
+        return alert_channels.sanitize_for_slack(text)
+
+    def _sanitize_error_message(self, error: Exception) -> str:
+        """Sanitize exception messages to prevent leaking sensitive URLs/tokens."""
+        return alert_channels.sanitize_error_message(str(error))
+
+    def _redact_url_secrets(self, url: str) -> str:
+        """Redact sensitive information from URL (query params and specific paths)."""
+        return alert_channels.redact_url_secrets(url)
+
+    def _redact_sensitive_url_params(self, url: str) -> str:
+        """Redact sensitive query parameters from URL."""
+        return alert_channels.redact_sensitive_url_params(url)
 
     def _webhook_alert(self, report: ThreatReport) -> bool:
         """Send alert via webhook.
@@ -885,22 +445,9 @@ class AlertSystem:
                 )
                 return False
 
-            payload = asdict(report)
-
-            # Redact sensitive info from suspicious URLs if present
-            if (
-                "spam_analysis" in payload
-                and "suspicious_urls" in payload["spam_analysis"]
-            ):
-                urls = payload["spam_analysis"]["suspicious_urls"]
-                if urls:
-                    payload["spam_analysis"]["suspicious_urls"] = [
-                        self._redact_sensitive_url_params(url) for url in urls
-                    ]
-
             response = requests.post(
                 self.config.webhook_url,
-                json=payload,
+                json=alert_channels.build_webhook_payload(report),
                 headers={"Content-Type": "application/json"},
                 timeout=10,
                 allow_redirects=False,
@@ -920,278 +467,6 @@ class AlertSystem:
             )
             return False
 
-    def _sanitize_error_message(self, error: Exception) -> str:
-        """
-        Sanitize exception messages to prevent leaking sensitive URLs/tokens.
-        Detects URLs in the error message and redacts them.
-        """
-        msg = str(error)
-        try:
-            # Find all URLs in the message
-            # Simple regex for http/https URLs to catch full URLs including query params
-            urls = URL_PATTERN.findall(msg)
-
-            for url in urls:
-                # Clean up trailing punctuation that might have been matched
-                clean_url = url.rstrip(".,;:)'")
-
-                # Apply redaction
-                redacted = self._redact_url_secrets(clean_url)
-
-                # If redaction changed anything, update the message
-                if redacted != clean_url:
-                    msg = msg.replace(clean_url, redacted)
-
-            return msg
-        except Exception:
-            return "An error occurred (details redacted for security)"
-
-    def _redact_url_secrets(self, url: str) -> str:
-        """
-        Redact sensitive information from URL (query params and specific paths).
-        Handles Slack/Discord webhooks and sensitive query parameters.
-        """
-        try:
-            if not url:
-                return ""
-
-            # 1. Redact sensitive query parameters (reusing logic)
-            url = self._redact_sensitive_url_params(url)
-
-            parsed = urlparse(url)
-
-            # 2. Redact credentials in authority section
-            if parsed.password:
-                # Reconstruct URL with redacted password.
-                # Use netloc.rpartition to safely separate authority from host, preserving IPv6 brackets.
-                _, _, host_part = parsed.netloc.rpartition("@")
-
-                if parsed.username:
-                    # Extract the raw username from the netloc to avoid re-encoding ambiguity
-                    # parsed.netloc is "user:pass@host", so partition gives us "user:pass"
-                    user_pass_part = parsed.netloc.rpartition("@")[0]
-                    # Partition gives us "user"
-                    username_part = user_pass_part.partition(":")[0]
-                    new_netloc = f"{username_part}:[REDACTED]@{host_part}"
-                else:
-                    # Case: https://:password@host (no username)
-                    new_netloc = f":[REDACTED]@{host_part}"
-
-                parsed = parsed._replace(netloc=new_netloc)
-
-            # 3. Redact Slack Webhooks
-            # Format: /services/T000/B000/TOKEN
-            hostname = (parsed.hostname or "").lower()
-            if (
-                not hostname
-                or hostname == "hooks.slack.com"
-                or hostname.endswith(".slack.com")
-            ) and parsed.path.startswith("/services/"):
-                parts = parsed.path.split("/")
-                # parts[0] is empty, parts[1] is 'services'
-                # parts[2] is Team ID, parts[3] is Bot ID, parts[4] is Token
-                # We redact the token (last part)
-                if len(parts) >= 5:
-                    parts[-1] = "[REDACTED]"
-                    new_path = "/".join(parts)
-                    parsed = parsed._replace(path=new_path)
-                    return urlunparse(parsed)
-
-            # 4. Redact Discord Webhooks
-            # Format: /api/webhooks/ID/TOKEN
-            if (
-                not hostname
-                or hostname == "discord.com"
-                or hostname.endswith(".discord.com")
-            ) and parsed.path.startswith("/api/webhooks/"):
-                parts = parsed.path.split("/")
-                # parts[-1] is likely the token
-                if len(parts) >= 5:
-                    parts[-1] = "[REDACTED]"
-                    new_path = "/".join(parts)
-                    parsed = parsed._replace(path=new_path)
-                    return urlunparse(parsed)
-
-            return urlunparse(parsed)
-        except Exception:
-            return url
-
-    def _redact_sensitive_url_params(self, url: str) -> str:
-        """
-        Redact sensitive query parameters from URL.
-        Prevents leaking credentials or tokens in logs/alerts.
-        """
-        try:
-            if not url:
-                return ""
-
-            parsed = urlparse(url)
-            # keep_blank_values=True ensures we don't drop empty params
-            query_params = parse_qs(parsed.query, keep_blank_values=True)
-
-            sensitive_keys = {
-                "password",
-                "token",
-                "secret",
-                "key",
-                "apikey",
-                "api_key",
-                "access_token",
-                "auth",
-                "authorization",
-                "sig",
-                "signature",
-            }
-
-            changed = False
-            for key in query_params:
-                if key.lower() in sensitive_keys:
-                    query_params[key] = ["[REDACTED]"]
-                    changed = True
-
-            if changed:
-                # doseq=True handles lists of values correctly
-                new_query = urlencode(query_params, doseq=True)
-                parsed = parsed._replace(query=new_query)
-                return urlunparse(parsed)
-            return url
-        except Exception:
-            # If parsing fails, return original to avoid losing data,
-            # but rely on other sanitization layers if any.
-            return url
-
-    def _sanitize_text(self, text: str, csv_safe: bool = False) -> str:
-        """
-        Sanitize text for safe console output.
-        Removes control characters, BiDi overrides, and normalizes whitespace.
-
-        Args:
-            text: Input text
-            csv_safe: If True, applies CSV/Formula injection prevention
-
-        """
-        if not text:
-            return ""
-
-        # Replace newlines and tabs with spaces
-        sanitized = (
-            text.translate(_WHITESPACE_TRANS)
-            if "\n" in text or "\r" in text or "\t" in text
-            else text
-        )
-
-        if "\x1b" in sanitized:
-            sanitized = ANSI_ESCAPE_PATTERN.sub("", sanitized)
-
-        # Remove non-printable characters (including BiDi overrides, control chars, etc.)
-        # Only keep characters that are printable or separators (Zs)
-        # Optimization: Use str.translate with a lazy-evaluating dictionary
-        # for significantly faster filtering (~15-20x) than a list comprehension inside join().
-        sanitized = sanitized.translate(_TRANSLATOR)
-
-        if csv_safe:
-            # Prevent Formula/CSV Injection for console logs that might be exported
-            sanitized = sanitize_for_csv(sanitized)
-
-        return sanitized
-
-    def _sanitize_for_slack(self, text: str) -> str:
-        """
-        Sanitize text for Slack to prevent injection and spoofing.
-        Escapes &, <, > and sanitizes control characters.
-        """
-        if not text:
-            return ""
-
-        # First sanitize control characters using the existing method
-        # We do NOT use csv_safe=True here to avoid messing up Slack formatting
-        text = self._sanitize_text(text, csv_safe=False)
-
-        # Escape Slack special characters
-        # Reference: https://api.slack.com/reference/surfaces/formatting#escaping
-        return text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
-
-    def _create_slack_field(
-        self, title: str, analysis_dict: Dict, indicator: str
-    ) -> Dict:
-        """Helper to create a standard Slack field dictionary with risk emojis."""
-        level = analysis_dict.get("risk_level", "unknown")
-        score = analysis_dict.get("score", 0)
-        symbol = Colors.get_risk_symbol(level)
-
-        value = f"{symbol} {level.upper()} ({score:.2f})"
-        if indicator:
-            value += f"{indicator}"
-
-        return {"title": title, "value": value, "short": True}
-
-    def _generate_slack_fields(self, report: ThreatReport) -> List[Dict]:
-        """Generate the fields array for the Slack payload."""
-        fields = [
-            {
-                "title": "Subject",
-                "value": self._sanitize_for_slack(report.subject),
-                "short": False,
-            },
-            {
-                "title": "From",
-                "value": self._sanitize_for_slack(report.sender),
-                "short": True,
-            },
-            {
-                "title": "Overall Threat Score",
-                "value": f"{report.overall_threat_score:.2f}",
-                "short": True,
-            },
-        ]
-
-        # Add analysis breakdown using helper method
-        # Spam
-        spam_data = report.spam_analysis or {}
-        spam_ind = ""
-        if spam_data.get("indicators"):
-            spam_ind = f" - {spam_data['indicators'][0]}"
-        elif spam_data.get("suspicious_urls"):
-            spam_ind = " - Suspicious URLs"
-
-        fields.append(self._create_slack_field("📧 Spam Analysis", spam_data, spam_ind))
-
-        # NLP
-        nlp_data = report.nlp_analysis or {}
-        nlp_ind = ""
-        if nlp_data.get("social_engineering_indicators"):
-            nlp_ind = f" - {nlp_data['social_engineering_indicators'][0]}"
-        elif nlp_data.get("authority_impersonation"):
-            nlp_ind = f" - {nlp_data['authority_impersonation'][0]}"
-
-        fields.append(self._create_slack_field("🧠 NLP Analysis", nlp_data, nlp_ind))
-
-        # Media
-        media_data = report.media_analysis or {}
-        media_ind = ""
-        if media_data.get("file_type_warnings"):
-            media_ind = f" - {media_data['file_type_warnings'][0]}"
-        elif media_data.get("potential_deepfakes"):
-            media_ind = " - Deepfake Detected"
-
-        fields.append(
-            self._create_slack_field("📎 Media Analysis", media_data, media_ind)
-        )
-
-        # Top Recommendation
-        fields.append(
-            {
-                "title": "Top Recommendation",
-                "value": (
-                    report.recommendations[0]
-                    if report.recommendations
-                    else "Review email"
-                ),
-                "short": False,
-            }
-        )
-        return fields
-
     def _slack_alert(self, report: ThreatReport) -> bool:
         """Send alert to Slack.
 
@@ -1207,31 +482,9 @@ class AlertSystem:
                 self.logger.error(f"Aborting Slack alert (SSRF prevention): {err_msg}")
                 return False
 
-            # Format Slack message
-            color = {"low": "#36a64f", "medium": "#ff9900", "high": "#ff0000"}.get(
-                report.risk_level, "#808080"
-            )
-
-            fields = self._generate_slack_fields(report)
-
-            attachments = [
-                {
-                    "color": color,
-                    "title": (f"🚨 Security Alert - {report.risk_level.upper()} Risk"),
-                    "fields": fields,
-                    "footer": "Email Security Pipeline",
-                    "ts": int(datetime.now().timestamp()),
-                }
-            ]
-
-            payload = {
-                "text": "New email security threat detected",
-                "attachments": attachments,
-            }
-
             response = requests.post(
                 self.config.slack_webhook,
-                json=payload,
+                json=alert_channels.build_slack_payload(report),
                 headers={"Content-Type": "application/json"},
                 timeout=10,
                 allow_redirects=False,
@@ -1251,7 +504,6 @@ class AlertSystem:
             )
             return False
 
-    @staticmethod
     def _generate_recommendations(
         spam_result: SpamAnalysisResult,
         nlp_result: NLPAnalysisResult,
