@@ -57,6 +57,15 @@ def _check_riff_container(self, data: bytes) -> Optional[str]:
             return "webp"
     return None
 
+def _detect_magic_signature_offset_0(self, data: bytes) -> Optional[str]:
+    """Check magic signatures with offset 0."""
+    if data.startswith(self.MAGIC_PREFIXES_OFFSET_0):
+        for sig, name in self.MAGIC_SIGNATURES_OFFSET_0:
+            if data.startswith(sig):
+                return name
+    return None
+
+
 def _detect_file_type(self, data: bytes) -> Optional[str]:
     """Detect file type from magic bytes."""
     if not data or len(data) < 4:
@@ -67,10 +76,9 @@ def _detect_file_type(self, data: bytes) -> Optional[str]:
         return self._check_riff_container(data)
 
     # Optimization: Fast check for all signatures with offset 0
-    if data.startswith(self.MAGIC_PREFIXES_OFFSET_0):
-        for sig, name in self.MAGIC_SIGNATURES_OFFSET_0:
-            if data.startswith(sig):
-                return name
+    name = _detect_magic_signature_offset_0(self, data)
+    if name:
+        return name
 
     # Check signatures with non-zero offset
     if len(data) >= 8 and data[4:8] == b"ftyp":  # Common for MP4/MOV
@@ -174,32 +182,63 @@ def _validate_missing_signature(self, filename: str) -> Tuple[float, str]:
 
     return 0.0, ""
 
-def _check_size_anomaly(self, filename: str, size: int) -> Tuple[float, str]:
-    """Check for unusual file sizes."""
-    score = 0.0
-    warning = ""
-
-    # Very large attachments (potential data exfiltration)
+def _check_large_size_anomaly(self, filename: str, size: int) -> Tuple[float, str]:
+    """Check for unusually large file size anomalies."""
     if size > self.MAX_ATTACHMENT_SIZE_MB * 1024 * 1024:
-        score += 1.5
-        warning = (
-            f"Unusually large attachment: {filename} ({size / (1024*1024):.1f}MB)"
-        )
+        return 1.5, f"Unusually large attachment: {filename} ({size / (1024*1024):.1f}MB)"
+    return 0.0, ""
 
-    # Suspiciously small media files
+
+def _check_small_media_size_anomaly(self, filename: str, size: int) -> Tuple[float, str]:
+    """Check for suspiciously small media files."""
     filename_lower = filename.lower()
-    # Optimization: O(1) loop iteration using tuple-based endswith() check
     if filename_lower.endswith(self.MEDIA_EXTENSIONS):
         if size < self.MIN_MEDIA_FILE_SIZE_BYTES:
-            score += 1.0
-            warning = f"Suspiciously small media file: {filename} ({size} bytes)"
+            return 1.0, f"Suspiciously small media file: {filename} ({size} bytes)"
+    return 0.0, ""
 
-    return score, warning
+
+def _check_size_anomaly(self, filename: str, size: int) -> Tuple[float, str]:
+    """Check for unusual file sizes."""
+    large_score, large_warning = _check_large_size_anomaly(self, filename, size)
+    if large_warning:
+        return large_score, large_warning
+
+    small_score, small_warning = _check_small_media_size_anomaly(self, filename, size)
+    if small_warning:
+        return small_score, small_warning
+
+    return 0.0, ""
 
 def _is_nested_archive(self, filename_lower: str) -> bool:
     """Check if filename is a nested archive type. Assumes filename_lower is already lowercase."""
     # Optimization: O(1) loop iteration using tuple-based endswith() check
     return filename_lower.endswith(self.ARCHIVE_EXTENSIONS)
+
+def _is_zip_magic_or_extension(filename_lower: str, data: bytes) -> bool:
+    """Check if file starts with ZIP magic bytes or has .zip extension."""
+    if data and data.startswith(b"PK\x03\x04"):
+        return True
+    return filename_lower.endswith(".zip")
+
+
+def _inspect_zip_archive(self, filename: str, filename_lower: str, data: bytes, result: dict) -> None:
+    """Inspect Zip archive if applicable."""
+    if not _is_zip_magic_or_extension(filename_lower, data):
+        return
+    zip_score, zip_warnings = self._inspect_zip_contents(filename, data)
+    result["score"] += zip_score
+    result["suspicious_attachments"].extend(zip_warnings)
+
+
+def _inspect_tar_archive(self, filename: str, filename_lower: str, data: bytes, result: dict) -> None:
+    """Inspect Tar archive if applicable."""
+    if not filename_lower.endswith((".tar", ".tar.gz", ".tgz", ".gz")):
+        return
+    tar_score, tar_warnings = self._inspect_tar_contents(filename, data)
+    result["score"] += tar_score
+    result["suspicious_attachments"].extend(tar_warnings)
+
 
 def _analyze_attachment_metadata(self, attachment: dict) -> dict:
     """
@@ -243,29 +282,8 @@ def _analyze_attachment_metadata(self, attachment: dict) -> dict:
     if size_warning:
         result["size_anomalies"].append(size_warning)
 
-    # Check for dangerous contents in archives (e.g. Zip files)
     filename_lower = filename.lower()
-    is_zip = False
-    if data and data.startswith(b"PK\x03\x04"):
-        is_zip = True
-    elif filename_lower.endswith(".zip"):
-        is_zip = True
-
-    if is_zip:
-        zip_score, zip_warnings = self._inspect_zip_contents(filename, data)
-        result["score"] += zip_score
-        if zip_warnings:
-            result["suspicious_attachments"].extend(zip_warnings)
-
-    # Check for tar archives
-    is_tar = False
-    if filename_lower.endswith((".tar", ".tar.gz", ".tgz", ".gz")):
-        is_tar = True
-
-    if is_tar:
-        tar_score, tar_warnings = self._inspect_tar_contents(filename, data)
-        result["score"] += tar_score
-        if tar_warnings:
-            result["suspicious_attachments"].extend(tar_warnings)
+    _inspect_zip_archive(self, filename, filename_lower, data, result)
+    _inspect_tar_archive(self, filename, filename_lower, data, result)
 
     return result

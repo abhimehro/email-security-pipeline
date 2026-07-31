@@ -306,10 +306,11 @@ def spam_detail_rows(
 def print_spam_details(
     spam_analysis: Dict,
     risk_color: str,
-    max_spam: int,
-    max_header: int,
-    max_urls: int,
+    limits: Dict[str, int],
 ) -> None:
+    max_spam = limits.get("MAX_SPAM_INDICATORS_DISPLAY", 5)
+    max_header = limits.get("MAX_HEADER_ISSUES_DISPLAY", 5)
+    max_urls = limits.get("MAX_URLS_DISPLAY", 3)
     rows = spam_detail_rows(spam_analysis, max_spam, max_header, max_urls)
     if not rows:
         print_alert_row(
@@ -342,9 +343,7 @@ def print_analysis_details(
     print_spam_details(
         report.spam_analysis,
         risk_color,
-        limits.get("MAX_SPAM_INDICATORS_DISPLAY", 5),
-        limits.get("MAX_HEADER_ISSUES_DISPLAY", 5),
-        limits.get("MAX_URLS_DISPLAY", 3),
+        limits,
     )
     print_alert_row("", risk_color)
 
@@ -368,6 +367,42 @@ def print_analysis_details(
     )
 
 
+def _strip_recommendation_prefix(rec: str) -> str:
+    """Remove existing prefixes to prevent double icons."""
+    if rec.startswith(RECOMMENDATION_PREFIXES_TUPLE):
+        for prefix in RECOMMENDATION_PREFIXES:
+            if rec.startswith(prefix):
+                return rec[len(prefix) :]
+    return rec
+
+
+def _determine_recommendation_color(rec_upper: str) -> str:
+    """Determine the recommendation color based on keywords."""
+    if RED_KEYWORDS_PATTERN.search(rec_upper):
+        return Colors.RED
+    if YELLOW_KEYWORDS_PATTERN.search(rec_upper):
+        return Colors.YELLOW
+    return Colors.GREEN
+
+
+def _print_wrapped_lines(wrapped_lines: List[str], icon: str, color: str, risk_color: str) -> None:
+    """Print wrapped recommendation lines with appropriate formatting."""
+    if not wrapped_lines:
+        return
+
+    # First line gets the bullet point
+    first_line = wrapped_lines[0]
+    print_alert_row(
+        f"{Colors.colorize(icon, color)} {first_line}", risk_color
+    )
+
+    # Subsequent lines get indentation based on icon width
+    indent = "   " if icon == "⚠️ " else "  "
+
+    for line in wrapped_lines[1:]:
+        print_alert_row(f"{indent}{line}", risk_color)
+
+
 def print_recommendations(
     recommendations: List[str], width: int, risk_color: str
 ):
@@ -380,48 +415,17 @@ def print_recommendations(
     print_alert_row("", risk_color)
 
     for rec in recommendations:
-        color = Colors.GREEN
+        rec = _strip_recommendation_prefix(rec)
         rec_upper = rec.upper()
+        color = _determine_recommendation_color(rec_upper)
         icon = "►"
 
-        # Remove existing prefixes to prevent double icons
-        # Optimization: tuple-based startswith executes entirely in C and avoids Python loop overhead
-        # We still need to find which prefix matched to slice it correctly, but the initial
-        # fast check filters out the vast majority of cases instantly.
-        if rec.startswith(RECOMMENDATION_PREFIXES_TUPLE):
-            for prefix in RECOMMENDATION_PREFIXES:
-                if rec.startswith(prefix):
-                    rec = rec[len(prefix) :]
-
-        # Optimization: compiled regex search is faster than any() generator loop for substring matching
-        if RED_KEYWORDS_PATTERN.search(rec_upper):
-            color = Colors.RED
-        elif YELLOW_KEYWORDS_PATTERN.search(rec_upper):
-            color = Colors.YELLOW
-
         # Calculate available width for text
-        # Width - 2 (left border/space) - 3 (icon + space) - 2 (right padding) = Width - 7
-        # We use 8 to be safe and consistent with previous layout
         max_text_width = width - 8
 
         # Wrap text nicely
         wrapped_lines = textwrap.wrap(rec, width=max_text_width)
-
-        if not wrapped_lines:
-            continue
-
-        # First line gets the bullet point
-        first_line = wrapped_lines[0]
-        print_alert_row(
-            f"{Colors.colorize(icon, color)} {first_line}", risk_color
-        )
-
-        # Subsequent lines get indentation based on icon width
-        # ► is 1 char, ⚠️ is 2 chars (usually). We align to 3 spaces for visual consistency.
-        indent = "   " if icon == "⚠️ " else "  "
-
-        for line in wrapped_lines[1:]:
-            print_alert_row(f"{indent}{line}", risk_color)
+        _print_wrapped_lines(wrapped_lines, icon, color, risk_color)
 
     # Bottom Border (└───┘)
     print(Colors.colorize(f"└{'─'*border_len}┘", risk_color))

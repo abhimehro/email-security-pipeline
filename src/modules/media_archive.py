@@ -139,6 +139,23 @@ def _inspect_archive_member(
 
     return score, warnings
 
+def _is_supported_nested_archive(member_lower: str, depth: int) -> bool:
+    """Check if the nested archive is supported and within depth limit."""
+    if depth >= 2:
+        return False
+    supported_extensions = (".zip", ".tar", ".tar.gz", ".tgz", ".gz")
+    return member_lower.endswith(supported_extensions)
+
+
+def _inspect_nested_data(
+    self, member_lower: str, nested_path: str, nested_data: bytes, depth: int
+) -> Tuple[float, List[str]]:
+    """Inspect nested archive data recursively based on file type."""
+    if member_lower.endswith(".zip"):
+        return self._inspect_zip_contents(nested_path, nested_data, depth + 1)
+    return self._inspect_tar_contents(nested_path, nested_data, depth + 1)
+
+
 def _handle_nested_zip_member(
     self, zf: zipfile.ZipFile, member_name: str, parent_filename: str, depth: int
 ) -> Tuple[float, List[str]]:
@@ -151,13 +168,7 @@ def _handle_nested_zip_member(
     member_lower = safe_member_name.lower()
 
     # Only recurse into supported formats
-    if (
-        not (
-            member_lower.endswith(".zip")
-            or member_lower.endswith((".tar", ".tar.gz", ".tgz", ".gz"))
-        )
-        or depth >= 2
-    ):
+    if not _is_supported_nested_archive(member_lower, depth):
         return score, warnings
 
     try:
@@ -175,14 +186,10 @@ def _handle_nested_zip_member(
         )
 
         # Recurse based on type
-        if member_lower.endswith(".zip"):
-            return self._inspect_zip_contents(
-                f"{parent_filename}/{safe_member_name}", nested_data, depth + 1
-            )
-        else:
-            return self._inspect_tar_contents(
-                f"{parent_filename}/{safe_member_name}", nested_data, depth + 1
-            )
+        nested_path = f"{parent_filename}/{safe_member_name}"
+        return _inspect_nested_data(
+            self, member_lower, nested_path, nested_data, depth
+        )
 
     except ValueError as e:
         score += 5.0
@@ -310,13 +317,7 @@ def _handle_nested_tar_member(
     safe_member_name = sanitize_for_logging(sanitize_filename(member_name))
     member_lower = safe_member_name.lower()
 
-    if (
-        not (
-            member_lower.endswith(".zip")
-            or member_lower.endswith((".tar", ".tar.gz", ".tgz", ".gz"))
-        )
-        or depth >= 2
-    ):
+    if not _is_supported_nested_archive(member_lower, depth):
         return score, warnings
 
     # Skip if declared size is too large
@@ -333,14 +334,10 @@ def _handle_nested_tar_member(
                 f, member_name, self.MAX_NESTED_ZIP_SIZE
             )
 
-            if member_lower.endswith(".zip"):
-                return self._inspect_zip_contents(
-                    f"{parent_filename}/{safe_member_name}", nested_data, depth + 1
-                )
-            else:
-                return self._inspect_tar_contents(
-                    f"{parent_filename}/{safe_member_name}", nested_data, depth + 1
-                )
+            nested_path = f"{parent_filename}/{safe_member_name}"
+            return _inspect_nested_data(
+                self, member_lower, nested_path, nested_data, depth
+            )
 
     except Exception as e:
         self.logger.warning(

@@ -8,7 +8,7 @@ webhook and Slack alerting. HTTP calls remain in the alert facade.
 import re
 from dataclasses import asdict
 from datetime import datetime
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional, Tuple
 from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 
 from ..utils.colors import Colors
@@ -115,6 +115,43 @@ def sanitize_error_message(error: str) -> str:
         return "An error occurred (details redacted for security)"
 
 
+def _redact_authority_credentials(parsed: Any) -> Any:
+    """Redact password/credentials in the netloc of a parsed URL."""
+    if not parsed.password:
+        return parsed
+    _, _, host_part = parsed.netloc.rpartition("@")
+    if parsed.username:
+        user_pass_part = parsed.netloc.rpartition("@")[0]
+        username_part = user_pass_part.partition(":")[0]
+        new_netloc = f"{username_part}:[REDACTED]@{host_part}"
+    else:
+        new_netloc = f":[REDACTED]@{host_part}"
+    return parsed._replace(netloc=new_netloc)
+
+
+def _redact_webhook_by_platform(parsed: Any, prefix: str, domain: str) -> Optional[Any]:
+    """Helper to redact webhook token for a specific platform."""
+    hostname = (parsed.hostname or "").lower()
+    is_platform = not hostname or hostname == domain or hostname.endswith(f".{domain}")
+    if is_platform and parsed.path.startswith(prefix):
+        parts = parsed.path.split("/")
+        if len(parts) >= 5:
+            parts[-1] = "[REDACTED]"
+            new_path = "/".join(parts)
+            return parsed._replace(path=new_path)
+    return None
+
+
+def _redact_slack_webhook(parsed: Any) -> Optional[Any]:
+    """Redact Slack webhook token if applicable."""
+    return _redact_webhook_by_platform(parsed, "/services/", "slack.com")
+
+
+def _redact_discord_webhook(parsed: Any) -> Optional[Any]:
+    """Redact Discord webhook token if applicable."""
+    return _redact_webhook_by_platform(parsed, "/api/webhooks/", "discord.com")
+
+
 def redact_url_secrets(url: str) -> str:
     """
     Redact sensitive information from URL (query params and specific paths).
@@ -124,62 +161,18 @@ def redact_url_secrets(url: str) -> str:
         if not url:
             return ""
 
-        # 1. Redact sensitive query parameters (reusing logic)
         url = redact_sensitive_url_params(url)
-
         parsed = urlparse(url)
 
-        # 2. Redact credentials in authority section
-        if parsed.password:
-            # Reconstruct URL with redacted password.
-            # Use netloc.rpartition to safely separate authority from host, preserving IPv6 brackets.
-            _, _, host_part = parsed.netloc.rpartition("@")
+        parsed = _redact_authority_credentials(parsed)
 
-            if parsed.username:
-                # Extract the raw username from the netloc to avoid re-encoding ambiguity
-                # parsed.netloc is "user:pass@host", so partition gives us "user:pass"
-                user_pass_part = parsed.netloc.rpartition("@")[0]
-                # Partition gives us "user"
-                username_part = user_pass_part.partition(":")[0]
-                new_netloc = f"{username_part}:[REDACTED]@{host_part}"
-            else:
-                # Case: https://:password@host (no username)
-                new_netloc = f":[REDACTED]@{host_part}"
+        slack_parsed = _redact_slack_webhook(parsed)
+        if slack_parsed:
+            return urlunparse(slack_parsed)
 
-            parsed = parsed._replace(netloc=new_netloc)
-
-        # 3. Redact Slack Webhooks
-        # Format: /services/T000/B000/TOKEN
-        hostname = (parsed.hostname or "").lower()
-        if (
-            not hostname
-            or hostname == "hooks.slack.com"
-            or hostname.endswith(".slack.com")
-        ) and parsed.path.startswith("/services/"):
-            parts = parsed.path.split("/")
-            # parts[0] is empty, parts[1] is 'services'
-            # parts[2] is Team ID, parts[3] is Bot ID, parts[4] is Token
-            # We redact the token (last part)
-            if len(parts) >= 5:
-                parts[-1] = "[REDACTED]"
-                new_path = "/".join(parts)
-                parsed = parsed._replace(path=new_path)
-                return urlunparse(parsed)
-
-        # 4. Redact Discord Webhooks
-        # Format: /api/webhooks/ID/TOKEN
-        if (
-            not hostname
-            or hostname == "discord.com"
-            or hostname.endswith(".discord.com")
-        ) and parsed.path.startswith("/api/webhooks/"):
-            parts = parsed.path.split("/")
-            # parts[-1] is likely the token
-            if len(parts) >= 5:
-                parts[-1] = "[REDACTED]"
-                new_path = "/".join(parts)
-                parsed = parsed._replace(path=new_path)
-                return urlunparse(parsed)
+        discord_parsed = _redact_discord_webhook(parsed)
+        if discord_parsed:
+            return urlunparse(discord_parsed)
 
         return urlunparse(parsed)
     except Exception:
@@ -244,6 +237,18 @@ def create_slack_field(title: str, analysis_dict: Dict[str, Any], indicator: str
     return {"title": title, "value": value, "short": True}
 
 
+def _get_analysis_indicator(data: Dict[str, Any], keys: List[str], defaults: Dict[str, str]) -> str:
+    """Extract a descriptive indicator from analysis data."""
+    for key in keys:
+        val = data.get(key)
+        if val:
+            if isinstance(val, list) and val:
+                return f" - {val[0]}"
+            elif key in defaults:
+                return f" - {defaults[key]}"
+    return ""
+
+
 def generate_slack_fields(report: ThreatReport) -> List[Dict[str, Any]]:
     """Generate the fields array for the Slack payload."""
     fields = [
@@ -264,35 +269,25 @@ def generate_slack_fields(report: ThreatReport) -> List[Dict[str, Any]]:
         },
     ]
 
-    # Add analysis breakdown using helper method
     # Spam
     spam_data = report.spam_analysis or {}
-    spam_ind = ""
-    if spam_data.get("indicators"):
-        spam_ind = f" - {spam_data['indicators'][0]}"
-    elif spam_data.get("suspicious_urls"):
-        spam_ind = " - Suspicious URLs"
-
+    spam_ind = _get_analysis_indicator(
+        spam_data, ["indicators", "suspicious_urls"], {"suspicious_urls": "Suspicious URLs"}
+    )
     fields.append(create_slack_field("📧 Spam Analysis", spam_data, spam_ind))
 
     # NLP
     nlp_data = report.nlp_analysis or {}
-    nlp_ind = ""
-    if nlp_data.get("social_engineering_indicators"):
-        nlp_ind = f" - {nlp_data['social_engineering_indicators'][0]}"
-    elif nlp_data.get("authority_impersonation"):
-        nlp_ind = f" - {nlp_data['authority_impersonation'][0]}"
-
+    nlp_ind = _get_analysis_indicator(
+        nlp_data, ["social_engineering_indicators", "authority_impersonation"], {}
+    )
     fields.append(create_slack_field("🧠 NLP Analysis", nlp_data, nlp_ind))
 
     # Media
     media_data = report.media_analysis or {}
-    media_ind = ""
-    if media_data.get("file_type_warnings"):
-        media_ind = f" - {media_data['file_type_warnings'][0]}"
-    elif media_data.get("potential_deepfakes"):
-        media_ind = " - Deepfake Detected"
-
+    media_ind = _get_analysis_indicator(
+        media_data, ["file_type_warnings", "potential_deepfakes"], {"potential_deepfakes": "Deepfake Detected"}
+    )
     fields.append(create_slack_field("📎 Media Analysis", media_data, media_ind))
 
     # Top Recommendation
