@@ -24,7 +24,15 @@ from ..utils.sanitization import (
     sanitize_for_csv,
 )
 from ..utils.security_validators import is_safe_webhook_url
-from .email_data import EmailData
+from .alert_recommendations import (
+    DEFAULT_CLEAN_RECOMMENDATION,
+    RECOMMENDATION_PREFIXES,
+    RECOMMENDATION_PREFIXES_TUPLE,
+    RED_KEYWORDS_PATTERN,
+    YELLOW_KEYWORDS_PATTERN,
+    generate_recommendations,
+)
+from .alert_report import RenderConfig, ThreatReport, generate_threat_report
 from .media_analyzer import MediaAnalysisResult
 from .nlp_analyzer import NLPAnalysisResult
 from .spam_analyzer import SpamAnalysisResult
@@ -34,46 +42,19 @@ from .spam_analyzer import SpamAnalysisResult
 URL_PATTERN = re.compile(r'(?:https?://[^\s<>"]+|www\.[^\s<>"]+|/[^\s<>"]+)')
 
 
-@dataclass
-class ThreatReport:
-    """Comprehensive threat report."""
-
-    email_id: str
-    subject: str
-    sender: str
-    recipient: str
-    date: str
-    overall_threat_score: float
-    risk_level: str
-    spam_analysis: Dict
-    nlp_analysis: Dict
-    media_analysis: Dict
-    recommendations: List[str]
-    timestamp: str
-
-
-@dataclass
-class RenderConfig:
-    """Configuration options for console rendering."""
-
-    width: int
-    risk_color: str
-    risk_symbol: str
-
-
 class AlertSystem:
     """Manages alerts and notifications."""
 
     # Common prefixes for recommendations to strip during display to prevent duplication
-    RECOMMENDATION_PREFIXES = ["⚠️ ", "🎣 ", "🔗 ", "⏰ ", "📎 ", "👤 "]
+    RECOMMENDATION_PREFIXES = RECOMMENDATION_PREFIXES
 
     # Pre-allocated tuple for fast C-level execution of startswith()
-    RECOMMENDATION_PREFIXES_TUPLE = tuple(RECOMMENDATION_PREFIXES)
+    RECOMMENDATION_PREFIXES_TUPLE = RECOMMENDATION_PREFIXES_TUPLE
 
     # Compiled regex patterns for fast substring keyword checks in recommendations
     # Use re.compile directly since we are passing a single regex string, not a list
-    RED_KEYWORDS_PATTERN = re.compile(r"HIGH RISK|DANGEROUS|PHISHING")
-    YELLOW_KEYWORDS_PATTERN = re.compile(r"SUSPICIOUS|VERIFY|URGENCY|IMPERSONATION")
+    RED_KEYWORDS_PATTERN = RED_KEYWORDS_PATTERN
+    YELLOW_KEYWORDS_PATTERN = YELLOW_KEYWORDS_PATTERN
 
     # Pre-compiled pattern for fast URL redaction replacement without re.IGNORECASE penalty
     REDACTED_URL_PATTERN = re.compile(r"%5[bB]REDACTED%5[dD]", flags=0)
@@ -98,7 +79,7 @@ class AlertSystem:
     # Fallback recommendation text used by _generate_recommendations when no
     # specific threat condition is matched.  Defined as a class constant so
     # tests can reference it without hardcoding the string in two places.
-    DEFAULT_CLEAN_RECOMMENDATION = "✅ No issues detected"
+    DEFAULT_CLEAN_RECOMMENDATION = DEFAULT_CLEAN_RECOMMENDATION
 
     def __init__(self, config):
         """
@@ -1277,137 +1258,6 @@ class AlertSystem:
         media_result: MediaAnalysisResult,
     ) -> List[str]:
         """Generate actionable recommendations based on threat analysis results."""
-        recommendations = []
-
-        # High-risk recommendations
-        if spam_result.risk_level == "high":
-            recommendations.append("⚠️ HIGH RISK: Move to spam folder immediately")
-
-        if nlp_result.social_engineering_indicators:
-            recommendations.append(
-                "🎣 Potential phishing: Do not click links or provide credentials"
-            )
-
-        if media_result.file_type_warnings:
-            recommendations.append(
-                "📎 Dangerous attachment detected: Do not open attachments"
-            )
-
-        # Medium-risk recommendations
-        if spam_result.suspicious_urls:
-            recommendations.append(
-                "🔗 Suspicious URLs detected: Verify links before clicking"
-            )
-
-        if nlp_result.authority_impersonation:
-            recommendations.append(
-                "👤 Authority impersonation suspected: Verify sender identity"
-            )
-
-        if nlp_result.urgency_markers:
-            recommendations.append(
-                "⏰ Urgency tactics detected: Take time to verify before acting"
-            )
-
-        # General recommendations
-        if not recommendations:
-            recommendations.append(AlertSystem.DEFAULT_CLEAN_RECOMMENDATION)
-
-        return recommendations
+        return generate_recommendations(spam_result, nlp_result, media_result)
 
 
-def _calculate_overall_risk_level(
-    spam_result: SpamAnalysisResult,
-    nlp_result: NLPAnalysisResult,
-    media_result: MediaAnalysisResult,
-) -> str:
-    """Calculate overall risk level from individual analysis results."""
-    risk_levels = [
-        spam_result.risk_level,
-        nlp_result.risk_level,
-        media_result.risk_level,
-    ]
-
-    if "high" in risk_levels:
-        return "high"
-    if "medium" in risk_levels:
-        return "medium"
-    return "low"
-
-
-def _build_spam_analysis_dict(spam_result: SpamAnalysisResult) -> Dict:
-    """Build spam analysis dictionary for threat report."""
-    return {
-        "score": spam_result.score,
-        "risk_level": spam_result.risk_level,
-        "indicators": spam_result.indicators,
-        "suspicious_urls": spam_result.suspicious_urls,
-        "header_issues": spam_result.header_issues,
-    }
-
-
-def _build_nlp_analysis_dict(nlp_result: NLPAnalysisResult) -> Dict:
-    """Build NLP analysis dictionary for threat report."""
-    return {
-        "score": nlp_result.threat_score,
-        "risk_level": nlp_result.risk_level,
-        "social_engineering_indicators": nlp_result.social_engineering_indicators,
-        "urgency_markers": nlp_result.urgency_markers,
-        "authority_impersonation": nlp_result.authority_impersonation,
-        "psychological_triggers": nlp_result.psychological_triggers,
-    }
-
-
-def _build_media_analysis_dict(media_result: MediaAnalysisResult) -> Dict:
-    """Build media analysis dictionary for threat report."""
-    return {
-        "score": media_result.threat_score,
-        "risk_level": media_result.risk_level,
-        "suspicious_attachments": media_result.suspicious_attachments,
-        "file_type_warnings": media_result.file_type_warnings,
-        "size_anomalies": media_result.size_anomalies,
-        "potential_deepfakes": media_result.potential_deepfakes,
-    }
-
-
-def generate_threat_report(
-    email_data: EmailData,
-    spam_result: SpamAnalysisResult,
-    nlp_result: NLPAnalysisResult,
-    media_result: MediaAnalysisResult,
-) -> ThreatReport:
-    """
-    Generate comprehensive threat report.
-
-    Args:
-        email_data: Email data
-        spam_result: Spam analysis result
-        nlp_result: NLP analysis result
-        media_result: Media analysis result
-
-    Returns:
-        ThreatReport
-
-    """
-    overall_score = (
-        spam_result.score + nlp_result.threat_score + media_result.threat_score
-    )
-    risk_level = _calculate_overall_risk_level(spam_result, nlp_result, media_result)
-    recommendations = AlertSystem._generate_recommendations(
-        spam_result, nlp_result, media_result
-    )
-
-    return ThreatReport(
-        email_id=email_data.message_id,
-        subject=email_data.subject,
-        sender=email_data.sender,
-        recipient=email_data.recipient,
-        date=email_data.date.isoformat(),
-        overall_threat_score=overall_score,
-        risk_level=risk_level,
-        spam_analysis=_build_spam_analysis_dict(spam_result),
-        nlp_analysis=_build_nlp_analysis_dict(nlp_result),
-        media_analysis=_build_media_analysis_dict(media_result),
-        recommendations=recommendations,
-        timestamp=datetime.now().isoformat(),
-    )
