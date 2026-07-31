@@ -511,5 +511,3 @@ class AlertSystem:
     ) -> List[str]:
         """Generate actionable recommendations based on threat analysis results."""
         return generate_recommendations(spam_result, nlp_result, media_result)
-
-

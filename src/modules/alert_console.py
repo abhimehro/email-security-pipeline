@@ -539,5 +539,3 @@ def render_clean_report(report: ThreatReport, threat_low: float, terminal_width:
         f"{sep} From: {sender:<{sender_width}} "
         f"{sep} {subject}"
     )
-
-

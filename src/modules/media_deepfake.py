@@ -122,7 +122,7 @@ def _extract_frames_sampled(
 def _advance_to_frame(self, cap, current_frame: int, target_frame: int) -> int:
     """Advance the video capture to the target frame using a hybrid approach."""
     try:
-    
+
         cap_prop_pos_frames = cv2.CAP_PROP_POS_FRAMES
     except ImportError:
         cap_prop_pos_frames = (
