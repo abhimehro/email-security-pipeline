@@ -21,6 +21,9 @@ from . import media_deepfake
 # tests patching src.modules.media_analyzer.cv2 continue to work.
 media_deepfake.cv2 = cv2
 
+# Re-export the frame-extraction options dataclass for backwards compatibility.
+FrameExtractionOptions = media_deepfake.FrameExtractionOptions
+
 
 @dataclass
 class MediaAnalysisResult:

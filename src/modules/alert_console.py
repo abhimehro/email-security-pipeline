@@ -11,7 +11,11 @@ from typing import Dict, List
 
 from ..utils.colors import Colors
 from ..utils.sanitization import ANSI_ESCAPE_PATTERN
-from .alert_channels import sanitize_text, sanitize_url_for_display
+from .alert_channels import (
+    REDACTED_URL_PATTERN,
+    sanitize_text,
+    redact_sensitive_url_params,
+)
 from .alert_recommendations import (
     RECOMMENDATION_PREFIXES,
     RECOMMENDATION_PREFIXES_TUPLE,
@@ -64,7 +68,9 @@ def truncate_text(text: str, width: int) -> str:
 
 def safe_console_url(url: str) -> str:
     """Return a URL safe for console output with tokens redacted."""
-    redacted_url = sanitize_url_for_display(url)
+    redacted_url = REDACTED_URL_PATTERN.sub(
+        "[REDACTED]", redact_sensitive_url_params(url)
+    )
     return sanitize_text(redacted_url, csv_safe=True)
 
 

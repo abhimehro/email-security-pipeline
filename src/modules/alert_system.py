@@ -504,6 +504,7 @@ class AlertSystem:
             )
             return False
 
+    @staticmethod
     def _generate_recommendations(
         spam_result: SpamAnalysisResult,
         nlp_result: NLPAnalysisResult,
