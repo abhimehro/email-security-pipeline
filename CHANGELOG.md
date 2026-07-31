@@ -442,7 +442,9 @@
 
 **Merged pull requests:**
 
+- chore\(deps\): bump github/codeql-action from codeql-bundle-v2.26.2 to 2.26.1 [\#1393](https://github.com/abhimehro/email-security-pipeline/pull/1393) ([dependabot[bot]](https://github.com/apps/dependabot))
 - chore\(repo-health\): purge root junk and fix Quick Start docs [\#1390](https://github.com/abhimehro/email-security-pipeline/pull/1390) ([cursor[bot]](https://github.com/apps/cursor))
+- chore\(actions\): consolidate workflow automation [\#1388](https://github.com/abhimehro/email-security-pipeline/pull/1388) ([abhimehro](https://github.com/abhimehro))
 - chore\(deps\): bump release-drafter/release-drafter from 7.6.0 to 7.7.0 [\#1387](https://github.com/abhimehro/email-security-pipeline/pull/1387) ([dependabot[bot]](https://github.com/apps/dependabot))
 - chore\(deps\): bump github/codeql-action from codeql-bundle-v2.26.1 to 2.26.2 [\#1386](https://github.com/abhimehro/email-security-pipeline/pull/1386) ([dependabot[bot]](https://github.com/apps/dependabot))
 - 🎨 Palette: Make countdown timer format consistent [\#1384](https://github.com/abhimehro/email-security-pipeline/pull/1384) ([abhimehro](https://github.com/abhimehro))
