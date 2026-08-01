@@ -76,3 +76,8 @@ generator overhead when iteration is necessary in hot paths.
 
 **Learning:** Iterating over multiple auth results, doing `.lower()` repeatedly, and checking keywords inside it has huge overhead. We can `.join().lower()` all of them into a single string and just do string fast checks over it.
 **Action:** Replace `any()` generators or explicit python for loops over header checks with `.join().lower()` + `in` substring checks for significant speedups.
+
+## 2026-08-01 - Avoid complex if blocks when checking substrings on joined strings
+
+**Learning:** Extracting an if chain (like CodeScene 'Complex Conditional' check) of string existence into a private helper function keeps cyclomatic complexity score low without relying on nesting or generators while allowing for an easy early-exit fast path.
+**Action:** Move early-exit/fast-path strings logic into a separate `_method_fast` to avoid complexity warnings on methods that rely on long if blocks.
