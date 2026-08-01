@@ -11,7 +11,7 @@ initialize: |
 # to avoid the optional multi-GB ML stack (torch/transformers).
 maintenance: |
   python3 -m pip install --user -r requirements-ci.txt
-  python3 -m pre_commit install
+  python3 -m pre_commit install || true
 
 knowledge:
   - name: test
@@ -24,6 +24,6 @@ knowledge:
       Use requirements-ci.txt to avoid optional multi-GB ML dependencies.
   - name: run
     contents: |
-      cp .env.example .env
+      cp -n .env.example .env
       python3 src/main.py
       Runtime IMAP credentials are required for the full pipeline.
