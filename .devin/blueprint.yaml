@@ -1,8 +1,8 @@
 # https://docs.devin.ai/onboard-devin/environment-yaml
 
 # Bootstrap a working pip for Python 3.12+ (the system pip may be too old
-# for the distutils-less interpreter). This installs pip into the user
-# site-packages so subsequent `python3 -m pip` invocations work.
+# for the distutils-less interpreter). `ensurepip` bootstraps pip, then we
+# explicitly upgrade it into the user site-packages so `python3 -m pip` works.
 initialize: |
   python3 -m ensurepip --upgrade
   python3 -m pip install --user --upgrade pip
