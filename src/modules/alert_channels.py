@@ -242,10 +242,12 @@ def _get_analysis_indicator(data: Dict[str, Any], keys: List[str], defaults: Dic
     for key in keys:
         val = data.get(key)
         if val:
+            # Prefer a generic label when one is configured (e.g. "Suspicious URLs"),
+            # otherwise show the first concrete item from the list.
+            if key in defaults:
+                return f" - {defaults[key]}"
             if isinstance(val, list) and val:
                 return f" - {val[0]}"
-            elif key in defaults:
-                return f" - {defaults[key]}"
     return ""
 
 

@@ -369,10 +369,11 @@ def print_analysis_details(
 
 def _strip_recommendation_prefix(rec: str) -> str:
     """Remove existing prefixes to prevent double icons."""
-    if rec.startswith(RECOMMENDATION_PREFIXES_TUPLE):
+    while rec.startswith(RECOMMENDATION_PREFIXES_TUPLE):
         for prefix in RECOMMENDATION_PREFIXES:
             if rec.startswith(prefix):
-                return rec[len(prefix) :]
+                rec = rec[len(prefix) :]
+                break
     return rec
 
 
@@ -415,8 +416,10 @@ def print_recommendations(
     print_alert_row("", risk_color)
 
     for rec in recommendations:
-        rec = _strip_recommendation_prefix(rec)
+        # Compute uppercase before stripping prefixes so keyword matching matches
+        # the original implementation.
         rec_upper = rec.upper()
+        rec = _strip_recommendation_prefix(rec)
         color = _determine_recommendation_color(rec_upper)
         icon = "►"
 
