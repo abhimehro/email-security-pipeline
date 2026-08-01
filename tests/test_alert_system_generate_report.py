@@ -56,7 +56,7 @@ class TestGenerateThreatReport(unittest.TestCase):
             risk_level="low",
         )
 
-    @patch("src.modules.alert_report.generate_recommendations")
+    @patch("src.modules.alert_system.AlertSystem._generate_recommendations")
     def test_generate_threat_report_low_risk(self, mock_generate_recommendations):
         mock_generate_recommendations.return_value = ["mocked recommendation"]
 

@@ -42,9 +42,6 @@
 
 **Closed issues:**
 
-- \[repo-automation\] Daily Status Report - 2026-07-31 [\#1396](https://github.com/abhimehro/email-security-pipeline/issues/1396)
-- \[repo-health\] Split media\_analyzer / alert\_system god modules [\#1391](https://github.com/abhimehro/email-security-pipeline/issues/1391)
-- \[repo-automation\] Daily Status Report - 2026-07-30 [\#1389](https://github.com/abhimehro/email-security-pipeline/issues/1389)
 - Daily QA & Agentic Review — 2026-07-29 [\#1385](https://github.com/abhimehro/email-security-pipeline/issues/1385)
 - \[repo-automation\] Daily Status Report - 2026-07-29 [\#1382](https://github.com/abhimehro/email-security-pipeline/issues/1382)
 - Daily QA & Agentic Review — 2026-07-28 [\#1378](https://github.com/abhimehro/email-security-pipeline/issues/1378)
@@ -445,7 +442,6 @@
 
 **Merged pull requests:**
 
-- refactor\(repo-health\): split media\_analyzer and alert\_system god modules [\#1394](https://github.com/abhimehro/email-security-pipeline/pull/1394) ([abhimehro](https://github.com/abhimehro))
 - chore\(deps\): bump github/codeql-action from codeql-bundle-v2.26.2 to 2.26.1 [\#1393](https://github.com/abhimehro/email-security-pipeline/pull/1393) ([dependabot[bot]](https://github.com/apps/dependabot))
 - chore\(repo-health\): purge root junk and fix Quick Start docs [\#1390](https://github.com/abhimehro/email-security-pipeline/pull/1390) ([cursor[bot]](https://github.com/apps/cursor))
 - chore\(actions\): consolidate workflow automation [\#1388](https://github.com/abhimehro/email-security-pipeline/pull/1388) ([abhimehro](https://github.com/abhimehro))

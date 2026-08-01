@@ -515,14 +515,10 @@ class SpamAnalyzer:
 
     def _evaluate_auth_results_fast(self, joined_results: str) -> Tuple[bool, bool]:
         """Helper to evaluate auth results loop and reduce cyclomatic complexity."""
-        dkim_auth_fail = False
-        spf_auth_fail = False
-
         # ⚡ BOLT: Optimization - Fast path check for failure keywords using getattr trick
         # to satisfy CodeScene's Complex Conditional checks without nesting.
-        auth_props = ("fail", "permerror", "neutral")
         has_fail_indicator = False
-        for prop in auth_props:
+        for prop in ("fail", "permerror", "neutral"):
             if prop in joined_results:
                 has_fail_indicator = True
                 break
@@ -530,21 +526,22 @@ class SpamAnalyzer:
         if not has_fail_indicator:
             return False, False
 
-        # Extract dkim logic with a fast array check
-        dkim_props = ("dkim=fail", "dkim=permerror", "dkim=neutral")
-        for prop in dkim_props:
-            if prop in joined_results:
-                dkim_auth_fail = True
-                break
-
-        # Extract spf logic with a fast array check
-        spf_props = ("spf=fail", "spf=permerror")
-        for prop in spf_props:
-            if prop in joined_results:
-                spf_auth_fail = True
-                break
+        dkim_auth_fail = self._check_dkim_fail(joined_results)
+        spf_auth_fail = self._check_spf_fail(joined_results)
 
         return dkim_auth_fail, spf_auth_fail
+
+    def _check_dkim_fail(self, joined_results: str) -> bool:
+        for prop in ("dkim=fail", "dkim=permerror", "dkim=neutral"):
+            if prop in joined_results:
+                return True
+        return False
+
+    def _check_spf_fail(self, joined_results: str) -> bool:
+        for prop in ("spf=fail", "spf=permerror"):
+            if prop in joined_results:
+                return True
+        return False
 
     def _check_dkim_presence(
         self, headers: Dict[str, Union[str, List[str]]]
