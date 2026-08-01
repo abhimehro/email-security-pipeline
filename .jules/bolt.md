@@ -66,3 +66,13 @@ joined strings provides significant performance wins by avoiding iteration
 entirely for common clean cases. **Action:** Replace `any()` generators with
 short-circuiting fast paths on joined strings, and use explicit loops to avoid
 generator overhead when iteration is necessary in hot paths.
+
+## 2025-08-01 - Avoid loop reallocation and fast path for header checking
+
+**Learning:** Reallocating a list of required headers and string parsing it in a loop is unnecessary when evaluating static standard headers. Extracting to a static tuple and adding a set subset check speeds it up for valid emails.
+**Action:** When validating a required set of static variables, use an initial set subset check as a fast path.
+
+## 2025-08-01 - Fast path for Authentication-Results loop checking
+
+**Learning:** Iterating over multiple auth results, doing `.lower()` repeatedly, and checking keywords inside it has huge overhead. We can `.join().lower()` all of them into a single string and just do string fast checks over it.
+**Action:** Replace `any()` generators or explicit python for loops over header checks with `.join().lower()` + `in` substring checks for significant speedups.

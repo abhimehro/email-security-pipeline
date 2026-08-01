@@ -497,10 +497,9 @@ class SpamAnalyzer:
         # of clean emails that have passing authentication results.
         joined_results = " ".join(auth_results).lower()
 
-        # Extracted check loop into a private method to reduce cyclomatic complexity
-
-        # Fast path check for failure keywords using getattr trick
-        # to satisfy CodeScene's Complex Conditional checks without nesting.
+        # ⚡ BOLT: Optimization - Fast path check for failure keywords using fast loop
+        # to satisfy CodeScene's Complex Conditional checks without nesting, and inline
+        # the check loop to avoid method call overhead.
         auth_props = ("fail", "permerror", "neutral")
         has_fail_indicator = False
         for prop in auth_props:
@@ -509,9 +508,11 @@ class SpamAnalyzer:
                 break
 
         if has_fail_indicator:
-            dkim_auth_fail, spf_auth_fail = self._evaluate_auth_results_loop(
-                auth_results
-            )
+            if "dkim=fail" in joined_results or "dkim=permerror" in joined_results or "dkim=neutral" in joined_results:
+                dkim_auth_fail = True
+
+            if "spf=fail" in joined_results or "spf=permerror" in joined_results:
+                spf_auth_fail = True
 
         if dkim_auth_fail:
             score += 2.5
@@ -523,24 +524,6 @@ class SpamAnalyzer:
             issues.append("SPF verification failed (Authentication-Results)")
 
         return score, issues
-
-    def _evaluate_auth_results_loop(self, auth_results: List[str]) -> Tuple[bool, bool]:
-        """Helper to evaluate auth results loop and reduce cyclomatic complexity."""
-        dkim_auth_fail = False
-        spf_auth_fail = False
-        for result in auth_results:
-            result_lower = result.lower()
-
-            # Check DKIM results
-            if "dkim=fail" in result_lower or "dkim=permerror" in result_lower:
-                dkim_auth_fail = True
-            elif "dkim=neutral" in result_lower:
-                dkim_auth_fail = True
-
-            # Check SPF results
-            if "spf=fail" in result_lower or "spf=permerror" in result_lower:
-                spf_auth_fail = True
-        return dkim_auth_fail, spf_auth_fail
 
     def _check_dkim_presence(
         self, headers: Dict[str, Union[str, List[str]]]
