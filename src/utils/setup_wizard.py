@@ -404,6 +404,14 @@ def _generate_config_content(
     return content
 
 
+def _print_manual_setup_instructions(
+    config_file: str = ".env", template_file: str = ".env.example"
+) -> None:
+    """Helper to print consistent remediation instructions for manual setup."""
+    print("\n" + Colors.colorize("To configure manually, run:", Colors.YELLOW))
+    print(f"  {Colors.colorize(f'cp {template_file} {config_file}', Colors.CYAN)}")
+
+
 def _validate_config_path(config_file: str) -> Path | None:
     """Validate the configuration file path securely."""
     if "\0" in config_file:
@@ -457,7 +465,9 @@ def _set_file_permissions(fd: int) -> None:
             )
 
 
-def _write_config_file(config_file: str, new_content: str) -> bool:
+def _write_config_file(
+    config_file: str, new_content: str, template_file: str = ".env.example"
+) -> bool:
     """Helper to write the configuration to a file securely."""
     config_path = _validate_config_path(config_file)
     if not config_path:
@@ -490,6 +500,7 @@ def _write_config_file(config_file: str, new_content: str) -> bool:
         return True
     except Exception as e:
         print("✖ " + Colors.colorize(f"Error writing config: {e}", Colors.RED))
+        _print_manual_setup_instructions(config_file, template_file)
         return False
 
 
@@ -536,6 +547,7 @@ def _execute_setup_steps(
     if choice == "4":
         if raise_on_skip:
             raise WizardSkipped("User chose to skip setup.")
+        _print_manual_setup_instructions(config_file, template_file)
         return False
 
     provider_map = {
@@ -561,7 +573,7 @@ def _execute_setup_steps(
     )
 
     # 5. Write Config
-    if not _write_config_file(config_file, new_content):
+    if not _write_config_file(config_file, new_content, template_file):
         return False
 
     _print_next_steps(config_file)
@@ -615,21 +627,20 @@ def main() -> int:
         print(
             "✖ "
             + Colors.colorize(
-                "Interactive credential setup requires a TTY. ", Colors.RED
-            )
-            + Colors.colorize(
-                "Run the command in an interactive terminal or provide a config file.",
-                Colors.YELLOW,
+                "Interactive credential setup requires a TTY.", Colors.RED
             )
         )
+        _print_manual_setup_instructions()
         return 1
 
     try:
         return 0 if run_setup_wizard(raise_on_skip=True) else 1
     except WizardSkipped:
+        _print_manual_setup_instructions()
         return 2
     except EOFError:
         print("\n✖ " + Colors.colorize("Interactive input closed.", Colors.RED))
+        _print_manual_setup_instructions()
         return 1
     except KeyboardInterrupt:
         return 1
