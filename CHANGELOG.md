@@ -445,6 +445,8 @@
 
 **Merged pull requests:**
 
+- 🎨 Palette: Actionable Error Paths UX Consistency [\#1397](https://github.com/abhimehro/email-security-pipeline/pull/1397) ([abhimehro](https://github.com/abhimehro))
+- chore\(actions\): consolidate workflow automation [\#1395](https://github.com/abhimehro/email-security-pipeline/pull/1395) ([abhimehro](https://github.com/abhimehro))
 - refactor\(repo-health\): split media\_analyzer and alert\_system god modules [\#1394](https://github.com/abhimehro/email-security-pipeline/pull/1394) ([abhimehro](https://github.com/abhimehro))
 - chore\(deps\): bump github/codeql-action from codeql-bundle-v2.26.2 to 2.26.1 [\#1393](https://github.com/abhimehro/email-security-pipeline/pull/1393) ([dependabot[bot]](https://github.com/apps/dependabot))
 - chore\(repo-health\): purge root junk and fix Quick Start docs [\#1390](https://github.com/abhimehro/email-security-pipeline/pull/1390) ([cursor[bot]](https://github.com/apps/cursor))
