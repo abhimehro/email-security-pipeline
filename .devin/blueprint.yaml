@@ -1,0 +1,29 @@
+# https://docs.devin.ai/onboard-devin/environment-yaml
+
+# Bootstrap a working pip for Python 3.12+ (the system pip may be too old
+# for the distutils-less interpreter). This installs pip into the user
+# site-packages so subsequent `python3 -m pip` invocations work.
+initialize: |
+  python3 -m ensurepip --upgrade
+  python3 -m pip install --user --upgrade pip
+
+# Install CI/dev dependencies. This intentionally uses requirements-ci.txt
+# to avoid the optional multi-GB ML stack (torch/transformers).
+maintenance: |
+  python3 -m pip install --user -r requirements-ci.txt
+  python3 -m pre_commit install
+
+knowledge:
+  - name: test
+    contents: |
+      python3 -m pytest
+      Tests mock IMAP/external services; no .env is required for test runs.
+  - name: lint
+    contents: |
+      python3 -m pre_commit run --all-files
+      Use requirements-ci.txt to avoid optional multi-GB ML dependencies.
+  - name: run
+    contents: |
+      cp .env.example .env
+      python3 src/main.py
+      Runtime IMAP credentials are required for the full pipeline.
