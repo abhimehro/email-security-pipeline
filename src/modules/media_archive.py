@@ -3,7 +3,7 @@
 import io
 import tarfile
 import zipfile
-from typing import Callable, List, Optional, Tuple
+from typing import List, Tuple
 
 from ..utils.sanitization import sanitize_for_logging
 from ..utils.security_validators import sanitize_filename

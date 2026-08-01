@@ -8,7 +8,7 @@ webhook and Slack alerting. HTTP calls remain in the alert facade.
 import re
 from dataclasses import asdict
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 
 from ..utils.colors import Colors
