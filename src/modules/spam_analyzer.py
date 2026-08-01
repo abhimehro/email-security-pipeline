@@ -566,18 +566,19 @@ class SpamAnalyzer:
 
         # ⚡ BOLT: Optimization - Extract required headers to static tuple to avoid loop reallocation
         required_headers = ("from", "to", "date", "message-id")
-        # Optimization: Pre-calculate display strings to avoid runtime string operations
+
+        # ⚡ BOLT: Optimization - Fast path check using dict subset
+        # Significant speedup for the common case where all required headers are present
+        if len(headers) >= 4 and {"from", "to", "date", "message-id"}.issubset(headers):
+            return 0.0, []
+
+        # Display original case for readability (only needed on the slow path)
         display_headers = {
             "from": "From",
             "to": "To",
             "date": "Date",
             "message-id": "Message-ID",
         }
-
-        # ⚡ BOLT: Optimization - Fast path check using dict subset
-        # Significant speedup for the common case where all required headers are present
-        if len(headers) >= 4 and {"from", "to", "date", "message-id"}.issubset(headers):
-            return 0.0, []
 
         for header in required_headers:
             if header not in headers:
