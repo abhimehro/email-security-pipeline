@@ -36,6 +36,10 @@ class SpamAnalysisResult:
 class SpamAnalyzer:
     """Analyzes emails for spam characteristics."""
 
+    # ⚡ BOLT: Pre-allocate sets for fast-path header lookups.
+    # This provides O(1) membership testing via `.issubset()` or `difference()`.
+    REQUIRED_HEADERS_SET = frozenset({"from", "to", "date", "message-id"})
+
     # Base spam keyword literals for fast substring pre-checks
     # Optimization: This single source of truth allows us to dynamically generate
     # the regex patterns while preserving a fast, safe C-level `in` check without
@@ -560,16 +564,21 @@ class SpamAnalyzer:
         self, headers: Dict[str, Union[str, List[str]]]
     ) -> Tuple[float, List[str]]:
         """Check for required standard headers."""
+        # ⚡ BOLT: Optimization - Fast path check for missing headers
+        # Using frozenset.issubset() is a highly optimized C-level operation that
+        # avoids the loop overhead on the hot path (when all required headers exist).
+        if self.REQUIRED_HEADERS_SET.issubset(headers):
+            return 0.0, []
+
         score = 0.0
         issues = []
 
-        required_headers = ["from", "to", "date", "message-id"]
-        for header in required_headers:
-            if header not in headers:
-                # Display original case for readability
-                display_header = header.title().replace("Id", "ID")
-                score += 0.5
-                issues.append(f"Missing {display_header} header")
+        # Only iterate over the missing headers, using `.difference()`
+        for header in self.REQUIRED_HEADERS_SET.difference(headers):
+            # Display original case for readability
+            display_header = header.title().replace("Id", "ID")
+            score += 0.5
+            issues.append(f"Missing {display_header} header")
 
         return score, issues
 

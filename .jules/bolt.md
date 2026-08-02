@@ -66,3 +66,8 @@ joined strings provides significant performance wins by avoiding iteration
 entirely for common clean cases. **Action:** Replace `any()` generators with
 short-circuiting fast paths on joined strings, and use explicit loops to avoid
 generator overhead when iteration is necessary in hot paths.
+
+## 2025-11-10 - Fast-path missing header checks with sets
+
+**Learning:** When validating the presence of required keys in a dictionary (like HTTP or email headers) where the expected case is that all keys are present, using a pre-allocated `frozenset` and `.issubset()` acts as a highly optimized C-level fast-path.
+**Action:** Use `.issubset()` for validating required dictionary keys to bypass Python loop overhead for the common success case.
