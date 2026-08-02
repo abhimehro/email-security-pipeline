@@ -66,3 +66,7 @@ joined strings provides significant performance wins by avoiding iteration
 entirely for common clean cases. **Action:** Replace `any()` generators with
 short-circuiting fast paths on joined strings, and use explicit loops to avoid
 generator overhead when iteration is necessary in hot paths.
+
+## 2026-08-01 — SpamAnalyzer auth/header fast-path (salvage #1399)
+
+Salvaged spam_analyzer.py Bolt fast-path helpers only. Rejected alert_*/media_* module collapse from the original PR.
