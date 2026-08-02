@@ -446,7 +446,9 @@
 
 **Merged pull requests:**
 
+- chore: Jules Daily QA & Agentic Review \(No Findings\) [\#1404](https://github.com/abhimehro/email-security-pipeline/pull/1404) ([abhimehro](https://github.com/abhimehro))
 - chore\(devin\): add environment blueprint for repeatable setup [\#1403](https://github.com/abhimehro/email-security-pipeline/pull/1403) ([abhimehro](https://github.com/abhimehro))
+- perf\(spam\): auth/header fast-path helpers \(salvages \#1399\) [\#1401](https://github.com/abhimehro/email-security-pipeline/pull/1401) ([abhimehro](https://github.com/abhimehro))
 - 🎨 Palette: Actionable Error Paths UX Consistency [\#1397](https://github.com/abhimehro/email-security-pipeline/pull/1397) ([abhimehro](https://github.com/abhimehro))
 - chore\(actions\): consolidate workflow automation [\#1395](https://github.com/abhimehro/email-security-pipeline/pull/1395) ([abhimehro](https://github.com/abhimehro))
 - refactor\(repo-health\): split media\_analyzer and alert\_system god modules [\#1394](https://github.com/abhimehro/email-security-pipeline/pull/1394) ([abhimehro](https://github.com/abhimehro))
