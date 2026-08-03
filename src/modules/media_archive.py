@@ -8,6 +8,7 @@ from typing import List, Tuple
 from ..utils.sanitization import sanitize_for_logging
 from ..utils.security_validators import sanitize_filename
 
+
 def _inspect_zip_contents(
     self, filename: str, data: bytes, depth: int = 0
 ) -> Tuple[float, List[str]]:
@@ -48,6 +49,7 @@ def _inspect_zip_contents(
 
     return score, warnings
 
+
 def _check_file_count(
     self, filename: str, file_list: List[str], score: float, warnings: List[str]
 ) -> Tuple[float, List[str]]:
@@ -59,6 +61,7 @@ def _check_file_count(
         )
     return score, warnings
 
+
 def _inspect_zip_member_and_check_traversal(
     self, zf: zipfile.ZipFile, contained_file: str, filename: str, depth: int
 ) -> Tuple[float, List[str]]:
@@ -66,9 +69,7 @@ def _inspect_zip_member_and_check_traversal(
     warnings = []
     if self._is_path_traversal_attempt(contained_file):
         score += 5.0
-        safe_contained_file = sanitize_for_logging(
-            sanitize_filename(contained_file)
-        )
+        safe_contained_file = sanitize_for_logging(sanitize_filename(contained_file))
         warnings.append(
             f"Zip file {filename} contains path traversal attempt: {safe_contained_file}"
         )
@@ -81,6 +82,7 @@ def _inspect_zip_member_and_check_traversal(
     score += member_score
     warnings.extend(member_warnings)
     return score, warnings
+
 
 def _inspect_archive_member(
     self, parent_filename: str, member_name: str, nested_handler_fn
@@ -139,6 +141,7 @@ def _inspect_archive_member(
 
     return score, warnings
 
+
 def _is_supported_nested_archive(member_lower: str, depth: int) -> bool:
     """Check if the nested archive is supported and within depth limit."""
     if depth >= 2:
@@ -187,9 +190,7 @@ def _handle_nested_zip_member(
 
         # Recurse based on type
         nested_path = f"{parent_filename}/{safe_member_name}"
-        return _inspect_nested_data(
-            self, member_lower, nested_path, nested_data, depth
-        )
+        return _inspect_nested_data(self, member_lower, nested_path, nested_data, depth)
 
     except ValueError as e:
         score += 5.0
@@ -197,15 +198,14 @@ def _handle_nested_zip_member(
             f"Zip bomb detected: {parent_filename}/{safe_member_name} ({str(e)})"
         )
     except Exception as e:
-        self.logger.warning(
-            f"Error inspecting nested archive {safe_member_name}: {e}"
-        )
+        self.logger.warning(f"Error inspecting nested archive {safe_member_name}: {e}")
         score += 3.0
         warnings.append(
             f"Failed to inspect nested archive {safe_member_name}: {str(e)}"
         )
 
     return score, warnings
+
 
 def _inspect_tar_contents(
     self, filename: str, data: bytes, depth: int = 0
@@ -222,6 +222,7 @@ def _inspect_tar_contents(
         self.logger.warning(f"Error inspecting tar {filename}: {e}")
 
     return 0.0, []
+
 
 def _inspect_tar_contents_safe(
     self, filename: str, data: bytes
@@ -249,12 +250,14 @@ def _inspect_tar_contents_safe(
 
     return score, warnings
 
+
 def _apply_tar_filter(self, tf: tarfile.TarFile) -> None:
     """Apply PEP-706 data filter if available to prevent extraction traversal."""
     if hasattr(tarfile, "data_filter"):
         tf.extraction_filter = getattr(
             tarfile, "data_filter", (lambda member, path: member)
         )
+
 
 def _get_tar_members_safely(self, tf: tarfile.TarFile) -> List[tarfile.TarInfo]:
     """Get tar members safely with count limit."""
@@ -265,6 +268,7 @@ def _get_tar_members_safely(self, tf: tarfile.TarFile) -> List[tarfile.TarInfo]:
             break
     return members
 
+
 def _process_tar_member(
     self, tf: tarfile.TarFile, member: tarfile.TarInfo, filename: str
 ) -> Tuple[float, List[str]]:
@@ -273,9 +277,7 @@ def _process_tar_member(
     member_lower = safe_member_name.lower()
 
     if member_lower.endswith(self.DANGEROUS_EXTENSIONS):
-        return 5.0, [
-            f"Archive {filename} contains dangerous file: {safe_member_name}"
-        ]
+        return 5.0, [f"Archive {filename} contains dangerous file: {safe_member_name}"]
 
     if self._is_path_traversal_attempt(member.name):
         safe_member_name_traversal = sanitize_for_logging(
@@ -300,6 +302,7 @@ def _process_tar_member(
         lambda: self._handle_nested_tar_member(tf, member, filename, 0),
     )
     return member_score, member_warnings
+
 
 def _handle_nested_tar_member(
     self,
@@ -350,6 +353,7 @@ def _handle_nested_tar_member(
 
     return score, warnings
 
+
 def _read_file_securely(self, f, filename: str, max_size: int) -> bytes:
     """
     Read a file-like object securely with a size limit.
@@ -370,6 +374,7 @@ def _read_file_securely(self, f, filename: str, max_size: int) -> bytes:
         content.write(chunk)
 
     return content.getvalue()
+
 
 def _read_zip_member_securely(
     self, zf: zipfile.ZipFile, filename: str, max_size: int
@@ -412,8 +417,6 @@ def _read_zip_member_securely(
             f.close()
         except zipfile.BadZipFile as e:
             # Ignore errors on close (like CRC mismatch due to partial read)
-            self.logger.debug(
-                f"Ignored error closing zip stream for {filename}: {e}"
-            )
+            self.logger.debug(f"Ignored error closing zip stream for {filename}: {e}")
 
     return content.getvalue()
