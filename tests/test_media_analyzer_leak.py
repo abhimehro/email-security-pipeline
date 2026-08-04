@@ -14,10 +14,8 @@ class TestMediaAnalyzerLeak(unittest.TestCase):
         self.analyzer = MediaAuthenticityAnalyzer(self.config)
 
     @patch("src.modules.media_analyzer.tempfile.NamedTemporaryFile")
-    @patch("src.modules.media_analyzer.os.unlink")
-    @patch("src.modules.media_analyzer.os.path.exists")
     def test_temp_file_cleanup_on_write_error(
-        self, mock_exists, mock_unlink, mock_tempfile
+        self, mock_tempfile
     ):
         """
         Test that temporary file is cleaned up even if writing to it fails.
@@ -32,9 +30,6 @@ class TestMediaAnalyzerLeak(unittest.TestCase):
 
         # Simulate write error (e.g., Disk Full)
         mock_file.write.side_effect = IOError("Disk full")
-
-        # Mock existence check to return True so unlink would be called if logic reached it
-        mock_exists.return_value = True
 
         # Construct minimal email data with VALID signature to pass initial checks
         # MP4 magic bytes: ... ftyp ...
@@ -55,8 +50,9 @@ class TestMediaAnalyzerLeak(unittest.TestCase):
         # Call analyze. It catches exceptions internally, so it shouldn't crash.
         self.analyzer.analyze(email_data)
 
-        # ASSERT: os.unlink SHOULD be called to clean up the file
-        mock_unlink.assert_called_with("/tmp/leaked_file")
+        # ASSERT: NamedTemporaryFile should be called without delete=False
+        kwargs = mock_tempfile.call_args.kwargs
+        self.assertNotIn('delete', kwargs)
 
 
 if __name__ == "__main__":
