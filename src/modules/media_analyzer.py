@@ -478,44 +478,35 @@ class MediaAuthenticityAnalyzer:
             return score, indicators
 
         # Advanced ML-based detection
-        temp_file_path = None
         try:
             # Create a temporary file to work with OpenCV
+            # Omitting delete=False ensures it gets cleaned up by OS even on process crash
             with tempfile.NamedTemporaryFile(
-                delete=False, suffix=os.path.splitext(filename)[1]
+                suffix=os.path.splitext(filename)[1]
             ) as temp_file:
                 temp_file_path = temp_file.name
                 temp_file.write(data)
+                temp_file.flush() # Ensure data is written before OpenCV reads it
 
-            # 1. Extract frames
-            # Optimization: 10 frames is sufficient for statistical analysis and reduces processing time by 50%
-            frames = self._extract_frames_from_video(
-                temp_file_path, max_frames=10, max_dim=1280
-            )
-
-            if not frames:
-                self.logger.warning(f"Could not extract frames from {filename}")
-            else:
-                frame_score, frame_indicators = self._analyze_video_frames(
-                    filename, temp_file_path, frames, content_type
+                # 1. Extract frames
+                # Optimization: 10 frames is sufficient for statistical analysis and reduces processing time by 50%
+                frames = self._extract_frames_from_video(
+                    temp_file_path, max_frames=10, max_dim=1280
                 )
-                score += frame_score
-                indicators.extend(frame_indicators)
+
+                if not frames:
+                    self.logger.warning(f"Could not extract frames from {filename}")
+                else:
+                    frame_score, frame_indicators = self._analyze_video_frames(
+                        filename, temp_file_path, frames, content_type
+                    )
+                    score += frame_score
+                    indicators.extend(frame_indicators)
 
         except Exception as e:
             self.logger.error(
                 f"Error during deepfake analysis for {filename}: {str(e)}"
             )
-
-        finally:
-            # Cleanup temp file
-            if temp_file_path and os.path.exists(temp_file_path):
-                try:
-                    os.unlink(temp_file_path)
-                except OSError as e:
-                    self.logger.warning(
-                        f"Failed to delete temp file {temp_file_path}: {e}"
-                    )
 
         return score, indicators
 
