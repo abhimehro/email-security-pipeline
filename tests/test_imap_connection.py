@@ -552,11 +552,9 @@ class TestIMAPConnectionFetchBatch(unittest.TestCase):
         self.conn = IMAPConnection(self.config)
         self.conn.logger = MagicMock()
 
-    @patch.object(IMAPConnection, "_check_email_sizes")
     @patch.object(IMAPConnection, "_parse_email_payload")
-    def test_fetch_batch_success(self, mock_parse, mock_check_sizes):
+    def test_fetch_batch_success(self, mock_parse):
         """Happy path: fetch valid emails."""
-        mock_check_sizes.return_value = [b"1", b"2"]
         mock_imap = MagicMock()
         mock_imap.fetch.return_value = ("OK", [b"item1", b"item2"])
         self.conn.connection = mock_imap
@@ -565,28 +563,13 @@ class TestIMAPConnectionFetchBatch(unittest.TestCase):
 
         result = self.conn._fetch_batch([b"1", b"2", b"3"])
 
-        mock_check_sizes.assert_called_once_with([b"1", b"2", b"3"])
-        mock_imap.fetch.assert_called_once_with(b"1,2", "(RFC822)")
+        mock_imap.fetch.assert_called_once_with(b"1,2,3", "(RFC822)")
         self.assertEqual(len(result), 2)
         self.assertEqual(result[0], ("1", b"raw1"))
         self.assertEqual(result[1], ("2", b"raw2"))
 
-    @patch.object(IMAPConnection, "_check_email_sizes")
-    def test_fetch_batch_no_safe_ids(self, mock_check_sizes):
-        """If no IDs are safe, it returns empty early."""
-        mock_check_sizes.return_value = []
-        mock_imap = MagicMock()
-        self.conn.connection = mock_imap
-
-        result = self.conn._fetch_batch([b"1"])
-
-        self.assertEqual(result, [])
-        mock_imap.fetch.assert_not_called()
-
-    @patch.object(IMAPConnection, "_check_email_sizes")
-    def test_fetch_batch_fetch_error_status(self, mock_check_sizes):
+    def test_fetch_batch_fetch_error_status(self):
         """If IMAP fetch returns non-OK status, warning is logged and empty list returned."""
-        mock_check_sizes.return_value = [b"1"]
         mock_imap = MagicMock()
         mock_imap.fetch.return_value = ("NO", [])
         self.conn.connection = mock_imap
@@ -596,11 +579,9 @@ class TestIMAPConnectionFetchBatch(unittest.TestCase):
         self.assertEqual(result, [])
         self.conn.logger.warning.assert_called()
 
-    @patch.object(IMAPConnection, "_check_email_sizes")
     @patch.object(IMAPConnection, "_parse_email_payload")
-    def test_fetch_batch_parsing_skips_none(self, mock_parse, mock_check_sizes):
+    def test_fetch_batch_parsing_skips_none(self, mock_parse):
         """If parse returns None, it is skipped."""
-        mock_check_sizes.return_value = [b"1", b"2"]
         mock_imap = MagicMock()
         mock_imap.fetch.return_value = ("OK", [b"item1", b"item2"])
         self.conn.connection = mock_imap
@@ -612,10 +593,8 @@ class TestIMAPConnectionFetchBatch(unittest.TestCase):
         self.assertEqual(len(result), 1)
         self.assertEqual(result[0], ("1", b"raw1"))
 
-    @patch.object(IMAPConnection, "_check_email_sizes")
-    def test_fetch_batch_exception_handling(self, mock_check_sizes):
+    def test_fetch_batch_exception_handling(self):
         """Exceptions during fetch are caught, logged, and return empty list."""
-        mock_check_sizes.return_value = [b"1"]
         mock_imap = MagicMock()
         mock_imap.fetch.side_effect = Exception("network error")
         self.conn.connection = mock_imap

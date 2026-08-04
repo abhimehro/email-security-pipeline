@@ -269,6 +269,11 @@ class IMAPConnection:
 
             self.logger.info(f"Found {len(email_ids)} unseen emails in {safe_folder}")
 
+            # Check all email sizes upfront to save network RTT
+            email_ids = self._check_email_sizes(email_ids)
+            if not email_ids:
+                return []
+
             # Process in batches for rate limiting
             emails = []
             # Increased to 50 to minimize 0.5s sleep overhead per batch
@@ -326,11 +331,10 @@ class IMAPConnection:
 
     def _fetch_batch(self, email_ids: List[bytes]) -> List[Tuple[str, bytes]]:
         """
-        Fetch a batch of emails with size pre-checking.
+        Fetch a batch of emails.
 
-        SECURITY STORY: Two-step process prevents DoS:
-        1. First, check sizes (RFC822.SIZE) - lightweight operation
-        2. Then, fetch only emails within size limit
+        SECURITY STORY: Sizes are pre-checked before batching to prevent DoS
+        and save network RTT.
 
         Args:
             email_ids: List of email IDs (as bytes)
@@ -343,15 +347,7 @@ class IMAPConnection:
         emails = []
 
         try:
-            # Step 1: Check sizes first (DoS prevention)
-            safe_ids = self._check_email_sizes(email_ids)
-
-            if not safe_ids:
-                return []
-
-            # Step 2: Fetch only safe-sized emails
-            safe_ids_str = b",".join(safe_ids)
-            status, data = self.connection.fetch(safe_ids_str, "(RFC822)")
+            status, data = self.connection.fetch(ids_str, "(RFC822)")
 
             if status == "OK" and isinstance(data, list):
                 for item in data:
@@ -359,7 +355,7 @@ class IMAPConnection:
                     if parsed_email:
                         emails.append(parsed_email)
             else:
-                self.logger.warning(f"Failed to fetch batch {safe_ids_str}: {status}")
+                self.logger.warning(f"Failed to fetch batch {ids_str}: {status}")
 
         except Exception as e:
             self.logger.error(f"Error fetching email batch {ids_str}: {e}")
