@@ -42,10 +42,17 @@ class TestAlertSystemLeak(unittest.TestCase):
         )
 
         # Mock requests.post
-        with patch("requests.post") as mock_post:
-            mock_post.return_value.status_code = 200
+        class MockResponse:
+            def __init__(self, status):
+                self.status = status
+            async def __aenter__(self): return self
+            async def __aexit__(self, exc_type, exc_val, exc_tb): pass
 
-            alert_system.send_alert(report)
+        with patch("src.modules.alert_system.aiohttp.ClientSession.post") as mock_post:
+            mock_post.return_value = MockResponse(status=200)
+
+            import asyncio
+            asyncio.run(alert_system._webhook_alert(report))
 
             # Verify call args
             args, kwargs = mock_post.call_args

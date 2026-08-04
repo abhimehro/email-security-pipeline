@@ -18,7 +18,7 @@ class TestAlertSystemSecurity(unittest.TestCase):
 
         self.alert_system = AlertSystem(self.config)
 
-    @patch("src.modules.alert_system.requests.post")
+    @patch("src.modules.alert_system.aiohttp.ClientSession.post")
     def test_slack_injection_prevention(self, mock_post):
         # Create a threat report with malicious content in subject and sender
         report = ThreatReport(
@@ -66,7 +66,7 @@ class TestAlertSystemSecurity(unittest.TestCase):
         self.assertIn("&gt;", subject_field["value"])
         self.assertIn("&amp;", subject_field["value"])
 
-    @patch("src.modules.alert_system.requests.post")
+    @patch("src.modules.alert_system.aiohttp.ClientSession.post")
     def test_slack_sanitization_edge_cases(self, mock_post):
         # Test None, empty string, and only special chars
         test_cases = [(None, ""), ("", ""), ("<>&", "&lt;&gt;&amp;")]
@@ -101,7 +101,7 @@ class TestAlertSystemSecurity(unittest.TestCase):
             self.assertEqual(sanitized, expected, f"Failed for input: {input_str}")
 
     @patch("src.modules.alert_system.is_safe_webhook_url")
-    @patch("src.modules.alert_system.requests.post")
+    @patch("src.modules.alert_system.aiohttp.ClientSession.post")
     def test_webhook_redirect_prevention(self, mock_post, mock_is_safe):
         """Test that webhook calls are made with allow_redirects=False to prevent SSRF bypass."""
         self.config.webhook_enabled = True
@@ -126,7 +126,7 @@ class TestAlertSystemSecurity(unittest.TestCase):
         )
 
         system = AlertSystem(self.config)
-        system._webhook_alert(report)
+        import asyncio; asyncio.run(system._webhook_alert(report))
 
         # Verify the post was called with allow_redirects=False
         mock_post.assert_called_once()
@@ -135,7 +135,7 @@ class TestAlertSystemSecurity(unittest.TestCase):
         self.assertFalse(kwargs["allow_redirects"])
 
     @patch("src.modules.alert_system.is_safe_webhook_url")
-    @patch("src.modules.alert_system.requests.post")
+    @patch("src.modules.alert_system.aiohttp.ClientSession.post")
     def test_webhook_ssrf_prevention(self, mock_post, mock_is_safe):
         """Test that webhook calls are aborted if unsafe at request time."""
         self.config.webhook_enabled = True
@@ -160,13 +160,13 @@ class TestAlertSystemSecurity(unittest.TestCase):
         )
 
         system = AlertSystem(self.config)
-        system._webhook_alert(report)
+        import asyncio; asyncio.run(system._webhook_alert(report))
 
         # Verify the post was NOT called due to the SSRF block
         mock_post.assert_not_called()
 
     @patch("src.modules.alert_system.is_safe_webhook_url")
-    @patch("src.modules.alert_system.requests.post")
+    @patch("src.modules.alert_system.aiohttp.ClientSession.post")
     def test_slack_ssrf_prevention(self, mock_post, mock_is_safe):
         """Test Slack webhook calls abort if URL is deemed unsafe."""
         self.config.slack_enabled = True
@@ -191,13 +191,13 @@ class TestAlertSystemSecurity(unittest.TestCase):
         )
 
         system = AlertSystem(self.config)
-        system._slack_alert(report)
+        import asyncio; asyncio.run(system._slack_alert(report))
 
         # Verify the post was NOT called
         mock_post.assert_not_called()
 
     @patch("src.modules.alert_system.is_safe_webhook_url")
-    @patch("src.modules.alert_system.requests.post")
+    @patch("src.modules.alert_system.aiohttp.ClientSession.post")
     def test_slack_redirect_prevention(self, mock_post, mock_is_safe):
         """Test that Slack calls are made with allow_redirects=False to prevent SSRF bypass."""
         self.config.slack_enabled = True
@@ -222,7 +222,7 @@ class TestAlertSystemSecurity(unittest.TestCase):
         )
 
         system = AlertSystem(self.config)
-        system._slack_alert(report)
+        import asyncio; asyncio.run(system._slack_alert(report))
 
         # Verify the post was called with allow_redirects=False
         mock_post.assert_called_once()

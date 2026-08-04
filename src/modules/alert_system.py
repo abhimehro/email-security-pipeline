@@ -5,6 +5,7 @@ Handles threat notifications and alerting across multiple channels.
 
 import asyncio
 import logging
+import aiohttp
 import threading
 from typing import Dict, List, Optional
 
@@ -245,11 +246,11 @@ class AlertSystem:
         channel_names = []
 
         if self.config.webhook_enabled and self.config.webhook_url:
-            tasks.append(loop.run_in_executor(None, self._webhook_alert, report))
+            tasks.append(asyncio.create_task(self._webhook_alert(report)))
             channel_names.append("webhook")
 
         if self.config.slack_enabled and self.config.slack_webhook:
-            tasks.append(loop.run_in_executor(None, self._slack_alert, report))
+            tasks.append(asyncio.create_task(self._slack_alert(report)))
             channel_names.append("slack")
 
         if not tasks:
@@ -278,11 +279,21 @@ class AlertSystem:
         if self.config.console:
             self._console_alert(report)
 
-        if self.config.webhook_enabled and self.config.webhook_url:
-            self._webhook_alert(report)
+        import asyncio
+        async def _run_alerts():
+            tasks = []
+            if self.config.webhook_enabled and self.config.webhook_url:
+                tasks.append(self._webhook_alert(report))
+            if self.config.slack_enabled and self.config.slack_webhook:
+                tasks.append(self._slack_alert(report))
+            if tasks:
+                await asyncio.gather(*tasks)
 
-        if self.config.slack_enabled and self.config.slack_webhook:
-            self._slack_alert(report)
+        try:
+            loop = asyncio.get_running_loop()
+            loop.create_task(_run_alerts())
+        except RuntimeError:
+            asyncio.run(_run_alerts())
 
     def send_alert(self, threat_report: ThreatReport):
         """
@@ -428,7 +439,7 @@ class AlertSystem:
         """Redact sensitive query parameters from URL."""
         return alert_channels.redact_sensitive_url_params(url)
 
-    def _webhook_alert(self, report: ThreatReport) -> bool:
+    async def _webhook_alert(self, report: ThreatReport) -> bool:
         """Send alert via webhook.
 
         Returns True on successful delivery, False on any failure (SSRF block,
@@ -445,21 +456,21 @@ class AlertSystem:
                 )
                 return False
 
-            response = requests.post(
-                self.config.webhook_url,
-                json=alert_channels.build_webhook_payload(report),
-                headers={"Content-Type": "application/json"},
-                timeout=10,
-                allow_redirects=False,
-                verify=True,
-            )
-
-            if response.status_code == 200:
-                self.logger.info("Webhook alert sent successfully")
-                return True
-            else:
-                self.logger.warning(f"Webhook alert failed: {response.status_code}")
-                return False
+            async with aiohttp.ClientSession() as session:
+                async with session.post(
+                    self.config.webhook_url,
+                    json=alert_channels.build_webhook_payload(report),
+                    headers={"Content-Type": "application/json"},
+                    timeout=10,
+                    allow_redirects=False,
+                    ssl=True,
+                ) as response:
+                    if response.status == 200:
+                        self.logger.info("Webhook alert sent successfully")
+                        return True
+                    else:
+                        self.logger.warning(f"Webhook alert failed: {response.status}")
+                        return False
 
         except Exception as e:
             self.logger.error(
@@ -467,7 +478,7 @@ class AlertSystem:
             )
             return False
 
-    def _slack_alert(self, report: ThreatReport) -> bool:
+    async def _slack_alert(self, report: ThreatReport) -> bool:
         """Send alert to Slack.
 
         Returns True on successful delivery, False on any failure (SSRF block,
@@ -482,21 +493,21 @@ class AlertSystem:
                 self.logger.error(f"Aborting Slack alert (SSRF prevention): {err_msg}")
                 return False
 
-            response = requests.post(
-                self.config.slack_webhook,
-                json=alert_channels.build_slack_payload(report),
-                headers={"Content-Type": "application/json"},
-                timeout=10,
-                allow_redirects=False,
-                verify=True,
-            )
-
-            if response.status_code == 200:
-                self.logger.info("Slack alert sent successfully")
-                return True
-            else:
-                self.logger.warning(f"Slack alert failed: {response.status_code}")
-                return False
+            async with aiohttp.ClientSession() as session:
+                async with session.post(
+                    self.config.slack_webhook,
+                    json=alert_channels.build_slack_payload(report),
+                    headers={"Content-Type": "application/json"},
+                    timeout=10,
+                    allow_redirects=False,
+                    ssl=True,
+                ) as response:
+                    if response.status == 200:
+                        self.logger.info("Slack alert sent successfully")
+                        return True
+                    else:
+                        self.logger.warning(f"Slack alert failed: {response.status}")
+                        return False
 
         except Exception as e:
             self.logger.error(

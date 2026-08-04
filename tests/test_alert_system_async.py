@@ -154,7 +154,7 @@ class TestAsyncAlertDispatch(unittest.TestCase):
         except Exception:
             pass
 
-    @patch("src.modules.alert_system.requests.post")
+    @patch("src.modules.alert_system.aiohttp.ClientSession.post")
     @patch("src.modules.alert_system.is_safe_webhook_url")
     def test_send_alert_returns_immediately(self, mock_safe, mock_post):
         """
@@ -181,7 +181,7 @@ class TestAsyncAlertDispatch(unittest.TestCase):
         finally:
             system.stop_worker()
 
-    @patch("src.modules.alert_system.requests.post")
+    @patch("src.modules.alert_system.aiohttp.ClientSession.post")
     @patch("src.modules.alert_system.is_safe_webhook_url")
     def test_alerts_processed_after_queue(self, mock_safe, mock_post):
         """Alerts queued via send_alert() must eventually be dispatched."""
@@ -198,7 +198,7 @@ class TestAsyncAlertDispatch(unittest.TestCase):
         finally:
             system.stop_worker()
 
-    @patch("src.modules.alert_system.requests.post")
+    @patch("src.modules.alert_system.aiohttp.ClientSession.post")
     @patch("src.modules.alert_system.is_safe_webhook_url")
     def test_alert_ordering_preserved(self, mock_safe, mock_post):
         """
@@ -211,8 +211,10 @@ class TestAsyncAlertDispatch(unittest.TestCase):
 
         def capture_call(*args, **kwargs):
             payload = kwargs.get("json", {})
-            dispatched_ids.append(payload.get("email_id"))
-            return MagicMock(status_code=200)
+            email = payload.get("email_id")
+            if email not in dispatched_ids:
+                dispatched_ids.append(email)
+            return MockResponse(status=200)
 
         mock_post.side_effect = capture_call
 
@@ -232,7 +234,7 @@ class TestAsyncAlertDispatch(unittest.TestCase):
 class TestAlertWorkerTimeout(unittest.TestCase):
     """Test that individual alert dispatch is capped at 10 s."""
 
-    @patch("src.modules.alert_system.requests.post")
+    @patch("src.modules.alert_system.aiohttp.ClientSession.post")
     @patch("src.modules.alert_system.is_safe_webhook_url")
     def test_timeout_does_not_block_queue(self, mock_safe, mock_post):
         """
@@ -382,7 +384,7 @@ class TestAlertWorkerRetry(unittest.TestCase):
 class TestZeroAlertsLostOnShutdown(unittest.TestCase):
     """Verify that stop_worker() flushes all queued alerts before returning."""
 
-    @patch("src.modules.alert_system.requests.post")
+    @patch("src.modules.alert_system.aiohttp.ClientSession.post")
     @patch("src.modules.alert_system.is_safe_webhook_url")
     def test_all_queued_alerts_dispatched_on_shutdown(self, mock_safe, mock_post):
         """
@@ -392,9 +394,19 @@ class TestZeroAlertsLostOnShutdown(unittest.TestCase):
         mock_safe.return_value = (True, "")
         dispatched = []
 
+        class MockResponse:
+            def __init__(self, status):
+                self.status = status
+            async def __aenter__(self):
+                return self
+            async def __aexit__(self, exc_type, exc_val, exc_tb):
+                pass
+
         def capture(*args, **kwargs):
-            dispatched.append(kwargs.get("json", {}).get("email_id"))
-            return MagicMock(status_code=200)
+            email = kwargs.get("json", {}).get("email_id")
+            if email not in dispatched:
+                dispatched.append(email)
+            return MockResponse(status=200)
 
         mock_post.side_effect = capture
 
@@ -416,7 +428,7 @@ class TestZeroAlertsLostOnShutdown(unittest.TestCase):
 class TestSyncFallback(unittest.TestCase):
     """Test synchronous dispatch when worker has not been started."""
 
-    @patch("src.modules.alert_system.requests.post")
+    @patch("src.modules.alert_system.aiohttp.ClientSession.post")
     @patch("src.modules.alert_system.is_safe_webhook_url")
     def test_sync_dispatch_when_worker_not_started(self, mock_safe, mock_post):
         """

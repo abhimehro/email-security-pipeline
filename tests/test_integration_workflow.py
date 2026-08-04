@@ -226,7 +226,7 @@ class TestIntegrationWorkflow(unittest.TestCase):
 
         self.assertIsNotNone(report)
 
-    @patch("src.modules.alert_system.requests.post")
+    @patch("src.modules.alert_system.aiohttp.ClientSession.post")
     def test_alert_generation_and_delivery(self, mock_post):
         """
         SECURITY STORY: This tests that high-threat emails trigger alerts correctly.

@@ -49,7 +49,7 @@ class TestWebhookDelivery(unittest.TestCase):
             timestamp=datetime.now().isoformat(),
         )
 
-    @patch("src.modules.alert_system.requests.post")
+    @patch("src.modules.alert_system.aiohttp.ClientSession.post")
     def test_successful_webhook_delivery(self, mock_post):
         """
         SECURITY STORY: This tests successful webhook delivery for threat alerts.
@@ -76,7 +76,7 @@ class TestWebhookDelivery(unittest.TestCase):
         elif "url" in call_args[1]:  # Keyword args
             self.assertEqual(call_args[1]["url"], "https://example.com/webhook")
 
-    @patch("src.modules.alert_system.requests.post")
+    @patch("src.modules.alert_system.aiohttp.ClientSession.post")
     def test_webhook_contains_threat_data(self, mock_post):
         """
         SECURITY STORY: This tests that webhook payloads contain essential threat data.
@@ -102,7 +102,7 @@ class TestWebhookDelivery(unittest.TestCase):
         # Verify data was sent
         self.assertIsNotNone(sent_data)
 
-    @patch("src.modules.alert_system.requests.post")
+    @patch("src.modules.alert_system.aiohttp.ClientSession.post")
     def test_webhook_retry_on_failure(self, mock_post):
         """
         SECURITY STORY: This tests retry logic for failed webhook deliveries.
@@ -131,7 +131,7 @@ class TestWebhookDelivery(unittest.TestCase):
         # If retry logic exists, would see multiple calls
         # If not, this documents that retry logic should be added
 
-    @patch("src.modules.alert_system.requests.post")
+    @patch("src.modules.alert_system.aiohttp.ClientSession.post")
     def test_webhook_timeout_handling(self, mock_post):
         """
         SECURITY STORY: This tests timeout handling for slow webhook endpoints.
@@ -182,7 +182,7 @@ class TestSlackNotifications(unittest.TestCase):
             timestamp=datetime.now().isoformat(),
         )
 
-    @patch("src.modules.alert_system.requests.post")
+    @patch("src.modules.alert_system.aiohttp.ClientSession.post")
     def test_slack_message_formatting(self, mock_post):
         """
         SECURITY STORY: This tests Slack message formatting for readability.
@@ -209,7 +209,7 @@ class TestSlackNotifications(unittest.TestCase):
         elif "url" in call_args[1]:
             self.assertIn("hooks.slack.com", call_args[1]["url"])
 
-    @patch("src.modules.alert_system.requests.post")
+    @patch("src.modules.alert_system.aiohttp.ClientSession.post")
     def test_slack_threat_level_color_coding(self, mock_post):
         """
         SECURITY STORY: This tests color coding by threat level in Slack.
@@ -230,7 +230,7 @@ class TestSlackNotifications(unittest.TestCase):
         # Verify alert was sent
         self.assertTrue(mock_post.called)
 
-    @patch("src.modules.alert_system.requests.post")
+    @patch("src.modules.alert_system.aiohttp.ClientSession.post")
     def test_slack_special_character_escaping(self, mock_post):
         """
         SECURITY STORY: This tests escaping of special characters in Slack messages.
@@ -280,7 +280,7 @@ class TestAlertDeduplication(unittest.TestCase):
 
         self.alert_system = AlertSystem(self.config)
 
-    @patch("src.modules.alert_system.requests.post")
+    @patch("src.modules.alert_system.aiohttp.ClientSession.post")
     def test_duplicate_alert_prevention(self, mock_post):
         """
         SECURITY STORY: This tests deduplication of identical alerts.
@@ -356,7 +356,7 @@ class TestAlertDeduplication(unittest.TestCase):
             timestamp=datetime.now().isoformat(),
         )
 
-        with patch("src.modules.alert_system.requests.post") as mock_post:
+        with patch("src.modules.alert_system.aiohttp.ClientSession.post") as mock_post:
             mock_response = Mock()
             mock_response.status_code = 200
             mock_post.return_value = mock_response
@@ -400,7 +400,7 @@ class TestAlertSystemReliability(unittest.TestCase):
             timestamp=datetime.now().isoformat(),
         )
 
-    @patch("src.modules.alert_system.requests.post")
+    @patch("src.modules.alert_system.aiohttp.ClientSession.post")
     def test_partial_delivery_success(self, mock_post):
         """
         SECURITY STORY: This tests that console alerts work even if webhooks fail.
@@ -422,7 +422,7 @@ class TestAlertSystemReliability(unittest.TestCase):
             # This documents that error handling should be improved
             pass
 
-    @patch("src.modules.alert_system.requests.post")
+    @patch("src.modules.alert_system.aiohttp.ClientSession.post")
     def test_multiple_channel_delivery(self, mock_post):
         """
         SECURITY STORY: This tests delivery to multiple alert channels.

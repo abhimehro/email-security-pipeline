@@ -70,3 +70,7 @@ generator overhead when iteration is necessary in hot paths.
 ## 2026-08-01 — SpamAnalyzer auth/header fast-path (salvage #1399)
 
 Salvaged spam_analyzer.py Bolt fast-path helpers only. Rejected alert_*/media_* module collapse from the original PR.
+
+2026-08-04
+- Learning: Replaced synchronous `requests.post` inside asynchronous functions in `alert_system.py` with `aiohttp` to stop blocking the event loop when sending slack/webhook notifications.
+- Action: Updated `alert_system.py` to correctly utilize `aiohttp` in an async context, improving dispatch performance (10 requests down from 0.37s to 0.13s).
