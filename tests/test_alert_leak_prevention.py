@@ -1,5 +1,5 @@
 import unittest
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, patch, AsyncMock
 
 from src.modules.alert_system import AlertSystem, ThreatReport
 from src.utils.config import AlertConfig
@@ -42,7 +42,7 @@ class TestAlertSystemLeak(unittest.TestCase):
         )
 
         # Mock requests.post
-        with patch("requests.post") as mock_post:
+        with patch("aiohttp.ClientSession.post") as mock_post:
             mock_post.return_value.status_code = 200
 
             alert_system.send_alert(report)
