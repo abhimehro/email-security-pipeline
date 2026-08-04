@@ -125,8 +125,12 @@ class TestWebhookDelivery(unittest.TestCase):
         mock_response_success = Mock()
         mock_response_success.status_code = 200
 
-        m1 = MagicMock(); m1.__aenter__ = AsyncMock(return_value=mock_response_fail); m1.__aexit__ = AsyncMock()
-        m2 = MagicMock(); m2.__aenter__ = AsyncMock(return_value=mock_response_success); m2.__aexit__ = AsyncMock()
+        m1 = MagicMock()
+        m1.__aenter__ = AsyncMock(return_value=mock_response_fail)
+        m1.__aexit__ = AsyncMock()
+        m2 = MagicMock()
+        m2.__aenter__ = AsyncMock(return_value=mock_response_success)
+        m2.__aexit__ = AsyncMock()
         mock_post.side_effect = [m1, m2]
 
         # Send alert - implementation may or may not include retry logic
