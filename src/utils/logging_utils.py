@@ -44,7 +44,13 @@ class ColoredFormatter(logging.Formatter):
                 # Dim the repetitive no emails message to reduce visual noise
                 record.msg = Colors.colorize(str(record.msg), Colors.GREY)
             elif "Analysis complete" in record.msg:
-                # Highlight success
-                record.msg = Colors.colorize(str(record.msg), Colors.GREEN)
+                # Highlight based on risk
+                msg_str = str(record.msg)
+                if "risk=HIGH" in msg_str:
+                    record.msg = Colors.colorize(msg_str, Colors.RED)
+                elif "risk=MEDIUM" in msg_str:
+                    record.msg = Colors.colorize(msg_str, Colors.YELLOW)
+                else:
+                    record.msg = Colors.colorize(msg_str, Colors.GREEN)
 
         return super().format(record)

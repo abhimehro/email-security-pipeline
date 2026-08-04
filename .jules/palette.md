@@ -575,3 +575,6 @@ throughout the entire lifecycle of the countdown element.
 ## 2026-08-03 - Visual Symbols for Status Indication in CLI Scripts
 **Learning:** Standalone CLI scripts often duplicate summary table logic but miss visual polish rules established in the core application (like using symbols for status). Plain text statuses in tables reduce scannability.
 **Action:** Reused the pattern of prepending explicit visual symbols (✔ and ✖) to textual statuses in standalone CLI scripts to maintain consistent UX and scannability across the entire repository.
+## 2025-03-02 - Dynamic Log Highlighting by Risk Level
+**Learning:** Hardcoding success colors (like GREEN) for operation completions is dangerous UX when the operation result itself represents a high-severity alert (e.g. "Analysis complete: risk=HIGH"). Green signals safety, contradicting the high-risk state.
+**Action:** Always parse the context or risk level in log formatters before applying semantic colors to completion messages, ensuring the visual cue matches the actual risk state.

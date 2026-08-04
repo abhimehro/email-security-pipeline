@@ -125,12 +125,26 @@ class TestColoredFormatter(unittest.TestCase):
         output = Formatter("%(message)s").format(record)
         self.assertIn(C.GREY, output)
 
-    def test_analysis_complete_gets_green(self):
-        """'Analysis complete' messages are highlighted in GREEN."""
+    def test_analysis_complete_gets_green_on_low_risk(self):
+        """'Analysis complete' messages with LOW risk are highlighted in GREEN."""
         Formatter, C = self._reload_with_tty()
         record = self._make_record("Analysis complete: score=25.0, risk=LOW")
         output = Formatter("%(message)s").format(record)
         self.assertIn(C.GREEN, output)
+
+    def test_analysis_complete_gets_red_on_high_risk(self):
+        """'Analysis complete' messages with HIGH risk are highlighted in RED."""
+        Formatter, C = self._reload_with_tty()
+        record = self._make_record("Analysis complete: score=85.0, risk=HIGH")
+        output = Formatter("%(message)s").format(record)
+        self.assertIn(C.RED, output)
+
+    def test_analysis_complete_gets_yellow_on_medium_risk(self):
+        """'Analysis complete' messages with MEDIUM risk are highlighted in YELLOW."""
+        Formatter, C = self._reload_with_tty()
+        record = self._make_record("Analysis complete: score=65.0, risk=MEDIUM")
+        output = Formatter("%(message)s").format(record)
+        self.assertIn(C.YELLOW, output)
 
     def test_unmatched_message_not_special_colored(self):
         """Ordinary messages are not wrapped with MAGENTA or GREEN."""
