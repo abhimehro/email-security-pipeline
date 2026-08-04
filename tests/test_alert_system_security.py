@@ -126,7 +126,8 @@ class TestAlertSystemSecurity(unittest.TestCase):
         )
 
         system = AlertSystem(self.config)
-        import asyncio; asyncio.run(system._webhook_alert(report))
+        import asyncio
+        asyncio.run(system._webhook_alert(report))
 
         # Verify the post was called with allow_redirects=False
         mock_post.assert_called_once()
@@ -160,7 +161,8 @@ class TestAlertSystemSecurity(unittest.TestCase):
         )
 
         system = AlertSystem(self.config)
-        import asyncio; asyncio.run(system._webhook_alert(report))
+        import asyncio
+        asyncio.run(system._webhook_alert(report))
 
         # Verify the post was NOT called due to the SSRF block
         mock_post.assert_not_called()
@@ -191,7 +193,8 @@ class TestAlertSystemSecurity(unittest.TestCase):
         )
 
         system = AlertSystem(self.config)
-        import asyncio; asyncio.run(system._slack_alert(report))
+        import asyncio
+        asyncio.run(system._slack_alert(report))
 
         # Verify the post was NOT called
         mock_post.assert_not_called()
@@ -222,7 +225,8 @@ class TestAlertSystemSecurity(unittest.TestCase):
         )
 
         system = AlertSystem(self.config)
-        import asyncio; asyncio.run(system._slack_alert(report))
+        import asyncio
+        asyncio.run(system._slack_alert(report))
 
         # Verify the post was called with allow_redirects=False
         mock_post.assert_called_once()
