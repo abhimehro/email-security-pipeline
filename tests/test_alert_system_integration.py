@@ -12,7 +12,6 @@ from datetime import datetime
 from pathlib import Path
 from unittest.mock import MagicMock, Mock, patch
 
-import requests
 
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -118,8 +117,10 @@ class TestWebhookDelivery(unittest.TestCase):
         # Mock failure followed by success
         mock_response_fail = Mock()
         mock_response_fail.status_code = 500
-        mock_response_fail.raise_for_status.side_effect = aiohttp.ClientResponseError(None, None, message=
-            "Server Error"
+        mock_response_fail.raise_for_status.side_effect = aiohttp.ClientResponseError(
+            request_info=None,
+            history=None,
+            message="Server Error"
         )
 
         mock_response_success = Mock()

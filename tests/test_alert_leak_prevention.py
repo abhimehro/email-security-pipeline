@@ -1,3 +1,4 @@
+import aiohttp
 import unittest
 from unittest.mock import MagicMock, patch, AsyncMock
 

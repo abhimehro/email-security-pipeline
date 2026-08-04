@@ -1,3 +1,4 @@
+import aiohttp
 """
 Async Alert Dispatch Tests.
 

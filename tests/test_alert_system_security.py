@@ -1,3 +1,4 @@
+import aiohttp
 import asyncio
 import pytest
 import unittest

@@ -1,3 +1,4 @@
+import aiohttp
 """
 Integration Workflow Tests
 Tests end-to-end email processing flow through the pipeline.

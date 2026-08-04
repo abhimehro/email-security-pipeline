@@ -1,3 +1,4 @@
+import aiohttp
 import sys
 import unittest
 from datetime import datetime, timezone

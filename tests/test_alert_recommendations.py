@@ -1,3 +1,4 @@
+import aiohttp
 """
 Unit tests for AlertSystem._generate_recommendations branch logic.
 
