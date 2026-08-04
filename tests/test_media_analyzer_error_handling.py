@@ -75,5 +75,80 @@ class TestMediaAnalyzerBug(unittest.TestCase):
         analyzer.logger.warning.assert_called()
 
 
+
+    def test_analyze_deepfake_threat_timeout(self):
+        config = MagicMock()
+        config.media_analysis_timeout = 0.1
+
+        analyzer = MediaAuthenticityAnalyzer(config)
+        analyzer.logger = MagicMock()
+
+        # Mock the executor and future
+        mock_future = MagicMock()
+        import concurrent.futures
+        mock_future.result.side_effect = concurrent.futures.TimeoutError("Timed out")
+
+        analyzer._deepfake_executor = MagicMock()
+        analyzer._deepfake_executor.submit.return_value = mock_future
+
+        result = analyzer._analyze_deepfake_threat("test.mp4", b"data", "video/mp4")
+
+        self.assertEqual(result["score"], 0.0)
+        self.assertIn("Deepfake analysis timed out: test.mp4", result["errors"])
+        analyzer.logger.warning.assert_called()
+        args, _ = analyzer.logger.warning.call_args
+        self.assertIn("Deepfake analysis timed out for test.mp4", args[0])
+
+
+    def test_analyze_deepfake_threat_timeout(self):
+        config = MagicMock()
+        config.media_analysis_timeout = 0.1
+
+        analyzer = MediaAuthenticityAnalyzer(config)
+        analyzer.logger = MagicMock()
+
+        # Mock the executor and future
+        mock_future = MagicMock()
+        import concurrent.futures
+        mock_future.result.side_effect = concurrent.futures.TimeoutError("Timed out")
+
+        analyzer._deepfake_executor = MagicMock()
+        analyzer._deepfake_executor.submit.return_value = mock_future
+
+        result = analyzer._analyze_deepfake_threat("test.mp4", b"data", "video/mp4")
+
+        self.assertEqual(result["score"], 0.0)
+        self.assertIn("Deepfake analysis timed out: test.mp4", result["errors"])
+        analyzer.logger.warning.assert_called()
+        args, _ = analyzer.logger.warning.call_args
+        self.assertIn("Deepfake analysis timed out for test.mp4", args[0])
+
+
+    def test_analyze_deepfake_threat_timeout(self):
+        config = MagicMock()
+        config.media_analysis_timeout = 0.1
+
+        analyzer = MediaAuthenticityAnalyzer(config)
+        analyzer.logger = MagicMock()
+
+        # Mock the executor and future
+        mock_future = MagicMock()
+        import concurrent.futures
+        mock_future.result.side_effect = concurrent.futures.TimeoutError("Timed out")
+
+        analyzer._deepfake_executor = MagicMock()
+        analyzer._deepfake_executor.submit.return_value = mock_future
+
+        result = analyzer._analyze_deepfake_threat("test.mp4", b"data", "video/mp4")
+
+        self.assertEqual(result["score"], 0.0)
+        self.assertIn("Deepfake analysis timed out: test.mp4", result["errors"])
+        analyzer.logger.warning.assert_called()
+        args, _ = analyzer.logger.warning.call_args
+        self.assertIn("Deepfake analysis timed out for test.mp4", args[0])
+
 if __name__ == "__main__":
+
+
+
     unittest.main()
