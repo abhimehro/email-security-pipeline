@@ -6,7 +6,7 @@ Handles threat notifications and alerting across multiple channels.
 import asyncio
 import logging
 import threading
-from typing import Dict, List, Optional
+from typing import List, Optional
 
 import requests
 
@@ -19,7 +19,7 @@ from .alert_recommendations import (
     YELLOW_KEYWORDS_PATTERN,
     generate_recommendations,
 )
-from .alert_report import RenderConfig, ThreatReport, generate_threat_report
+from .alert_report import ThreatReport, generate_threat_report  # noqa: F401
 from .media_analyzer import MediaAnalysisResult
 from .nlp_analyzer import NLPAnalysisResult
 from .spam_analyzer import SpamAnalysisResult
@@ -40,7 +40,6 @@ class AlertSystem:
     # Use re.compile directly since we are passing a single regex string, not a list
     RED_KEYWORDS_PATTERN = RED_KEYWORDS_PATTERN
     YELLOW_KEYWORDS_PATTERN = YELLOW_KEYWORDS_PATTERN
-
 
     # Maximum number of items shown per section in the console threat report.
     # Helps keep the output readable; lists may be truncated in the console view.
