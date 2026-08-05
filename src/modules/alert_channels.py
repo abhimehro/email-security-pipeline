@@ -88,6 +88,11 @@ def sanitize_url_for_display(url: str) -> str:
     return REDACTED_URL_PATTERN.sub("[REDACTED]", redacted)
 
 
+def _has_no_potential_urls(msg: str) -> bool:
+    """Check if the message lacks any potential URL indicators."""
+    return "http" not in msg and "www" not in msg and "/" not in msg
+
+
 def sanitize_error_message(error: str) -> str:
     """
     Sanitize exception messages to prevent leaking sensitive URLs/tokens.
@@ -98,7 +103,7 @@ def sanitize_error_message(error: str) -> str:
     # ⚡ BOLT: Fast-path string check avoids regex engine overhead
     # Most error messages don't contain URLs. Skipping regex search
     # provides ~4x speedup on clean messages.
-    if "http" not in msg and "www" not in msg and "/" not in msg:
+    if _has_no_potential_urls(msg):
         return msg
 
     try:

@@ -468,16 +468,46 @@ class MediaAuthenticityAnalyzer:
             return score, indicators
 
         # Basic heuristics
-        if filename_lower.endswith((".mp4", ".avi", ".mov")):
-            size = len(data)
-            if size < 100 * 1024:  # Less than 100KB
-                score += 0.5
-                indicators.append(f"Suspicious video size: {filename}")
+        heuristic_score, heuristic_indicators = self._check_basic_video_heuristics(
+            filename, data
+        )
+        score += heuristic_score
+        indicators.extend(heuristic_indicators)
 
         if not self.config.deepfake_detection_enabled:
             return score, indicators
 
         # Advanced ML-based detection
+        ml_score, ml_indicators = self._run_advanced_deepfake_detection(
+            filename, data, content_type
+        )
+        score += ml_score
+        indicators.extend(ml_indicators)
+
+        return score, indicators
+
+
+    def _check_basic_video_heuristics(
+        self, filename: str, data: bytes
+    ) -> Tuple[float, List[str]]:
+        """Check basic video size heuristics to detect abnormal/truncated files."""
+        score = 0.0
+        indicators = []
+        filename_lower = filename.lower()
+        if filename_lower.endswith((".mp4", ".avi", ".mov")):
+            size = len(data)
+            if size < 100 * 1024:  # Less than 100KB
+                score += 0.5
+                indicators.append(f"Suspicious video size: {filename}")
+        return score, indicators
+
+
+    def _run_advanced_deepfake_detection(
+        self, filename: str, data: bytes, content_type: str
+    ) -> Tuple[float, List[str]]:
+        """Run advanced ML-based deepfake detection on extracted video frames."""
+        score = 0.0
+        indicators = []
         temp_file_path = None
         try:
             # Create a temporary file to work with OpenCV
