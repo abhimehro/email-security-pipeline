@@ -18,26 +18,6 @@ class ColoredFormatter(logging.Formatter):
         logging.CRITICAL: Colors.BOLD + Colors.RED,
     }
 
-    def _colorize_analysis_complete(self, msg: str) -> str:
-        """Colorizes 'Analysis complete' messages based on risk level."""
-        if "risk=HIGH" in msg:
-            return Colors.colorize(msg, Colors.RED)
-        if "risk=MEDIUM" in msg:
-            return Colors.colorize(msg, Colors.YELLOW)
-        return Colors.colorize(msg, Colors.GREEN)
-
-    def _colorize_operational_message(self, msg: str) -> str:
-        """Applies dynamic color highlights or dims to specific operational messages."""
-        if "Monitoring Cycle" in msg:
-            return Colors.colorize(msg, Colors.MAGENTA + Colors.BOLD)
-        if "Waiting" in msg and "seconds until next check" in msg:
-            return Colors.colorize(msg, Colors.GREY)
-        if "No new emails to analyze" in msg:
-            return Colors.colorize(msg, Colors.GREY)
-        if "Analysis complete" in msg:
-            return self._colorize_analysis_complete(msg)
-        return msg
-
     def format(self, record):
         # Create a copy of the record to avoid side effects on other handlers
         # (e.g., file logging shouldn't have ANSI codes)
@@ -52,6 +32,30 @@ class ColoredFormatter(logging.Formatter):
 
         # UX Enhancement: Highlight specific operational messages
         if isinstance(record.msg, str):
-            record.msg = self._colorize_operational_message(record.msg)
+            record.msg = self._colorize_message(str(record.msg))
 
         return super().format(record)
+
+    def _colorize_message(self, msg_str: str) -> str:
+        """Helper to apply UX highlighting to specific log messages."""
+        if "Monitoring Cycle" in msg_str:
+            # Highlight the cycle start
+            return Colors.colorize(msg_str, Colors.MAGENTA + Colors.BOLD)
+
+        if "Waiting" in msg_str and "seconds until next check" in msg_str:
+            # Dim the waiting message to reduce visual noise
+            return Colors.colorize(msg_str, Colors.GREY)
+
+        if "No new emails to analyze" in msg_str:
+            # Dim the repetitive no emails message to reduce visual noise
+            return Colors.colorize(msg_str, Colors.GREY)
+
+        if "Analysis complete" in msg_str:
+            # Highlight based on risk
+            if "risk=HIGH" in msg_str:
+                return Colors.colorize(msg_str, Colors.RED)
+            if "risk=MEDIUM" in msg_str:
+                return Colors.colorize(msg_str, Colors.YELLOW)
+            return Colors.colorize(msg_str, Colors.GREEN)
+
+        return msg_str
