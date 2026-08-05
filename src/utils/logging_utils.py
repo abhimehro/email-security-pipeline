@@ -18,6 +18,26 @@ class ColoredFormatter(logging.Formatter):
         logging.CRITICAL: Colors.BOLD + Colors.RED,
     }
 
+    def _colorize_analysis_complete(self, msg: str) -> str:
+        """Colorizes 'Analysis complete' messages based on risk level."""
+        if "risk=HIGH" in msg:
+            return Colors.colorize(msg, Colors.RED)
+        if "risk=MEDIUM" in msg:
+            return Colors.colorize(msg, Colors.YELLOW)
+        return Colors.colorize(msg, Colors.GREEN)
+
+    def _colorize_operational_message(self, msg: str) -> str:
+        """Applies dynamic color highlights or dims to specific operational messages."""
+        if "Monitoring Cycle" in msg:
+            return Colors.colorize(msg, Colors.MAGENTA + Colors.BOLD)
+        if "Waiting" in msg and "seconds until next check" in msg:
+            return Colors.colorize(msg, Colors.GREY)
+        if "No new emails to analyze" in msg:
+            return Colors.colorize(msg, Colors.GREY)
+        if "Analysis complete" in msg:
+            return self._colorize_analysis_complete(msg)
+        return msg
+
     def format(self, record):
         # Create a copy of the record to avoid side effects on other handlers
         # (e.g., file logging shouldn't have ANSI codes)
@@ -32,25 +52,6 @@ class ColoredFormatter(logging.Formatter):
 
         # UX Enhancement: Highlight specific operational messages
         if isinstance(record.msg, str):
-            if "Monitoring Cycle" in record.msg:
-                # Highlight the cycle start
-                record.msg = Colors.colorize(
-                    str(record.msg), Colors.MAGENTA + Colors.BOLD
-                )
-            elif "Waiting" in record.msg and "seconds until next check" in record.msg:
-                # Dim the waiting message to reduce visual noise
-                record.msg = Colors.colorize(str(record.msg), Colors.GREY)
-            elif "No new emails to analyze" in record.msg:
-                # Dim the repetitive no emails message to reduce visual noise
-                record.msg = Colors.colorize(str(record.msg), Colors.GREY)
-            elif "Analysis complete" in record.msg:
-                # Highlight based on risk
-                msg_str = str(record.msg)
-                if "risk=HIGH" in msg_str:
-                    record.msg = Colors.colorize(msg_str, Colors.RED)
-                elif "risk=MEDIUM" in msg_str:
-                    record.msg = Colors.colorize(msg_str, Colors.YELLOW)
-                else:
-                    record.msg = Colors.colorize(msg_str, Colors.GREEN)
+            record.msg = self._colorize_operational_message(record.msg)
 
         return super().format(record)
