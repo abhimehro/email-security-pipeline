@@ -1,3 +1,4 @@
+import aiohttp
 import sys
 from pathlib import Path
 

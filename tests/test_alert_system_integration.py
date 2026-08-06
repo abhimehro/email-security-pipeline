@@ -1,3 +1,6 @@
+from unittest.mock import AsyncMock
+import aiohttp
+import asyncio
 """
 Alert System Integration Tests
 Tests webhook delivery, Slack notifications, retries, and deduplication.
@@ -9,7 +12,6 @@ from datetime import datetime
 from pathlib import Path
 from unittest.mock import MagicMock, Mock, patch
 
-import requests
 
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -49,7 +51,7 @@ class TestWebhookDelivery(unittest.TestCase):
             timestamp=datetime.now().isoformat(),
         )
 
-    @patch("src.modules.alert_system.requests.post")
+    @patch("aiohttp.ClientSession.post")
     def test_successful_webhook_delivery(self, mock_post):
         """
         SECURITY STORY: This tests successful webhook delivery for threat alerts.
@@ -59,9 +61,9 @@ class TestWebhookDelivery(unittest.TestCase):
         """
         # Mock successful response
         mock_response = Mock()
-        mock_response.status_code = 200
+        mock_response.status = 200
         mock_response.text = "OK"
-        mock_post.return_value = mock_response
+        mock_post.return_value.__aenter__.return_value = mock_response
 
         # Send alert
         self.alert_system.send_alert(self.test_report)
@@ -76,7 +78,7 @@ class TestWebhookDelivery(unittest.TestCase):
         elif "url" in call_args[1]:  # Keyword args
             self.assertEqual(call_args[1]["url"], "https://example.com/webhook")
 
-    @patch("src.modules.alert_system.requests.post")
+    @patch("aiohttp.ClientSession.post")
     def test_webhook_contains_threat_data(self, mock_post):
         """
         SECURITY STORY: This tests that webhook payloads contain essential threat data.
@@ -84,8 +86,8 @@ class TestWebhookDelivery(unittest.TestCase):
         Missing data could delay response or cause incorrect prioritization.
         """
         mock_response = Mock()
-        mock_response.status_code = 200
-        mock_post.return_value = mock_response
+        mock_response.status = 200
+        mock_post.return_value.__aenter__.return_value = mock_response
 
         # Send alert
         self.alert_system.send_alert(self.test_report)
@@ -102,7 +104,7 @@ class TestWebhookDelivery(unittest.TestCase):
         # Verify data was sent
         self.assertIsNotNone(sent_data)
 
-    @patch("src.modules.alert_system.requests.post")
+    @patch("aiohttp.ClientSession.post")
     def test_webhook_retry_on_failure(self, mock_post):
         """
         SECURITY STORY: This tests retry logic for failed webhook deliveries.
@@ -115,14 +117,22 @@ class TestWebhookDelivery(unittest.TestCase):
         # Mock failure followed by success
         mock_response_fail = Mock()
         mock_response_fail.status_code = 500
-        mock_response_fail.raise_for_status.side_effect = requests.HTTPError(
-            "Server Error"
+        mock_response_fail.raise_for_status.side_effect = aiohttp.ClientResponseError(
+            request_info=None,
+            history=None,
+            message="Server Error"
         )
 
         mock_response_success = Mock()
         mock_response_success.status_code = 200
 
-        mock_post.side_effect = [mock_response_fail, mock_response_success]
+        m1 = MagicMock()
+        m1.__aenter__ = AsyncMock(return_value=mock_response_fail)
+        m1.__aexit__ = AsyncMock()
+        m2 = MagicMock()
+        m2.__aenter__ = AsyncMock(return_value=mock_response_success)
+        m2.__aexit__ = AsyncMock()
+        mock_post.side_effect = [m1, m2]
 
         # Send alert - implementation may or may not include retry logic
         # This test documents expected behavior
@@ -131,7 +141,7 @@ class TestWebhookDelivery(unittest.TestCase):
         # If retry logic exists, would see multiple calls
         # If not, this documents that retry logic should be added
 
-    @patch("src.modules.alert_system.requests.post")
+    @patch("aiohttp.ClientSession.post")
     def test_webhook_timeout_handling(self, mock_post):
         """
         SECURITY STORY: This tests timeout handling for slow webhook endpoints.
@@ -142,7 +152,7 @@ class TestWebhookDelivery(unittest.TestCase):
         and continuing execution rather than crashing.
         """
         # Mock timeout
-        mock_post.side_effect = requests.Timeout("Request timed out")
+        mock_post.side_effect = asyncio.TimeoutError("Request timed out")
 
         # Should handle timeout gracefully, not crash
         self.alert_system.send_alert(self.test_report)
@@ -182,7 +192,7 @@ class TestSlackNotifications(unittest.TestCase):
             timestamp=datetime.now().isoformat(),
         )
 
-    @patch("src.modules.alert_system.requests.post")
+    @patch("aiohttp.ClientSession.post")
     def test_slack_message_formatting(self, mock_post):
         """
         SECURITY STORY: This tests Slack message formatting for readability.
@@ -193,8 +203,8 @@ class TestSlackNotifications(unittest.TestCase):
         to make threat details scannable and actionable.
         """
         mock_response = Mock()
-        mock_response.status_code = 200
-        mock_post.return_value = mock_response
+        mock_response.status = 200
+        mock_post.return_value.__aenter__.return_value = mock_response
 
         # Send alert
         self.alert_system.send_alert(self.test_report)
@@ -209,7 +219,7 @@ class TestSlackNotifications(unittest.TestCase):
         elif "url" in call_args[1]:
             self.assertIn("hooks.slack.com", call_args[1]["url"])
 
-    @patch("src.modules.alert_system.requests.post")
+    @patch("aiohttp.ClientSession.post")
     def test_slack_threat_level_color_coding(self, mock_post):
         """
         SECURITY STORY: This tests color coding by threat level in Slack.
@@ -217,8 +227,8 @@ class TestSlackNotifications(unittest.TestCase):
         threat assessment. Security teams can prioritize response based on color.
         """
         mock_response = Mock()
-        mock_response.status_code = 200
-        mock_post.return_value = mock_response
+        mock_response.status = 200
+        mock_post.return_value.__aenter__.return_value = mock_response
 
         # Test high threat (should use red/danger color)
         high_threat_report = self.test_report
@@ -230,7 +240,7 @@ class TestSlackNotifications(unittest.TestCase):
         # Verify alert was sent
         self.assertTrue(mock_post.called)
 
-    @patch("src.modules.alert_system.requests.post")
+    @patch("aiohttp.ClientSession.post")
     def test_slack_special_character_escaping(self, mock_post):
         """
         SECURITY STORY: This tests escaping of special characters in Slack messages.
@@ -238,8 +248,8 @@ class TestSlackNotifications(unittest.TestCase):
         inject malicious Slack markdown. Proper escaping prevents this attack.
         """
         mock_response = Mock()
-        mock_response.status_code = 200
-        mock_post.return_value = mock_response
+        mock_response.status = 200
+        mock_post.return_value.__aenter__.return_value = mock_response
 
         # Create report with special characters
         malicious_report = ThreatReport(
@@ -280,7 +290,7 @@ class TestAlertDeduplication(unittest.TestCase):
 
         self.alert_system = AlertSystem(self.config)
 
-    @patch("src.modules.alert_system.requests.post")
+    @patch("aiohttp.ClientSession.post")
     def test_duplicate_alert_prevention(self, mock_post):
         """
         SECURITY STORY: This tests deduplication of identical alerts.
@@ -292,8 +302,8 @@ class TestAlertDeduplication(unittest.TestCase):
         investigating why the security team got 50 alerts for the same email.
         """
         mock_response = Mock()
-        mock_response.status_code = 200
-        mock_post.return_value = mock_response
+        mock_response.status = 200
+        mock_post.return_value.__aenter__.return_value = mock_response
 
         # Create identical reports
         report1 = ThreatReport(
@@ -356,10 +366,10 @@ class TestAlertDeduplication(unittest.TestCase):
             timestamp=datetime.now().isoformat(),
         )
 
-        with patch("src.modules.alert_system.requests.post") as mock_post:
+        with patch("aiohttp.ClientSession.post") as mock_post:
             mock_response = Mock()
-            mock_response.status_code = 200
-            mock_post.return_value = mock_response
+            mock_response.status = 200
+            mock_post.return_value.__aenter__.return_value = mock_response
 
             # Send alert
             self.alert_system.send_alert(low_threat_report)
@@ -400,7 +410,7 @@ class TestAlertSystemReliability(unittest.TestCase):
             timestamp=datetime.now().isoformat(),
         )
 
-    @patch("src.modules.alert_system.requests.post")
+    @patch("aiohttp.ClientSession.post")
     def test_partial_delivery_success(self, mock_post):
         """
         SECURITY STORY: This tests that console alerts work even if webhooks fail.
@@ -422,7 +432,7 @@ class TestAlertSystemReliability(unittest.TestCase):
             # This documents that error handling should be improved
             pass
 
-    @patch("src.modules.alert_system.requests.post")
+    @patch("aiohttp.ClientSession.post")
     def test_multiple_channel_delivery(self, mock_post):
         """
         SECURITY STORY: This tests delivery to multiple alert channels.
@@ -430,8 +440,8 @@ class TestAlertSystemReliability(unittest.TestCase):
         even if one channel fails. Critical threats warrant multiple notifications.
         """
         mock_response = Mock()
-        mock_response.status_code = 200
-        mock_post.return_value = mock_response
+        mock_response.status = 200
+        mock_post.return_value.__aenter__.return_value = mock_response
 
         # Send alert with multiple channels enabled
         self.alert_system.send_alert(self.test_report)

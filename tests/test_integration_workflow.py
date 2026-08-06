@@ -1,3 +1,4 @@
+import aiohttp
 """
 Integration Workflow Tests
 Tests end-to-end email processing flow through the pipeline.
@@ -226,7 +227,7 @@ class TestIntegrationWorkflow(unittest.TestCase):
 
         self.assertIsNotNone(report)
 
-    @patch("src.modules.alert_system.requests.post")
+    @patch("aiohttp.ClientSession.post")
     def test_alert_generation_and_delivery(self, mock_post):
         """
         SECURITY STORY: This tests that high-threat emails trigger alerts correctly.
@@ -235,8 +236,8 @@ class TestIntegrationWorkflow(unittest.TestCase):
         """
         # Setup mock for successful webhook delivery
         mock_response = Mock()
-        mock_response.status_code = 200
-        mock_post.return_value = mock_response
+        mock_response.status = 200
+        mock_post.return_value.__aenter__.return_value = mock_response
 
         # Enable webhook alerts
         self.alert_config.webhook_enabled = True

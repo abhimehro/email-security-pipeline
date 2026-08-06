@@ -1,3 +1,4 @@
+import aiohttp
 """
 Alert System Console Rendering Tests
 Tests _console_clean_report and its helper methods:
