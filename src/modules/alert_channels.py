@@ -94,6 +94,13 @@ def sanitize_error_message(error: str) -> str:
     Detects URLs in the error message and redacts them.
     """
     msg = str(error)
+
+    # Fast-path: skip regex when message cannot contain a URL (no http/www).
+    # NOTE: intentionally omit bare "/" — filesystem paths are common in errors
+    # and would defeat the fast-path without improving security.
+    if "http" not in msg and "www" not in msg:
+        return msg
+
     try:
         # Find all URLs in the message
         # Simple regex for http/https URLs to catch full URLs including query params

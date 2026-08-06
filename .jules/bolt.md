@@ -70,3 +70,8 @@ generator overhead when iteration is necessary in hot paths.
 ## 2026-08-01 — SpamAnalyzer auth/header fast-path (salvage #1399)
 
 Salvaged spam_analyzer.py Bolt fast-path helpers only. Rejected alert_*/media_* module collapse from the original PR.
+
+## 2026-08-06 — sanitize_error_message regex fast-path (salvage #1409)
+
+Salvaged `alert_channels.sanitize_error_message` http/www fast-path only.
+Rejected `media_analyzer` CodeScene extract from the original PR (Lesson 0fc).
