@@ -21,7 +21,6 @@ sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
 try:
     from src.utils.colors import Colors
-    from src.utils.security_validators import validate_mail_server_host
 except ImportError:
     # Fallback if src not found or not in path
     class Colors:
@@ -39,6 +38,11 @@ except ImportError:
         @classmethod
         def colorize(cls, text, color):
             return text
+
+
+try:
+    from src.utils.security_validators import validate_mail_server_host
+except ImportError:
 
     def validate_mail_server_host(host: str) -> None:
         """Fallback validator that fails closed if src is unavailable."""

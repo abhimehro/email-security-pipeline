@@ -130,13 +130,13 @@ class Config:
                 EmailAccountConfig(
                     enabled=True,
                     email=os.getenv("GMAIL_EMAIL", ""),
-                    imap_server=os.getenv("GMAIL_IMAP_SERVER", "imap.gmail.com"),
+                    imap_server=os.getenv("GMAIL_IMAP_SERVER") or "imap.gmail.com",
                     imap_port=int(os.getenv("GMAIL_IMAP_PORT", "993")),
                     app_password=os.getenv("GMAIL_APP_PASSWORD", ""),
                     folders=self._parse_folders(os.getenv("GMAIL_FOLDERS", "INBOX")),
                     provider="gmail",
                     use_ssl=self._get_bool("GMAIL_USE_SSL", True),
-                    smtp_server=os.getenv("GMAIL_SMTP_SERVER", "smtp.gmail.com"),
+                    smtp_server=os.getenv("GMAIL_SMTP_SERVER") or "smtp.gmail.com",
                 )
             )
 
@@ -146,15 +146,15 @@ class Config:
                 EmailAccountConfig(
                     enabled=True,
                     email=os.getenv("OUTLOOK_EMAIL", ""),
-                    imap_server=os.getenv(
-                        "OUTLOOK_IMAP_SERVER", "outlook.office365.com"
-                    ),
+                    imap_server=os.getenv("OUTLOOK_IMAP_SERVER")
+                    or "outlook.office365.com",
                     imap_port=int(os.getenv("OUTLOOK_IMAP_PORT", "993")),
                     app_password=os.getenv("OUTLOOK_APP_PASSWORD", ""),
                     folders=self._parse_folders(os.getenv("OUTLOOK_FOLDERS", "INBOX")),
                     provider="outlook",
                     use_ssl=self._get_bool("OUTLOOK_USE_SSL", True),
-                    smtp_server=os.getenv("OUTLOOK_SMTP_SERVER", "smtp.office365.com"),
+                    smtp_server=os.getenv("OUTLOOK_SMTP_SERVER")
+                    or "smtp.office365.com",
                 )
             )
 
@@ -164,13 +164,13 @@ class Config:
                 EmailAccountConfig(
                     enabled=True,
                     email=os.getenv("PROTON_EMAIL", ""),
-                    imap_server=os.getenv("PROTON_IMAP_SERVER", "127.0.0.1"),
+                    imap_server=os.getenv("PROTON_IMAP_SERVER") or "127.0.0.1",
                     imap_port=int(os.getenv("PROTON_IMAP_PORT", "1143")),
                     app_password=os.getenv("PROTON_APP_PASSWORD", ""),
                     folders=self._parse_folders(os.getenv("PROTON_FOLDERS", "INBOX")),
                     provider="proton",
                     use_ssl=self._get_bool("PROTON_USE_SSL", True),
-                    smtp_server=os.getenv("PROTON_SMTP_SERVER", "127.0.0.1"),
+                    smtp_server=os.getenv("PROTON_SMTP_SERVER") or "127.0.0.1",
                 )
             )
 
