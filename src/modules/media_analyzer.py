@@ -9,7 +9,7 @@ import os
 import tempfile
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
 from ..utils.threat_scoring import calculate_risk_level
 from .email_data import EmailData
@@ -240,9 +240,7 @@ class MediaAuthenticityAnalyzer:
         return media_archive._check_file_count(self, *args, **kwargs)
 
     def _inspect_zip_member_and_check_traversal(self, *args, **kwargs):
-        return media_archive._inspect_zip_member_and_check_traversal(
-            self, *args, **kwargs
-        )
+        return media_archive._inspect_zip_member_and_check_traversal(self, *args, **kwargs)
 
     def _inspect_archive_member(self, *args, **kwargs):
         return media_archive._inspect_archive_member(self, *args, **kwargs)
@@ -317,6 +315,7 @@ class MediaAuthenticityAnalyzer:
         self.face_cascade = None
         # Optimization: Reuse thread pool for deepfake detection to avoid overhead
         self._deepfake_executor = ThreadPoolExecutor()
+
 
     def analyze(self, email_data: EmailData) -> MediaAnalysisResult:
         """
@@ -395,6 +394,7 @@ class MediaAuthenticityAnalyzer:
             risk_level=risk_level,
         )
 
+
     def _process_attachment_parallel(
         self, attachment: dict, shared_state: dict
     ) -> tuple:
@@ -419,6 +419,7 @@ class MediaAuthenticityAnalyzer:
         deepfake_res = self._analyze_deepfake_threat(filename, data, content_type)
 
         return meta_res, deepfake_res
+
 
     def _analyze_deepfake_threat(
         self, filename: str, data: bytes, content_type: str
@@ -446,6 +447,7 @@ class MediaAuthenticityAnalyzer:
             self.logger.error(f"Deepfake analysis failed for {filename}: {e}")
 
         return result
+
 
     def _check_deepfake_indicators(
         self, filename: str, data: bytes, content_type: str
@@ -476,37 +478,47 @@ class MediaAuthenticityAnalyzer:
             return score, indicators
 
         # Advanced ML-based detection
+        temp_file_path = None
         try:
             # Create a temporary file to work with OpenCV
-            # Omitting delete=False ensures it gets cleaned up by OS even on process crash
             with tempfile.NamedTemporaryFile(
-                suffix=os.path.splitext(filename)[1]
+                delete=False, suffix=os.path.splitext(filename)[1]
             ) as temp_file:
                 temp_file_path = temp_file.name
                 temp_file.write(data)
-                temp_file.flush()  # Ensure data is written before OpenCV reads it
 
-                # 1. Extract frames
-                # Optimization: 10 frames is sufficient for statistical analysis and reduces processing time by 50%
-                frames = self._extract_frames_from_video(
-                    temp_file_path, max_frames=10, max_dim=1280
+            # 1. Extract frames
+            # Optimization: 10 frames is sufficient for statistical analysis and reduces processing time by 50%
+            frames = self._extract_frames_from_video(
+                temp_file_path, max_frames=10, max_dim=1280
+            )
+
+            if not frames:
+                self.logger.warning(f"Could not extract frames from {filename}")
+            else:
+                frame_score, frame_indicators = self._analyze_video_frames(
+                    filename, temp_file_path, frames, content_type
                 )
-
-                if not frames:
-                    self.logger.warning(f"Could not extract frames from {filename}")
-                else:
-                    frame_score, frame_indicators = self._analyze_video_frames(
-                        filename, temp_file_path, frames, content_type
-                    )
-                    score += frame_score
-                    indicators.extend(frame_indicators)
+                score += frame_score
+                indicators.extend(frame_indicators)
 
         except Exception as e:
             self.logger.error(
                 f"Error during deepfake analysis for {filename}: {str(e)}"
             )
 
+        finally:
+            # Cleanup temp file
+            if temp_file_path and os.path.exists(temp_file_path):
+                try:
+                    os.unlink(temp_file_path)
+                except OSError as e:
+                    self.logger.warning(
+                        f"Failed to delete temp file {temp_file_path}: {e}"
+                    )
+
         return score, indicators
+
 
     def _calculate_risk_level(self, score: float) -> str:
         """Calculate risk level based on media threat score."""
@@ -515,6 +527,7 @@ class MediaAuthenticityAnalyzer:
             self.MEDIA_RISK_LOW_THRESHOLD,
             self.MEDIA_RISK_HIGH_THRESHOLD,
         )
+
 
     def shutdown(self):
         """Shutdown the thread pool executor."""

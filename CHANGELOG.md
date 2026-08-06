@@ -42,9 +42,6 @@
 
 **Closed issues:**
 
-- \[repo-automation\] Daily Status Report - 2026-08-03 [\#1411](https://github.com/abhimehro/email-security-pipeline/issues/1411)
-- \[repo-automation\] Weekly Retrospective - 2026-08-02 [\#1407](https://github.com/abhimehro/email-security-pipeline/issues/1407)
-- \[repo-automation\] Daily Status Report - 2026-08-02 [\#1406](https://github.com/abhimehro/email-security-pipeline/issues/1406)
 - \[repo-automation\] Daily Status Report - 2026-08-01 [\#1400](https://github.com/abhimehro/email-security-pipeline/issues/1400)
 - \[repo-automation\] Daily Status Report - 2026-07-31 [\#1396](https://github.com/abhimehro/email-security-pipeline/issues/1396)
 - \[repo-health\] Split media\_analyzer / alert\_system god modules [\#1391](https://github.com/abhimehro/email-security-pipeline/issues/1391)
@@ -449,15 +446,6 @@
 
 **Merged pull requests:**
 
-- chore\(actions\): consolidate workflow automation [\#1428](https://github.com/abhimehro/email-security-pipeline/pull/1428) ([abhimehro](https://github.com/abhimehro))
-- 🎨 Palette: Fix flake8 style violations [\#1427](https://github.com/abhimehro/email-security-pipeline/pull/1427) ([abhimehro](https://github.com/abhimehro))
-- 🔒 Fix: Temporary file leak in media analyzer [\#1419](https://github.com/abhimehro/email-security-pipeline/pull/1419) ([abhimehro](https://github.com/abhimehro))
-- Clarify comment regarding simple\_master\_pattern bug [\#1417](https://github.com/abhimehro/email-security-pipeline/pull/1417) ([abhimehro](https://github.com/abhimehro))
-- 🧪 Add missing key test for write\_requested\_variable [\#1416](https://github.com/abhimehro/email-security-pipeline/pull/1416) ([abhimehro](https://github.com/abhimehro))
-- 🧪 Add test for AppRunner print\_banner [\#1415](https://github.com/abhimehro/email-security-pipeline/pull/1415) ([abhimehro](https://github.com/abhimehro))
-- 🧪 Add test for Media Analyzer Timeout Handler [\#1414](https://github.com/abhimehro/email-security-pipeline/pull/1414) ([abhimehro](https://github.com/abhimehro))
-- 🎨 Palette: Add visual symbols to connectivity summary status [\#1412](https://github.com/abhimehro/email-security-pipeline/pull/1412) ([abhimehro](https://github.com/abhimehro))
-- chore\(actions\): consolidate workflow automation [\#1410](https://github.com/abhimehro/email-security-pipeline/pull/1410) ([abhimehro](https://github.com/abhimehro))
 - chore: Jules Daily QA & Agentic Review \(No Findings\) [\#1404](https://github.com/abhimehro/email-security-pipeline/pull/1404) ([abhimehro](https://github.com/abhimehro))
 - chore\(devin\): add environment blueprint for repeatable setup [\#1403](https://github.com/abhimehro/email-security-pipeline/pull/1403) ([abhimehro](https://github.com/abhimehro))
 - perf\(spam\): auth/header fast-path helpers \(salvages \#1399\) [\#1401](https://github.com/abhimehro/email-security-pipeline/pull/1401) ([abhimehro](https://github.com/abhimehro))

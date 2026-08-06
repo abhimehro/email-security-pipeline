@@ -22,7 +22,7 @@ SECURE_AUTOMATION_SCRIPTS = (
 )
 
 from src.utils.env_file_parser import EnvParseError, parse_env_file
-from src.utils.gh_token_cli import main as cli_main, write_requested_variable
+from src.utils.gh_token_cli import main as cli_main
 
 
 @contextmanager
@@ -74,13 +74,6 @@ class TestGhTokenEnvParser(unittest.TestCase):
             )
             self.assertNotEqual(proc.returncode, 0)
             self.assertFalse(marker.exists())
-
-    def test_write_requested_variable_missing_key(self) -> None:
-        with redirect_stderr(StringIO()) as stderr:
-            ret_code = write_requested_variable("MISSING_KEY", {"GH_TOKEN": "abc123_test"}, Path(".env"))
-
-        self.assertEqual(ret_code, 1)
-        self.assertIn("error: variable 'MISSING_KEY' not found in .env", stderr.getvalue())
 
     def test_cli_main_handles_env_parse_error(self) -> None:
         with temporary_env_file("INVALID LINE\n") as path:

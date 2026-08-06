@@ -2,7 +2,6 @@
 # NOTE: This intentionally avoids the optional NLP/ML stacks (torch/transformers)
 # so PR validation stays fast and reliable.
 
-aiohttp
 certifi==2026.6.17
 charset-normalizer==3.4.9
 idna==3.18

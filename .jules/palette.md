@@ -571,7 +571,3 @@ dynamically switching formats mid-countdown (e.g. from 1:00 to 59s) causes
 abrupt visual layout shifts which are jarring for the user. **Action:** Use the
 initial total duration to determine the format and maintain it consistently
 throughout the entire lifecycle of the countdown element.
-
-## 2026-08-03 - Visual Symbols for Status Indication in CLI Scripts
-**Learning:** Standalone CLI scripts often duplicate summary table logic but miss visual polish rules established in the core application (like using symbols for status). Plain text statuses in tables reduce scannability.
-**Action:** Reused the pattern of prepending explicit visual symbols (✔ and ✖) to textual statuses in standalone CLI scripts to maintain consistent UX and scannability across the entire repository.

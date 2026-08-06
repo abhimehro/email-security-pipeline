@@ -7,8 +7,8 @@ optimization and the heterogeneous AU list structure are both regression-prone:
   Phase 1 (fast gate): simple_master_pattern.search(part)
   Phase 2 (full scan): master_pattern.finditer(part) → matches_by_category
 
-If a bug were introduced in the simple_master_pattern gate (e.g. using match instead of
-search), it would silently produce zero pattern detections for all emails.  The AU category must store
+A bug in the simple_master_pattern gate (e.g. match vs search) would silently
+produce zero pattern detections for all emails.  The AU category must store
 lists of matched strings (not counts) because _detect_authority_impersonation
 compares match text against the sender domain; changing AU to use ints would
 silently break impersonation scoring.

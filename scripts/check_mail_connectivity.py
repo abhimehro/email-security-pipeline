@@ -99,7 +99,7 @@ def print_summary(results):
         success = res.get("success", False)
 
         status_color = Colors.GREEN if success else Colors.RED
-        status_text = "✔ OK" if success else "✖ FAILED"
+        status_text = "OK" if success else "FAILED"
         status = Colors.colorize(status_text, status_color)
 
         print(f"{provider:<15} {protocol:<10} {host_port:<25} {status:<10}")
