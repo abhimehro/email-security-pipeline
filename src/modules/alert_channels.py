@@ -98,10 +98,8 @@ def sanitize_error_message(error: str) -> str:
     # ⚡ BOLT: Fast-path string check avoids regex engine overhead
     # Most error messages don't contain URLs. Skipping regex search
     # provides ~4x speedup on clean messages.
-    if "http" not in msg:
-        if "www" not in msg:
-            if "/" not in msg:
-                return msg
+    if not any(x in msg for x in ("http", "www", "/")):
+        return msg
 
     try:
         # Find all URLs in the message
