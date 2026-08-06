@@ -449,6 +449,7 @@
 
 **Merged pull requests:**
 
+- 🎨 Palette: Fix flake8 style violations [\#1427](https://github.com/abhimehro/email-security-pipeline/pull/1427) ([abhimehro](https://github.com/abhimehro))
 - 🔒 Fix: Temporary file leak in media analyzer [\#1419](https://github.com/abhimehro/email-security-pipeline/pull/1419) ([abhimehro](https://github.com/abhimehro))
 - Clarify comment regarding simple\_master\_pattern bug [\#1417](https://github.com/abhimehro/email-security-pipeline/pull/1417) ([abhimehro](https://github.com/abhimehro))
 - 🧪 Add missing key test for write\_requested\_variable [\#1416](https://github.com/abhimehro/email-security-pipeline/pull/1416) ([abhimehro](https://github.com/abhimehro))
