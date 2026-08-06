@@ -144,18 +144,14 @@ _SAFE_EMAIL_PATTERN = re.compile(
 
 def _is_safe_label(label: str) -> bool:
     """Return True if a domain label does not start/end with '.' or '-'."""
-    if not label:
-        return False
-    if label.startswith((".", "-")) or label.endswith((".", "-")):
-        return False
-    return True
+    return bool(label) and not (
+        label.startswith((".", "-")) or label.endswith((".", "-"))
+    )
 
 
 def _is_safe_local(local: str) -> bool:
     """Return True if the local part does not start/end with '.' or '-'."""
-    if local.startswith((".", "-")) or local.endswith((".", "-")):
-        return False
-    return True
+    return not (local.startswith((".", "-")) or local.endswith((".", "-")))
 
 
 def is_safe_email(email: str) -> bool:
@@ -179,10 +175,6 @@ def is_safe_email(email: str) -> bool:
 
     # Reject consecutive dots anywhere in the address.
     if ".." in email:
-        return False
-
-    # Reject addresses that start or end with a dot.
-    if email.startswith(".") or email.endswith("."):
         return False
 
     if not _SAFE_EMAIL_PATTERN.match(email):
