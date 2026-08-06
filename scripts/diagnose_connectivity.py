@@ -14,6 +14,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 
 from src.modules.email_ingestion import EmailIngestionManager
 from src.utils.config import Config
+from src.utils.security_validators import is_safe_email
 
 # Set up basic logging
 logging.basicConfig(
@@ -30,6 +31,10 @@ def main():
     )
     parser.add_argument("email", help="The email address of the account to diagnose.")
     args = parser.parse_args()
+
+    if not is_safe_email(args.email):
+        logging.error(f"Invalid or unsafe email address: {args.email}")
+        sys.exit(1)
 
     # Load email configurations from environment variables
     config = Config()

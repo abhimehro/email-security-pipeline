@@ -128,6 +128,64 @@ def sanitize_filename(filename: str) -> str:
     return sanitized[:255]
 
 
+# Maximum length for a valid email address (RFC 5321)
+_MAX_EMAIL_LENGTH = 254
+
+# Whitelist pattern for an email address.
+# Local part allows letters, digits, dots, underscores, percent, plus, and hyphens.
+# Domain part follows hostname-style characters (letters, digits, underscores,
+# dots, and hyphens) to remain compatible with the setup wizard validator.
+# The TLD is required to be at least two letters.
+# Does NOT allow shell metacharacters such as ; | & ` $ < > \ or whitespace.
+_SAFE_EMAIL_PATTERN = re.compile(
+    r"^[a-zA-Z0-9._%+-]+@[\w.-]+\.[a-zA-Z]{2,}$"
+)
+
+
+def is_safe_email(email: str) -> bool:
+    """
+    Validate an email address for safe use in command arguments and IMAP config.
+
+    SECURITY STORY: Email addresses loaded from user configuration are passed
+    directly to subprocess calls and IMAP clients. A malicious value could
+    contain shell metacharacters (e.g., `;`, `|`, `&`, backticks) or be
+    interpreted as a command-line flag (e.g., a leading `-`). This validator
+    uses a strict whitelist to reject unsafe characters and structural issues.
+
+    Args:
+        email: Email address to validate.
+
+    Returns:
+        True if the email appears safe and well-formed, False otherwise.
+    """
+    if not isinstance(email, str) or len(email) > _MAX_EMAIL_LENGTH:
+        return False
+
+    # Reject consecutive dots anywhere in the address.
+    if ".." in email:
+        return False
+
+    # Reject addresses that start or end with a dot.
+    if email.startswith(".") or email.endswith("."):
+        return False
+
+    if not _SAFE_EMAIL_PATTERN.match(email):
+        return False
+
+    local, _, domain = email.partition("@")
+
+    # Local part must not start/end with a dot or hyphen.
+    if local.startswith((".", "-")) or local.endswith((".", "-")):
+        return False
+
+    # Domain labels must not start/end with a dot or hyphen and must be non-empty.
+    for label in domain.split("."):
+        if not label or label.startswith((".", "-")) or label.endswith((".", "-")):
+            return False
+
+    return True
+
+
 def create_secure_ssl_context() -> ssl.SSLContext:
     """
     Create a secure SSL context with modern TLS settings.

@@ -11,7 +11,7 @@ from urllib.parse import urlparse
 
 from dotenv import load_dotenv
 
-from .security_validators import is_safe_webhook_url
+from .security_validators import is_safe_email, is_safe_webhook_url
 
 
 class ConfigurationError(Exception):
@@ -286,6 +286,10 @@ class Config:
         for account in self.email_accounts:
             if not account.email or not account.app_password:
                 errors.append(f"Missing credentials for {account.provider} account")
+            elif not is_safe_email(account.email):
+                errors.append(
+                    f"Invalid email format for {account.provider} account: {account.email}"
+                )
             if not account.folders:
                 errors.append(f"No folders configured for {account.provider} account")
             if account.imap_port <= 0:
