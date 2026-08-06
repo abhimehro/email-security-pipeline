@@ -51,10 +51,11 @@ class ColoredFormatter(logging.Formatter):
             return Colors.colorize(msg_str, Colors.GREY)
 
         if "Analysis complete" in msg_str:
-            # Highlight based on risk
-            if "risk=HIGH" in msg_str:
+            # Match production risk_level values (lowercase) case-insensitively.
+            lowered = msg_str.lower()
+            if "risk=high" in lowered:
                 return Colors.colorize(msg_str, Colors.RED)
-            if "risk=MEDIUM" in msg_str:
+            if "risk=medium" in lowered:
                 return Colors.colorize(msg_str, Colors.YELLOW)
             return Colors.colorize(msg_str, Colors.GREEN)
 
