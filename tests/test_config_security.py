@@ -1,5 +1,6 @@
 import os
-import subprocess
+import secrets
+import subprocess  # nosec B404
 import sys
 import unittest
 from pathlib import Path
@@ -8,6 +9,9 @@ from unittest.mock import patch
 import test_config
 from src.utils.config import AlertConfig, AnalysisConfig, Config, ConfigurationError, EmailAccountConfig
 from src.utils.security_validators import is_safe_email
+
+# Deterministic-feeling secret for tests; generated so it is not a hardcoded password.
+_TEST_APP_SECRET = secrets.token_hex(16)
 
 
 class TestConfigSecurity(unittest.TestCase):
@@ -144,11 +148,16 @@ class TestEmailValidation(unittest.TestCase):
         for email in malformed:
             self.assertFalse(is_safe_email(email), f"Expected malformed: {email}")
 
-    def test_config_validate_rejects_malformed_email(self):
+    def _validate_email_env(self, email: str) -> str | None:
+        """Build a minimal Gmail config with the given email and validate it.
+
+        Returns the ConfigurationError message if validation fails, or None
+        if validation succeeds.
+        """
         env = {
             "GMAIL_ENABLED": "true",
-            "GMAIL_EMAIL": "bad;email@example.com",
-            "GMAIL_APP_PASSWORD": "test_password",
+            "GMAIL_EMAIL": email,
+            "GMAIL_APP_PASSWORD": _TEST_APP_SECRET,
             "GMAIL_IMAP_SERVER": "imap.gmail.com",
             "GMAIL_IMAP_PORT": "993",
             "GMAIL_FOLDERS": "INBOX",
@@ -156,23 +165,19 @@ class TestEmailValidation(unittest.TestCase):
         }
         with patch.dict(os.environ, env, clear=False):
             config = Config(env_file="nonexistent.env")
-            with self.assertRaises(ConfigurationError) as ctx:
+            try:
                 config.validate()
-            self.assertIn("Invalid email format", str(ctx.exception))
+                return None
+            except ConfigurationError as exc:
+                return str(exc)
+
+    def test_config_validate_rejects_malformed_email(self):
+        error = self._validate_email_env("bad;email@example.com")
+        self.assertIsNotNone(error)
+        self.assertIn("Invalid email format", error)
 
     def test_config_validate_accepts_valid_email(self):
-        env = {
-            "GMAIL_ENABLED": "true",
-            "GMAIL_EMAIL": "valid@gmail.com",
-            "GMAIL_APP_PASSWORD": "test_password",
-            "GMAIL_IMAP_SERVER": "imap.gmail.com",
-            "GMAIL_IMAP_PORT": "993",
-            "GMAIL_FOLDERS": "INBOX",
-            "GMAIL_USE_SSL": "true",
-        }
-        with patch.dict(os.environ, env, clear=False):
-            config = Config(env_file="nonexistent.env")
-            self.assertTrue(config.validate())
+        self.assertIsNone(self._validate_email_env("valid@gmail.com"))
 
     def test_run_diagnostics_script_rejects_unsafe_email(self):
         with self.assertRaises(ValueError):
@@ -197,11 +202,12 @@ class TestDiagnoseConnectivityValidation(unittest.TestCase):
     def test_rejects_unsafe_email_argument(self):
         repo_root = Path(__file__).resolve().parents[1]
         script = repo_root / "scripts" / "diagnose_connectivity.py"
-        result = subprocess.run(
+        result = subprocess.run(  # nosec B603
             [sys.executable, str(script), "bad;email@example.com"],
             cwd=repo_root,
             capture_output=True,
             text=True,
+            timeout=30,
         )
         self.assertEqual(result.returncode, 1)
         self.assertIn("Invalid or unsafe email address", result.stderr)

@@ -13,8 +13,6 @@ from typing import Optional
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent))
 
-from src.utils.security_validators import is_safe_email
-
 
 def test_config_loading():
     """Test that configuration loads correctly."""
@@ -312,12 +310,12 @@ def _run_diagnostics_script(
     script_path: str, email: str
 ) -> subprocess.CompletedProcess:
     """Run the diagnostics script and return the result."""
+    from src.utils.security_validators import is_safe_email
+
     if not is_safe_email(email):
         raise ValueError(f"Invalid or unsafe email address for diagnostics: {email}")
 
-    # nosec B603: email is validated by is_safe_email(); script_path is a
-    # repository-controlled constant, not user input.
-    return subprocess.run(
+    return subprocess.run(  # nosec B603: email is validated by is_safe_email(); script_path is a repository-controlled constant, not user input.
         [sys.executable, script_path, email],
         capture_output=True,
         text=True,

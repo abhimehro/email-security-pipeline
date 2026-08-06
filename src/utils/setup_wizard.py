@@ -28,17 +28,17 @@ class WizardSkipped(Exception):
     """Raised when the user intentionally skips interactive setup."""
 
 
+from src.utils.security_validators import is_safe_email
+
 try:
     from src.modules.imap_connection import IMAPConnection
     from src.utils.config import EmailAccountConfig
-    from src.utils.security_validators import is_safe_email
     from src.utils.ui import Spinner
 except ImportError:
     # If these imports fail, we might be in a constrained environment
     # or running standalone without full context. We can't verify credentials.
     EmailAccountConfig = None
     IMAPConnection = None
-    is_safe_email = None
     Spinner = None
 
 # Centralized Outlook troubleshooting tip to avoid duplication/drift
@@ -49,13 +49,7 @@ OUTLOOK_AUTH_ERROR_TIP = Colors.colorize(
 
 def _is_valid_email(email: str) -> bool:
     """Check if the email format is valid."""
-    if is_safe_email is not None:
-        return is_safe_email(email)
-    # Fallback if the shared validator is unavailable.
-    if ".." in email:
-        return False
-    pattern = r"^[\w\.\-\+]+@[\w\.-]+\.\w+$"
-    return re.match(pattern, email) is not None
+    return is_safe_email(email)
 
 
 def _styled_input(prompt: str) -> str:

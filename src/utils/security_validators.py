@@ -133,13 +133,29 @@ _MAX_EMAIL_LENGTH = 254
 
 # Whitelist pattern for an email address.
 # Local part allows letters, digits, dots, underscores, percent, plus, and hyphens.
-# Domain part follows hostname-style characters (letters, digits, underscores,
-# dots, and hyphens) to remain compatible with the setup wizard validator.
+# Domain part follows hostname-style ASCII characters (letters, digits, dots,
+# and hyphens) to keep the whitelist strict and avoid Unicode/underscore drift.
 # The TLD is required to be at least two letters.
 # Does NOT allow shell metacharacters such as ; | & ` $ < > \ or whitespace.
 _SAFE_EMAIL_PATTERN = re.compile(
-    r"^[a-zA-Z0-9._%+-]+@[\w.-]+\.[a-zA-Z]{2,}$"
+    r"^[a-zA-Z0-9._%+-]+@[A-Za-z0-9.-]+\.[a-zA-Z]{2,}$"
 )
+
+
+def _is_safe_label(label: str) -> bool:
+    """Return True if a domain label does not start/end with '.' or '-'."""
+    if not label:
+        return False
+    if label.startswith((".", "-")) or label.endswith((".", "-")):
+        return False
+    return True
+
+
+def _is_safe_local(local: str) -> bool:
+    """Return True if the local part does not start/end with '.' or '-'."""
+    if local.startswith((".", "-")) or local.endswith((".", "-")):
+        return False
+    return True
 
 
 def is_safe_email(email: str) -> bool:
@@ -174,13 +190,11 @@ def is_safe_email(email: str) -> bool:
 
     local, _, domain = email.partition("@")
 
-    # Local part must not start/end with a dot or hyphen.
-    if local.startswith((".", "-")) or local.endswith((".", "-")):
+    if not _is_safe_local(local):
         return False
 
-    # Domain labels must not start/end with a dot or hyphen and must be non-empty.
     for label in domain.split("."):
-        if not label or label.startswith((".", "-")) or label.endswith((".", "-")):
+        if not _is_safe_label(label):
             return False
 
     return True

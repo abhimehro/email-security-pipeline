@@ -33,7 +33,8 @@ def main():
     args = parser.parse_args()
 
     if not is_safe_email(args.email):
-        logging.error(f"Invalid or unsafe email address: {args.email}")
+        # Use %r and truncation to prevent log-forging from attacker-controlled input.
+        logging.error("Invalid or unsafe email address: %r", args.email[:80])
         sys.exit(1)
 
     # Load email configurations from environment variables
