@@ -32,19 +32,31 @@ class ColoredFormatter(logging.Formatter):
 
         # UX Enhancement: Highlight specific operational messages
         if isinstance(record.msg, str):
-            if "Monitoring Cycle" in record.msg:
-                # Highlight the cycle start
-                record.msg = Colors.colorize(
-                    str(record.msg), Colors.MAGENTA + Colors.BOLD
-                )
-            elif "Waiting" in record.msg and "seconds until next check" in record.msg:
-                # Dim the waiting message to reduce visual noise
-                record.msg = Colors.colorize(str(record.msg), Colors.GREY)
-            elif "No new emails to analyze" in record.msg:
-                # Dim the repetitive no emails message to reduce visual noise
-                record.msg = Colors.colorize(str(record.msg), Colors.GREY)
-            elif "Analysis complete" in record.msg:
-                # Highlight success
-                record.msg = Colors.colorize(str(record.msg), Colors.GREEN)
+            record.msg = self._colorize_message(str(record.msg))
 
         return super().format(record)
+
+    def _colorize_message(self, msg_str: str) -> str:
+        """Helper to apply UX highlighting to specific log messages."""
+        if "Monitoring Cycle" in msg_str:
+            # Highlight the cycle start
+            return Colors.colorize(msg_str, Colors.MAGENTA + Colors.BOLD)
+
+        if "Waiting" in msg_str and "seconds until next check" in msg_str:
+            # Dim the waiting message to reduce visual noise
+            return Colors.colorize(msg_str, Colors.GREY)
+
+        if "No new emails to analyze" in msg_str:
+            # Dim the repetitive no emails message to reduce visual noise
+            return Colors.colorize(msg_str, Colors.GREY)
+
+        if "Analysis complete" in msg_str:
+            # Match production risk_level values (lowercase) case-insensitively.
+            lowered = msg_str.lower()
+            if "risk=high" in lowered:
+                return Colors.colorize(msg_str, Colors.RED)
+            if "risk=medium" in lowered:
+                return Colors.colorize(msg_str, Colors.YELLOW)
+            return Colors.colorize(msg_str, Colors.GREEN)
+
+        return msg_str
