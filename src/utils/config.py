@@ -105,6 +105,12 @@ class SystemConfig:
 class Config:
     """Main configuration class."""
 
+    _PROVIDER_DEFAULTS = {
+        "gmail": ("imap.gmail.com", "smtp.gmail.com", 993),
+        "outlook": ("outlook.office365.com", "smtp.office365.com", 993),
+        "proton": ("127.0.0.1", "127.0.0.1", 1143),
+    }
+
     def __init__(self, env_file: str = ".env"):
         """
         Initialize configuration from environment file.
@@ -120,57 +126,46 @@ class Config:
         self.alerts = self._load_alert_config()
         self.system = self._load_system_config()
 
+    def _build_email_account(
+        self,
+        provider: str,
+        prefix: str,
+        imap_default: str,
+        smtp_default: str,
+        port_default: int,
+    ) -> EmailAccountConfig:
+        """Build an EmailAccountConfig from environment variables for one provider."""
+        return EmailAccountConfig(
+            enabled=True,
+            email=os.getenv(f"{prefix}_EMAIL", ""),
+            imap_server=os.getenv(f"{prefix}_IMAP_SERVER") or imap_default,
+            imap_port=int(os.getenv(f"{prefix}_IMAP_PORT", str(port_default))),
+            app_password=os.getenv(f"{prefix}_APP_PASSWORD", ""),
+            folders=self._parse_folders(os.getenv(f"{prefix}_FOLDERS", "INBOX")),
+            provider=provider,
+            use_ssl=self._get_bool(f"{prefix}_USE_SSL", True),
+            smtp_server=os.getenv(f"{prefix}_SMTP_SERVER") or smtp_default,
+        )
+
     def _load_email_accounts(self) -> List[EmailAccountConfig]:
         """Load email account configurations."""
         accounts = []
 
-        # Gmail
-        if self._get_bool("GMAIL_ENABLED", False):
+        for provider, (
+            imap_default,
+            smtp_default,
+            port_default,
+        ) in self._PROVIDER_DEFAULTS.items():
+            prefix = provider.upper()
+            if not self._get_bool(f"{prefix}_ENABLED", False):
+                continue
             accounts.append(
-                EmailAccountConfig(
-                    enabled=True,
-                    email=os.getenv("GMAIL_EMAIL", ""),
-                    imap_server=os.getenv("GMAIL_IMAP_SERVER") or "imap.gmail.com",
-                    imap_port=int(os.getenv("GMAIL_IMAP_PORT", "993")),
-                    app_password=os.getenv("GMAIL_APP_PASSWORD", ""),
-                    folders=self._parse_folders(os.getenv("GMAIL_FOLDERS", "INBOX")),
-                    provider="gmail",
-                    use_ssl=self._get_bool("GMAIL_USE_SSL", True),
-                    smtp_server=os.getenv("GMAIL_SMTP_SERVER") or "smtp.gmail.com",
-                )
-            )
-
-        # Outlook
-        if self._get_bool("OUTLOOK_ENABLED", False):
-            accounts.append(
-                EmailAccountConfig(
-                    enabled=True,
-                    email=os.getenv("OUTLOOK_EMAIL", ""),
-                    imap_server=os.getenv("OUTLOOK_IMAP_SERVER")
-                    or "outlook.office365.com",
-                    imap_port=int(os.getenv("OUTLOOK_IMAP_PORT", "993")),
-                    app_password=os.getenv("OUTLOOK_APP_PASSWORD", ""),
-                    folders=self._parse_folders(os.getenv("OUTLOOK_FOLDERS", "INBOX")),
-                    provider="outlook",
-                    use_ssl=self._get_bool("OUTLOOK_USE_SSL", True),
-                    smtp_server=os.getenv("OUTLOOK_SMTP_SERVER")
-                    or "smtp.office365.com",
-                )
-            )
-
-        # Proton Mail
-        if self._get_bool("PROTON_ENABLED", False):
-            accounts.append(
-                EmailAccountConfig(
-                    enabled=True,
-                    email=os.getenv("PROTON_EMAIL", ""),
-                    imap_server=os.getenv("PROTON_IMAP_SERVER") or "127.0.0.1",
-                    imap_port=int(os.getenv("PROTON_IMAP_PORT", "1143")),
-                    app_password=os.getenv("PROTON_APP_PASSWORD", ""),
-                    folders=self._parse_folders(os.getenv("PROTON_FOLDERS", "INBOX")),
-                    provider="proton",
-                    use_ssl=self._get_bool("PROTON_USE_SSL", True),
-                    smtp_server=os.getenv("PROTON_SMTP_SERVER") or "127.0.0.1",
+                self._build_email_account(
+                    provider,
+                    prefix,
+                    imap_default,
+                    smtp_default,
+                    port_default,
                 )
             )
 
