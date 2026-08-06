@@ -257,3 +257,11 @@ def test_print_help(mock_stdout, mock_app_runner):
     )
     assert "Options:" in output
     assert "-h, --help     Show this help message and exit" in output
+
+@patch("sys.stdout", new_callable=io.StringIO)
+def test_print_banner(mock_stdout, mock_app_runner):
+    mock_app_runner.print_banner()
+    output = mock_stdout.getvalue()
+    assert "=" * 80 in output
+    assert "Email Security Analysis Pipeline" in output
+    assert "Multi-layer threat detection for email security" in output
