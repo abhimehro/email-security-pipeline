@@ -57,6 +57,21 @@ WINDOWS_RESERVED_NAMES = {
     "LPT9",
 }
 
+# Allowed mail server hosts to prevent SSRF via attacker-controlled *_IMAP_SERVER
+# or *_SMTP_SERVER environment variables. Hostnames are normalized (lowercase,
+# stripped, trailing FQDN dot removed) before the allowlist check.
+ALLOWED_MAIL_SERVER_HOSTS = frozenset(
+    {
+        "127.0.0.1",
+        "localhost",
+        "host.docker.internal",
+        "imap.gmail.com",
+        "outlook.office365.com",
+        "smtp.gmail.com",
+        "smtp.office365.com",
+    }
+)
+
 
 # Lazily evaluated IP properties for SSRF protection
 _BAD_IP_PROPERTIES = (
@@ -70,6 +85,37 @@ _BAD_IP_PROPERTIES = (
 
 
 logger = logging.getLogger(__name__)
+
+
+def _normalize_mail_server_host(host: str) -> str:
+    """Normalize a mail server hostname for allowlist comparison."""
+    return host.strip().lower().rstrip(".")
+
+
+def validate_mail_server_host(host: str) -> None:
+    """
+    Validate a mail server hostname against the allowed server list.
+
+    SECURITY STORY: Prevents SSRF and credential leakage by ensuring IMAP/SMTP
+    hosts can only point to trusted, expected servers. The allowlist is
+    hard-coded (not configurable) because a configurable allowlist would itself
+    be attacker-controllable via environment variables and reintroduce the SSRF.
+
+    Args:
+        host: Mail server hostname to validate.
+
+    Raises:
+        ValueError: If the host is empty or not in the allowed list.
+
+    """
+    if not host:
+        raise ValueError("IMAP/SMTP host is empty")
+
+    normalized = _normalize_mail_server_host(host)
+    if normalized not in ALLOWED_MAIL_SERVER_HOSTS:
+        raise ValueError(
+            f"IMAP/SMTP host '{normalized}' is not in the allowed server list"
+        )
 
 
 def sanitize_filename(filename: str) -> str:

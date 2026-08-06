@@ -11,7 +11,7 @@ from urllib.parse import urlparse
 
 from dotenv import load_dotenv
 
-from .security_validators import is_safe_webhook_url
+from .security_validators import is_safe_webhook_url, validate_mail_server_host
 
 
 class ConfigurationError(Exception):
@@ -32,6 +32,7 @@ class EmailAccountConfig:
     folders: List[str]
     provider: str
     use_ssl: bool
+    smtp_server: Optional[str] = None
 
 
 @dataclass
@@ -135,6 +136,7 @@ class Config:
                     folders=self._parse_folders(os.getenv("GMAIL_FOLDERS", "INBOX")),
                     provider="gmail",
                     use_ssl=self._get_bool("GMAIL_USE_SSL", True),
+                    smtp_server=os.getenv("GMAIL_SMTP_SERVER", "smtp.gmail.com"),
                 )
             )
 
@@ -152,6 +154,7 @@ class Config:
                     folders=self._parse_folders(os.getenv("OUTLOOK_FOLDERS", "INBOX")),
                     provider="outlook",
                     use_ssl=self._get_bool("OUTLOOK_USE_SSL", True),
+                    smtp_server=os.getenv("OUTLOOK_SMTP_SERVER", "smtp.office365.com"),
                 )
             )
 
@@ -167,6 +170,7 @@ class Config:
                     folders=self._parse_folders(os.getenv("PROTON_FOLDERS", "INBOX")),
                     provider="proton",
                     use_ssl=self._get_bool("PROTON_USE_SSL", True),
+                    smtp_server=os.getenv("PROTON_SMTP_SERVER", "127.0.0.1"),
                 )
             )
 
@@ -277,6 +281,29 @@ class Config:
             return False
         return parsed.scheme == "https" and bool(parsed.hostname)
 
+    def _append_host_error(
+        self,
+        label: str,
+        server: str,
+        provider: str,
+        errors: List[str],
+    ) -> None:
+        """Validate a single mail server host and append any error."""
+        try:
+            validate_mail_server_host(server)
+        except ValueError as e:
+            errors.append(f"{label} server for {provider} account: {e}")
+
+    def _add_account_host_errors(
+        self, account: EmailAccountConfig, errors: List[str]
+    ) -> None:
+        """Validate an account's IMAP and SMTP hosts against the allowlist."""
+        self._append_host_error("IMAP", account.imap_server, account.provider, errors)
+        if account.smtp_server is not None:
+            self._append_host_error(
+                "SMTP", account.smtp_server, account.provider, errors
+            )
+
     def _validate_email_accounts(self) -> List[str]:
         """Validate email account configurations."""
         errors = []
@@ -290,6 +317,7 @@ class Config:
                 errors.append(f"No folders configured for {account.provider} account")
             if account.imap_port <= 0:
                 errors.append(f"Invalid IMAP port for {account.provider} account")
+            self._add_account_host_errors(account, errors)
         return errors
 
     def _validate_webhook_config(self, errors: List[str]) -> None:

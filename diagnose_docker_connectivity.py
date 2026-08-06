@@ -11,6 +11,8 @@ from dataclasses import dataclass
 
 from dotenv import load_dotenv
 
+from src.utils.security_validators import validate_mail_server_host
+
 
 @dataclass
 class ConnectionConfig:
@@ -23,8 +25,42 @@ class ConnectionConfig:
     verify_ssl: bool = True
 
 
+def _create_ssl_context(verify_ssl: bool):
+    """Create an SSL context, optionally disabling certificate verification."""
+    if verify_ssl:
+        return ssl.create_default_context()
+
+    print("⚠️  SSL verification DISABLED")
+    return ssl._create_unverified_context()  # nosec B323
+
+
+def _create_imap_client(config: ConnectionConfig):
+    """Create an IMAP client based on SSL/STARTTLS configuration."""
+    if config.use_ssl:
+        context = _create_ssl_context(config.verify_ssl)
+        print(f"Connecting to {config.host}:{config.port} with SSL...")
+        return imaplib.IMAP4_SSL(
+            config.host, config.port, ssl_context=context, timeout=30
+        )
+
+    print(f"Connecting to {config.host}:{config.port} without SSL...")
+    imap = imaplib.IMAP4(config.host, config.port, timeout=30)
+    print("Upgrading to TLS...")
+    imap.starttls(ssl_context=_create_ssl_context(config.verify_ssl))
+    return imap
+
+
 def test_connection(config: ConnectionConfig):
     """Test IMAP connection with detailed diagnostics."""
+    try:
+        validate_mail_server_host(config.host)
+    except ValueError as e:
+        print(f"\n{'='*60}")
+        print(f"Testing: {config.label}")
+        print(f"❌ Security Error: {e}")
+        print(f"{'='*60}")
+        return False
+
     print(f"\n{'='*60}")
     print(f"Testing: {config.label}")
     print(f"Host: {config.host}:{config.port}")
@@ -33,27 +69,7 @@ def test_connection(config: ConnectionConfig):
     print(f"{'='*60}")
 
     try:
-        if config.use_ssl:
-            if config.verify_ssl:
-                context = ssl.create_default_context()
-            else:
-                context = ssl._create_unverified_context()  # nosec B323
-                print("⚠️  SSL verification DISABLED")
-
-            print(f"Connecting to {config.host}:{config.port} with SSL...")
-            imap = imaplib.IMAP4_SSL(
-                config.host, config.port, ssl_context=context, timeout=30
-            )
-        else:
-            print(f"Connecting to {config.host}:{config.port} without SSL...")
-            imap = imaplib.IMAP4(config.host, config.port, timeout=30)
-            print("Upgrading to TLS...")
-            if config.verify_ssl:
-                context = ssl.create_default_context()
-            else:
-                context = ssl._create_unverified_context()  # nosec B323
-            imap.starttls(ssl_context=context)
-
+        imap = _create_imap_client(config)
         print("✓ Connection established")
         print(f"Logging in as {config.email}...")
 
@@ -70,16 +86,15 @@ def test_connection(config: ConnectionConfig):
 
     except imaplib.IMAP4.error as e:
         print(f"❌ IMAP Error: {e}")
-        return False
     except ssl.SSLError as e:
         print(f"❌ SSL Error: {e}")
         print(f"   Error type: {type(e).__name__}")
         print(f"   Error args: {e.args}")
-        return False
     except Exception as e:
         print(f"❌ Unexpected Error: {e}")
         print(f"   Error type: {type(e).__name__}")
-        return False
+
+    return False
 
 
 def main():

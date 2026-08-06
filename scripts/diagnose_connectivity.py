@@ -13,7 +13,7 @@ import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from src.modules.email_ingestion import EmailIngestionManager
-from src.utils.config import Config
+from src.utils.config import Config, ConfigurationError
 
 # Set up basic logging
 logging.basicConfig(
@@ -33,6 +33,12 @@ def main():
 
     # Load email configurations from environment variables
     config = Config()
+    try:
+        config.validate()
+    except ConfigurationError as e:
+        logging.error("Configuration validation failed: %s", e)
+        sys.exit(1)
+
     email_accounts = config.email_accounts
     if not email_accounts:
         logging.error("No email accounts are configured. Please check your .env file.")

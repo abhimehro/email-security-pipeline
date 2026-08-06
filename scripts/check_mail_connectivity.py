@@ -21,6 +21,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
 try:
     from src.utils.colors import Colors
+    from src.utils.security_validators import validate_mail_server_host
 except ImportError:
     # Fallback if src not found or not in path
     class Colors:
@@ -38,6 +39,10 @@ except ImportError:
         @classmethod
         def colorize(cls, text, color):
             return text
+
+    def validate_mail_server_host(host: str) -> None:
+        """Fallback validator that fails closed if src is unavailable."""
+        raise RuntimeError("Mail server validator is unavailable")
 
 
 load_dotenv()
@@ -119,6 +124,7 @@ def check_imap(config: ConnectionConfig):
         "error": None,
     }
     try:
+        validate_mail_server_host(config.host)
         if config.use_ssl:
             ctx = ssl.create_default_context()
             with imaplib.IMAP4_SSL(config.host, config.port, ssl_context=ctx) as imap:
@@ -153,6 +159,7 @@ def check_smtp(config: ConnectionConfig):
         "error": None,
     }
     try:
+        validate_mail_server_host(config.host)
         if config.use_ssl:
             ctx = ssl.create_default_context()
             with smtplib.SMTP_SSL(config.host, config.port, context=ctx) as smtp:
