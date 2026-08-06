@@ -128,20 +128,21 @@ def check_imap(config: ConnectionConfig):
         "error": None,
     }
     try:
-        validate_mail_server_host(config.host)
+        host = validate_mail_server_host(config.host)
+        result["host"] = host
         if config.use_ssl:
             ctx = ssl.create_default_context()
-            with imaplib.IMAP4_SSL(config.host, config.port, ssl_context=ctx) as imap:
+            with imaplib.IMAP4_SSL(host, config.port, ssl_context=ctx) as imap:
                 imap.login(config.user, config.password)
                 imap.noop()
-                print_status("IMAP", config.host, config.port, config.use_ssl, True)
+                print_status("IMAP", host, config.port, config.use_ssl, True)
                 result["success"] = True
         else:
-            with imaplib.IMAP4(config.host, config.port) as imap:
+            with imaplib.IMAP4(host, config.port) as imap:
                 imap.starttls()
                 imap.login(config.user, config.password)
                 imap.noop()
-                print_status("IMAP", config.host, config.port, config.use_ssl, True)
+                print_status("IMAP", host, config.port, config.use_ssl, True)
                 result["success"] = True
     except Exception as e:
         print_status("IMAP", config.host, config.port, config.use_ssl, False, str(e))
@@ -163,20 +164,21 @@ def check_smtp(config: ConnectionConfig):
         "error": None,
     }
     try:
-        validate_mail_server_host(config.host)
+        host = validate_mail_server_host(config.host)
+        result["host"] = host
         if config.use_ssl:
             ctx = ssl.create_default_context()
-            with smtplib.SMTP_SSL(config.host, config.port, context=ctx) as smtp:
+            with smtplib.SMTP_SSL(host, config.port, context=ctx) as smtp:
                 smtp.login(config.user, config.password)
                 smtp.noop()
-                print_status("SMTP", config.host, config.port, config.use_ssl, True)
+                print_status("SMTP", host, config.port, config.use_ssl, True)
                 result["success"] = True
         else:
-            with smtplib.SMTP(config.host, config.port) as smtp:
+            with smtplib.SMTP(host, config.port) as smtp:
                 smtp.starttls()
                 smtp.login(config.user, config.password)
                 smtp.noop()
-                print_status("SMTP", config.host, config.port, config.use_ssl, True)
+                print_status("SMTP", host, config.port, config.use_ssl, True)
                 result["success"] = True
     except Exception as e:
         print_status("SMTP", config.host, config.port, config.use_ssl, False, str(e))

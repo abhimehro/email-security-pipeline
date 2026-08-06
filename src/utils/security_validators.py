@@ -92,7 +92,7 @@ def _normalize_mail_server_host(host: str) -> str:
     return host.strip().lower().rstrip(".")
 
 
-def validate_mail_server_host(host: str) -> None:
+def validate_mail_server_host(host: str) -> str:
     """
     Validate a mail server hostname against the allowed server list.
 
@@ -103,6 +103,9 @@ def validate_mail_server_host(host: str) -> None:
 
     Args:
         host: Mail server hostname to validate.
+
+    Returns:
+        The normalized host (lowercase, stripped, no trailing FQDN dot).
 
     Raises:
         ValueError: If the host is empty or not in the allowed list.
@@ -116,6 +119,8 @@ def validate_mail_server_host(host: str) -> None:
         raise ValueError(
             f"IMAP/SMTP host '{normalized}' is not in the allowed server list"
         )
+
+    return normalized
 
 
 def sanitize_filename(filename: str) -> str:

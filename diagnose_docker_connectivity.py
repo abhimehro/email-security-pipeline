@@ -53,7 +53,7 @@ def _create_imap_client(config: ConnectionConfig):
 def test_connection(config: ConnectionConfig):
     """Test IMAP connection with detailed diagnostics."""
     try:
-        validate_mail_server_host(config.host)
+        config.host = validate_mail_server_host(config.host)
     except ValueError as e:
         print(f"\n{'='*60}")
         print(f"Testing: {config.label}")

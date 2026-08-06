@@ -11,7 +11,11 @@ from urllib.parse import urlparse
 
 from dotenv import load_dotenv
 
-from .security_validators import is_safe_webhook_url, validate_mail_server_host
+from .security_validators import (
+    _normalize_mail_server_host,
+    is_safe_webhook_url,
+    validate_mail_server_host,
+)
 
 
 class ConfigurationError(Exception):
@@ -33,6 +37,12 @@ class EmailAccountConfig:
     provider: str
     use_ssl: bool
     smtp_server: Optional[str] = None
+
+    def __post_init__(self):
+        """Normalize server hostnames so comparisons and connections match."""
+        self.imap_server = _normalize_mail_server_host(self.imap_server)
+        if self.smtp_server is not None:
+            self.smtp_server = _normalize_mail_server_host(self.smtp_server)
 
 
 @dataclass
@@ -130,11 +140,10 @@ class Config:
         self,
         provider: str,
         prefix: str,
-        imap_default: str,
-        smtp_default: str,
-        port_default: int,
+        defaults: tuple,
     ) -> EmailAccountConfig:
         """Build an EmailAccountConfig from environment variables for one provider."""
+        imap_default, smtp_default, port_default = defaults
         return EmailAccountConfig(
             enabled=True,
             email=os.getenv(f"{prefix}_EMAIL", ""),
@@ -151,11 +160,7 @@ class Config:
         """Load email account configurations."""
         accounts = []
 
-        for provider, (
-            imap_default,
-            smtp_default,
-            port_default,
-        ) in self._PROVIDER_DEFAULTS.items():
+        for provider, defaults in self._PROVIDER_DEFAULTS.items():
             prefix = provider.upper()
             if not self._get_bool(f"{prefix}_ENABLED", False):
                 continue
@@ -163,9 +168,7 @@ class Config:
                 self._build_email_account(
                     provider,
                     prefix,
-                    imap_default,
-                    smtp_default,
-                    port_default,
+                    defaults,
                 )
             )
 
