@@ -56,8 +56,6 @@ class CountdownTimer:
                 if self.duration >= 60:
                     time_str = f"{remaining // 60:02d}:{remaining % 60:02d}"
                 else:
-                    # UX: Use fixed width padding so the line length doesn't change
-                    # when transitioning from 10s to 9s
                     time_str = f"{remaining:2d}s"
 
                 # Progress bar
@@ -146,12 +144,9 @@ class Spinner:
             elapsed = time.time() - getattr(self, "start_time", time.time())
             # Dynamic text UX: Maintain consistent width for countdown timers/elapsed time
             # Once time is shown (>= 1.0s), always show it to prevent visual layout shifts
-            if elapsed >= 1.0 or getattr(self, "_time_shown", False):
-                self._time_shown = True
-                time_str = Colors.colorize(f" [{elapsed:.1f}s]", Colors.GREY)
-            else:
-                time_str = ""
-
+            # We use a fast-path attribute approach without adding branches to keep complexity low
+            self._time_shown = getattr(self, "_time_shown", False) or (elapsed >= 1.0)
+            time_str = Colors.colorize(f" [{elapsed:.1f}s]", Colors.GREY) if self._time_shown else ""
             # \r moves cursor to start of line, \033[K clears the line
             spin_char = Colors.colorize(next(self.spinner), Colors.CYAN)
             display_msg = self.message
@@ -231,7 +226,7 @@ class Spinner:
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         elapsed = time.time() - getattr(self, "start_time", time.time())
-        raw_time_str = f" [{elapsed:.1f}s]" if getattr(self, "_time_shown", False) or elapsed >= 1.0 else ""
+        raw_time_str = f" [{elapsed:.1f}s]" if getattr(self, "_time_shown", False) or (elapsed >= 1.0) else ""
 
         symbol, msg = self._get_final_message_components(exc_type)
 

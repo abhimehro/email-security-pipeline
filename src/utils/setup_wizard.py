@@ -621,7 +621,6 @@ def run_setup_wizard(
             "Setup cancelled by user. No changes were made.", Colors.YELLOW
         )
         print(f"\n\n{warning} {message}")
-        _print_manual_setup_instructions(config_file, template_file)
         return False
 
 
@@ -647,7 +646,6 @@ def main() -> int:
         _print_manual_setup_instructions()
         return 1
     except KeyboardInterrupt:
-        _print_manual_setup_instructions()
         return 1
 
 
