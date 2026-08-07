@@ -449,6 +449,25 @@ class MediaAuthenticityAnalyzer:
         return result
 
 
+    def _process_deepfake_temp_file(
+        self, filename: str, temp_file_path: str, content_type: str
+    ) -> Tuple[float, List[str]]:
+        """Helper to process the temporary file for deepfake detection."""
+        score = 0.0
+        indicators = []
+        frames = self._extract_frames_from_video(
+            temp_file_path, max_frames=10, max_dim=1280
+        )
+        if not frames:
+            self.logger.warning(f"Could not extract frames from {filename}")
+        else:
+            frame_score, frame_indicators = self._analyze_video_frames(
+                filename, temp_file_path, frames, content_type
+            )
+            score += frame_score
+            indicators.extend(frame_indicators)
+        return score, indicators
+
     def _check_deepfake_indicators(
         self, filename: str, data: bytes, content_type: str
     ) -> Tuple[float, List[str]]:
@@ -460,55 +479,32 @@ class MediaAuthenticityAnalyzer:
 
         filename_lower = filename.lower()
 
-        # Check if file is audio/video
-        # Optimization: O(1) loop iteration using tuple-based endswith() check
         is_media = filename_lower.endswith(self.MEDIA_EXTENSIONS)
-
         if not is_media:
             return score, indicators
 
-        # Basic heuristics
-        if filename_lower.endswith((".mp4", ".avi", ".mov")):
-            size = len(data)
-            if size < 100 * 1024:  # Less than 100KB
-                score += 0.5
-                indicators.append(f"Suspicious video size: {filename}")
+        if filename_lower.endswith((".mp4", ".avi", ".mov")) and len(data) < 100 * 1024:
+            score += 0.5
+            indicators.append(f"Suspicious video size: {filename}")
 
         if not self.config.deepfake_detection_enabled:
             return score, indicators
 
-        # Advanced ML-based detection
         temp_file_path = None
         try:
-            # Create a temporary file to work with OpenCV
             with tempfile.NamedTemporaryFile(
                 delete=False, suffix=os.path.splitext(filename)[1]
             ) as temp_file:
                 temp_file_path = temp_file.name
                 temp_file.write(data)
 
-            # 1. Extract frames
-            # Optimization: 10 frames is sufficient for statistical analysis and reduces processing time by 50%
-            frames = self._extract_frames_from_video(
-                temp_file_path, max_frames=10, max_dim=1280
-            )
-
-            if not frames:
-                self.logger.warning(f"Could not extract frames from {filename}")
-            else:
-                frame_score, frame_indicators = self._analyze_video_frames(
-                    filename, temp_file_path, frames, content_type
-                )
-                score += frame_score
-                indicators.extend(frame_indicators)
+            fs, fi = self._process_deepfake_temp_file(filename, temp_file_path, content_type)
+            score += fs
+            indicators.extend(fi)
 
         except Exception as e:
-            self.logger.error(
-                f"Error during deepfake analysis for {filename}: {str(e)}"
-            )
-
+            self.logger.error(f"Error during deepfake analysis for {filename}: {str(e)}")
         finally:
-            # Cleanup temp file
             if temp_file_path and os.path.exists(temp_file_path):
                 try:
                     os.unlink(temp_file_path)
