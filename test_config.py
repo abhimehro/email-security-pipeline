@@ -191,20 +191,6 @@ def test_analyzer_initialization():
         return False
 
 
-def _list_account_folders(ingestion_manager):
-    """List folders for each connected IMAP account."""
-    for email, client in ingestion_manager.clients.items():
-        try:
-            folders = client.list_folders()
-            print(f"  - {email}: Found {len(folders)} folder(s)")
-            if folders:
-                print(
-                    f"    Folders: {', '.join(folders[:5])}{'...' if len(folders) > 5 else ''}"
-                )
-        except Exception as e:
-            print(f"  - {email}: Error listing folders - {e}")
-
-
 def test_imap_connections(test_connections=True):
     """Test IMAP connections (optional)."""
     print("\n" + "=" * 60)
@@ -238,7 +224,16 @@ def test_imap_connections(test_connections=True):
             )
 
             # List folders for each account
-            _list_account_folders(ingestion_manager)
+            for email, client in ingestion_manager.clients.items():
+                try:
+                    folders = client.list_folders()
+                    print(f"  - {email}: Found {len(folders)} folder(s)")
+                    if folders:
+                        print(
+                            f"    Folders: {', '.join(folders[:5])}{'...' if len(folders) > 5 else ''}"
+                        )
+                except Exception as e:
+                    print(f"  - {email}: Error listing folders - {e}")
 
             # Clean up
             ingestion_manager.close_all_connections()
