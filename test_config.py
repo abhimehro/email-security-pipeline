@@ -310,8 +310,13 @@ def _run_diagnostics_script(
     script_path: str, email: str
 ) -> subprocess.CompletedProcess:
     """Run the diagnostics script and return the result."""
-    return subprocess.run(
-        ["python3", script_path, email],
+    from src.utils.security_validators import is_safe_email
+
+    if not is_safe_email(email):
+        raise ValueError(f"Invalid or unsafe email address for diagnostics: {email}")
+
+    return subprocess.run(  # nosec B603: email is validated by is_safe_email(); script_path is a repository-controlled constant, not user input.
+        [sys.executable, script_path, email],
         capture_output=True,
         text=True,
         check=False,
