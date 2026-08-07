@@ -202,7 +202,7 @@ def _check_gmail() -> List[dict]:
             check_imap(
                 ConnectionConfig(
                     "Gmail",
-                    os.getenv("GMAIL_IMAP_SERVER", "imap.gmail.com"),
+                    os.getenv("GMAIL_IMAP_SERVER") or "imap.gmail.com",
                     int(os.getenv("GMAIL_IMAP_PORT", "993")),
                     True,
                     email,
@@ -215,7 +215,7 @@ def _check_gmail() -> List[dict]:
             check_smtp(
                 ConnectionConfig(
                     "Gmail",
-                    os.getenv("GMAIL_SMTP_SERVER", "smtp.gmail.com"),
+                    os.getenv("GMAIL_SMTP_SERVER") or "smtp.gmail.com",
                     int(os.getenv("GMAIL_SMTP_PORT", "465")),
                     True,
                     email,
@@ -238,7 +238,7 @@ def _check_outlook() -> List[dict]:
             check_imap(
                 ConnectionConfig(
                     "Outlook",
-                    os.getenv("OUTLOOK_IMAP_SERVER", "outlook.office365.com"),
+                    os.getenv("OUTLOOK_IMAP_SERVER") or "outlook.office365.com",
                     int(os.getenv("OUTLOOK_IMAP_PORT", "993")),
                     True,
                     email,
@@ -252,7 +252,7 @@ def _check_outlook() -> List[dict]:
             check_smtp(
                 ConnectionConfig(
                     "Outlook",
-                    os.getenv("OUTLOOK_SMTP_SERVER", "smtp.office365.com"),
+                    os.getenv("OUTLOOK_SMTP_SERVER") or "smtp.office365.com",
                     int(os.getenv("OUTLOOK_SMTP_PORT", "587")),
                     False,  # Outlook SMTP usually uses STARTTLS
                     email,
@@ -275,7 +275,7 @@ def _check_proton() -> List[dict]:
             check_imap(
                 ConnectionConfig(
                     "Proton",
-                    os.getenv("PROTON_IMAP_SERVER", "127.0.0.1"),
+                    os.getenv("PROTON_IMAP_SERVER") or "127.0.0.1",
                     int(os.getenv("PROTON_IMAP_PORT", "1143")),
                     False,
                     email,
@@ -288,7 +288,7 @@ def _check_proton() -> List[dict]:
             check_smtp(
                 ConnectionConfig(
                     "Proton",
-                    os.getenv("PROTON_SMTP_SERVER", "127.0.0.1"),
+                    os.getenv("PROTON_SMTP_SERVER") or "127.0.0.1",
                     int(os.getenv("PROTON_SMTP_PORT", "1025")),
                     False,
                     email,

@@ -203,9 +203,16 @@ def test_imap_connections(test_connections=True):
 
     try:
         from src.modules.email_ingestion import EmailIngestionManager
-        from src.utils.config import Config
+        from src.utils.config import Config, ConfigurationError
 
         config = Config(".env")
+        try:
+            config.validate()
+        except ConfigurationError as e:
+            print("❌ Configuration validation failed:")
+            for error in e.args[0]:
+                print(f"  - {error}")
+            return False
 
         if not config.email_accounts:
             print("⚠️  No email accounts configured, skipping connection test")
