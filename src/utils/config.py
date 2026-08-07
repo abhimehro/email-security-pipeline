@@ -13,6 +13,7 @@ from dotenv import load_dotenv
 
 from .security_validators import (
     _normalize_mail_server_host,
+    is_safe_email,
     is_safe_webhook_url,
     validate_mail_server_host,
 )
@@ -311,6 +312,12 @@ class Config:
         for account in self.email_accounts:
             if not account.email or not account.app_password:
                 errors.append(f"Missing credentials for {account.provider} account")
+            elif not is_safe_email(account.email):
+                # Avoid echoing long/attacker-controlled values verbatim.
+                email_display = str(account.email)[:80]
+                errors.append(
+                    f"Invalid email format for {account.provider} account: {email_display!r}"
+                )
             if not account.folders:
                 errors.append(f"No folders configured for {account.provider} account")
             if account.imap_port <= 0:

@@ -29,6 +29,13 @@ class WizardSkipped(Exception):
 
 
 try:
+    from src.utils.security_validators import is_safe_email
+except ImportError:
+    # Allow running this file directly from src/utils/ when the package root
+    # is not on sys.path (the module only depends on the standard library).
+    from security_validators import is_safe_email
+
+try:
     from src.modules.imap_connection import IMAPConnection
     from src.utils.config import EmailAccountConfig
     from src.utils.ui import Spinner
@@ -47,12 +54,7 @@ OUTLOOK_AUTH_ERROR_TIP = Colors.colorize(
 
 def _is_valid_email(email: str) -> bool:
     """Check if the email format is valid."""
-    # Disallow consecutive dots
-    if ".." in email:
-        return False
-    # Simple regex for email validation (supports aliases with +)
-    pattern = r"^[\w\.\-\+]+@[\w\.-]+\.\w+$"
-    return re.match(pattern, email) is not None
+    return is_safe_email(email)
 
 
 def _styled_input(prompt: str) -> str:
