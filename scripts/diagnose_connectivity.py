@@ -41,6 +41,13 @@ def main():
 
     # Load email configurations from environment variables
     config = Config()
+    email_errors = config._validate_email_accounts()
+    if email_errors:
+        logging.error("Email account configuration is invalid:")
+        for error in email_errors:
+            logging.error("  - %s", error)
+        sys.exit(1)
+
     email_accounts = config.email_accounts
     if not email_accounts:
         logging.error("No email accounts are configured. Please check your .env file.")

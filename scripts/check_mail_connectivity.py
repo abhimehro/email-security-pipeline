@@ -40,6 +40,15 @@ except ImportError:
             return text
 
 
+try:
+    from src.utils.security_validators import validate_mail_server_host
+except ImportError:
+
+    def validate_mail_server_host(host: str) -> None:
+        """Fallback validator that fails closed if src is unavailable."""
+        raise RuntimeError("Mail server validator is unavailable")
+
+
 load_dotenv()
 
 
@@ -119,19 +128,21 @@ def check_imap(config: ConnectionConfig):
         "error": None,
     }
     try:
+        host = validate_mail_server_host(config.host)
+        result["host"] = host
         if config.use_ssl:
             ctx = ssl.create_default_context()
-            with imaplib.IMAP4_SSL(config.host, config.port, ssl_context=ctx) as imap:
+            with imaplib.IMAP4_SSL(host, config.port, ssl_context=ctx) as imap:
                 imap.login(config.user, config.password)
                 imap.noop()
-                print_status("IMAP", config.host, config.port, config.use_ssl, True)
+                print_status("IMAP", host, config.port, config.use_ssl, True)
                 result["success"] = True
         else:
-            with imaplib.IMAP4(config.host, config.port) as imap:
+            with imaplib.IMAP4(host, config.port) as imap:
                 imap.starttls()
                 imap.login(config.user, config.password)
                 imap.noop()
-                print_status("IMAP", config.host, config.port, config.use_ssl, True)
+                print_status("IMAP", host, config.port, config.use_ssl, True)
                 result["success"] = True
     except Exception as e:
         print_status("IMAP", config.host, config.port, config.use_ssl, False, str(e))
@@ -153,19 +164,21 @@ def check_smtp(config: ConnectionConfig):
         "error": None,
     }
     try:
+        host = validate_mail_server_host(config.host)
+        result["host"] = host
         if config.use_ssl:
             ctx = ssl.create_default_context()
-            with smtplib.SMTP_SSL(config.host, config.port, context=ctx) as smtp:
+            with smtplib.SMTP_SSL(host, config.port, context=ctx) as smtp:
                 smtp.login(config.user, config.password)
                 smtp.noop()
-                print_status("SMTP", config.host, config.port, config.use_ssl, True)
+                print_status("SMTP", host, config.port, config.use_ssl, True)
                 result["success"] = True
         else:
-            with smtplib.SMTP(config.host, config.port) as smtp:
+            with smtplib.SMTP(host, config.port) as smtp:
                 smtp.starttls()
                 smtp.login(config.user, config.password)
                 smtp.noop()
-                print_status("SMTP", config.host, config.port, config.use_ssl, True)
+                print_status("SMTP", host, config.port, config.use_ssl, True)
                 result["success"] = True
     except Exception as e:
         print_status("SMTP", config.host, config.port, config.use_ssl, False, str(e))
@@ -189,7 +202,7 @@ def _check_gmail() -> List[dict]:
             check_imap(
                 ConnectionConfig(
                     "Gmail",
-                    os.getenv("GMAIL_IMAP_SERVER", "imap.gmail.com"),
+                    os.getenv("GMAIL_IMAP_SERVER") or "imap.gmail.com",
                     int(os.getenv("GMAIL_IMAP_PORT", "993")),
                     True,
                     email,
@@ -202,7 +215,7 @@ def _check_gmail() -> List[dict]:
             check_smtp(
                 ConnectionConfig(
                     "Gmail",
-                    os.getenv("GMAIL_SMTP_SERVER", "smtp.gmail.com"),
+                    os.getenv("GMAIL_SMTP_SERVER") or "smtp.gmail.com",
                     int(os.getenv("GMAIL_SMTP_PORT", "465")),
                     True,
                     email,
@@ -225,7 +238,7 @@ def _check_outlook() -> List[dict]:
             check_imap(
                 ConnectionConfig(
                     "Outlook",
-                    os.getenv("OUTLOOK_IMAP_SERVER", "outlook.office365.com"),
+                    os.getenv("OUTLOOK_IMAP_SERVER") or "outlook.office365.com",
                     int(os.getenv("OUTLOOK_IMAP_PORT", "993")),
                     True,
                     email,
@@ -239,7 +252,7 @@ def _check_outlook() -> List[dict]:
             check_smtp(
                 ConnectionConfig(
                     "Outlook",
-                    os.getenv("OUTLOOK_SMTP_SERVER", "smtp.office365.com"),
+                    os.getenv("OUTLOOK_SMTP_SERVER") or "smtp.office365.com",
                     int(os.getenv("OUTLOOK_SMTP_PORT", "587")),
                     False,  # Outlook SMTP usually uses STARTTLS
                     email,
@@ -262,7 +275,7 @@ def _check_proton() -> List[dict]:
             check_imap(
                 ConnectionConfig(
                     "Proton",
-                    os.getenv("PROTON_IMAP_SERVER", "127.0.0.1"),
+                    os.getenv("PROTON_IMAP_SERVER") or "127.0.0.1",
                     int(os.getenv("PROTON_IMAP_PORT", "1143")),
                     False,
                     email,
@@ -275,7 +288,7 @@ def _check_proton() -> List[dict]:
             check_smtp(
                 ConnectionConfig(
                     "Proton",
-                    os.getenv("PROTON_SMTP_SERVER", "127.0.0.1"),
+                    os.getenv("PROTON_SMTP_SERVER") or "127.0.0.1",
                     int(os.getenv("PROTON_SMTP_PORT", "1025")),
                     False,
                     email,
