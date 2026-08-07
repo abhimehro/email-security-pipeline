@@ -458,6 +458,8 @@
 
 **Merged pull requests:**
 
+- 🎨 Palette: Add explicit formatting hint to email prompt [\#1439](https://github.com/abhimehro/email-security-pipeline/pull/1439) ([abhimehro](https://github.com/abhimehro))
+- chore\(repo-health\): archive status MDs, sync .env.example, Dependabot pip [\#1435](https://github.com/abhimehro/email-security-pipeline/pull/1435) ([cursor[bot]](https://github.com/apps/cursor))
 - chore\(actions\): consolidate workflow automation [\#1433](https://github.com/abhimehro/email-security-pipeline/pull/1433) ([abhimehro](https://github.com/abhimehro))
 - fix\(security\): ABHI-1686 validate email before subprocess and config use [\#1432](https://github.com/abhimehro/email-security-pipeline/pull/1432) ([abhimehro](https://github.com/abhimehro))
 - fix\(security\): unify IMAP/SMTP host allowlist to prevent SSRF via env-controlled servers \(ABHI-1685\) [\#1431](https://github.com/abhimehro/email-security-pipeline/pull/1431) ([abhimehro](https://github.com/abhimehro))
