@@ -2,7 +2,7 @@
 # NOTE: This intentionally avoids the optional NLP/ML stacks (torch/transformers)
 # so PR validation stays fast and reliable.
 
-certifi==2026.6.17
+certifi==2026.7.22
 charset-normalizer==3.4.9
 idna==3.18
 numpy==2.5.1
