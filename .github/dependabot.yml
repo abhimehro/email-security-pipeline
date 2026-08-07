@@ -10,3 +10,14 @@ updates:
     labels:
       - "dependencies"
       - "github_actions"
+
+  # pip requirements (CI + runtime pins)
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    assignees:
+      - "abhimehro"
+    labels:
+      - "dependencies"
+      - "python"
