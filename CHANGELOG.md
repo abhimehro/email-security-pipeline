@@ -458,6 +458,10 @@
 
 **Merged pull requests:**
 
+- chore\(deps\): bump certifi from 2026.6.17 to 2026.7.22 [\#1446](https://github.com/abhimehro/email-security-pipeline/pull/1446) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps\): bump pytest from 9.0.3 to 9.1.1 [\#1445](https://github.com/abhimehro/email-security-pipeline/pull/1445) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps\): bump pre-commit from 4.5.1 to 4.6.1 [\#1443](https://github.com/abhimehro/email-security-pipeline/pull/1443) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Daily QA Review [\#1442](https://github.com/abhimehro/email-security-pipeline/pull/1442) ([abhimehro](https://github.com/abhimehro))
 - 🎨 Palette: Add explicit formatting hint to email prompt [\#1439](https://github.com/abhimehro/email-security-pipeline/pull/1439) ([abhimehro](https://github.com/abhimehro))
 - chore\(repo-health\): archive status MDs, sync .env.example, Dependabot pip [\#1435](https://github.com/abhimehro/email-security-pipeline/pull/1435) ([cursor[bot]](https://github.com/apps/cursor))
 - chore\(actions\): consolidate workflow automation [\#1433](https://github.com/abhimehro/email-security-pipeline/pull/1433) ([abhimehro](https://github.com/abhimehro))
