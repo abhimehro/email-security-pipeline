@@ -28,7 +28,12 @@ class WizardSkipped(Exception):
     """Raised when the user intentionally skips interactive setup."""
 
 
-from src.utils.security_validators import is_safe_email
+try:
+    from src.utils.security_validators import is_safe_email
+except ImportError:
+    # Allow running this file directly from src/utils/ when the package root
+    # is not on sys.path (the module only depends on the standard library).
+    from security_validators import is_safe_email
 
 try:
     from src.modules.imap_connection import IMAPConnection

@@ -12,8 +12,6 @@ import sys
 # Add the project root directory to the Python path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from src.modules.email_ingestion import EmailIngestionManager
-from src.utils.config import Config
 from src.utils.security_validators import is_safe_email
 
 # Set up basic logging
@@ -36,6 +34,10 @@ def main():
         # Use %r and truncation to prevent log-forging from attacker-controlled input.
         logging.error("Invalid or unsafe email address: %r", args.email[:80])
         sys.exit(1)
+
+    # Import heavier project modules only after input validation succeeds.
+    from src.modules.email_ingestion import EmailIngestionManager
+    from src.utils.config import Config
 
     # Load email configurations from environment variables
     config = Config()

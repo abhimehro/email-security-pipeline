@@ -287,8 +287,10 @@ class Config:
             if not account.email or not account.app_password:
                 errors.append(f"Missing credentials for {account.provider} account")
             elif not is_safe_email(account.email):
+                # Avoid echoing long/attacker-controlled values verbatim.
+                email_display = str(account.email)[:80]
                 errors.append(
-                    f"Invalid email format for {account.provider} account: {account.email}"
+                    f"Invalid email format for {account.provider} account: {email_display!r}"
                 )
             if not account.folders:
                 errors.append(f"No folders configured for {account.provider} account")

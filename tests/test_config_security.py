@@ -163,7 +163,8 @@ class TestEmailValidation(unittest.TestCase):
             "GMAIL_FOLDERS": "INBOX",
             "GMAIL_USE_SSL": "true",
         }
-        with patch.dict(os.environ, env, clear=False):
+        # Use clear=True so ambient environment variables cannot affect these tests.
+        with patch.dict(os.environ, env, clear=True):
             config = Config(env_file="nonexistent.env")
             try:
                 config.validate()
