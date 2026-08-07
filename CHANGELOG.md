@@ -26,6 +26,7 @@
 **Security fixes:**
 
 - P2: Potential Command Injection in Test Script [\#1426](https://github.com/abhimehro/email-security-pipeline/issues/1426)
+- P1: SSRF Vulnerability via Configurable IMAP Server [\#1425](https://github.com/abhimehro/email-security-pipeline/issues/1425)
 - P0: Password Exposure via Shell Variable in setup.sh [\#1236](https://github.com/abhimehro/email-security-pipeline/issues/1236)
 - Security Review: No validated medium+ vulnerabilities \(2026-05-21\) [\#890](https://github.com/abhimehro/email-security-pipeline/issues/890)
 - \[Security\] Script injection via workflow\_dispatch input in copilot-setup-steps.yml \(CWE-94\) [\#882](https://github.com/abhimehro/email-security-pipeline/issues/882)
@@ -459,6 +460,7 @@
 
 - chore\(actions\): consolidate workflow automation [\#1433](https://github.com/abhimehro/email-security-pipeline/pull/1433) ([abhimehro](https://github.com/abhimehro))
 - fix\(security\): ABHI-1686 validate email before subprocess and config use [\#1432](https://github.com/abhimehro/email-security-pipeline/pull/1432) ([abhimehro](https://github.com/abhimehro))
+- fix\(security\): unify IMAP/SMTP host allowlist to prevent SSRF via env-controlled servers \(ABHI-1685\) [\#1431](https://github.com/abhimehro/email-security-pipeline/pull/1431) ([abhimehro](https://github.com/abhimehro))
 - chore\(actions\): consolidate workflow automation [\#1428](https://github.com/abhimehro/email-security-pipeline/pull/1428) ([abhimehro](https://github.com/abhimehro))
 - 🎨 Palette: Fix flake8 style violations [\#1427](https://github.com/abhimehro/email-security-pipeline/pull/1427) ([abhimehro](https://github.com/abhimehro))
 - 🎨 Palette: Dynamic risk-based colorization for Analysis complete logs [\#1423](https://github.com/abhimehro/email-security-pipeline/pull/1423) ([abhimehro](https://github.com/abhimehro))
