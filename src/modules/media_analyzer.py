@@ -449,35 +449,26 @@ class MediaAuthenticityAnalyzer:
         return result
 
 
-    def _check_deepfake_indicators(
-        self, filename: str, data: bytes, content_type: str
+    def _check_basic_heuristics(
+        self, filename: str, data: bytes
     ) -> Tuple[float, List[str]]:
-        """
-        Check for potential deepfake indicators using advanced analysis.
-        """
+        """Check basic file size and metadata heuristics."""
         score = 0.0
         indicators = []
-
         filename_lower = filename.lower()
-
-        # Check if file is audio/video
-        # Optimization: O(1) loop iteration using tuple-based endswith() check
-        is_media = filename_lower.endswith(self.MEDIA_EXTENSIONS)
-
-        if not is_media:
-            return score, indicators
-
-        # Basic heuristics
         if filename_lower.endswith((".mp4", ".avi", ".mov")):
             size = len(data)
             if size < 100 * 1024:  # Less than 100KB
                 score += 0.5
                 indicators.append(f"Suspicious video size: {filename}")
+        return score, indicators
 
-        if not self.config.deepfake_detection_enabled:
-            return score, indicators
-
-        # Advanced ML-based detection
+    def _run_advanced_deepfake_detection(
+        self, filename: str, data: bytes, content_type: str
+    ) -> Tuple[float, List[str]]:
+        """Run advanced ML-based deepfake detection."""
+        score = 0.0
+        indicators = []
         temp_file_path = None
         try:
             # Create a temporary file to work with OpenCV
@@ -516,6 +507,34 @@ class MediaAuthenticityAnalyzer:
                     self.logger.warning(
                         f"Failed to delete temp file {temp_file_path}: {e}"
                     )
+
+        return score, indicators
+
+    def _check_deepfake_indicators(
+        self, filename: str, data: bytes, content_type: str
+    ) -> Tuple[float, List[str]]:
+        """
+        Check for potential deepfake indicators using advanced analysis.
+        """
+        filename_lower = filename.lower()
+
+        # Check if file is audio/video
+        # Optimization: O(1) loop iteration using tuple-based endswith() check
+        is_media = filename_lower.endswith(self.MEDIA_EXTENSIONS)
+
+        if not is_media:
+            return 0.0, []
+
+        score, indicators = self._check_basic_heuristics(filename, data)
+
+        if not self.config.deepfake_detection_enabled:
+            return score, indicators
+
+        adv_score, adv_indicators = self._run_advanced_deepfake_detection(
+            filename, data, content_type
+        )
+        score += adv_score
+        indicators.extend(adv_indicators)
 
         return score, indicators
 
