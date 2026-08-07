@@ -16,8 +16,8 @@ class TestUI(unittest.TestCase):
         timer = CountdownTimer(duration=2, message="Testing", interval=1.0)
         timer.start()
         output = mock_stdout.getvalue()
-        self.assertIn("2s", output)
-        self.assertIn("1s", output)
+        self.assertIn(" 2s", output)
+        self.assertIn(" 1s", output)
         self.assertIn("█", output)
 
     @patch("sys.stdout", new_callable=StringIO)

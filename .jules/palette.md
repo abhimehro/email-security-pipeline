@@ -578,3 +578,6 @@ throughout the entire lifecycle of the countdown element.
 ## 2025-03-02 - Dynamic Log Highlighting by Risk Level
 **Learning:** Hardcoding success colors (like GREEN) for operation completions is dangerous UX when the operation result itself represents a high-severity alert (e.g. "Analysis complete: risk=HIGH"). Green signals safety, contradicting the high-risk state.
 **Action:** Always parse the context or risk level in log formatters before applying semantic colors to completion messages, ensuring the visual cue matches the actual risk state.
+## 2025-03-02 - Consistent Dynamic Text Width in Spinners
+**Learning:** In CLI status indicators like loading spinners, dynamically showing and hiding textual elements (like elapsed time `[1.0s]`) or changing text widths causes abrupt visual layout shifts. This can be jarring and breaks the visual consistency of the UI.
+**Action:** Use fixed-width formatting for dynamic text elements or conditionally ensure that once an element is displayed, it remains visible (even if padded) to prevent the line length from jumping during updates.
