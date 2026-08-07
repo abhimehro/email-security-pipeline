@@ -223,6 +223,7 @@ def _prompt_for_email(provider_name: str) -> str:
         prompt = (
             Colors.colorize("? ", Colors.CYAN)
             + Colors.colorize(f"Enter your {provider_name} email address ", Colors.BOLD)
+            + Colors.colorize("(e.g. user@domain.com) ", Colors.GREY)
             + Colors.colorize("*", Colors.RED)
             + Colors.colorize(": ", Colors.BOLD)
         )
