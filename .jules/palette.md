@@ -578,3 +578,6 @@ throughout the entire lifecycle of the countdown element.
 ## 2025-03-02 - Dynamic Log Highlighting by Risk Level
 **Learning:** Hardcoding success colors (like GREEN) for operation completions is dangerous UX when the operation result itself represents a high-severity alert (e.g. "Analysis complete: risk=HIGH"). Green signals safety, contradicting the high-risk state.
 **Action:** Always parse the context or risk level in log formatters before applying semantic colors to completion messages, ensuring the visual cue matches the actual risk state.
+## 2025-03-02 - Fixed Widths for Dynamic Time Displays
+**Learning:** When displaying dynamic textual time elements like elapsed time on a terminal spinner, dynamically varying widths (e.g., from `[0.1s]` to `[1.0s]`, or `[9.9s]` to `[10.0s]`) causes horizontal visual layout shifts that are jarring and degrade the overall UX. Also, persisting the elapsed time when it is less than 1.0s ensures consistent visual structure.
+**Action:** Use fixed-width formatting (e.g. `[{elapsed:4.1f}s]`) for dynamic time displays to ensure consistent character length and prevent horizontal layout shifts during rapid updates. Show the timer display string even when time is < 1s to match the fixed width from the start.

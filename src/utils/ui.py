@@ -56,7 +56,8 @@ class CountdownTimer:
                 if self.duration >= 60:
                     time_str = f"{remaining // 60:02d}:{remaining % 60:02d}"
                 else:
-                    time_str = f"{remaining}s"
+                    width = len(str(self.duration))
+                    time_str = f"{remaining:{width}d}s"
 
                 # Progress bar
                 pct = remaining / self.duration if self.duration > 0 else 0
@@ -142,11 +143,8 @@ class Spinner:
 
         while self.busy:
             elapsed = time.time() - getattr(self, "start_time", time.time())
-            time_str = (
-                Colors.colorize(f" [{elapsed:.1f}s]", Colors.GREY)
-                if elapsed >= 1.0
-                else ""
-            )
+            # UX: Fixed width time display to prevent horizontal layout shift
+            time_str = Colors.colorize(f" [{elapsed:4.1f}s]", Colors.GREY) if elapsed >= 0.1 else ""
             # \r moves cursor to start of line, \033[K clears the line
             spin_char = Colors.colorize(next(self.spinner), Colors.CYAN)
             display_msg = self.message
@@ -226,7 +224,8 @@ class Spinner:
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         elapsed = time.time() - getattr(self, "start_time", time.time())
-        raw_time_str = f" [{elapsed:.1f}s]" if elapsed >= 1.0 else ""
+        # UX: Ensure completion matches the fixed width format
+        raw_time_str = f" [{elapsed:4.1f}s]"
 
         symbol, msg = self._get_final_message_components(exc_type)
 
