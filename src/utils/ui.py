@@ -141,16 +141,16 @@ class Spinner:
         # the initial message before the loop starts rapidly redrawing.
         time.sleep(0.1)
 
+        display_msg = self.message
+        if sys.stdout.isatty() and CTRL_C_HINT not in display_msg:
+            display_msg += Colors.colorize(CTRL_C_HINT, Colors.GREY)
+
         while self.busy:
             elapsed = time.time() - getattr(self, "start_time", time.time())
-            # UX: Fixed width time display to prevent horizontal layout shift
             time_str = Colors.colorize(f" [{elapsed:4.1f}s]", Colors.GREY) if elapsed >= 0.1 else ""
+
             # \r moves cursor to start of line, \033[K clears the line
             spin_char = Colors.colorize(next(self.spinner), Colors.CYAN)
-            display_msg = self.message
-            if sys.stdout.isatty():
-                if CTRL_C_HINT not in display_msg:
-                    display_msg += Colors.colorize(CTRL_C_HINT, Colors.GREY)
             sys.stdout.write(f"\r{spin_char} {display_msg}{time_str}   \033[K")
             sys.stdout.flush()
             time.sleep(self.delay)
@@ -224,7 +224,6 @@ class Spinner:
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         elapsed = time.time() - getattr(self, "start_time", time.time())
-        # UX: Ensure completion matches the fixed width format
         raw_time_str = f" [{elapsed:4.1f}s]"
 
         symbol, msg = self._get_final_message_components(exc_type)
