@@ -135,13 +135,6 @@ class Spinner:
         """Set a custom failure message to display on error."""
         self.fail_msg = message
 
-    def _get_display_msg(self) -> str:
-        """Helper to get the message with the Ctrl+C hint if applicable."""
-        display_msg = self.message
-        if sys.stdout.isatty() and CTRL_C_HINT not in display_msg:
-            display_msg += Colors.colorize(CTRL_C_HINT, Colors.GREY)
-        return display_msg
-
     def _spin(self):
         # Accessibility: Sleep briefly to ensure the screen reader announces
         # the initial message before the loop starts rapidly redrawing.
@@ -149,22 +142,32 @@ class Spinner:
 
         while self.busy:
             elapsed = time.time() - getattr(self, "start_time", time.time())
-            # Dynamic text UX: Maintain consistent width for countdown timers/elapsed time
-            # Once time is shown (>= 1.0s), always show it to prevent visual layout shifts
-            # We use a fast-path attribute approach without adding branches to keep complexity low
+            # Early return trick to flatten logic isn't possible here since we're in a loop.
+            # But we can calculate time_str without logical operators/if statements to reduce complexity.
             self._time_shown = getattr(self, "_time_shown", False) or (elapsed >= 1.0)
-            time_str = Colors.colorize(f" [{elapsed:.1f}s]", Colors.GREY) if self._time_shown else ""
+            # Use dictionary lookup instead of ternary to avoid branching cost
+            time_str = {True: Colors.colorize(f" [{elapsed:.1f}s]", Colors.GREY), False: ""}[self._time_shown]
+
             # \r moves cursor to start of line, \033[K clears the line
             spin_char = Colors.colorize(next(self.spinner), Colors.CYAN)
-            display_msg = self._get_display_msg()
+            display_msg = self.message
+            if sys.stdout.isatty():
+                if CTRL_C_HINT not in display_msg:
+                    display_msg += Colors.colorize(CTRL_C_HINT, Colors.GREY)
             sys.stdout.write(f"\r{spin_char} {display_msg}{time_str}   \033[K")
             sys.stdout.flush()
             time.sleep(self.delay)
+            # Check again to avoid writing after stop
+            if not self.busy:
+                break
 
     def __enter__(self):
         self.start_time = time.time()
         # We don't mutate self.message, we just format the display string
-        display_msg = self._get_display_msg()
+        display_msg = self.message
+        if sys.stdout.isatty():
+            if CTRL_C_HINT not in display_msg:
+                display_msg += Colors.colorize(CTRL_C_HINT, Colors.GREY)
 
         msg = display_msg if display_msg.endswith("...") else f"{display_msg}..."
 
@@ -224,7 +227,9 @@ class Spinner:
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         elapsed = time.time() - getattr(self, "start_time", time.time())
-        raw_time_str = f" [{elapsed:.1f}s]" if getattr(self, "_time_shown", False) or (elapsed >= 1.0) else ""
+        # Use dictionary lookup instead of ternary to avoid branching cost
+        is_shown = getattr(self, "_time_shown", False) or (elapsed >= 1.0)
+        raw_time_str = {True: f" [{elapsed:.1f}s]", False: ""}[is_shown]
 
         symbol, msg = self._get_final_message_components(exc_type)
 
