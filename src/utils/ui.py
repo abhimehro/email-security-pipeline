@@ -135,6 +135,13 @@ class Spinner:
         """Set a custom failure message to display on error."""
         self.fail_msg = message
 
+    def _get_display_msg(self) -> str:
+        """Helper to get the message with the Ctrl+C hint if applicable."""
+        display_msg = self.message
+        if sys.stdout.isatty() and CTRL_C_HINT not in display_msg:
+            display_msg += Colors.colorize(CTRL_C_HINT, Colors.GREY)
+        return display_msg
+
     def _spin(self):
         # Accessibility: Sleep briefly to ensure the screen reader announces
         # the initial message before the loop starts rapidly redrawing.
@@ -149,24 +156,15 @@ class Spinner:
             time_str = Colors.colorize(f" [{elapsed:.1f}s]", Colors.GREY) if self._time_shown else ""
             # \r moves cursor to start of line, \033[K clears the line
             spin_char = Colors.colorize(next(self.spinner), Colors.CYAN)
-            display_msg = self.message
-            if sys.stdout.isatty():
-                if CTRL_C_HINT not in display_msg:
-                    display_msg += Colors.colorize(CTRL_C_HINT, Colors.GREY)
+            display_msg = self._get_display_msg()
             sys.stdout.write(f"\r{spin_char} {display_msg}{time_str}   \033[K")
             sys.stdout.flush()
             time.sleep(self.delay)
-            # Check again to avoid writing after stop
-            if not self.busy:
-                break
 
     def __enter__(self):
         self.start_time = time.time()
         # We don't mutate self.message, we just format the display string
-        display_msg = self.message
-        if sys.stdout.isatty():
-            if CTRL_C_HINT not in display_msg:
-                display_msg += Colors.colorize(CTRL_C_HINT, Colors.GREY)
+        display_msg = self._get_display_msg()
 
         msg = display_msg if display_msg.endswith("...") else f"{display_msg}..."
 
