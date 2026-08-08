@@ -162,10 +162,10 @@ class EmailParser:
             key_lower = key.lower()
             decoded_val = self._decode_header_value(value)
 
-            if key_lower in headers:
+            existing = headers.get(key_lower)
+            if existing is not None:
                 # Handle duplicate headers
-                existing = headers[key_lower]
-                if isinstance(existing, list):
+                if type(existing) is list:
                     existing.append(decoded_val)
                 else:
                     headers[key_lower] = [existing, decoded_val]
@@ -282,16 +282,23 @@ class EmailParser:
         SECURITY STORY: Attackers may omit Content-Disposition or filenames
         to bypass analysis. We treat any non-body leaf part as an attachment.
         """
-        content_type = part.get_content_type()
+        # ⚡ BOLT: Early returns avoid evaluating all properties for every MIME part
         content_disposition = str(part.get("Content-Disposition", ""))
-        filename = part.get_filename()
+        if "attachment" in content_disposition:
+            return True
 
-        is_body = content_type in ("text/plain", "text/html")
-        return (
-            "attachment" in content_disposition
-            or bool(filename and filename.strip())
-            or (not is_body and not part.is_multipart())
-        )
+        filename = part.get_filename()
+        if filename and filename.strip():
+            return True
+
+        content_type = part.get_content_type()
+        if content_type == "text/plain" or content_type == "text/html":
+            return False
+
+        if part.is_multipart():
+            return False
+
+        return True
 
     def _process_multipart_part(
         self,
