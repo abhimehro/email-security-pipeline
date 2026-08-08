@@ -57,6 +57,21 @@ WINDOWS_RESERVED_NAMES = {
     "LPT9",
 }
 
+# Allowed mail server hosts to prevent SSRF via attacker-controlled *_IMAP_SERVER
+# or *_SMTP_SERVER environment variables. Hostnames are normalized (lowercase,
+# stripped, trailing FQDN dot removed) before the allowlist check.
+ALLOWED_MAIL_SERVER_HOSTS = frozenset(
+    {
+        "127.0.0.1",
+        "localhost",
+        "host.docker.internal",
+        "imap.gmail.com",
+        "outlook.office365.com",
+        "smtp.gmail.com",
+        "smtp.office365.com",
+    }
+)
+
 
 # Lazily evaluated IP properties for SSRF protection
 _BAD_IP_PROPERTIES = (
@@ -70,6 +85,42 @@ _BAD_IP_PROPERTIES = (
 
 
 logger = logging.getLogger(__name__)
+
+
+def _normalize_mail_server_host(host: str) -> str:
+    """Normalize a mail server hostname for allowlist comparison."""
+    return host.strip().lower().rstrip(".")
+
+
+def validate_mail_server_host(host: str) -> str:
+    """
+    Validate a mail server hostname against the allowed server list.
+
+    SECURITY STORY: Prevents SSRF and credential leakage by ensuring IMAP/SMTP
+    hosts can only point to trusted, expected servers. The allowlist is
+    hard-coded (not configurable) because a configurable allowlist would itself
+    be attacker-controllable via environment variables and reintroduce the SSRF.
+
+    Args:
+        host: Mail server hostname to validate.
+
+    Returns:
+        The normalized host (lowercase, stripped, no trailing FQDN dot).
+
+    Raises:
+        ValueError: If the host is empty or not in the allowed list.
+
+    """
+    if not host:
+        raise ValueError("IMAP/SMTP host is empty")
+
+    normalized = _normalize_mail_server_host(host)
+    if normalized not in ALLOWED_MAIL_SERVER_HOSTS:
+        raise ValueError(
+            f"IMAP/SMTP host '{normalized}' is not in the allowed server list"
+        )
+
+    return normalized
 
 
 def sanitize_filename(filename: str) -> str:
@@ -126,6 +177,70 @@ def sanitize_filename(filename: str) -> str:
 
     # Truncate to reasonable length (255 is typical filesystem limit)
     return sanitized[:255]
+
+
+# Maximum length for a valid email address (RFC 5321)
+_MAX_EMAIL_LENGTH = 254
+
+# Whitelist pattern for an email address.
+# Local part allows letters, digits, dots, underscores, percent, plus, and hyphens.
+# Domain part follows hostname-style ASCII characters (letters, digits, dots,
+# and hyphens) to keep the whitelist strict and avoid Unicode/underscore drift.
+# The TLD is required to be at least two letters.
+# Does NOT allow shell metacharacters such as ; | & ` $ < > \ or whitespace.
+_SAFE_EMAIL_PATTERN = re.compile(
+    r"^[a-zA-Z0-9._%+-]+@[A-Za-z0-9.-]+\.[a-zA-Z]{2,}$"
+)
+
+
+def _is_safe_label(label: str) -> bool:
+    """Return True if a domain label does not start/end with '.' or '-'."""
+    return bool(label) and not (
+        label.startswith((".", "-")) or label.endswith((".", "-"))
+    )
+
+
+def _is_safe_local(local: str) -> bool:
+    """Return True if the local part does not start/end with '.' or '-'."""
+    return not (local.startswith((".", "-")) or local.endswith((".", "-")))
+
+
+def is_safe_email(email: str) -> bool:
+    """
+    Validate an email address for safe use in command arguments and IMAP config.
+
+    SECURITY STORY: Email addresses loaded from user configuration are passed
+    directly to subprocess calls and IMAP clients. A malicious value could
+    contain shell metacharacters (e.g., `;`, `|`, `&`, backticks) or be
+    interpreted as a command-line flag (e.g., a leading `-`). This validator
+    uses a strict whitelist to reject unsafe characters and structural issues.
+
+    Args:
+        email: Email address to validate.
+
+    Returns:
+        True if the email appears safe and well-formed, False otherwise.
+    """
+    if not isinstance(email, str) or len(email) > _MAX_EMAIL_LENGTH:
+        return False
+
+    # Reject consecutive dots anywhere in the address.
+    if ".." in email:
+        return False
+
+    if not _SAFE_EMAIL_PATTERN.match(email):
+        return False
+
+    local, _, domain = email.partition("@")
+
+    if not _is_safe_local(local):
+        return False
+
+    for label in domain.split("."):
+        if not _is_safe_label(label):
+            return False
+
+    return True
 
 
 def create_secure_ssl_context() -> ssl.SSLContext:

@@ -11,7 +11,12 @@ from urllib.parse import urlparse
 
 from dotenv import load_dotenv
 
-from .security_validators import is_safe_webhook_url
+from .security_validators import (
+    _normalize_mail_server_host,
+    is_safe_email,
+    is_safe_webhook_url,
+    validate_mail_server_host,
+)
 
 
 class ConfigurationError(Exception):
@@ -32,6 +37,13 @@ class EmailAccountConfig:
     folders: List[str]
     provider: str
     use_ssl: bool
+    smtp_server: Optional[str] = None
+
+    def __post_init__(self):
+        """Normalize server hostnames so comparisons and connections match."""
+        self.imap_server = _normalize_mail_server_host(self.imap_server)
+        if self.smtp_server is not None:
+            self.smtp_server = _normalize_mail_server_host(self.smtp_server)
 
 
 @dataclass
@@ -104,6 +116,12 @@ class SystemConfig:
 class Config:
     """Main configuration class."""
 
+    _PROVIDER_DEFAULTS = {
+        "gmail": ("imap.gmail.com", "smtp.gmail.com", 993),
+        "outlook": ("outlook.office365.com", "smtp.office365.com", 993),
+        "proton": ("127.0.0.1", "127.0.0.1", 1143),
+    }
+
     def __init__(self, env_file: str = ".env"):
         """
         Initialize configuration from environment file.
@@ -119,54 +137,39 @@ class Config:
         self.alerts = self._load_alert_config()
         self.system = self._load_system_config()
 
+    def _build_email_account(
+        self,
+        provider: str,
+        prefix: str,
+        defaults: tuple,
+    ) -> EmailAccountConfig:
+        """Build an EmailAccountConfig from environment variables for one provider."""
+        imap_default, smtp_default, port_default = defaults
+        return EmailAccountConfig(
+            enabled=True,
+            email=os.getenv(f"{prefix}_EMAIL", ""),
+            imap_server=os.getenv(f"{prefix}_IMAP_SERVER") or imap_default,
+            imap_port=int(os.getenv(f"{prefix}_IMAP_PORT", str(port_default))),
+            app_password=os.getenv(f"{prefix}_APP_PASSWORD", ""),
+            folders=self._parse_folders(os.getenv(f"{prefix}_FOLDERS", "INBOX")),
+            provider=provider,
+            use_ssl=self._get_bool(f"{prefix}_USE_SSL", True),
+            smtp_server=os.getenv(f"{prefix}_SMTP_SERVER") or smtp_default,
+        )
+
     def _load_email_accounts(self) -> List[EmailAccountConfig]:
         """Load email account configurations."""
         accounts = []
 
-        # Gmail
-        if self._get_bool("GMAIL_ENABLED", False):
+        for provider, defaults in self._PROVIDER_DEFAULTS.items():
+            prefix = provider.upper()
+            if not self._get_bool(f"{prefix}_ENABLED", False):
+                continue
             accounts.append(
-                EmailAccountConfig(
-                    enabled=True,
-                    email=os.getenv("GMAIL_EMAIL", ""),
-                    imap_server=os.getenv("GMAIL_IMAP_SERVER", "imap.gmail.com"),
-                    imap_port=int(os.getenv("GMAIL_IMAP_PORT", "993")),
-                    app_password=os.getenv("GMAIL_APP_PASSWORD", ""),
-                    folders=self._parse_folders(os.getenv("GMAIL_FOLDERS", "INBOX")),
-                    provider="gmail",
-                    use_ssl=self._get_bool("GMAIL_USE_SSL", True),
-                )
-            )
-
-        # Outlook
-        if self._get_bool("OUTLOOK_ENABLED", False):
-            accounts.append(
-                EmailAccountConfig(
-                    enabled=True,
-                    email=os.getenv("OUTLOOK_EMAIL", ""),
-                    imap_server=os.getenv(
-                        "OUTLOOK_IMAP_SERVER", "outlook.office365.com"
-                    ),
-                    imap_port=int(os.getenv("OUTLOOK_IMAP_PORT", "993")),
-                    app_password=os.getenv("OUTLOOK_APP_PASSWORD", ""),
-                    folders=self._parse_folders(os.getenv("OUTLOOK_FOLDERS", "INBOX")),
-                    provider="outlook",
-                    use_ssl=self._get_bool("OUTLOOK_USE_SSL", True),
-                )
-            )
-
-        # Proton Mail
-        if self._get_bool("PROTON_ENABLED", False):
-            accounts.append(
-                EmailAccountConfig(
-                    enabled=True,
-                    email=os.getenv("PROTON_EMAIL", ""),
-                    imap_server=os.getenv("PROTON_IMAP_SERVER", "127.0.0.1"),
-                    imap_port=int(os.getenv("PROTON_IMAP_PORT", "1143")),
-                    app_password=os.getenv("PROTON_APP_PASSWORD", ""),
-                    folders=self._parse_folders(os.getenv("PROTON_FOLDERS", "INBOX")),
-                    provider="proton",
-                    use_ssl=self._get_bool("PROTON_USE_SSL", True),
+                self._build_email_account(
+                    provider,
+                    prefix,
+                    defaults,
                 )
             )
 
@@ -277,6 +280,29 @@ class Config:
             return False
         return parsed.scheme == "https" and bool(parsed.hostname)
 
+    def _append_host_error(
+        self,
+        label: str,
+        server: str,
+        provider: str,
+        errors: List[str],
+    ) -> None:
+        """Validate a single mail server host and append any error."""
+        try:
+            validate_mail_server_host(server)
+        except ValueError as e:
+            errors.append(f"{label} server for {provider} account: {e}")
+
+    def _add_account_host_errors(
+        self, account: EmailAccountConfig, errors: List[str]
+    ) -> None:
+        """Validate an account's IMAP and SMTP hosts against the allowlist."""
+        self._append_host_error("IMAP", account.imap_server, account.provider, errors)
+        if account.smtp_server is not None:
+            self._append_host_error(
+                "SMTP", account.smtp_server, account.provider, errors
+            )
+
     def _validate_email_accounts(self) -> List[str]:
         """Validate email account configurations."""
         errors = []
@@ -286,10 +312,17 @@ class Config:
         for account in self.email_accounts:
             if not account.email or not account.app_password:
                 errors.append(f"Missing credentials for {account.provider} account")
+            elif not is_safe_email(account.email):
+                # Avoid echoing long/attacker-controlled values verbatim.
+                email_display = str(account.email)[:80]
+                errors.append(
+                    f"Invalid email format for {account.provider} account: {email_display!r}"
+                )
             if not account.folders:
                 errors.append(f"No folders configured for {account.provider} account")
             if account.imap_port <= 0:
                 errors.append(f"Invalid IMAP port for {account.provider} account")
+            self._add_account_host_errors(account, errors)
         return errors
 
     def _validate_webhook_config(self, errors: List[str]) -> None:

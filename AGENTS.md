@@ -24,9 +24,8 @@ required.
 python3 -m pre_commit run --all-files
 ```
 
-Note: the repo has pre-existing lint issues (trailing whitespace, EOF fixes,
-case-conflict in `.Jules`/`.jules` dirs, `.bandit` config parse error). These
-are not regressions.
+Note: the repo may have pre-existing lint issues (trailing whitespace, EOF
+fixes). These are not regressions.
 
 ### Running the application
 

@@ -191,6 +191,33 @@ def test_analyzer_initialization():
         return False
 
 
+def _validate_config_for_test(config) -> bool:
+    """Validate config for the connection test, printing any errors."""
+    from src.utils.config import ConfigurationError
+
+    try:
+        config.validate()
+        return True
+    except ConfigurationError as e:
+        print("❌ Configuration validation failed:")
+        for error in e.args[0]:
+            print(f"  - {error}")
+        return False
+
+
+def _print_client_folders(client, email: str) -> None:
+    """List folders for a connected client, printing results or errors."""
+    try:
+        folders = client.list_folders()
+        print(f"  - {email}: Found {len(folders)} folder(s)")
+        if folders:
+            print(
+                f"    Folders: {', '.join(folders[:5])}{'...' if len(folders) > 5 else ''}"
+            )
+    except Exception as e:
+        print(f"  - {email}: Error listing folders - {e}")
+
+
 def test_imap_connections(test_connections=True):
     """Test IMAP connections (optional)."""
     print("\n" + "=" * 60)
@@ -206,6 +233,8 @@ def test_imap_connections(test_connections=True):
         from src.utils.config import Config
 
         config = Config(".env")
+        if not _validate_config_for_test(config):
+            return False
 
         if not config.email_accounts:
             print("⚠️  No email accounts configured, skipping connection test")
@@ -225,15 +254,7 @@ def test_imap_connections(test_connections=True):
 
             # List folders for each account
             for email, client in ingestion_manager.clients.items():
-                try:
-                    folders = client.list_folders()
-                    print(f"  - {email}: Found {len(folders)} folder(s)")
-                    if folders:
-                        print(
-                            f"    Folders: {', '.join(folders[:5])}{'...' if len(folders) > 5 else ''}"
-                        )
-                except Exception as e:
-                    print(f"  - {email}: Error listing folders - {e}")
+                _print_client_folders(client, email)
 
             # Clean up
             ingestion_manager.close_all_connections()
@@ -310,8 +331,13 @@ def _run_diagnostics_script(
     script_path: str, email: str
 ) -> subprocess.CompletedProcess:
     """Run the diagnostics script and return the result."""
-    return subprocess.run(
-        ["python3", script_path, email],
+    from src.utils.security_validators import is_safe_email
+
+    if not is_safe_email(email):
+        raise ValueError(f"Invalid or unsafe email address for diagnostics: {email}")
+
+    return subprocess.run(  # nosec B603: email is validated by is_safe_email(); script_path is a repository-controlled constant, not user input.
+        [sys.executable, script_path, email],
         capture_output=True,
         text=True,
         check=False,

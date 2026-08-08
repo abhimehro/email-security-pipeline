@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import List, NoReturn, Optional
 
 from src.utils.colors import Colors
-from src.utils.config import Config
+from src.utils.config import Config, ConfigurationError
 from src.utils.setup_wizard import run_setup_wizard
 
 
@@ -236,9 +236,11 @@ class AppRunner:
         )
 
     def validate_config(self) -> None:
-        """Validate the configuration to ensure default credentials aren't used."""
+        """Validate configuration before starting the pipeline."""
         try:
             config_validator = Config(self.config_file)
+            config_validator.validate()
+
             from src.utils.validators import check_default_credentials
 
             errors = check_default_credentials(config_validator)
@@ -267,6 +269,18 @@ class AppRunner:
                 )
                 sys.exit(1)
 
+        except ConfigurationError as e:
+            print("\n" + "✖ " + Colors.colorize("Configuration Error:", Colors.RED))
+            for error in e.args[0]:
+                print(f"  • {Colors.colorize(error, Colors.YELLOW)}")
+            print(
+                "\n"
+                + Colors.colorize(
+                    "Please edit your configuration file and ensure all settings are valid.",
+                    Colors.YELLOW,
+                )
+            )
+            sys.exit(1)
         except Exception as e:
             print(
                 Colors.colorize(
