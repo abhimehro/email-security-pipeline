@@ -70,3 +70,6 @@ generator overhead when iteration is necessary in hot paths.
 ## 2026-08-01 — SpamAnalyzer auth/header fast-path (salvage #1399)
 
 Salvaged spam_analyzer.py Bolt fast-path helpers only. Rejected alert_*/media_* module collapse from the original PR.
+## 2024-08-08 - Early Returns and Dictionary Lookups in Hot Paths
+**Learning:** In highly trafficked parser methods (like checking MIME parts), evaluating large compound boolean expressions computes unnecessary object properties (like `get_filename()` and `get_content_type()`). Also, double dictionary lookups (`if key in dict: dict[key]`) are measurably slower than a single `.get()` with `None` checking.
+**Action:** Apply early returns to exit fast-paths instantly, and use `.get()` with `type() is list` instead of `isinstance` for hot dictionary lookups.
