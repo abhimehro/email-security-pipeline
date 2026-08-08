@@ -44,6 +44,12 @@
 
 **Closed issues:**
 
+- Daily QA & Agentic Review — 2026-08-07 [\#1448](https://github.com/abhimehro/email-security-pipeline/issues/1448)
+- \[repo-automation\] Daily Status Report - 2026-08-07 [\#1441](https://github.com/abhimehro/email-security-pipeline/issues/1441)
+- Daily QA & Agentic Review — 2026-08-06 [\#1438](https://github.com/abhimehro/email-security-pipeline/issues/1438)
+- \[repo-health\] Delete stale remotes + decide DATABASE\_\* stubs [\#1436](https://github.com/abhimehro/email-security-pipeline/issues/1436)
+- \[repo-automation\] Daily Status Report - 2026-08-06 [\#1434](https://github.com/abhimehro/email-security-pipeline/issues/1434)
+- Daily QA & Agentic Review — 2026-08-05 [\#1430](https://github.com/abhimehro/email-security-pipeline/issues/1430)
 - \[repo-automation\] Daily Status Report - 2026-08-05 [\#1429](https://github.com/abhimehro/email-security-pipeline/issues/1429)
 - Daily QA & Agentic Review — 2026-08-04 [\#1424](https://github.com/abhimehro/email-security-pipeline/issues/1424)
 - \[repo-automation\] Daily Status Report - 2026-08-04 [\#1422](https://github.com/abhimehro/email-security-pipeline/issues/1422)
@@ -458,6 +464,7 @@
 
 **Merged pull requests:**
 
+- ⚡ Bolt: Optimize email header extraction and attachment checks [\#1449](https://github.com/abhimehro/email-security-pipeline/pull/1449) ([abhimehro](https://github.com/abhimehro))
 - chore\(deps\): bump certifi from 2026.6.17 to 2026.7.22 [\#1446](https://github.com/abhimehro/email-security-pipeline/pull/1446) ([dependabot[bot]](https://github.com/apps/dependabot))
 - chore\(deps\): bump pytest from 9.0.3 to 9.1.1 [\#1445](https://github.com/abhimehro/email-security-pipeline/pull/1445) ([dependabot[bot]](https://github.com/apps/dependabot))
 - chore\(deps\): bump pre-commit from 4.5.1 to 4.6.1 [\#1443](https://github.com/abhimehro/email-security-pipeline/pull/1443) ([dependabot[bot]](https://github.com/apps/dependabot))
