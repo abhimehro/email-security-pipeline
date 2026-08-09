@@ -201,7 +201,7 @@ class TestSpinner(unittest.TestCase):
             time.sleep(0.15)
 
         output = mock_stdout.getvalue()
-        self.assertRegex(output, r"\[1\.\d+s\]")
+        self.assertRegex(output, r"\[\s*1\.\d+s\]")
         self.assertIn("Press Ctrl+C to stop", output)
 
     @patch("sys.stdout", new_callable=StringIO)
