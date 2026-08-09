@@ -160,19 +160,21 @@ class EmailParser:
 
         for key, value in msg.items():
             key_lower = key.lower()
-            decoded_val = self._decode_header_value(value)
-
-            existing = headers.get(key_lower)
-            if existing is not None:
-                # Handle duplicate headers
-                if type(existing) is list:
-                    existing.append(decoded_val)
-                else:
-                    headers[key_lower] = [existing, decoded_val]
-            else:
-                headers[key_lower] = decoded_val
-
+            decoded_val = self._decode_header_value(value) if "=?" in value else value
+            self._insert_header(headers, key_lower, decoded_val)
         return headers
+
+    def _insert_header(
+        self, headers: Dict[str, Union[str, List[str]]], key: str, value: str
+    ) -> None:
+        existing = headers.get(key)
+        if existing is not None:
+            if type(existing) is list:
+                existing.append(value)
+            else:
+                headers[key] = [existing, value]
+        else:
+            headers[key] = value
 
     def _extract_subject(self, msg: Message, email_id: str) -> str:
         """
