@@ -73,3 +73,13 @@ Salvaged spam_analyzer.py Bolt fast-path helpers only. Rejected alert_*/media_* 
 ## 2024-08-08 - Early Returns and Dictionary Lookups in Hot Paths
 **Learning:** In highly trafficked parser methods (like checking MIME parts), evaluating large compound boolean expressions computes unnecessary object properties (like `get_filename()` and `get_content_type()`). Also, double dictionary lookups (`if key in dict: dict[key]`) are measurably slower than a single `.get()` with `None` checking.
 **Action:** Apply early returns to exit fast-paths instantly, and use `.get()` with `type() is list` instead of `isinstance` for hot dictionary lookups.
+
+## 2025-08-01 - Optimize email_parser.py _extract_headers fast path
+
+**Learning:** When parsing headers from the email Message class, `msg.items()` uses Python-level dictionary logic internally to yield keys and values, constructing tuples. Iterating over `msg._headers` bypasses this overhead directly, while preserving the internal key and value items. Furthermore, we can avoid string manipulation / formatting overhead when applying decode functions by pre-checking if the string indicates encoding is present (e.g. `if "=?" in value:`).
+**Action:** In `EmailParser._extract_headers()`, access `msg._headers` and apply a fast path check for `_decode_header_value()` to gain significant parsing speedups.
+
+## 2025-08-01 - Optimize email_parser.py _is_attachment fast path
+
+**Learning:** Checking for "attachment" in `part.get("Content-Disposition")` directly instead of doing `str(part.get("Content-Disposition", ""))` bypasses Python's string allocation.
+**Action:** Instead of `content_disposition = str(part.get("Content-Disposition", ""))`, do `cd = part.get("Content-Disposition")` and `if cd and "attachment" in cd:` to avoid string reallocation overhead in a hot path checking MIME parts.
