@@ -158,25 +158,23 @@ class EmailParser:
         """
         headers: Dict[str, Union[str, List[str]]] = {}
 
-        # ⚡ BOLT: Optimization - only decode when RFC 2047 encoding is present.
-        # This provides a significant speedup for header parsing which is a hot path.
         for key, value in msg.items():
             key_lower = key.lower()
-
-            # Optimization: Avoid function call and decoding overhead for plain text
             decoded_val = self._decode_header_value(value) if "=?" in value else value
-
-            existing = headers.get(key_lower)
-            if existing is not None:
-                # Handle duplicate headers
-                if type(existing) is list:
-                    existing.append(decoded_val)
-                else:
-                    headers[key_lower] = [existing, decoded_val]
-            else:
-                headers[key_lower] = decoded_val
-
+            self._insert_header(headers, key_lower, decoded_val)
         return headers
+
+    def _insert_header(
+        self, headers: Dict[str, Union[str, List[str]]], key: str, value: str
+    ) -> None:
+        existing = headers.get(key)
+        if existing is not None:
+            if type(existing) is list:
+                existing.append(value)
+            else:
+                headers[key] = [existing, value]
+        else:
+            headers[key] = value
 
     def _extract_subject(self, msg: Message, email_id: str) -> str:
         """
@@ -286,10 +284,9 @@ class EmailParser:
         SECURITY STORY: Attackers may omit Content-Disposition or filenames
         to bypass analysis. We treat any non-body leaf part as an attachment.
         """
-        # ⚡ BOLT: Optimization - Avoid allocating a new string by checking if "attachment"
-        # is in the original header value. This avoids the overhead of str() cast.
-        cd = part.get("Content-Disposition")
-        if cd and "attachment" in cd:
+        # ⚡ BOLT: Early returns avoid evaluating all properties for every MIME part
+        content_disposition = str(part.get("Content-Disposition", ""))
+        if "attachment" in content_disposition:
             return True
 
         filename = part.get_filename()
@@ -297,7 +294,7 @@ class EmailParser:
             return True
 
         content_type = part.get_content_type()
-        if content_type in ("text/plain", "text/html"):
+        if content_type == "text/plain" or content_type == "text/html":
             return False
 
         if part.is_multipart():
