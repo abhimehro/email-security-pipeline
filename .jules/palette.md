@@ -581,3 +581,7 @@ throughout the entire lifecycle of the countdown element.
 ## 2025-03-02 - Fixed Widths for Dynamic Time Displays
 **Learning:** When displaying dynamic textual time elements like elapsed time on a terminal spinner, dynamically varying widths (e.g., from `[0.1s]` to `[1.0s]`, or `[9.9s]` to `[10.0s]`) causes horizontal visual layout shifts that are jarring and degrade the overall UX. Also, persisting the elapsed time when it is less than 1.0s ensures consistent visual structure.
 **Action:** Use fixed-width formatting (e.g. `[{elapsed:4.1f}s]`) for dynamic time displays to ensure consistent character length and prevent horizontal layout shifts during rapid updates. Show the timer display string even when time is < 1s to match the fixed width from the start.
+
+## 2026-08-10 - Prevent Layout Shift in Dynamic Timers
+**Learning:** Toggling the visibility of dynamic elements (like a timer) based on elapsed time causes horizontal visual layout shifts that are jarring.
+**Action:** Unconditionally display the timer using fixed-width formatting (e.g. `[{elapsed:4.1f}s]`) from the start.
