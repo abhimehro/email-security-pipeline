@@ -158,7 +158,8 @@ class EmailParser:
         """
         headers: Dict[str, Union[str, List[str]]] = {}
 
-        for key, value in msg.items():
+        # ⚡ BOLT: Accessing _headers bypasses msg.items() generator overhead
+        for key, value in msg._headers:
             key_lower = key.lower()
             decoded_val = self._decode_header_value(value) if "=?" in value else value
             self._insert_header(headers, key_lower, decoded_val)
