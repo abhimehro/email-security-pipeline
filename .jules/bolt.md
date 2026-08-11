@@ -83,3 +83,6 @@ Salvaged spam_analyzer.py Bolt fast-path helpers only. Rejected alert_*/media_* 
 
 **Learning:** Checking for "attachment" in `part.get("Content-Disposition")` directly instead of doing `str(part.get("Content-Disposition", ""))` bypasses Python's string allocation.
 **Action:** Instead of `content_disposition = str(part.get("Content-Disposition", ""))`, do `cd = part.get("Content-Disposition")` and `if cd and "attachment" in cd:` to avoid string reallocation overhead in a hot path checking MIME parts.
+## 2024-08-11 - String Allocation in Hot Paths
+**Learning:** In Python hot paths (like evaluating properties for every MIME part), casting dictionary lookups to a string (e.g., `str(dict.get('key', ''))`) introduces measurable function call and allocation overhead compared to retrieving the value and using safe truthiness checks (e.g., `val = dict.get('key'); if val and 'sub' in val:`).
+**Action:** Avoid unnecessary string typecasting in iterative loops. Retrieve the value directly and use short-circuit boolean evaluation instead.
