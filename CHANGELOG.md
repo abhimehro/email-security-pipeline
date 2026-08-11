@@ -468,6 +468,7 @@
 - Jules Daily QA & Agentic Review - Minor Fixes [\#1464](https://github.com/abhimehro/email-security-pipeline/pull/1464) ([abhimehro](https://github.com/abhimehro))
 - ⚡ Bolt: Optimize \_is\_attachment by removing unnecessary string allocation [\#1463](https://github.com/abhimehro/email-security-pipeline/pull/1463) ([abhimehro](https://github.com/abhimehro))
 - 🎨 Palette: Fix visual shift in spinner elapsed time [\#1461](https://github.com/abhimehro/email-security-pipeline/pull/1461) ([abhimehro](https://github.com/abhimehro))
+- ⚡ Bolt: Optimize email header parsing fast-path [\#1458](https://github.com/abhimehro/email-security-pipeline/pull/1458) ([abhimehro](https://github.com/abhimehro))
 - chore: Jules Daily QA & Agentic Review \(No Findings\) [\#1454](https://github.com/abhimehro/email-security-pipeline/pull/1454) ([abhimehro](https://github.com/abhimehro))
 - ⚡ Bolt: Optimize email header extraction and parsing hot-paths [\#1453](https://github.com/abhimehro/email-security-pipeline/pull/1453) ([abhimehro](https://github.com/abhimehro))
 - 🎨 Palette: Prevent layout shifts in terminal timers [\#1451](https://github.com/abhimehro/email-security-pipeline/pull/1451) ([abhimehro](https://github.com/abhimehro))
