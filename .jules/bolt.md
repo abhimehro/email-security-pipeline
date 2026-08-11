@@ -77,7 +77,7 @@ Salvaged spam_analyzer.py Bolt fast-path helpers only. Rejected alert_*/media_* 
 ## 2025-08-01 - Optimize email_parser.py _extract_headers fast path
 
 **Learning:** When parsing headers from the email Message class, `msg.items()` uses Python-level dictionary logic internally to yield keys and values, constructing tuples. Iterating over `msg._headers` bypasses this overhead directly, while preserving the internal key and value items. Furthermore, we can avoid string manipulation / formatting overhead when applying decode functions by pre-checking if the string indicates encoding is present (e.g. `if "=?" in value:`).
-**Action:** In `EmailParser._extract_headers()`, access `msg._headers` and apply a fast path check for `_decode_header_value()` to gain significant parsing speedups.
+**Action:** In `EmailParser._extract_headers()`, access `msg.raw_items()` and apply a fast path check for `_decode_header_value()` to gain significant parsing speedups.
 
 ## 2025-08-01 - Optimize email_parser.py _is_attachment fast path
 
@@ -87,4 +87,4 @@ Salvaged spam_analyzer.py Bolt fast-path helpers only. Rejected alert_*/media_* 
 ## 2025-08-01 - Optimize email_parser.py _extract_headers fast path
 
 **Learning:** When parsing headers from the email Message class, `msg.items()` uses Python-level dictionary logic internally to yield keys and values, constructing tuples. Iterating over `msg._headers` bypasses this overhead directly, while preserving the internal key and value items. Furthermore, we can avoid string manipulation / formatting overhead when applying decode functions by pre-checking if the string indicates encoding is present (e.g. `if "=?" in value:`).
-**Action:** In `EmailParser._extract_headers()`, access `msg._headers` and apply a fast path check for `_decode_header_value()` to gain significant parsing speedups.
+**Action:** In `EmailParser._extract_headers()`, access `msg.raw_items()` and apply a fast path check for `_decode_header_value()` to gain significant parsing speedups.
