@@ -2,6 +2,7 @@
 
 from typing import List, Optional, Tuple
 
+
 def _is_path_traversal_attempt(self, path: str) -> bool:
     """Check if a path string contains traversal attempts or absolute paths."""
     if path.startswith(("/", "\\")):
@@ -15,6 +16,7 @@ def _is_path_traversal_attempt(self, path: str) -> bool:
         return False
 
     return path[0].isalpha() and path[1] == ":"
+
 
 def _check_file_extension(self, filename: str) -> Tuple[float, List[str]]:
     """Check if file extension is dangerous."""
@@ -45,6 +47,7 @@ def _check_file_extension(self, filename: str) -> Tuple[float, List[str]]:
 
     return score, warnings
 
+
 def _check_riff_container(self, data: bytes) -> Optional[str]:
     """Check for specific media types within a RIFF container."""
     if len(data) >= 12:
@@ -56,6 +59,7 @@ def _check_riff_container(self, data: bytes) -> Optional[str]:
         elif format_type == b"WEBP":
             return "webp"
     return None
+
 
 def _detect_magic_signature_offset_0(self, data: bytes) -> Optional[str]:
     """Check magic signatures with offset 0."""
@@ -86,6 +90,7 @@ def _detect_file_type(self, data: bytes) -> Optional[str]:
 
     return None
 
+
 def _check_content_type_mismatch(
     self, filename: str, content_type: str, data: bytes
 ) -> Tuple[float, str]:
@@ -96,6 +101,7 @@ def _check_content_type_mismatch(
         return self._validate_signature_match(filename, actual_type)
     else:
         return self._validate_missing_signature(filename)
+
 
 def _validate_signature_match(
     self, filename: str, actual_type: str
@@ -113,6 +119,7 @@ def _validate_signature_match(
         return 2.0, f"File type mismatch: {filename} (detected {actual_type})"
 
     return 0.0, ""
+
 
 def _validate_missing_signature(self, filename: str) -> Tuple[float, str]:
     """Check if missing signature violates strict extension rules."""
@@ -182,6 +189,7 @@ def _validate_missing_signature(self, filename: str) -> Tuple[float, str]:
 
     return 0.0, ""
 
+
 def _check_large_size_anomaly(self, filename: str, size: int) -> Tuple[float, str]:
     """Check for unusually large file size anomalies."""
     if size > self.MAX_ATTACHMENT_SIZE_MB * 1024 * 1024:
@@ -210,10 +218,12 @@ def _check_size_anomaly(self, filename: str, size: int) -> Tuple[float, str]:
 
     return 0.0, ""
 
+
 def _is_nested_archive(self, filename_lower: str) -> bool:
     """Check if filename is a nested archive type. Assumes filename_lower is already lowercase."""
     # Optimization: O(1) loop iteration using tuple-based endswith() check
     return filename_lower.endswith(self.ARCHIVE_EXTENSIONS)
+
 
 def _is_zip_magic_or_extension(filename_lower: str, data: bytes) -> bool:
     """Check if file starts with ZIP magic bytes or has .zip extension."""
