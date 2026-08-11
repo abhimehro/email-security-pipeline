@@ -258,6 +258,7 @@ def test_print_help(mock_stdout, mock_app_runner):
     assert "Options:" in output
     assert "-h, --help     Show this help message and exit" in output
 
+
 @patch("sys.stdout", new_callable=io.StringIO)
 def test_print_banner(mock_stdout, mock_app_runner):
     mock_app_runner.print_banner()
