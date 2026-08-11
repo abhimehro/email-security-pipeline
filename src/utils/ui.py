@@ -147,7 +147,7 @@ class Spinner:
 
         while self.busy:
             elapsed = time.time() - getattr(self, "start_time", time.time())
-            time_str = Colors.colorize(f" [{elapsed:4.1f}s]", Colors.GREY) if elapsed >= 0.1 else ""
+            time_str = Colors.colorize(f" [{elapsed:4.1f}s]", Colors.GREY)
 
             # \r moves cursor to start of line, \033[K clears the line
             spin_char = Colors.colorize(next(self.spinner), Colors.CYAN)

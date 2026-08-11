@@ -10,6 +10,7 @@ import numpy as np
 # test patches on src.modules.media_analyzer.cv2.
 cv2 = None
 
+
 @dataclass
 class FrameExtractionOptions:
     """Options for frame extraction."""
@@ -18,6 +19,7 @@ class FrameExtractionOptions:
     max_dim: int = 1920
     step: int = 1
     total_frames: int = 0
+
 
 def _extract_frames_from_video(
     self, video_path: str, max_frames: int = 10, max_dim: int = 1920
@@ -73,6 +75,7 @@ def _extract_frames_from_video(
 
     return frames
 
+
 def _read_next_frame(cap: Any) -> Tuple[bool, Optional[np.ndarray]]:
     """Read the next frame from the video capture."""
     return cap.read()
@@ -97,6 +100,7 @@ def _extract_frames_sequential(
             frames.append(self._resize_frame_if_needed(frame, max_dim))
         count += 1
     return frames
+
 
 def _extract_frames_sampled(
     self, cap, options: FrameExtractionOptions
@@ -123,6 +127,7 @@ def _extract_frames_sampled(
 
     return frames
 
+
 def _advance_to_frame(self, cap, current_frame: int, target_frame: int) -> int:
     """Advance the video capture to the target frame using a hybrid approach."""
     try:
@@ -145,6 +150,7 @@ def _advance_to_frame(self, cap, current_frame: int, target_frame: int) -> int:
         current_frame += 1
 
     return current_frame
+
 
 def _resize_frame_if_needed(
     self, frame: np.ndarray, max_dim: int = 1920
@@ -174,6 +180,7 @@ def _resize_frame_if_needed(
     except Exception as e:
         self.logger.warning(f"Error resizing frame: {e}")
         return frame
+
 
 def _process_faces_in_frame(self, gray: np.ndarray) -> Tuple[int, int]:
     """Detect faces and count blurry faces in a frame."""
@@ -243,6 +250,7 @@ def _analyze_facial_inconsistencies(
 
     return score, issues
 
+
 def _check_video_metadata_sync(self, video_path: str, fps: float, frame_count: float) -> Tuple[float, List[str]]:
     """Verify video metadata and check for duration mismatch anomalies."""
     score = 0.0
@@ -290,6 +298,7 @@ def _check_audio_visual_sync(
         self.logger.warning(f"Error in A/V sync check: {e}")
 
     return score, issues
+
 
 def _analyze_frame_high_frequency_noise(self, gray: np.ndarray) -> bool:
     """Analyze a single frame for high-frequency noise spikes."""
@@ -373,6 +382,7 @@ def _run_deepfake_model(
 
     # Clip to 0.0 - 1.0
     return min(max(final_score, 0.0), 1.0)
+
 
 def _analyze_video_frames(
     self, filename: str, temp_file_path: str, frames: list, content_type: str

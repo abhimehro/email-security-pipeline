@@ -512,7 +512,6 @@ class SpamAnalyzer:
 
         return score, issues
 
-
     def _evaluate_auth_results_fast(self, joined_results: str) -> Tuple[bool, bool]:
         """Helper to evaluate auth results loop and reduce cyclomatic complexity."""
         # ⚡ BOLT: Optimization - Fast path check for failure keywords using getattr trick

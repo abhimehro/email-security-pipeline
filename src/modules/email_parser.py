@@ -286,8 +286,8 @@ class EmailParser:
         to bypass analysis. We treat any non-body leaf part as an attachment.
         """
         # ⚡ BOLT: Early returns avoid evaluating all properties for every MIME part
-        content_disposition = str(part.get("Content-Disposition", ""))
-        if "attachment" in content_disposition:
+        content_disposition = part.get("Content-Disposition")
+        if content_disposition and "attachment" in content_disposition:
             return True
 
         filename = part.get_filename()
