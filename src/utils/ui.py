@@ -166,16 +166,20 @@ class Spinner:
             if not self.busy:
                 break
 
+    def _get_tty_msg(self) -> str:
+        if CTRL_C_HINT in self.message:
+            return self.message
+        return self.message + Colors.colorize(CTRL_C_HINT, Colors.GREY)
+
+    def _get_non_tty_msg(self) -> str:
+        return self.message if self.message.endswith("...") else f"{self.message}..."
+
     def __enter__(self):
         self.start_time = time.time()
         if sys.stdout.isatty():
-            display_msg = self.message
-            if CTRL_C_HINT not in display_msg:
-                display_msg += Colors.colorize(CTRL_C_HINT, Colors.GREY)
-            self._start_tty_spinner(display_msg)
+            self._start_tty_spinner(self._get_tty_msg())
         else:
-            msg = self.message if self.message.endswith("...") else f"{self.message}..."
-            print(msg)
+            print(self._get_non_tty_msg())
         return self
 
     def _start_tty_spinner(self, msg: str):
