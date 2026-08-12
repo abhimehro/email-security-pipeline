@@ -168,16 +168,13 @@ class Spinner:
 
     def __enter__(self):
         self.start_time = time.time()
-        # We don't mutate self.message, we just format the display string
-        display_msg = self.message
         if sys.stdout.isatty():
+            display_msg = self.message
             if CTRL_C_HINT not in display_msg:
                 display_msg += Colors.colorize(CTRL_C_HINT, Colors.GREY)
-
-        if sys.stdout.isatty():
             self._start_tty_spinner(display_msg)
         else:
-            msg = display_msg if display_msg.endswith("...") else f"{display_msg}..."
+            msg = self.message if self.message.endswith("...") else f"{self.message}..."
             print(msg)
         return self
 
