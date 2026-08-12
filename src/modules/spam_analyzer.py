@@ -432,10 +432,12 @@ class SpamAnalyzer:
         avoids the overhead of recreating the function object on every call,
         providing a measurable ~34% performance improvement in the header analysis loop.
         """
-        val = headers.get(key, [])
-        if isinstance(val, str):
-            return [val]
-        return val
+        val = headers.get(key)
+        if type(val) is list:
+            return val
+        if val is None:
+            return []
+        return [val]
 
     def _check_spf(
         self, headers: Dict[str, Union[str, List[str]]]
