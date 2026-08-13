@@ -43,7 +43,17 @@ class CountdownTimer:
         # Accessibility: Print an initial static line so screen readers
         # have a chance to read the message before we start rapidly
         # clearing and redrawing it with carriage returns.
-        sys.stdout.write(f"{self.message}...")
+        # We render the fully formatted initial state to prevent horizontal layout shifts.
+        if self.duration >= 60:
+            time_str = f"{self.duration // 60:02d}:{self.duration % 60:02d}"
+        else:
+            width = len(str(self.duration))
+            time_str = f"{self.duration:{width}d}s"
+
+        progress_bar = "█" * self.PROGRESS_BAR_WIDTH
+        colored_bar = Colors.colorize(progress_bar, Colors.CYAN)
+
+        sys.stdout.write(f"\r{self.message}: {colored_bar} {time_str} \033[K")
         sys.stdout.flush()
 
         try:
@@ -182,7 +192,15 @@ class Spinner:
         # Accessibility: Print an initial static line so screen readers
         # have a chance to read the message before we start rapidly
         # clearing and redrawing it with carriage returns.
-        sys.stdout.write(msg)
+        # We render the fully formatted initial state to prevent horizontal layout shifts.
+
+        # Remove the ellipsis that was added in __enter__ for non-TTY compat,
+        # as we are now going to draw the full spinner frame.
+        clean_msg = msg[:-3] if msg.endswith("...") else msg
+        spin_char = Colors.colorize("⠋", Colors.CYAN)
+        time_str = Colors.colorize(" [ 0.0s]", Colors.GREY)
+
+        sys.stdout.write(f"\r{spin_char} {clean_msg}{time_str}   \033[K")
         sys.stdout.flush()
 
         self.busy = True
