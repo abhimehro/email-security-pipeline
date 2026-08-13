@@ -72,9 +72,8 @@ docker compose logs -f
 # Navigate to project directory
 cd ~/Documents/dev/email-security-pipeline
 
-# Install dependencies
-# Install dependencies
-python3 -m pip install -r requirements.txt
+# Install CI/runtime deps (prefer this over requirements.txt unless you need ML)
+python3 -m pip install -r requirements-ci.txt
 
 # Copy and configure environment
 cp .env.example .env
@@ -83,6 +82,9 @@ nano .env  # Update your credentials
 # Run the pipeline
 python3 src/main.py
 ```
+
+Optional ML models (`torch` / `transformers`) stay commented in `requirements.txt`;
+uncomment those pins only when you want full model-backed NLP.
 
 ## Step 3: Test the System
 
@@ -191,8 +193,8 @@ ALERT_WEBHOOK_URL=https://your-webhook-endpoint.com/alerts
 ### "Module not found" errors
 
 - Ensure you're running from project root
-- Verify all dependencies are installed: `pip install -r requirements.txt`
-- Check Python version: `python3 --version` (should be 3.11+)
+- Verify all dependencies are installed: `pip install -r requirements-ci.txt`
+- Check Python version: `python3 --version` (3.13 preferred; 3.11+ may work for local non-ML runs)
 
 ## Next Steps
 

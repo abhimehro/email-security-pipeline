@@ -12,6 +12,9 @@ from dataclasses import dataclass
 
 from dotenv import load_dotenv
 
+# NOTE: keep repo root on sys.path so `python3 scripts/diagnose_docker_connectivity.py` works
+sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
+
 from src.utils.security_validators import validate_mail_server_host
 
 

@@ -15,9 +15,9 @@ python3 -m src.main test_envs/allowed.env
 ## Common gotchas
 
 - The file `src/app_runner.py` is imported by `src/main.py`; it does **not** have a `__main__` guard, so `python3 -m src.app_runner` exits silently.
-- `diagnose_docker_connectivity.py` lives at the repo root, not in `scripts/`.
+- `diagnose_docker_connectivity.py` lives in `scripts/`, next to the other connectivity helpers.
 - `scripts/check_mail_connectivity.py` calls `load_dotenv()` and reads `.env` from the current working directory.
-- `diagnose_docker_connectivity.py` calls `load_dotenv(".env")` and also reads the repo-root `.env`.
+- `scripts/diagnose_docker_connectivity.py` calls `load_dotenv(".env")` and also reads the repo-root `.env`.
 - `scripts/diagnose_connectivity.py` does not call `load_dotenv()` itself; it constructs `Config()` which loads the configured env file.
 - Blank `*_IMAP_SERVER` / `*_SMTP_SERVER` values are treated as falsy and fall back to provider defaults (`imap.gmail.com` / `smtp.gmail.com` for Gmail, etc.).
 
@@ -97,7 +97,7 @@ python3 -m src.main test_envs/disallowed_imap.env
   cd /tmp/esp-test
   cp /path/to/repo/test_envs/disallowed_imap.env .env
   /path/to/repo/scripts/diagnose_connectivity.py test@example.com
-  /path/to/repo/diagnose_docker_connectivity.py
+  /path/to/repo/scripts/diagnose_docker_connectivity.py
   rm -f .env
 )
 ```
