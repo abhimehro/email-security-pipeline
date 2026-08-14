@@ -134,7 +134,8 @@ class TestCountdownTimerTTY(unittest.TestCase):
         timer = CountdownTimer(duration=1, message="Waiting")
         timer.start()
         output = mock_stdout.getvalue()
-        self.assertIn("Waiting...", output)
+        self.assertIn("Waiting: ", output)
+        self.assertIn("1s", output)
         self.assertIn("\r\033[K", output)  # Clears line at end
 
     @patch("time.sleep", side_effect=KeyboardInterrupt)

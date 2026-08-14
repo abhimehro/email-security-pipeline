@@ -43,7 +43,18 @@ class CountdownTimer:
         # Accessibility: Print an initial static line so screen readers
         # have a chance to read the message before we start rapidly
         # clearing and redrawing it with carriage returns.
-        sys.stdout.write(f"{self.message}...")
+        # Format time as MM:SS if initial duration >= 60s, else just seconds
+        if self.duration >= 60:
+            time_str = f"{self.duration // 60:02d}:{self.duration % 60:02d}"
+        else:
+            width = len(str(self.duration))
+            time_str = f"{self.duration:{width}d}s"
+
+        # Progress bar (initially full)
+        progress_bar = "█" * self.PROGRESS_BAR_WIDTH
+        colored_bar = Colors.colorize(progress_bar, Colors.CYAN)
+
+        sys.stdout.write(f"{self.message}: {colored_bar} {time_str} ")
         sys.stdout.flush()
 
         try:
