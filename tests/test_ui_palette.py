@@ -62,11 +62,11 @@ class TestPaletteUI(TestCase):
                 spinner = Spinner("Testing")
                 spinner.__enter__()
                 # Since message is no longer mutated, verify it's passed to _start_tty_spinner correctly
-                mock_start.assert_called_with("Testing (Press Ctrl+C to stop)...")
+                mock_start.assert_called_with("Testing (Press Ctrl+C to stop)")
 
                 spinner_with_hint = Spinner("Testing (Press Ctrl+C to stop)")
                 spinner_with_hint.__enter__()
-                mock_start.assert_called_with("Testing (Press Ctrl+C to stop)...")
+                mock_start.assert_called_with("Testing (Press Ctrl+C to stop)")
 
     def _run_spinner_interrupt_test(self, is_tty: bool):
         from src.utils.ui import Spinner
