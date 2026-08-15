@@ -95,3 +95,8 @@ Salvaged spam_analyzer.py Bolt fast-path helpers only. Rejected alert_*/media_* 
 
 **Learning:** In hot-path dictionary lookups (like `headers.get(key, [])`), providing a default mutable argument like `[]` triggers unnecessary object allocation on every cache miss. Furthermore, using `isinstance(val, str)` incurs multi-inheritance check overhead. Using `get(key)` and checking `type(val) is list` provides a ~50% speedup for list matches and ~20% for string matches.
 **Action:** Avoid default allocations in `.get()` if the default is only used to satisfy a subsequent type check. Use `type(val) is list` instead of `isinstance` for hot paths.
+
+## 2026-08-14 - Avoid Set Allocation in Small Subset Checks
+
+**Learning:** While `.issubset()` is fast for comparing collections, dynamically allocating a set literal (e.g. `{"a", "b"}.issubset(dict)`) inside a hot path loop introduces measurable memory allocation overhead. For small numbers of keys (e.g., 4), explicit sequential boolean `in` checks are over 2x faster.
+**Action:** For validating the presence of a small number of static keys in a dictionary hot path, prefer explicit sequential `in` checks over creating a temporary set for `.issubset()`.
