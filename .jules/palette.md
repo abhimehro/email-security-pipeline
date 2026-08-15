@@ -585,3 +585,7 @@ throughout the entire lifecycle of the countdown element.
 ## 2026-08-10 - Prevent Layout Shift in Dynamic Timers
 **Learning:** Toggling the visibility of dynamic elements (like a timer) based on elapsed time causes horizontal visual layout shifts that are jarring.
 **Action:** Unconditionally display the timer using fixed-width formatting (e.g. `[{elapsed:4.1f}s]`) from the start.
+
+## 2024-08-12 - Prevent layout shift in countdown timers
+**Learning:** Screen readers and terminal UIs suffer from layout shifting when dynamic elements like a countdown timer don't immediately display the full initial state before the rapid drawing loop starts.
+**Action:** When initializing terminal UI components like a `CountdownTimer` or a `Spinner` that rapidly updates using carriage returns, always render an initial static frame that includes the full progress bar, initial timer, and exact required formatting before the loop begins. This prevents horizontal layout shift and gives screen readers a stable state to announce.

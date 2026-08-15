@@ -40,10 +40,18 @@ class CountdownTimer:
         sys.stdout.write(CURSOR_HIDE)
         sys.stdout.flush()
 
-        # Accessibility: Print an initial static line so screen readers
-        # have a chance to read the message before we start rapidly
-        # clearing and redrawing it with carriage returns.
-        sys.stdout.write(f"{self.message}...")
+        # Format initial time based on duration to prevent layout shift
+        if self.duration >= 60:
+            initial_time = f"{self.duration // 60:02d}:{self.duration % 60:02d}"
+        else:
+            width = len(str(self.duration))
+            initial_time = f"{self.duration:{width}d}s"
+
+        # Accessibility & UX: Print an initial static frame so screen readers
+        # have a chance to read the message and prevent layout shift before the loop.
+        full_bar = "█" * self.PROGRESS_BAR_WIDTH
+        colored_bar = Colors.colorize(full_bar, Colors.CYAN)
+        sys.stdout.write(f"{self.message}: {colored_bar} {initial_time}")
         sys.stdout.flush()
 
         try:
@@ -158,20 +166,20 @@ class Spinner:
             if not self.busy:
                 break
 
+    def _get_tty_msg(self) -> str:
+        if CTRL_C_HINT in self.message:
+            return self.message
+        return self.message + Colors.colorize(CTRL_C_HINT, Colors.GREY)
+
+    def _get_non_tty_msg(self) -> str:
+        return self.message if self.message.endswith("...") else f"{self.message}..."
+
     def __enter__(self):
         self.start_time = time.time()
-        # We don't mutate self.message, we just format the display string
-        display_msg = self.message
         if sys.stdout.isatty():
-            if CTRL_C_HINT not in display_msg:
-                display_msg += Colors.colorize(CTRL_C_HINT, Colors.GREY)
-
-        msg = display_msg if display_msg.endswith("...") else f"{display_msg}..."
-
-        if sys.stdout.isatty():
-            self._start_tty_spinner(msg)
+            self._start_tty_spinner(self._get_tty_msg())
         else:
-            print(msg)
+            print(self._get_non_tty_msg())
         return self
 
     def _start_tty_spinner(self, msg: str):
@@ -179,10 +187,11 @@ class Spinner:
         # Hide cursor
         sys.stdout.write(CURSOR_HIDE)
 
-        # Accessibility: Print an initial static line so screen readers
-        # have a chance to read the message before we start rapidly
-        # clearing and redrawing it with carriage returns.
-        sys.stdout.write(msg)
+        # Accessibility & UX: Print an initial static frame so screen readers
+        # can read it, and include the elapsed time to prevent layout shift.
+        initial_time = Colors.colorize(" [ 0.0s]", Colors.GREY)
+        spin_char = Colors.colorize(next(self.spinner), Colors.CYAN)
+        sys.stdout.write(f"{spin_char} {msg}{initial_time}")
         sys.stdout.flush()
 
         self.busy = True
