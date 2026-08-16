@@ -5,13 +5,13 @@
 certifi==2026.7.22
 charset-normalizer==3.4.9
 idna==3.18
-numpy==2.5.1
+numpy==2.5.2
 # opencv-python-headless: Snyk reports 6 low-severity findings in bundled native
 # libraries (libpng/libwebp) across all available PyPI versions. Accepted as a
 # known risk because a version bump cannot clear them and a refactor is
 # disproportionate to the low severity. Revisit if the risk profile changes.
 opencv-python-headless==4.13.0.92
-pre-commit==4.6.1
+pre-commit==4.6.2
 pyahocorasick==2.3.1
 pytest==9.1.1
 python-dotenv==1.2.2
