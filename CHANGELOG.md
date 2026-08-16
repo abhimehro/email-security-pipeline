@@ -44,6 +44,9 @@
 
 **Closed issues:**
 
+- Daily QA & Agentic Review — 2026-08-14 [\#1481](https://github.com/abhimehro/email-security-pipeline/issues/1481)
+- Daily QA & Agentic Review — 2026-08-13 [\#1477](https://github.com/abhimehro/email-security-pipeline/issues/1477)
+- Daily QA & Agentic Review — 2026-08-12 [\#1470](https://github.com/abhimehro/email-security-pipeline/issues/1470)
 - Daily QA & Agentic Review — 2026-08-11 [\#1466](https://github.com/abhimehro/email-security-pipeline/issues/1466)
 - Daily QA & Agentic Review — 2026-08-10 [\#1462](https://github.com/abhimehro/email-security-pipeline/issues/1462)
 - Daily QA & Agentic Review — 2026-08-09 [\#1457](https://github.com/abhimehro/email-security-pipeline/issues/1457)
@@ -469,6 +472,12 @@
 
 **Merged pull requests:**
 
+- chore\(deps\): bump github/gh-aw/actions/setup-cli from 0.85.4 to 0.86.2 [\#1485](https://github.com/abhimehro/email-security-pipeline/pull/1485) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps\): bump github/gh-aw/actions/setup from 0.85.4 to 0.86.2 [\#1484](https://github.com/abhimehro/email-security-pipeline/pull/1484) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps\): bump pre-commit from 4.6.1 to 4.6.2 [\#1483](https://github.com/abhimehro/email-security-pipeline/pull/1483) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps\): bump numpy from 2.5.1 to 2.5.2 [\#1482](https://github.com/abhimehro/email-security-pipeline/pull/1482) ([dependabot[bot]](https://github.com/apps/dependabot))
+- ⚡ Bolt: Replace set allocation with explicit boolean checks in hot path [\#1478](https://github.com/abhimehro/email-security-pipeline/pull/1478) ([abhimehro](https://github.com/abhimehro))
+- 🎨 Palette: Prevent layout shift in dynamic timers [\#1469](https://github.com/abhimehro/email-security-pipeline/pull/1469) ([abhimehro](https://github.com/abhimehro))
 - ⚡ Bolt: Optimize \_get\_header\_list allocations and type checks [\#1467](https://github.com/abhimehro/email-security-pipeline/pull/1467) ([abhimehro](https://github.com/abhimehro))
 - Jules Daily QA & Agentic Review - Minor Fixes [\#1464](https://github.com/abhimehro/email-security-pipeline/pull/1464) ([abhimehro](https://github.com/abhimehro))
 - ⚡ Bolt: Optimize \_is\_attachment by removing unnecessary string allocation [\#1463](https://github.com/abhimehro/email-security-pipeline/pull/1463) ([abhimehro](https://github.com/abhimehro))
