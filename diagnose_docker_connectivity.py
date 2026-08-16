@@ -4,6 +4,9 @@ Diagnostic script to test email connectivity from within Docker container contex
 This helps identify whether issues are credential-based or network/SSL-based.
 """
 
+from src.utils.colors import Colors
+
+
 import imaplib
 import os
 import ssl
@@ -31,7 +34,7 @@ def _create_ssl_context(verify_ssl: bool):
     if verify_ssl:
         return ssl.create_default_context()
 
-    print("⚠️  SSL verification DISABLED")
+    print(Colors.colorize("⚠️  SSL verification DISABLED", Colors.YELLOW))
     return ssl._create_unverified_context()  # nosec B323
 
 
@@ -58,7 +61,7 @@ def test_connection(config: ConnectionConfig):
     except ValueError as e:
         print(f"\n{'='*60}")
         print(f"Testing: {config.label}")
-        print(f"❌ Security Error: {e}")
+        print(Colors.colorize(f"❌ Security Error: {e}", Colors.RED))
         print(f"{'='*60}")
         return False
 
@@ -71,28 +74,28 @@ def test_connection(config: ConnectionConfig):
 
     try:
         imap = _create_imap_client(config)
-        print("✓ Connection established")
+        print(Colors.colorize("✓ Connection established", Colors.GREEN))
         print(f"Logging in as {config.email}...")
 
         imap.login(config.email, config.password)
-        print("✅ SUCCESS - Authentication successful!")
+        print(Colors.colorize("✅ SUCCESS - Authentication successful!", Colors.GREEN))
 
         # Try to list folders
         status, folders = imap.list()
         if status == "OK":
-            print(f"✓ Found {len(folders)} folders")
+            print(Colors.colorize(f"✓ Found {len(folders)} folders", Colors.GREEN))
 
         imap.logout()
         return True
 
     except imaplib.IMAP4.error as e:
-        print(f"❌ IMAP Error: {e}")
+        print(Colors.colorize(f"❌ IMAP Error: {e}", Colors.RED))
     except ssl.SSLError as e:
-        print(f"❌ SSL Error: {e}")
+        print(Colors.colorize(f"❌ SSL Error: {e}", Colors.RED))
         print(f"   Error type: {type(e).__name__}")
         print(f"   Error args: {e.args}")
     except Exception as e:
-        print(f"❌ Unexpected Error: {e}")
+        print(Colors.colorize(f"❌ Unexpected Error: {e}", Colors.RED))
         print(f"   Error type: {type(e).__name__}")
 
     return False
@@ -128,7 +131,7 @@ def main():
                 )
             )
         else:
-            print("\n⚠️  Gmail credentials not configured")
+            print(Colors.colorize("\n⚠️  Gmail credentials not configured", Colors.YELLOW))
 
     # Test Proton with SSL verification
     if os.getenv("PROTON_ENABLED", "").lower() == "true":
@@ -170,7 +173,7 @@ def main():
                 )
             )
         else:
-            print("\n⚠️  Proton credentials not configured")
+            print(Colors.colorize("\n⚠️  Proton credentials not configured", Colors.YELLOW))
 
     print("\n" + "=" * 60)
     print("Diagnostics complete")
