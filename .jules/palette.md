@@ -593,3 +593,7 @@ throughout the entire lifecycle of the countdown element.
 ## 2026-08-16 - Semantic Colors for Standalone Scripts
 **Learning:** Standalone scripts often lack the visual polish of the main application, causing a disjointed UX. Textual output with symbols (like ❌) are more scannable when combined with semantic colors.
 **Action:** Use the centralized `Colors.colorize` utility to add semantic colors (Green for success, Red for errors, Yellow for warnings) to standalone scripts, aligning their visual hierarchy with the core CLI application.
+
+## 2026-08-18 - Actionable Fallback for Interrupts
+**Learning:** When users cancel an interactive setup wizard via Ctrl+C (KeyboardInterrupt), simply acknowledging the cancellation without providing fallback instructions leaves them in a dead-end state. Ensuring consistent actionable manual setup instructions are provided on cancellation matches other failure branches (like skipping or validation errors) and significantly improves the UX.
+**Action:** When handling a KeyboardInterrupt in setup scripts, explicitly print manual fallback instructions before exiting.
