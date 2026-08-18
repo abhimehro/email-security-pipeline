@@ -289,8 +289,6 @@ class TestConfigurationDefaults(unittest.TestCase):
             check_interval=int(os.getenv("CHECK_INTERVAL", "300")),
             max_emails_per_batch=int(os.getenv("MAX_EMAILS_PER_BATCH", "50")),
             rate_limit_delay=int(os.getenv("RATE_LIMIT_DELAY", "1")),
-            database_enabled=False,
-            database_path=None,
             max_attachment_size_mb=int(os.getenv("MAX_ATTACHMENT_SIZE_MB", "25")),
             max_total_attachment_size_mb=int(
                 os.getenv("MAX_TOTAL_ATTACHMENT_SIZE_MB", "100")
@@ -303,7 +301,6 @@ class TestConfigurationDefaults(unittest.TestCase):
         # Verify conservative defaults
         self.assertEqual(config.max_attachment_size_mb, 25)  # Limited, not unlimited
         self.assertEqual(config.max_body_size_kb, 1024)  # 1MB limit
-        self.assertFalse(config.database_enabled)  # Opt-in feature
 
     def test_rate_limit_default(self):
         """
@@ -322,8 +319,6 @@ class TestConfigurationDefaults(unittest.TestCase):
             check_interval=300,
             max_emails_per_batch=50,
             rate_limit_delay=int(os.getenv("RATE_LIMIT_DELAY", "1")),
-            database_enabled=False,
-            database_path=None,
             max_attachment_size_mb=25,
             max_total_attachment_size_mb=100,
             max_attachment_count=10,

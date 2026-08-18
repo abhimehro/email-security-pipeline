@@ -104,8 +104,6 @@ class SystemConfig:
     check_interval: int
     max_emails_per_batch: int
     rate_limit_delay: int
-    database_enabled: bool
-    database_path: Optional[str]
     max_attachment_size_mb: int
     max_total_attachment_size_mb: int
     max_attachment_count: int
@@ -229,8 +227,6 @@ class Config:
             check_interval=int(os.getenv("CHECK_INTERVAL", "300")),
             max_emails_per_batch=int(os.getenv("MAX_EMAILS_PER_BATCH", "50")),
             rate_limit_delay=int(os.getenv("RATE_LIMIT_DELAY", "1")),
-            database_enabled=self._get_bool("DATABASE_ENABLED", False),
-            database_path=os.getenv("DATABASE_PATH"),
             max_attachment_size_mb=int(os.getenv("MAX_ATTACHMENT_SIZE_MB", "25")),
             max_total_attachment_size_mb=int(
                 os.getenv("MAX_TOTAL_ATTACHMENT_SIZE_MB", "100")
