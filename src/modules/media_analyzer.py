@@ -3,7 +3,6 @@ Layer 3: Media Authenticity Verification
 Analyzes attachments for synthetic content and deepfakes.
 """
 
-import cv2
 import logging
 import os
 import tempfile
@@ -11,11 +10,11 @@ from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from typing import List, Tuple
 
+import cv2
+
 from ..utils.threat_scoring import calculate_risk_level
+from . import media_archive, media_deepfake, media_file_type
 from .email_data import EmailData
-from . import media_file_type
-from . import media_archive
-from . import media_deepfake
 
 # Inject the facade's cv2 object into the deepfake helper module so that
 # tests patching src.modules.media_analyzer.cv2 continue to work.

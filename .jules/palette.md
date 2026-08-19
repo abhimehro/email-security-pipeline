@@ -573,23 +573,64 @@ initial total duration to determine the format and maintain it consistently
 throughout the entire lifecycle of the countdown element.
 
 ## 2026-08-03 - Visual Symbols for Status Indication in CLI Scripts
-**Learning:** Standalone CLI scripts often duplicate summary table logic but miss visual polish rules established in the core application (like using symbols for status). Plain text statuses in tables reduce scannability.
-**Action:** Reused the pattern of prepending explicit visual symbols (✔ and ✖) to textual statuses in standalone CLI scripts to maintain consistent UX and scannability across the entire repository.
+
+**Learning:** Standalone CLI scripts often duplicate summary table logic but
+miss visual polish rules established in the core application (like using symbols
+for status). Plain text statuses in tables reduce scannability. **Action:**
+Reused the pattern of prepending explicit visual symbols (✔ and ✖) to textual
+statuses in standalone CLI scripts to maintain consistent UX and scannability
+across the entire repository.
+
 ## 2025-03-02 - Dynamic Log Highlighting by Risk Level
-**Learning:** Hardcoding success colors (like GREEN) for operation completions is dangerous UX when the operation result itself represents a high-severity alert (e.g. "Analysis complete: risk=HIGH"). Green signals safety, contradicting the high-risk state.
-**Action:** Always parse the context or risk level in log formatters before applying semantic colors to completion messages, ensuring the visual cue matches the actual risk state.
+
+**Learning:** Hardcoding success colors (like GREEN) for operation completions
+is dangerous UX when the operation result itself represents a high-severity
+alert (e.g. "Analysis complete: risk=HIGH"). Green signals safety, contradicting
+the high-risk state. **Action:** Always parse the context or risk level in log
+formatters before applying semantic colors to completion messages, ensuring the
+visual cue matches the actual risk state.
+
 ## 2025-03-02 - Fixed Widths for Dynamic Time Displays
-**Learning:** When displaying dynamic textual time elements like elapsed time on a terminal spinner, dynamically varying widths (e.g., from `[0.1s]` to `[1.0s]`, or `[9.9s]` to `[10.0s]`) causes horizontal visual layout shifts that are jarring and degrade the overall UX. Also, persisting the elapsed time when it is less than 1.0s ensures consistent visual structure.
-**Action:** Use fixed-width formatting (e.g. `[{elapsed:4.1f}s]`) for dynamic time displays to ensure consistent character length and prevent horizontal layout shifts during rapid updates. Show the timer display string even when time is < 1s to match the fixed width from the start.
+
+**Learning:** When displaying dynamic textual time elements like elapsed time on
+a terminal spinner, dynamically varying widths (e.g., from `[0.1s]` to `[1.0s]`,
+or `[9.9s]` to `[10.0s]`) causes horizontal visual layout shifts that are
+jarring and degrade the overall UX. Also, persisting the elapsed time when it is
+less than 1.0s ensures consistent visual structure. **Action:** Use fixed-width
+formatting (e.g. `[{elapsed:4.1f}s]`) for dynamic time displays to ensure
+consistent character length and prevent horizontal layout shifts during rapid
+updates. Show the timer display string even when time is < 1s to match the fixed
+width from the start.
 
 ## 2026-08-10 - Prevent Layout Shift in Dynamic Timers
-**Learning:** Toggling the visibility of dynamic elements (like a timer) based on elapsed time causes horizontal visual layout shifts that are jarring.
-**Action:** Unconditionally display the timer using fixed-width formatting (e.g. `[{elapsed:4.1f}s]`) from the start.
+
+**Learning:** Toggling the visibility of dynamic elements (like a timer) based
+on elapsed time causes horizontal visual layout shifts that are jarring.
+**Action:** Unconditionally display the timer using fixed-width formatting (e.g.
+`[{elapsed:4.1f}s]`) from the start.
 
 ## 2024-08-12 - Prevent layout shift in countdown timers
-**Learning:** Screen readers and terminal UIs suffer from layout shifting when dynamic elements like a countdown timer don't immediately display the full initial state before the rapid drawing loop starts.
-**Action:** When initializing terminal UI components like a `CountdownTimer` or a `Spinner` that rapidly updates using carriage returns, always render an initial static frame that includes the full progress bar, initial timer, and exact required formatting before the loop begins. This prevents horizontal layout shift and gives screen readers a stable state to announce.
+
+<<<<<<< Updated upstream **Learning:** Screen readers and terminal UIs suffer
+from layout shifting when dynamic elements like a countdown timer don't
+immediately display the full initial state before the rapid drawing loop starts.
+**Action:** When initializing terminal UI components like a `CountdownTimer` or
+a `Spinner` that rapidly updates using carriage returns, always render an
+initial static frame that includes the full progress bar, initial timer, and
+exact required formatting before the loop begins. This prevents horizontal
+layout shift and gives screen readers a stable state to announce.
 
 ## 2026-08-16 - Semantic Colors for Standalone Scripts
-**Learning:** Standalone scripts often lack the visual polish of the main application, causing a disjointed UX. Textual output with symbols (like ❌) are more scannable when combined with semantic colors.
-**Action:** Use the centralized `Colors.colorize` utility to add semantic colors (Green for success, Red for errors, Yellow for warnings) to standalone scripts, aligning their visual hierarchy with the core CLI application.
+
+# **Learning:** Standalone scripts often lack the visual polish of the main application, causing a disjointed UX. Textual output with symbols (like ❌) are more scannable when combined with semantic colors. **Action:** Use the centralized `Colors.colorize` utility to add semantic colors (Green for success, Red for errors, Yellow for warnings) to standalone scripts, aligning their visual hierarchy with the core CLI application.
+
+**Learning:** Screen readers and terminal UIs suffer from layout shifting when
+dynamic elements like a countdown timer don't immediately display the full
+initial state before the rapid drawing loop starts. **Action:** When
+initializing terminal UI components like a `CountdownTimer` or a `Spinner` that
+rapidly updates using carriage returns, always render an initial static frame
+that includes the full progress bar, initial timer, and exact required
+formatting before the loop begins. This prevents horizontal layout shift and
+gives screen readers a stable state to announce.
+
+>>>>>>> Stashed changes

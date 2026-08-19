@@ -69,34 +69,67 @@ generator overhead when iteration is necessary in hot paths.
 
 ## 2026-08-01 — SpamAnalyzer auth/header fast-path (salvage #1399)
 
-Salvaged spam_analyzer.py Bolt fast-path helpers only. Rejected alert_*/media_* module collapse from the original PR.
+Salvaged spam_analyzer.py Bolt fast-path helpers only. Rejected alert__/media__
+module collapse from the original PR.
 
 ## 2026-08-01 - Early Returns and Dictionary Lookups in Hot Paths
 
-**Learning:** In highly trafficked parser methods (like checking MIME parts), evaluating large compound boolean expressions computes unnecessary object properties (like `get_filename()` and `get_content_type()`). Also, double dictionary lookups (`if key in dict: dict[key]`) are measurably slower than a single `.get()` with `None` checking.
-**Action:** Apply early returns to exit fast-paths instantly, and use `.get()` with `type() is list` instead of `isinstance` for hot dictionary lookups.
+**Learning:** In highly trafficked parser methods (like checking MIME parts),
+evaluating large compound boolean expressions computes unnecessary object
+properties (like `get_filename()` and `get_content_type()`). Also, double
+dictionary lookups (`if key in dict: dict[key]`) are measurably slower than a
+single `.get()` with `None` checking. **Action:** Apply early returns to exit
+fast-paths instantly, and use `.get()` with `type() is list` instead of
+`isinstance` for hot dictionary lookups.
 
 ## 2026-08-01 - Optimize email_parser.py _extract_headers fast path
 
-**Learning:** When parsing headers from the email Message class, `msg.items()` uses Python-level dictionary logic internally to yield keys and values, constructing tuples. Iterating over `msg._headers` bypasses this overhead directly, while preserving the internal key and value items. Furthermore, we can avoid string manipulation / formatting overhead when applying decode functions by pre-checking if the string indicates encoding is present (e.g. `if "=?" in value:`).
-**Action:** In `EmailParser._extract_headers()`, access `msg.raw_items()` and apply a fast path check for `_decode_header_value()` to gain significant parsing speedups.
+**Learning:** When parsing headers from the email Message class, `msg.items()`
+uses Python-level dictionary logic internally to yield keys and values,
+constructing tuples. Iterating over `msg._headers` bypasses this overhead
+directly, while preserving the internal key and value items. Furthermore, we can
+avoid string manipulation / formatting overhead when applying decode functions
+by pre-checking if the string indicates encoding is present (e.g.
+`if "=?" in value:`). **Action:** In `EmailParser._extract_headers()`, access
+`msg.raw_items()` and apply a fast path check for `_decode_header_value()` to
+gain significant parsing speedups.
 
 ## 2026-08-01 - Optimize email_parser.py _is_attachment fast path
 
-**Learning:** Checking for "attachment" in `part.get("Content-Disposition")` directly instead of doing `str(part.get("Content-Disposition", ""))` bypasses Python's string allocation.
-**Action:** Instead of `content_disposition = str(part.get("Content-Disposition", ""))`, do `cd = part.get("Content-Disposition")` and `if cd and "attachment" in cd:` to avoid string reallocation overhead in a hot path checking MIME parts.
+**Learning:** Checking for "attachment" in `part.get("Content-Disposition")`
+directly instead of doing `str(part.get("Content-Disposition", ""))` bypasses
+Python's string allocation. **Action:** Instead of
+`content_disposition = str(part.get("Content-Disposition", ""))`, do
+`cd = part.get("Content-Disposition")` and `if cd and "attachment" in cd:` to
+avoid string reallocation overhead in a hot path checking MIME parts.
 
 ## 2026-08-11 - String Allocation in Hot Paths
 
-**Learning:** In Python hot paths (like evaluating properties for every MIME part), casting dictionary lookups to a string (e.g., `str(dict.get('key', ''))`) introduces measurable function call and allocation overhead compared to retrieving the value and using safe truthiness checks (e.g., `val = dict.get('key'); if val and 'sub' in val:`).
-**Action:** Avoid unnecessary string typecasting in iterative loops. Retrieve the value directly and use short-circuit boolean evaluation instead.
+**Learning:** In Python hot paths (like evaluating properties for every MIME
+part), casting dictionary lookups to a string (e.g., `str(dict.get('key', ''))`)
+introduces measurable function call and allocation overhead compared to
+retrieving the value and using safe truthiness checks (e.g.,
+`val = dict.get('key'); if val and 'sub' in val:`). **Action:** Avoid
+unnecessary string typecasting in iterative loops. Retrieve the value directly
+and use short-circuit boolean evaluation instead.
 
 ## 2025-08-12 - Fast-path dictionary value resolution
 
-**Learning:** In hot-path dictionary lookups (like `headers.get(key, [])`), providing a default mutable argument like `[]` triggers unnecessary object allocation on every cache miss. Furthermore, using `isinstance(val, str)` incurs multi-inheritance check overhead. Using `get(key)` and checking `type(val) is list` provides a ~50% speedup for list matches and ~20% for string matches.
-**Action:** Avoid default allocations in `.get()` if the default is only used to satisfy a subsequent type check. Use `type(val) is list` instead of `isinstance` for hot paths.
+**Learning:** In hot-path dictionary lookups (like `headers.get(key, [])`),
+providing a default mutable argument like `[]` triggers unnecessary object
+allocation on every cache miss. Furthermore, using `isinstance(val, str)` incurs
+multi-inheritance check overhead. Using `get(key)` and checking
+`type(val) is list` provides a ~50% speedup for list matches and ~20% for string
+matches. **Action:** Avoid default allocations in `.get()` if the default is
+only used to satisfy a subsequent type check. Use `type(val) is list` instead of
+`isinstance` for hot paths.
 
 ## 2026-08-14 - Avoid Set Allocation in Small Subset Checks
 
-**Learning:** While `.issubset()` is fast for comparing collections, dynamically allocating a set literal (e.g. `{"a", "b"}.issubset(dict)`) inside a hot path loop introduces measurable memory allocation overhead. For small numbers of keys (e.g., 4), explicit sequential boolean `in` checks are over 2x faster.
-**Action:** For validating the presence of a small number of static keys in a dictionary hot path, prefer explicit sequential `in` checks over creating a temporary set for `.issubset()`.
+**Learning:** While `.issubset()` is fast for comparing collections, dynamically
+allocating a set literal (e.g. `{"a", "b"}.issubset(dict)`) inside a hot path
+loop introduces measurable memory allocation overhead. For small numbers of keys
+(e.g., 4), explicit sequential boolean `in` checks are over 2x faster.
+**Action:** For validating the presence of a small number of static keys in a
+dictionary hot path, prefer explicit sequential `in` checks over creating a
+temporary set for `.issubset()`.

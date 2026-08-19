@@ -4,9 +4,6 @@ Diagnostic script to test email connectivity from within Docker container contex
 This helps identify whether issues are credential-based or network/SSL-based.
 """
 
-from src.utils.colors import Colors
-
-
 import imaplib
 import os
 import ssl
@@ -15,6 +12,7 @@ from dataclasses import dataclass
 
 from dotenv import load_dotenv
 
+from src.utils.colors import Colors
 from src.utils.security_validators import validate_mail_server_host
 
 
@@ -131,7 +129,9 @@ def main():
                 )
             )
         else:
-            print(Colors.colorize("\n⚠️  Gmail credentials not configured", Colors.YELLOW))
+            print(
+                Colors.colorize("\n⚠️  Gmail credentials not configured", Colors.YELLOW)
+            )
 
     # Test Proton with SSL verification
     if os.getenv("PROTON_ENABLED", "").lower() == "true":
@@ -173,7 +173,11 @@ def main():
                 )
             )
         else:
-            print(Colors.colorize("\n⚠️  Proton credentials not configured", Colors.YELLOW))
+            print(
+                Colors.colorize(
+                    "\n⚠️  Proton credentials not configured", Colors.YELLOW
+                )
+            )
 
     print("\n" + "=" * 60)
     print("Diagnostics complete")

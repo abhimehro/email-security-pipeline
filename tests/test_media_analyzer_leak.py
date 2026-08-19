@@ -14,9 +14,7 @@ class TestMediaAnalyzerLeak(unittest.TestCase):
         self.analyzer = MediaAuthenticityAnalyzer(self.config)
 
     @patch("src.modules.media_analyzer.tempfile.NamedTemporaryFile")
-    def test_temp_file_cleanup_on_write_error(
-        self, mock_tempfile
-    ):
+    def test_temp_file_cleanup_on_write_error(self, mock_tempfile):
         """
         Test that temporary file is cleaned up even if writing to it fails.
         This simulates a disk full or permission error during write.
@@ -52,7 +50,7 @@ class TestMediaAnalyzerLeak(unittest.TestCase):
 
         # ASSERT: NamedTemporaryFile should be called without delete=False
         kwargs = mock_tempfile.call_args.kwargs
-        self.assertNotIn('delete', kwargs)
+        self.assertNotIn("delete", kwargs)
 
 
 if __name__ == "__main__":

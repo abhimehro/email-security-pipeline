@@ -152,9 +152,7 @@ def _advance_to_frame(self, cap, current_frame: int, target_frame: int) -> int:
     return current_frame
 
 
-def _resize_frame_if_needed(
-    self, frame: np.ndarray, max_dim: int = 1920
-) -> np.ndarray:
+def _resize_frame_if_needed(self, frame: np.ndarray, max_dim: int = 1920) -> np.ndarray:
     """Resize frame if it exceeds maximum dimension while maintaining aspect ratio."""
     try:
         h, w = frame.shape[:2]
@@ -193,9 +191,7 @@ def _process_faces_in_frame(self, gray: np.ndarray) -> Tuple[int, int]:
         # Check for blurriness using Laplacian variance
         # Optimization: Using cv2.meanStdDev is significantly faster (~3x)
         # than falling back to NumPy's .var() method for variance calculation.
-        variance = (
-            cv2.meanStdDev(cv2.Laplacian(face_roi, cv2.CV_64F))[1][0][0] ** 2
-        )
+        variance = cv2.meanStdDev(cv2.Laplacian(face_roi, cv2.CV_64F))[1][0][0] ** 2
         if variance < 100:  # Threshold for blurriness
             blurry_faces += 1
     return faces_found, blurry_faces
@@ -251,7 +247,9 @@ def _analyze_facial_inconsistencies(
     return score, issues
 
 
-def _check_video_metadata_sync(self, video_path: str, fps: float, frame_count: float) -> Tuple[float, List[str]]:
+def _check_video_metadata_sync(
+    self, video_path: str, fps: float, frame_count: float
+) -> Tuple[float, List[str]]:
     """Verify video metadata and check for duration mismatch anomalies."""
     score = 0.0
     issues = []
@@ -289,7 +287,9 @@ def _check_audio_visual_sync(
         fps = cap.get(cv2.CAP_PROP_FPS)
         frame_count = cap.get(cv2.CAP_PROP_FRAME_COUNT)
 
-        score_diff, sync_issues = _check_video_metadata_sync(self, video_path, fps, frame_count)
+        score_diff, sync_issues = _check_video_metadata_sync(
+            self, video_path, fps, frame_count
+        )
         score += score_diff
         issues.extend(sync_issues)
 
@@ -349,7 +349,9 @@ def _check_compression_artifacts(
     return score, issues
 
 
-def _calculate_simulated_frame_score(self, frame: np.ndarray, gray: np.ndarray) -> float:
+def _calculate_simulated_frame_score(
+    self, frame: np.ndarray, gray: np.ndarray
+) -> float:
     """Calculate simulated deepfake score for a single frame."""
     mean, std = cv2.meanStdDev(frame)
     std_dev = float(std.sum()) / std.size
@@ -416,8 +418,6 @@ def _analyze_video_frames(
     model_score = self._run_deepfake_model(frames, gray_frames, content_type)
     if model_score > 0.7:
         score += 3.0
-        indicators.append(
-            f"High probability of deepfake detected by model: {filename}"
-        )
+        indicators.append(f"High probability of deepfake detected by model: {filename}")
 
     return score, indicators

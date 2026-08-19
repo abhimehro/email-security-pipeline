@@ -558,11 +558,18 @@ class SpamAnalyzer:
 
         return score, issues
 
-    def _has_all_required_headers(self, headers: Dict[str, Union[str, List[str]]]) -> bool:
+    def _has_all_required_headers(
+        self, headers: Dict[str, Union[str, List[str]]]
+    ) -> bool:
         # ⚡ BOLT: Optimization - Fast path check using explicit boolean checks
         # Avoids set allocation overhead; ~2x faster than creating a temporary set for .issubset()
         # Extracted to helper method to satisfy CodeScene cyclomatic complexity checks.
-        return "from" in headers and "to" in headers and "date" in headers and "message-id" in headers
+        return (
+            "from" in headers
+            and "to" in headers
+            and "date" in headers
+            and "message-id" in headers
+        )
 
     def _check_missing_headers(
         self, headers: Dict[str, Union[str, List[str]]]

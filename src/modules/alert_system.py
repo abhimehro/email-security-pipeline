@@ -11,6 +11,7 @@ from typing import List, Optional
 import requests
 
 from ..utils.security_validators import is_safe_webhook_url
+from . import alert_channels, alert_console
 from .alert_recommendations import (
     DEFAULT_CLEAN_RECOMMENDATION,
     RECOMMENDATION_PREFIXES,
@@ -23,8 +24,6 @@ from .alert_report import ThreatReport, generate_threat_report  # noqa: F401
 from .media_analyzer import MediaAnalysisResult
 from .nlp_analyzer import NLPAnalysisResult
 from .spam_analyzer import SpamAnalysisResult
-from . import alert_channels
-from . import alert_console
 
 
 class AlertSystem:
