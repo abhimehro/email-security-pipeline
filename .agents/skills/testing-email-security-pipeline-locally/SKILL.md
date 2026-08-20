@@ -15,7 +15,7 @@ python3 -m src.main test_envs/allowed.env
 ## Common gotchas
 
 - The file `src/app_runner.py` is imported by `src/main.py`; it does **not** have a `__main__` guard, so `python3 -m src.app_runner` exits silently.
-- `diagnose_docker_connectivity.py` lives at the repo root, not in `scripts/`.
+- `diagnose_docker_connectivity.py` lives under `scripts/` (moved from the repo root).
 - `scripts/check_mail_connectivity.py` calls `load_dotenv()` and reads `.env` from the current working directory.
 - `diagnose_docker_connectivity.py` calls `load_dotenv(".env")` and also reads the repo-root `.env`.
 - `scripts/diagnose_connectivity.py` does not call `load_dotenv()` itself; it constructs `Config()` which loads the configured env file.

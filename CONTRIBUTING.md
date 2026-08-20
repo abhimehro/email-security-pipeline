@@ -22,7 +22,7 @@ well-formed pull request.
 
 | Requirement                                  | Minimum version |
 | -------------------------------------------- | --------------- |
-| Python                                       | 3.11            |
+| Python                                       | 3.13            |
 | Git                                          | any recent      |
 | Docker _(optional, for integration testing)_ | any recent      |
 
