@@ -6,7 +6,8 @@
 
 Email Security Analysis Pipeline — a Python-based email security system that
 monitors IMAP mailboxes and runs multi-layer threat detection (spam, NLP, media
-analysis). See `README.md` for full details.
+analysis). Runtime is **Python 3.13** (CI and Docker). See `README.md` for full
+details.
 
 ### Running tests
 
