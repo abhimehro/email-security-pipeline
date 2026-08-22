@@ -4,6 +4,10 @@ import datetime as dt
 import json
 import re
 from typing import Any
+import typing
+if typing.TYPE_CHECKING:
+    from pathlib import Path
+
 
 from repository_automation_common import (
     DAILY_WORKFLOW_NAME,
