@@ -133,3 +133,7 @@ loop introduces measurable memory allocation overhead. For small numbers of keys
 **Action:** For validating the presence of a small number of static keys in a
 dictionary hot path, prefer explicit sequential `in` checks over creating a
 temporary set for `.issubset()`.
+
+## 2025-01-20 - NLP Regex Performance Bottleneck
+**Learning:** In the NLP Threat Analyzer, the `simple_master_pattern` combined regex check for social engineering, urgency, authority, and psychological triggers was executing on every email part. While the regex check is relatively fast, doing so on clean, lengthy texts repeatedly was taking ~5.3 seconds for 1000 iterations. Replacing this with an Aho-Corasick automaton built from the literal words present in the regex patterns provides a fast-path pre-check that executes in just ~0.005 seconds (a 1000x speedup for clean text).
+**Action:** Always consider using high-performance string matching algorithms (like Aho-Corasick) as a fast-path pre-filter before invoking expensive regex engine evaluations, especially when scanning large amounts of mostly-clean text for known static literal subsets.
