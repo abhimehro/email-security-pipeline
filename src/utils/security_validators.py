@@ -188,9 +188,7 @@ _MAX_EMAIL_LENGTH = 254
 # and hyphens) to keep the whitelist strict and avoid Unicode/underscore drift.
 # The TLD is required to be at least two letters.
 # Does NOT allow shell metacharacters such as ; | & ` $ < > \ or whitespace.
-_SAFE_EMAIL_PATTERN = re.compile(
-    r"^[a-zA-Z0-9._%+-]+@[A-Za-z0-9.-]+\.[a-zA-Z]{2,}$"
-)
+_SAFE_EMAIL_PATTERN = re.compile(r"^[a-zA-Z0-9._%+-]+@[A-Za-z0-9.-]+\.[a-zA-Z]{2,}$")
 
 
 def _is_safe_label(label: str) -> bool:

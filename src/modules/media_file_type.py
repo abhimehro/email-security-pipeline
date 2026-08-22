@@ -193,11 +193,16 @@ def _validate_missing_signature(self, filename: str) -> Tuple[float, str]:
 def _check_large_size_anomaly(self, filename: str, size: int) -> Tuple[float, str]:
     """Check for unusually large file size anomalies."""
     if size > self.MAX_ATTACHMENT_SIZE_MB * 1024 * 1024:
-        return 1.5, f"Unusually large attachment: {filename} ({size / (1024*1024):.1f}MB)"
+        return (
+            1.5,
+            f"Unusually large attachment: {filename} ({size / (1024*1024):.1f}MB)",
+        )
     return 0.0, ""
 
 
-def _check_small_media_size_anomaly(self, filename: str, size: int) -> Tuple[float, str]:
+def _check_small_media_size_anomaly(
+    self, filename: str, size: int
+) -> Tuple[float, str]:
     """Check for suspiciously small media files."""
     filename_lower = filename.lower()
     if filename_lower.endswith(self.MEDIA_EXTENSIONS):
@@ -232,7 +237,9 @@ def _is_zip_magic_or_extension(filename_lower: str, data: bytes) -> bool:
     return filename_lower.endswith(".zip")
 
 
-def _inspect_zip_archive(self, filename: str, filename_lower: str, data: bytes, result: dict) -> None:
+def _inspect_zip_archive(
+    self, filename: str, filename_lower: str, data: bytes, result: dict
+) -> None:
     """Inspect Zip archive if applicable."""
     if not _is_zip_magic_or_extension(filename_lower, data):
         return
@@ -241,7 +248,9 @@ def _inspect_zip_archive(self, filename: str, filename_lower: str, data: bytes, 
     result["suspicious_attachments"].extend(zip_warnings)
 
 
-def _inspect_tar_archive(self, filename: str, filename_lower: str, data: bytes, result: dict) -> None:
+def _inspect_tar_archive(
+    self, filename: str, filename_lower: str, data: bytes, result: dict
+) -> None:
     """Inspect Tar archive if applicable."""
     if not filename_lower.endswith((".tar", ".tar.gz", ".tgz", ".gz")):
         return

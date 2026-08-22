@@ -44,6 +44,10 @@
 
 **Closed issues:**
 
+- Daily QA & Agentic Review — 2026-08-19 [\#1501](https://github.com/abhimehro/email-security-pipeline/issues/1501)
+- \[repo-automation\] Daily Status Report - 2026-08-19 [\#1499](https://github.com/abhimehro/email-security-pipeline/issues/1499)
+- \[repo-automation\] Daily Status Report - 2026-08-18 [\#1496](https://github.com/abhimehro/email-security-pipeline/issues/1496)
+- \[repo-automation\] Daily Status Report - 2026-08-17 [\#1494](https://github.com/abhimehro/email-security-pipeline/issues/1494)
 - Daily QA & Agentic Review — 2026-08-16 [\#1493](https://github.com/abhimehro/email-security-pipeline/issues/1493)
 - \[repo-automation\] Weekly Retrospective - 2026-08-16 [\#1491](https://github.com/abhimehro/email-security-pipeline/issues/1491)
 - \[repo-automation\] Daily Status Report - 2026-08-16 [\#1489](https://github.com/abhimehro/email-security-pipeline/issues/1489)

@@ -7,7 +7,13 @@ from pathlib import Path
 from unittest.mock import patch
 
 import test_config
-from src.utils.config import AlertConfig, AnalysisConfig, Config, ConfigurationError, EmailAccountConfig
+from src.utils.config import (
+    AlertConfig,
+    AnalysisConfig,
+    Config,
+    ConfigurationError,
+    EmailAccountConfig,
+)
 from src.utils.security_validators import is_safe_email
 
 # Deterministic-feeling secret for tests; generated so it is not a hardcoded password.

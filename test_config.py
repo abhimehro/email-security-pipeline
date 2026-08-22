@@ -4,14 +4,13 @@ Configuration Test Script
 Tests the email security pipeline configuration and basic functionality.
 """
 
-from src.utils.colors import Colors
-
-
 import json
 import subprocess
 import sys
 from pathlib import Path
 from typing import Optional
+
+from src.utils.colors import Colors
 
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent))
@@ -28,10 +27,17 @@ def test_config_loading():
 
         config_file = ".env"
         if not Path(config_file).exists():
-            print(Colors.colorize(f"❌ ERROR: Configuration file '{config_file}' not found", Colors.RED))
+            print(
+                Colors.colorize(
+                    f"❌ ERROR: Configuration file '{config_file}' not found",
+                    Colors.RED,
+                )
+            )
             return False
 
-        print(Colors.colorize(f"✓ Found configuration file: {config_file}", Colors.GREEN))
+        print(
+            Colors.colorize(f"✓ Found configuration file: {config_file}", Colors.GREEN)
+        )
 
         # Load configuration
         config = Config(config_file)
@@ -42,7 +48,9 @@ def test_config_loading():
             config.validate()
             print(Colors.colorize("✓ Configuration validation passed", Colors.GREEN))
         except Exception as e:
-            print(Colors.colorize(f"❌ Configuration validation failed: {e}", Colors.RED))
+            print(
+                Colors.colorize(f"❌ Configuration validation failed: {e}", Colors.RED)
+            )
             return False
 
         # Check email accounts
@@ -228,7 +236,12 @@ def test_imap_connections(test_connections=True):
     print("=" * 60)
 
     if not test_connections:
-        print(Colors.colorize("⏭️  Skipping IMAP connection tests (use --test-connections to enable)", Colors.YELLOW))
+        print(
+            Colors.colorize(
+                "⏭️  Skipping IMAP connection tests (use --test-connections to enable)",
+                Colors.YELLOW,
+            )
+        )
         return True
 
     try:
@@ -240,7 +253,12 @@ def test_imap_connections(test_connections=True):
             return False
 
         if not config.email_accounts:
-            print(Colors.colorize("⚠️  No email accounts configured, skipping connection test", Colors.YELLOW))
+            print(
+                Colors.colorize(
+                    "⚠️  No email accounts configured, skipping connection test",
+                    Colors.YELLOW,
+                )
+            )
             return True
 
         print(f"Testing connections for {len(config.email_accounts)} account(s)...")
@@ -264,7 +282,11 @@ def test_imap_connections(test_connections=True):
             print(Colors.colorize("\n✓ IMAP connections test PASSED", Colors.GREEN))
             return True
         else:
-            print(Colors.colorize("❌ Failed to connect to any email accounts", Colors.RED))
+            print(
+                Colors.colorize(
+                    "❌ Failed to connect to any email accounts", Colors.RED
+                )
+            )
             print("   Please check your credentials and IMAP settings")
             return False
 
@@ -299,7 +321,12 @@ def test_folder_parsing():
             if result == expected:
                 print(Colors.colorize(f"✓ '{input_value}' → {result}", Colors.GREEN))
             else:
-                print(Colors.colorize(f"❌ '{input_value}' → {result} (expected {expected})", Colors.RED))
+                print(
+                    Colors.colorize(
+                        f"❌ '{input_value}' → {result} (expected {expected})",
+                        Colors.RED,
+                    )
+                )
                 all_passed = False
 
         if all_passed:
@@ -350,7 +377,11 @@ def _run_diagnostics_script(
 def _validate_script_result(result: subprocess.CompletedProcess) -> bool:
     """Validate the script execution result."""
     if result.returncode != 0:
-        print(Colors.colorize(f"❌ Script failed with return code {result.returncode}", Colors.RED))
+        print(
+            Colors.colorize(
+                f"❌ Script failed with return code {result.returncode}", Colors.RED
+            )
+        )
         print(f"   Stderr: {result.stderr}")
         return False
     return True
@@ -366,7 +397,12 @@ def _validate_json_output(output) -> bool:
     ]
 
     if not all(key in output for key in required_keys):
-        print(Colors.colorize(f"❌ JSON output missing required keys. Found: {list(output.keys())}", Colors.RED))
+        print(
+            Colors.colorize(
+                f"❌ JSON output missing required keys. Found: {list(output.keys())}",
+                Colors.RED,
+            )
+        )
         return False
 
     print(Colors.colorize("✓ JSON output contains all required keys", Colors.GREEN))
@@ -391,7 +427,12 @@ def test_diagnostics_script():
         config = Config(".env")
 
         if not config.email_accounts:
-            print(Colors.colorize("⚠️ No email accounts configured, skipping diagnostics script test", Colors.YELLOW))
+            print(
+                Colors.colorize(
+                    "⚠️ No email accounts configured, skipping diagnostics script test",
+                    Colors.YELLOW,
+                )
+            )
             return True
 
         test_account_email = _get_first_enabled_account(config)
@@ -405,7 +446,12 @@ def test_diagnostics_script():
 
         script_path = "./scripts/diagnose_connectivity.py"
         if not _check_script_exists(script_path):
-            print(Colors.colorize(f"❌ ERROR: Diagnostics script not found at {script_path}", Colors.RED))
+            print(
+                Colors.colorize(
+                    f"❌ ERROR: Diagnostics script not found at {script_path}",
+                    Colors.RED,
+                )
+            )
             return False
 
         result = _run_diagnostics_script(script_path, test_account_email)
@@ -416,7 +462,9 @@ def test_diagnostics_script():
             output = json.loads(result.stdout)
             print(Colors.colorize("✓ Script produced valid JSON output", Colors.GREEN))
             if _validate_json_output(output):
-                print(Colors.colorize("\n✓ Diagnostics script test PASSED", Colors.GREEN))
+                print(
+                    Colors.colorize("\n✓ Diagnostics script test PASSED", Colors.GREEN)
+                )
                 return True
             return False
 
@@ -462,16 +510,30 @@ def main():
     total = len(results)
 
     for test_name, result in results:
-        status = Colors.colorize("✓ PASS", Colors.GREEN) if result else Colors.colorize("❌ FAIL", Colors.RED)
+        status = (
+            Colors.colorize("✓ PASS", Colors.GREEN)
+            if result
+            else Colors.colorize("❌ FAIL", Colors.RED)
+        )
         print(f"{status} - {test_name}")
 
     print(f"\nTotal: {passed}/{total} tests passed")
 
     if passed == total:
-        print(Colors.colorize("\n🎉 All tests PASSED! Your configuration is ready to use.", Colors.GREEN))
+        print(
+            Colors.colorize(
+                "\n🎉 All tests PASSED! Your configuration is ready to use.",
+                Colors.GREEN,
+            )
+        )
         return 0
     else:
-        print(Colors.colorize("\n⚠️  Some tests FAILED. Please review the errors above.", Colors.YELLOW))
+        print(
+            Colors.colorize(
+                "\n⚠️  Some tests FAILED. Please review the errors above.",
+                Colors.YELLOW,
+            )
+        )
         return 1
 
 

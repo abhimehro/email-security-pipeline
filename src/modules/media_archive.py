@@ -69,9 +69,7 @@ def _inspect_zip_member_and_check_traversal(
     warnings = []
     if self._is_path_traversal_attempt(contained_file):
         score += 5.0
-        safe_contained_file = sanitize_for_logging(
-            sanitize_filename(contained_file)
-        )
+        safe_contained_file = sanitize_for_logging(sanitize_filename(contained_file))
         warnings.append(
             f"Zip file {filename} contains path traversal attempt: {safe_contained_file}"
         )
@@ -192,9 +190,7 @@ def _handle_nested_zip_member(
 
         # Recurse based on type
         nested_path = f"{parent_filename}/{safe_member_name}"
-        return _inspect_nested_data(
-            self, member_lower, nested_path, nested_data, depth
-        )
+        return _inspect_nested_data(self, member_lower, nested_path, nested_data, depth)
 
     except ValueError as e:
         score += 5.0
@@ -202,9 +198,7 @@ def _handle_nested_zip_member(
             f"Zip bomb detected: {parent_filename}/{safe_member_name} ({str(e)})"
         )
     except Exception as e:
-        self.logger.warning(
-            f"Error inspecting nested archive {safe_member_name}: {e}"
-        )
+        self.logger.warning(f"Error inspecting nested archive {safe_member_name}: {e}")
         score += 3.0
         warnings.append(
             f"Failed to inspect nested archive {safe_member_name}: {str(e)}"
@@ -283,9 +277,7 @@ def _process_tar_member(
     member_lower = safe_member_name.lower()
 
     if member_lower.endswith(self.DANGEROUS_EXTENSIONS):
-        return 5.0, [
-            f"Archive {filename} contains dangerous file: {safe_member_name}"
-        ]
+        return 5.0, [f"Archive {filename} contains dangerous file: {safe_member_name}"]
 
     if self._is_path_traversal_attempt(member.name):
         safe_member_name_traversal = sanitize_for_logging(
@@ -425,8 +417,6 @@ def _read_zip_member_securely(
             f.close()
         except zipfile.BadZipFile as e:
             # Ignore errors on close (like CRC mismatch due to partial read)
-            self.logger.debug(
-                f"Ignored error closing zip stream for {filename}: {e}"
-            )
+            self.logger.debug(f"Ignored error closing zip stream for {filename}: {e}")
 
     return content.getvalue()

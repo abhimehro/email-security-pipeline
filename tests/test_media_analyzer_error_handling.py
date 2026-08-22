@@ -84,6 +84,7 @@ class TestMediaAnalyzerBug(unittest.TestCase):
         # Mock the executor and future
         mock_future = MagicMock()
         import concurrent.futures
+
         mock_future.result.side_effect = concurrent.futures.TimeoutError("Timed out")
 
         analyzer._deepfake_executor = MagicMock()

@@ -13,8 +13,8 @@ from ..utils.colors import Colors
 from ..utils.sanitization import ANSI_ESCAPE_PATTERN
 from .alert_channels import (
     REDACTED_URL_PATTERN,
-    sanitize_text,
     redact_sensitive_url_params,
+    sanitize_text,
 )
 from .alert_recommendations import (
     RECOMMENDATION_PREFIXES,
@@ -166,9 +166,7 @@ def print_alert_metadata(
     print_alert_row("", risk_color)
 
 
-def print_threat_score(
-    score: float, risk_level: str, width: int, risk_color: str
-):
+def print_threat_score(score: float, risk_level: str, width: int, risk_color: str):
     """Print the threat score and progress bar."""
     score_val = min(max(score, 0), 100)
     meter_len = 40
@@ -208,9 +206,7 @@ def print_nlp_details(nlp_analysis: Dict, risk_color: str, max_nlp: int) -> None
     for key, title, item_color in indicator_configs:
         items = nlp_analysis.get(key)
         if items:
-            print_alert_row(
-                Colors.colorize(title, Colors.BOLD), risk_color, indent=3
-            )
+            print_alert_row(Colors.colorize(title, Colors.BOLD), risk_color, indent=3)
             for item in items[:max_nlp]:
                 print_alert_row(
                     f"{Colors.colorize('•', item_color)} {item}",
@@ -240,9 +236,7 @@ def print_media_details(media_analysis: Dict, risk_color: str, max_media: int) -
     for key, title, item_color in indicator_configs:
         items = media_analysis.get(key)
         if items:
-            print_alert_row(
-                Colors.colorize(title, Colors.BOLD), risk_color, indent=3
-            )
+            print_alert_row(Colors.colorize(title, Colors.BOLD), risk_color, indent=3)
             for item in items[:max_media]:
                 print_alert_row(
                     f"{Colors.colorize('•', item_color)} {item}",
@@ -298,7 +292,9 @@ def spam_detail_rows(
 ) -> List[tuple[str, int]]:
     rows: List[tuple[str, int]] = []
     rows.extend(spam_indicator_rows(spam_analysis.get("indicators") or [], max_spam))
-    rows.extend(spam_header_issue_rows(spam_analysis.get("header_issues") or [], max_header))
+    rows.extend(
+        spam_header_issue_rows(spam_analysis.get("header_issues") or [], max_header)
+    )
     rows.extend(spam_url_rows(spam_analysis.get("suspicious_urls") or [], max_urls))
     return rows
 
@@ -333,9 +329,7 @@ def print_analysis_details(
     """Print detailed analysis sections."""
     border_len = width - 2
     print(Colors.colorize(f"├{'─'*border_len}┤", risk_color))
-    print_alert_row(
-        Colors.colorize("ANALYSIS DETAILS", Colors.BOLD), risk_color
-    )
+    print_alert_row(Colors.colorize("ANALYSIS DETAILS", Colors.BOLD), risk_color)
     print_alert_row("", risk_color)
 
     # Spam
@@ -357,9 +351,7 @@ def print_analysis_details(
     print_alert_row("", risk_color)
 
     # Media
-    print_analysis_section_header(
-        "📎 MEDIA", report.media_analysis, risk_color
-    )
+    print_analysis_section_header("📎 MEDIA", report.media_analysis, risk_color)
     print_media_details(
         report.media_analysis,
         risk_color,
@@ -386,16 +378,16 @@ def _determine_recommendation_color(rec_upper: str) -> str:
     return Colors.GREEN
 
 
-def _print_wrapped_lines(wrapped_lines: List[str], icon: str, color: str, risk_color: str) -> None:
+def _print_wrapped_lines(
+    wrapped_lines: List[str], icon: str, color: str, risk_color: str
+) -> None:
     """Print wrapped recommendation lines with appropriate formatting."""
     if not wrapped_lines:
         return
 
     # First line gets the bullet point
     first_line = wrapped_lines[0]
-    print_alert_row(
-        f"{Colors.colorize(icon, color)} {first_line}", risk_color
-    )
+    print_alert_row(f"{Colors.colorize(icon, color)} {first_line}", risk_color)
 
     # Subsequent lines get indentation based on icon width
     indent = "   " if icon == "⚠️ " else "  "
@@ -404,15 +396,11 @@ def _print_wrapped_lines(wrapped_lines: List[str], icon: str, color: str, risk_c
         print_alert_row(f"{indent}{line}", risk_color)
 
 
-def print_recommendations(
-    recommendations: List[str], width: int, risk_color: str
-):
+def print_recommendations(recommendations: List[str], width: int, risk_color: str):
     """Print recommendations section."""
     border_len = width - 2
     print(Colors.colorize(f"├{'─'*border_len}┤", risk_color))
-    print_alert_row(
-        Colors.colorize("RECOMMENDATIONS", Colors.BOLD), risk_color
-    )
+    print_alert_row(Colors.colorize("RECOMMENDATIONS", Colors.BOLD), risk_color)
     print_alert_row("", risk_color)
 
     for rec in recommendations:
@@ -464,7 +452,9 @@ def render_alert(report: ThreatReport, limits: Dict[str, int]) -> None:
     print_recommendations(report.recommendations, width, risk_color)
 
 
-def render_clean_report(report: ThreatReport, threat_low: float, terminal_width: int) -> None:
+def render_clean_report(
+    report: ThreatReport, threat_low: float, terminal_width: int
+) -> None:
     """Render the compact one-line clean report."""
     # Compact format for clean emails
     score_val = max(0.0, report.overall_threat_score)

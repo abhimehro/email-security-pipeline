@@ -20,7 +20,6 @@ from ..utils.sanitization import (
 )
 from .alert_report import ThreatReport
 
-
 # Regex pattern for extracting URLs from error messages (compiled once for performance)
 # Expanded to catch bare paths/hosts for complete redaction when scheme is missing.
 URL_PATTERN = re.compile(r'(?:https?://[^\s<>"]+|www\.[^\s<>"]+|/[^\s<>"]+)')
@@ -224,7 +223,9 @@ def redact_sensitive_url_params(url: str) -> str:
         return url
 
 
-def create_slack_field(title: str, analysis_dict: Dict[str, Any], indicator: str) -> Dict[str, Any]:
+def create_slack_field(
+    title: str, analysis_dict: Dict[str, Any], indicator: str
+) -> Dict[str, Any]:
     """Helper to create a standard Slack field dictionary with risk emojis."""
     level = analysis_dict.get("risk_level", "unknown")
     score = analysis_dict.get("score", 0)
@@ -237,7 +238,9 @@ def create_slack_field(title: str, analysis_dict: Dict[str, Any], indicator: str
     return {"title": title, "value": value, "short": True}
 
 
-def _get_analysis_indicator(data: Dict[str, Any], keys: List[str], defaults: Dict[str, str]) -> str:
+def _get_analysis_indicator(
+    data: Dict[str, Any], keys: List[str], defaults: Dict[str, str]
+) -> str:
     """Extract a descriptive indicator from analysis data."""
     for key in keys:
         val = data.get(key)
@@ -274,7 +277,9 @@ def generate_slack_fields(report: ThreatReport) -> List[Dict[str, Any]]:
     # Spam
     spam_data = report.spam_analysis or {}
     spam_ind = _get_analysis_indicator(
-        spam_data, ["indicators", "suspicious_urls"], {"suspicious_urls": "Suspicious URLs"}
+        spam_data,
+        ["indicators", "suspicious_urls"],
+        {"suspicious_urls": "Suspicious URLs"},
     )
     fields.append(create_slack_field("📧 Spam Analysis", spam_data, spam_ind))
 
@@ -288,7 +293,9 @@ def generate_slack_fields(report: ThreatReport) -> List[Dict[str, Any]]:
     # Media
     media_data = report.media_analysis or {}
     media_ind = _get_analysis_indicator(
-        media_data, ["file_type_warnings", "potential_deepfakes"], {"potential_deepfakes": "Deepfake Detected"}
+        media_data,
+        ["file_type_warnings", "potential_deepfakes"],
+        {"potential_deepfakes": "Deepfake Detected"},
     )
     fields.append(create_slack_field("📎 Media Analysis", media_data, media_ind))
 
@@ -297,9 +304,7 @@ def generate_slack_fields(report: ThreatReport) -> List[Dict[str, Any]]:
         {
             "title": "Top Recommendation",
             "value": (
-                report.recommendations[0]
-                if report.recommendations
-                else "Review email"
+                report.recommendations[0] if report.recommendations else "Review email"
             ),
             "short": False,
         }
@@ -312,10 +317,7 @@ def build_webhook_payload(report: ThreatReport) -> Dict[str, Any]:
     payload = asdict(report)
 
     # Redact sensitive info from suspicious URLs if present
-    if (
-        "spam_analysis" in payload
-        and "suspicious_urls" in payload["spam_analysis"]
-    ):
+    if "spam_analysis" in payload and "suspicious_urls" in payload["spam_analysis"]:
         urls = payload["spam_analysis"]["suspicious_urls"]
         if urls:
             payload["spam_analysis"]["suspicious_urls"] = [
