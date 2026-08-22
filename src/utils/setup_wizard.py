@@ -379,6 +379,9 @@ def _generate_config_content(
     template_content: str, provider_key: str, email: str, app_secret: str
 ) -> str:
     """Generate configuration content by replacing template variables."""
+    # SECURITY: Strip newlines to prevent .env injection
+    safe_email = email.replace("\n", "").replace("\r", "")
+    safe_secret = app_secret.replace("\n", "").replace("\r", "")
     content = template_content
 
     # Helper to disable other providers
@@ -395,12 +398,12 @@ def _generate_config_content(
 
     # Set email for selected provider
     content = re.sub(
-        f"{provider_key}_EMAIL=.*", lambda _: f"{provider_key}_EMAIL={email}", content
+        f"{provider_key}_EMAIL=.*", lambda _: f"{provider_key}_EMAIL={safe_email}", content
     )
     # Set app_secret safely
     content = re.sub(
         f"{provider_key}_APP_PASSWORD=.*",
-        lambda _: f"{provider_key}_APP_PASSWORD={app_secret}",
+        lambda _: f"{provider_key}_APP_PASSWORD={safe_secret}",
         content,
     )
 
