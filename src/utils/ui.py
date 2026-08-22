@@ -4,11 +4,34 @@ Provides user-friendly output components like countdown timers.
 """
 
 import itertools
+import shutil
 import sys
 import threading
 import time
 
 from .colors import Colors
+
+def _truncate_message(msg: str, overhead: int) -> str:
+    """Truncate message to fit terminal width to prevent line wrapping shifts."""
+    columns = shutil.get_terminal_size((80, 20)).columns
+    max_len = max(0, columns - overhead)
+
+    # Strip ANSI colors to measure visual length properly
+    import re
+    ansi_escape = re.compile(r'\x1b\[[0-9;]*m')
+    clean_msg = ansi_escape.sub('', msg)
+
+    if len(clean_msg) > max_len:
+        if max_len > 3:
+            # Simple truncation for non-colored string fallback.
+            if clean_msg == msg:
+                return msg[:max_len - 3] + "..."
+            else:
+                # To be safe from breaking ANSI escape codes, we just don't truncate colored strings here
+                # Our base messages generally do not have colors injected until later.
+                pass
+        return msg[:max_len] if clean_msg == msg else msg
+    return msg
 
 CURSOR_HIDE = "\033[?25l"
 CURSOR_SHOW = "\033[?25h"
@@ -47,11 +70,16 @@ class CountdownTimer:
             width = len(str(self.duration))
             initial_time = f"{self.duration:{width}d}s"
 
+        # Truncate message to fit terminal width
+        time_len = 5 if self.duration >= 60 else len(str(self.duration)) + 1
+        overhead = 2 + self.PROGRESS_BAR_WIDTH + 1 + time_len + 2
+        display_msg = _truncate_message(self.message, overhead)
+
         # Accessibility & UX: Print an initial static frame so screen readers
         # have a chance to read the message and prevent layout shift before the loop.
         full_bar = "█" * self.PROGRESS_BAR_WIDTH
         colored_bar = Colors.colorize(full_bar, Colors.CYAN)
-        sys.stdout.write(f"{self.message}: {colored_bar} {initial_time}")
+        sys.stdout.write(f"{display_msg}: {colored_bar} {initial_time}")
         sys.stdout.flush()
 
         try:
@@ -74,7 +102,7 @@ class CountdownTimer:
                 colored_bar = Colors.colorize(progress_bar, Colors.CYAN)
 
                 # \r moves cursor to start of line, \033[K clears the line
-                sys.stdout.write(f"\r{self.message}: {colored_bar} {time_str} \033[K")
+                sys.stdout.write(f"\r{display_msg}: {colored_bar} {time_str} \033[K")
                 sys.stdout.flush()
 
                 time.sleep(self.interval)
@@ -144,13 +172,19 @@ class Spinner:
         """Set a custom failure message to display on error."""
         self.fail_msg = message
 
+    def _truncate_base_message(self) -> str:
+        hint_len = len(CTRL_C_HINT) if CTRL_C_HINT not in self.message else 0
+        overhead = 2 + 1 + 10 + 3 + hint_len
+        return _truncate_message(self.message, overhead)
+
     def _spin(self):
         # Accessibility: Sleep briefly to ensure the screen reader announces
         # the initial message before the loop starts rapidly redrawing.
         time.sleep(0.1)
 
-        display_msg = self.message
-        if sys.stdout.isatty() and CTRL_C_HINT not in display_msg:
+        base_msg = self._truncate_base_message()
+        display_msg = base_msg
+        if sys.stdout.isatty() and CTRL_C_HINT not in self.message:
             display_msg += Colors.colorize(CTRL_C_HINT, Colors.GREY)
 
         while self.busy:
@@ -167,9 +201,10 @@ class Spinner:
                 break
 
     def _get_tty_msg(self) -> str:
+        base_msg = self._truncate_base_message()
         if CTRL_C_HINT in self.message:
-            return self.message
-        return self.message + Colors.colorize(CTRL_C_HINT, Colors.GREY)
+            return base_msg
+        return base_msg + Colors.colorize(CTRL_C_HINT, Colors.GREY)
 
     def _get_non_tty_msg(self) -> str:
         return self.message if self.message.endswith("...") else f"{self.message}..."
