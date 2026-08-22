@@ -3,7 +3,7 @@
 # so PR validation stays fast and reliable.
 
 certifi==2026.7.22
-charset-normalizer==3.4.9
+charset-normalizer==3.5.1
 idna==3.18
 numpy==2.5.2
 # opencv-python-headless: Snyk reports 6 low-severity findings in bundled native
