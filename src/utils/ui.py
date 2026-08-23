@@ -23,34 +23,28 @@ def truncate_dynamic_text(text: str) -> str:
     preventing horizontal layout shifts. Appends an ellipsis if truncated.
     """
     cols = shutil.get_terminal_size((80, 20)).columns
-    # Strip carriage returns and line clears for length calculation
     clean_text = text.replace('\r', '').replace('\033[K', '')
-    ansi_escape = re.compile(r'\x1b\[[0-9;]*[a-zA-Z]')
+    parts = re.split(r'(\x1b\[[0-9;]*[a-zA-Z])', clean_text)
 
-    if len(ansi_escape.sub('', clean_text)) <= cols:
+    if sum(len(p) for p in parts[::2]) <= cols:
         return text
 
-    result = []
-    visible_count = 0
-    # Reserve 1 char for ellipsis if it's too long
-    max_visible = cols - 1
+    result, visible, max_len = [], 0, cols - 1
 
-    for token in re.finditer(r'\x1b\[[0-9;]*[a-zA-Z]|.', clean_text, re.DOTALL):
-        s = token.group(0)
-        if s.startswith('\x1b'):
-            result.append(s)
-        else:
-            if visible_count < max_visible:
-                result.append(s)
-                visible_count += 1
-            elif visible_count == max_visible:
-                result.append('…')
-                visible_count += 1
+    for i, part in enumerate(parts):
+        if i % 2 != 0:
+            result.append(part)
+        elif visible < max_len:
+            rem = max_len - visible
+            if len(part) <= rem:
+                result.append(part)
+                visible += len(part)
+            else:
+                result.append(part[:rem] + '…')
+                visible = max_len
 
-    # Append any reset codes at the end to avoid color leaks
-    reset_code = "\033[0m"
-    if "\033[" in text and reset_code not in "".join(result):
-        result.append(reset_code)
+    if "\033[" in text and "\033[0m" not in "".join(result):
+        result.append("\033[0m")
 
     return "".join(result)
 
