@@ -4,7 +4,9 @@ Provides user-friendly output components like countdown timers.
 """
 
 import itertools
+import shutil
 import sys
+import re
 import threading
 import time
 
@@ -13,6 +15,44 @@ from .colors import Colors
 CURSOR_HIDE = "\033[?25l"
 CURSOR_SHOW = "\033[?25h"
 CTRL_C_HINT = " (Press Ctrl+C to stop)"
+
+
+def truncate_dynamic_text(text: str) -> str:
+    """
+    Truncates a string containing ANSI color codes to fit within the terminal width,
+    preventing horizontal layout shifts. Appends an ellipsis if truncated.
+    """
+    cols = shutil.get_terminal_size((80, 20)).columns
+    # Strip carriage returns and line clears for length calculation
+    clean_text = text.replace('\r', '').replace('\033[K', '')
+    ansi_escape = re.compile(r'\x1b\[[0-9;]*[a-zA-Z]')
+
+    if len(ansi_escape.sub('', clean_text)) <= cols:
+        return text
+
+    result = []
+    visible_count = 0
+    # Reserve 1 char for ellipsis if it's too long
+    max_visible = cols - 1
+
+    for token in re.finditer(r'\x1b\[[0-9;]*[a-zA-Z]|.', clean_text, re.DOTALL):
+        s = token.group(0)
+        if s.startswith('\x1b'):
+            result.append(s)
+        else:
+            if visible_count < max_visible:
+                result.append(s)
+                visible_count += 1
+            elif visible_count == max_visible:
+                result.append('…')
+                visible_count += 1
+
+    # Append any reset codes at the end to avoid color leaks
+    reset_code = "\033[0m"
+    if "\033[" in text and reset_code not in "".join(result):
+        result.append(reset_code)
+
+    return "".join(result)
 
 
 class CountdownTimer:
@@ -74,7 +114,7 @@ class CountdownTimer:
                 colored_bar = Colors.colorize(progress_bar, Colors.CYAN)
 
                 # \r moves cursor to start of line, \033[K clears the line
-                sys.stdout.write(f"\r{self.message}: {colored_bar} {time_str} \033[K")
+                sys.stdout.write(f"\r{truncate_dynamic_text(f'{self.message}: {colored_bar} {time_str} ')}\033[K")
                 sys.stdout.flush()
 
                 time.sleep(self.interval)
@@ -159,7 +199,7 @@ class Spinner:
 
             # \r moves cursor to start of line, \033[K clears the line
             spin_char = Colors.colorize(next(self.spinner), Colors.CYAN)
-            sys.stdout.write(f"\r{spin_char} {display_msg}{time_str}   \033[K")
+            sys.stdout.write(f"\r{truncate_dynamic_text(f'{spin_char} {display_msg}{time_str}   ')}\033[K")
             sys.stdout.flush()
             time.sleep(self.delay)
             # Check again to avoid writing after stop
