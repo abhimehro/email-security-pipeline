@@ -17,6 +17,31 @@ CURSOR_SHOW = "\033[?25h"
 CTRL_C_HINT = " (Press Ctrl+C to stop)"
 
 
+def _apply_truncation(original_text: str, parts: list[str], max_len: int) -> str:
+    result = []
+    visible = 0
+    for i, part in enumerate(parts):
+        if i % 2 != 0:
+            result.append(part)
+            continue
+
+        rem = max_len - visible
+        if rem <= 0:
+            continue
+
+        if len(part) <= rem:
+            result.append(part)
+            visible += len(part)
+        else:
+            result.append(part[:rem] + '…')
+            visible = max_len
+
+    if "\033[" in original_text and "\033[0m" not in "".join(result):
+        result.append("\033[0m")
+
+    return "".join(result)
+
+
 def truncate_dynamic_text(text: str) -> str:
     """
     Truncates a string containing ANSI color codes to fit within the terminal width,
@@ -29,24 +54,7 @@ def truncate_dynamic_text(text: str) -> str:
     if sum(len(p) for p in parts[::2]) <= cols:
         return text
 
-    result, visible, max_len = [], 0, cols - 1
-
-    for i, part in enumerate(parts):
-        if i % 2 != 0:
-            result.append(part)
-        elif visible < max_len:
-            rem = max_len - visible
-            if len(part) <= rem:
-                result.append(part)
-                visible += len(part)
-            else:
-                result.append(part[:rem] + '…')
-                visible = max_len
-
-    if "\033[" in text and "\033[0m" not in "".join(result):
-        result.append("\033[0m")
-
-    return "".join(result)
+    return _apply_truncation(text, parts, cols - 1)
 
 
 class CountdownTimer:
