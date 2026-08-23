@@ -25,6 +25,8 @@
 
 **Security fixes:**
 
+- P0: Hardcoded API Key in Test File [\#1511](https://github.com/abhimehro/email-security-pipeline/issues/1511)
+- \[Security\] Review HTTP Request Patterns for SSRF Vulnerabilities [\#1498](https://github.com/abhimehro/email-security-pipeline/issues/1498)
 - P2: Potential Command Injection in Test Script [\#1426](https://github.com/abhimehro/email-security-pipeline/issues/1426)
 - P1: SSRF Vulnerability via Configurable IMAP Server [\#1425](https://github.com/abhimehro/email-security-pipeline/issues/1425)
 - P0: Password Exposure via Shell Variable in setup.sh [\#1236](https://github.com/abhimehro/email-security-pipeline/issues/1236)
@@ -44,6 +46,10 @@
 
 **Closed issues:**
 
+- \[repo-automation\] Daily Status Report - 2026-08-23 [\#1518](https://github.com/abhimehro/email-security-pipeline/issues/1518)
+- \[repo-automation\] Daily Status Report - 2026-08-22 [\#1513](https://github.com/abhimehro/email-security-pipeline/issues/1513)
+- \[repo-automation\] Daily Status Report - 2026-08-21 [\#1507](https://github.com/abhimehro/email-security-pipeline/issues/1507)
+- \[repo-automation\] Daily Status Report - 2026-08-20 [\#1503](https://github.com/abhimehro/email-security-pipeline/issues/1503)
 - Daily QA & Agentic Review — 2026-08-19 [\#1501](https://github.com/abhimehro/email-security-pipeline/issues/1501)
 - \[repo-automation\] Daily Status Report - 2026-08-19 [\#1499](https://github.com/abhimehro/email-security-pipeline/issues/1499)
 - \[repo-automation\] Daily Status Report - 2026-08-18 [\#1496](https://github.com/abhimehro/email-security-pipeline/issues/1496)
@@ -71,6 +77,7 @@
 - Daily QA & Agentic Review — 2026-08-07 [\#1448](https://github.com/abhimehro/email-security-pipeline/issues/1448)
 - \[repo-automation\] Daily Status Report - 2026-08-07 [\#1441](https://github.com/abhimehro/email-security-pipeline/issues/1441)
 - Daily QA & Agentic Review — 2026-08-06 [\#1438](https://github.com/abhimehro/email-security-pipeline/issues/1438)
+- \[repo-health\] Delete stale remotes + decide DATABASE\_\* stubs [\#1436](https://github.com/abhimehro/email-security-pipeline/issues/1436)
 - \[repo-automation\] Daily Status Report - 2026-08-06 [\#1434](https://github.com/abhimehro/email-security-pipeline/issues/1434)
 - Daily QA & Agentic Review — 2026-08-05 [\#1430](https://github.com/abhimehro/email-security-pipeline/issues/1430)
 - \[repo-automation\] Daily Status Report - 2026-08-05 [\#1429](https://github.com/abhimehro/email-security-pipeline/issues/1429)
@@ -487,6 +494,7 @@
 
 **Merged pull requests:**
 
+- automation: bind pathlib.Path at runtime \(salvage \#1514\) [\#1515](https://github.com/abhimehro/email-security-pipeline/pull/1515) ([abhimehro](https://github.com/abhimehro))
 - Daily QA Check - No Issues Found [\#1506](https://github.com/abhimehro/email-security-pipeline/pull/1506) ([abhimehro](https://github.com/abhimehro))
 - 🎨 Palette: Add semantic colors to standalone CLI scripts [\#1492](https://github.com/abhimehro/email-security-pipeline/pull/1492) ([abhimehro](https://github.com/abhimehro))
 - \[repo-health\] Remove DATABASE\_\* stubs [\#1490](https://github.com/abhimehro/email-security-pipeline/pull/1490) ([abhimehro](https://github.com/abhimehro))
