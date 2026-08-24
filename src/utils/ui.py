@@ -4,9 +4,47 @@ Provides user-friendly output components like countdown timers.
 """
 
 import itertools
+import os
+import re
+import shutil
 import sys
 import threading
 import time
+
+ANSI_ESCAPE_PATTERN = re.compile(r'\x1b\[[0-9;]*[a-zA-Z]')
+
+def get_visual_length(text: str) -> int:
+    if not text:
+        return 0
+    if "\x1b" in text:
+        return len(ANSI_ESCAPE_PATTERN.sub("", text))
+    return len(text)
+
+def truncate_ansi(text: str, max_width: int) -> str:
+    if max_width <= 0:
+        return ""
+    if get_visual_length(text) <= max_width:
+        return text
+    result = []
+    current_length = 0
+    parts = re.split(r'(\x1b\[[0-9;]*[a-zA-Z])', text)
+    for part in parts:
+        if not part:
+            continue
+        if ANSI_ESCAPE_PATTERN.match(part):
+            result.append(part)
+        else:
+            remaining = max_width - current_length
+            if len(part) > remaining:
+                if remaining > 0:
+                    result.append(part[:remaining - 1] + "…")
+                break
+            else:
+                result.append(part)
+                current_length += len(part)
+    result.append("\033[0m")
+    return "".join(result)
+
 
 from .colors import Colors
 
@@ -74,7 +112,10 @@ class CountdownTimer:
                 colored_bar = Colors.colorize(progress_bar, Colors.CYAN)
 
                 # \r moves cursor to start of line, \033[K clears the line
-                sys.stdout.write(f"\r{self.message}: {colored_bar} {time_str} \033[K")
+                full_text = f"{self.message}: {colored_bar} {time_str} "
+                term_width = shutil.get_terminal_size((80, 20)).columns
+                truncated = truncate_ansi(full_text, term_width - 1)
+                sys.stdout.write(f"\r{truncated}\033[K")
                 sys.stdout.flush()
 
                 time.sleep(self.interval)
@@ -159,7 +200,10 @@ class Spinner:
 
             # \r moves cursor to start of line, \033[K clears the line
             spin_char = Colors.colorize(next(self.spinner), Colors.CYAN)
-            sys.stdout.write(f"\r{spin_char} {display_msg}{time_str}   \033[K")
+            full_text = f"{spin_char} {display_msg}{time_str}   "
+            term_width = shutil.get_terminal_size((80, 20)).columns
+            truncated = truncate_ansi(full_text, term_width - 1)
+            sys.stdout.write(f"\r{truncated}\033[K")
             sys.stdout.flush()
             time.sleep(self.delay)
             # Check again to avoid writing after stop
