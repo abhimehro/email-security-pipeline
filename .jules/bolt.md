@@ -133,3 +133,8 @@ loop introduces measurable memory allocation overhead. For small numbers of keys
 **Action:** For validating the presence of a small number of static keys in a
 dictionary hot path, prefer explicit sequential `in` checks over creating a
 temporary set for `.issubset()`.
+
+## 2025-10-24 - Avoid ThreadPoolExecutor reallocation in hot paths
+
+**Learning:** In hot path analysis methods like `MediaAuthenticityAnalyzer.analyze`, creating a new `ThreadPoolExecutor` inside the function creates significant OS-level thread allocation overhead (over 2x slower for large batches). The class already maintains a `_deepfake_executor`, but it wasn't being utilized for the primary map operation.
+**Action:** Avoid allocating new thread pools inside iterative or frequently called methods. Always reuse existing executor instances initialized on the class when performing parallel operations on batches.

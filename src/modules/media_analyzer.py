@@ -344,38 +344,38 @@ class MediaAuthenticityAnalyzer:
         size_anomalies = []
         potential_deepfakes = []
 
-        # Optimization: Use ThreadPoolExecutor to process attachments concurrently.
-        with ThreadPoolExecutor() as executor:
-            # We use a mutable list to track if the threshold has been crossed globally.
-            # Because of the GIL, list operations are thread-safe enough for this heuristic check.
-            shared_state = {"stop_deepfake": False}
+        # We use a mutable list to track if the threshold has been crossed globally.
+        # Because of the GIL, list operations are thread-safe enough for this heuristic check.
+        shared_state = {"stop_deepfake": False}
 
-            # Using executor.map preserves the original deterministic order of results
-            # and allows exceptions to propagate naturally, avoiding fail-open vulnerabilities.
-            results = executor.map(
-                lambda att: self._process_attachment_parallel(att, shared_state),
-                email_data.attachments,
-            )
+        # Optimization: Reuse the instance's deepfake ThreadPoolExecutor to avoid
+        # recreating a new thread pool for every single email being analyzed.
+        # Using executor.map preserves the original deterministic order of results
+        # and allows exceptions to propagate naturally, avoiding fail-open vulnerabilities.
+        results = self._deepfake_executor.map(
+            lambda att: self._process_attachment_parallel(att, shared_state),
+            email_data.attachments,
+        )
 
-            for meta_results, deepfake_results in results:
-                threat_score += meta_results["score"]
-                size_anomalies.extend(meta_results["size_anomalies"])
-                file_type_warnings.extend(meta_results["file_type_warnings"])
-                suspicious_attachments.extend(meta_results["suspicious_attachments"])
+        for meta_results, deepfake_results in results:
+            threat_score += meta_results["score"]
+            size_anomalies.extend(meta_results["size_anomalies"])
+            file_type_warnings.extend(meta_results["file_type_warnings"])
+            suspicious_attachments.extend(meta_results["suspicious_attachments"])
 
-                if threat_score >= 5.0:
-                    shared_state["stop_deepfake"] = True
-                    continue
+            if threat_score >= 5.0:
+                shared_state["stop_deepfake"] = True
+                continue
 
-                if not deepfake_results:
-                    continue
+            if not deepfake_results:
+                continue
 
-                threat_score += deepfake_results["score"]
-                potential_deepfakes.extend(deepfake_results["indicators"])
-                size_anomalies.extend(deepfake_results["errors"])
+            threat_score += deepfake_results["score"]
+            potential_deepfakes.extend(deepfake_results["indicators"])
+            size_anomalies.extend(deepfake_results["errors"])
 
-                if threat_score >= 5.0:
-                    shared_state["stop_deepfake"] = True
+            if threat_score >= 5.0:
+                shared_state["stop_deepfake"] = True
 
         # Calculate risk level
         risk_level = self._calculate_risk_level(threat_score)
