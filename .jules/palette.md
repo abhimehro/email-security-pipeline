@@ -634,3 +634,7 @@ formatting before the loop begins. This prevents horizontal layout shift and
 gives screen readers a stable state to announce.
 
 >>>>>>> Stashed changes
+## 2026-08-27 - Truncate Dynamic Terminal Text
+**Learning:** When printing dynamic terminal text (like a spinner message) ending with a carriage return (
+), if the message wraps due to terminal width, the carriage return will only return to the start of the wrapped line, causing visual artifacting and terminal flooding.
+**Action:** Use a terminal column calculation (stripping ANSI codes) to gracefully truncate terminal text before printing a carriage return update.

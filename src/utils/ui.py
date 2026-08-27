@@ -4,11 +4,44 @@ Provides user-friendly output components like countdown timers.
 """
 
 import itertools
+import re
+import shutil
 import sys
 import threading
 import time
 
 from .colors import Colors
+
+ANSI_ESCAPE = re.compile(r'\033\[[0-9;]*[a-zA-Z]')
+
+def _truncate_for_terminal(text: str) -> str:
+    try:
+        columns = shutil.get_terminal_size((80, 20)).columns
+    except Exception:
+        columns = 80
+
+    max_len = columns - 1
+    if max_len <= 0 or len(ANSI_ESCAPE.sub('', text)) <= max_len:
+        return text
+
+    result = ''
+    current_visible = 0
+
+    for part in re.split(r'(\033\[[0-9;]*[a-zA-Z])', text):
+        if not part: continue
+        if part.startswith('\033['):
+            result += part
+        elif current_visible < max_len:
+            remaining = max_len - current_visible
+            if len(part) <= remaining:
+                result += part
+                current_visible += len(part)
+            else:
+                result += (part[:remaining - 1] + '…') if remaining > 1 else '…'
+                current_visible = max_len
+
+    return result
+
 
 CURSOR_HIDE = "\033[?25l"
 CURSOR_SHOW = "\033[?25h"
@@ -51,7 +84,7 @@ class CountdownTimer:
         # have a chance to read the message and prevent layout shift before the loop.
         full_bar = "█" * self.PROGRESS_BAR_WIDTH
         colored_bar = Colors.colorize(full_bar, Colors.CYAN)
-        sys.stdout.write(f"{self.message}: {colored_bar} {initial_time}")
+        sys.stdout.write(_truncate_for_terminal(f"{self.message}: {colored_bar} {initial_time}"))
         sys.stdout.flush()
 
         try:
@@ -74,7 +107,7 @@ class CountdownTimer:
                 colored_bar = Colors.colorize(progress_bar, Colors.CYAN)
 
                 # \r moves cursor to start of line, \033[K clears the line
-                sys.stdout.write(f"\r{self.message}: {colored_bar} {time_str} \033[K")
+                sys.stdout.write(_truncate_for_terminal(f"\r{self.message}: {colored_bar} {time_str} \033[K"))
                 sys.stdout.flush()
 
                 time.sleep(self.interval)
@@ -93,7 +126,7 @@ class CountdownTimer:
             ).replace(" (Press Ctrl+C to stop)", "")
             # Ensure we print the cancellation message correctly
             colored_msg = Colors.colorize(f"{clean_msg} (Cancelled)", Colors.YELLOW)
-            sys.stdout.write(f"\r\033[K{warning} {colored_msg}\n")
+            sys.stdout.write(_truncate_for_terminal(f"\r\033[K{warning} {colored_msg}") + "\n")
             sys.stdout.flush()
             raise KeyboardInterrupt()
         finally:
@@ -159,7 +192,7 @@ class Spinner:
 
             # \r moves cursor to start of line, \033[K clears the line
             spin_char = Colors.colorize(next(self.spinner), Colors.CYAN)
-            sys.stdout.write(f"\r{spin_char} {display_msg}{time_str}   \033[K")
+            sys.stdout.write(_truncate_for_terminal(f"\r{spin_char} {display_msg}{time_str}   \033[K"))
             sys.stdout.flush()
             time.sleep(self.delay)
             # Check again to avoid writing after stop
@@ -191,7 +224,7 @@ class Spinner:
         # can read it, and include the elapsed time to prevent layout shift.
         initial_time = Colors.colorize(" [ 0.0s]", Colors.GREY)
         spin_char = Colors.colorize(next(self.spinner), Colors.CYAN)
-        sys.stdout.write(f"{spin_char} {msg}{initial_time}")
+        sys.stdout.write(_truncate_for_terminal(f"{spin_char} {msg}{initial_time}"))
         sys.stdout.flush()
 
         self.busy = True
@@ -257,7 +290,7 @@ class Spinner:
             # Apply the same semantic color to the message for visual consistency
             colored_msg = Colors.colorize(msg, color)
 
-            sys.stdout.write(f"\r\033[K{colored_symbol} {colored_msg}{time_str}\n")
+            sys.stdout.write(_truncate_for_terminal(f"\r\033[K{colored_symbol} {colored_msg}{time_str}") + "\n")
             sys.stdout.flush()
             sys.stdout.write(CURSOR_SHOW)
             sys.stdout.flush()
