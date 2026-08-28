@@ -133,3 +133,6 @@ loop introduces measurable memory allocation overhead. For small numbers of keys
 **Action:** For validating the presence of a small number of static keys in a
 dictionary hot path, prefer explicit sequential `in` checks over creating a
 temporary set for `.issubset()`.
+## 2026-08-28 - ThreadPoolExecutor Allocation Overhead in Hot Paths
+**Learning:** Instantiating a new `ThreadPoolExecutor` inside a hot loop (like a per-email analysis step) causes massive OS-level thread allocation overhead. A synthetic benchmark proved that allocating it per-call took ~1.98s per 1000 iterations compared to ~0.39s when re-using a pre-allocated pool.
+**Action:** Always pre-allocate `ThreadPoolExecutor` instances at the class level (e.g., in `__init__`) or globally and re-use them for hot-path concurrency, ensuring proper resource teardown in a `shutdown()` method.
