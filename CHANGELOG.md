@@ -501,6 +501,7 @@
 **Merged pull requests:**
 
 - ⚡ Bolt: Prevent per-email ThreadPoolExecutor allocation overhead [\#1538](https://github.com/abhimehro/email-security-pipeline/pull/1538) ([abhimehro](https://github.com/abhimehro))
+- 🎨 Palette: Prevent terminal UI layout shifting by truncating long dynamic strings correctly [\#1531](https://github.com/abhimehro/email-security-pipeline/pull/1531) ([abhimehro](https://github.com/abhimehro))
 - automation: bind pathlib.Path at runtime \(salvage \#1514\) [\#1515](https://github.com/abhimehro/email-security-pipeline/pull/1515) ([abhimehro](https://github.com/abhimehro))
 - Daily QA Check - No Issues Found [\#1506](https://github.com/abhimehro/email-security-pipeline/pull/1506) ([abhimehro](https://github.com/abhimehro))
 - 🎨 Palette: Add semantic colors to standalone CLI scripts [\#1492](https://github.com/abhimehro/email-security-pipeline/pull/1492) ([abhimehro](https://github.com/abhimehro))
