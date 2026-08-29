@@ -611,7 +611,7 @@ on elapsed time causes horizontal visual layout shifts that are jarring.
 
 ## 2024-08-12 - Prevent layout shift in countdown timers
 
-<<<<<<< Updated upstream **Learning:** Screen readers and terminal UIs suffer
+**Learning:** Screen readers and terminal UIs suffer
 from layout shifting when dynamic elements like a countdown timer don't
 immediately display the full initial state before the rapid drawing loop starts.
 **Action:** When initializing terminal UI components like a `CountdownTimer` or
@@ -622,15 +622,8 @@ layout shift and gives screen readers a stable state to announce.
 
 ## 2026-08-16 - Semantic Colors for Standalone Scripts
 
-# **Learning:** Standalone scripts often lack the visual polish of the main application, causing a disjointed UX. Textual output with symbols (like ❌) are more scannable when combined with semantic colors. **Action:** Use the centralized `Colors.colorize` utility to add semantic colors (Green for success, Red for errors, Yellow for warnings) to standalone scripts, aligning their visual hierarchy with the core CLI application.
+**Learning:** Standalone scripts often lack the visual polish of the main application, causing a disjointed UX. Textual output with symbols (like ❌) are more scannable when combined with semantic colors. **Action:** Use the centralized `Colors.colorize` utility to add semantic colors (Green for success, Red for errors, Yellow for warnings) to standalone scripts, aligning their visual hierarchy with the core CLI application.
 
-**Learning:** Screen readers and terminal UIs suffer from layout shifting when
-dynamic elements like a countdown timer don't immediately display the full
-initial state before the rapid drawing loop starts. **Action:** When
-initializing terminal UI components like a `CountdownTimer` or a `Spinner` that
-rapidly updates using carriage returns, always render an initial static frame
-that includes the full progress bar, initial timer, and exact required
-formatting before the loop begins. This prevents horizontal layout shift and
-gives screen readers a stable state to announce.
-
->>>>>>> Stashed changes
+## 2026-08-26 - [Terminal Truncation Shift]
+**Learning:** When measuring string lengths for terminal UI truncation, naive length calculations include ANSI escape sequences (colors, cursors) which leads to premature wrapping. Stripping them before calculating width ensures accurate constraints.
+**Action:** Always strip ANSI characters via regex before measuring length when dealing with terminal UX formatting.
