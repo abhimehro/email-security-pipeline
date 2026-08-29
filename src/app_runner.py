@@ -53,9 +53,7 @@ class AppRunner:
 
         if "\0" in raw_config_file:
             print(
-                "✖ "
-                + Colors.colorize(
-                    f"Error: Invalid configuration file path '{raw_config_file}'. ",
+                Colors.colorize("✖ " + f"Error: Invalid configuration file path '{raw_config_file}'. ",
                     Colors.RED,
                 )
                 + Colors.colorize(
@@ -72,9 +70,7 @@ class AppRunner:
             candidate.relative_to(base_dir)
         except ValueError:
             print(
-                "✖ "
-                + Colors.colorize(
-                    f"Error: Configuration file path must stay within '{base_dir}'. ",
+                Colors.colorize("✖ " + f"Error: Configuration file path must stay within '{base_dir}'. ",
                     Colors.RED,
                 )
                 + Colors.colorize("Use a local file path instead.", Colors.YELLOW)
@@ -129,9 +125,7 @@ class AppRunner:
             return
         except (AttributeError, TypeError):
             print(
-                "✖ "
-                + Colors.colorize(
-                    "CRITICAL: Platform does not support secure file descriptor permissions.",
+                Colors.colorize("✖ " + "CRITICAL: Platform does not support secure file descriptor permissions.",
                     Colors.RED,
                 )
             )
@@ -139,9 +133,7 @@ class AppRunner:
             sys.exit(1)
         except OSError as e:
             print(
-                "✖ "
-                + Colors.colorize(
-                    f"CRITICAL: Failed to set secure permissions: {e}", Colors.RED
+                Colors.colorize("✖ " + f"CRITICAL: Failed to set secure permissions: {e}", Colors.RED
                 )
             )
             self._print_fallback_instructions()
@@ -213,9 +205,7 @@ class AppRunner:
         # we cannot proceed without a configuration file. Always exit here
         # to honor the NoReturn type annotation and make the failure mode explicit.
         print(
-            "✖ "
-            + Colors.colorize(
-                f"Configuration file '{self.config_file}' not found",
+            Colors.colorize("✖ " + f"Configuration file '{self.config_file}' not found",
                 Colors.RED,
             )
         )
@@ -247,9 +237,7 @@ class AppRunner:
             if errors:
                 print(
                     "\n"
-                    + "✖ "
-                    + Colors.colorize(
-                        "Configuration Error: Default credentials detected",
+                    + Colors.colorize("✖ " + "Configuration Error: Default credentials detected",
                         Colors.RED,
                     )
                 )
@@ -270,7 +258,7 @@ class AppRunner:
                 sys.exit(1)
 
         except ConfigurationError as e:
-            print("\n" + "✖ " + Colors.colorize("Configuration Error:", Colors.RED))
+            print("\n" + Colors.colorize("✖ " + "Configuration Error:", Colors.RED))
             for error in e.args[0]:
                 print(f"  • {Colors.colorize(error, Colors.YELLOW)}")
             print(
@@ -332,7 +320,7 @@ class AppRunner:
                 self._create_config_from_template()
                 sys.exit(0)
             except Exception as e:
-                print("✖ " + Colors.colorize(f"Error creating file: {e}", Colors.RED))
+                print(Colors.colorize("✖ " + f"Error creating file: {e}", Colors.RED))
                 self._print_fallback_instructions()
                 sys.exit(1)
         else:

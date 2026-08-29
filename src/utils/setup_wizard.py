@@ -153,8 +153,7 @@ def _test_connection(email: str, app_password: str, provider_choice: str) -> boo
         # outside, we just print as before.
         error_msg = str(e).replace(app_password, "***") if app_password else str(e)
         print(
-            "✖ "
-            + Colors.colorize(f"Error during connection test: {error_msg}", Colors.RED)
+            Colors.colorize("✖ " + f"Error during connection test: {error_msg}", Colors.RED)
         )
         if provider_choice == "3":
             print(OUTLOOK_AUTH_ERROR_TIP)
@@ -207,8 +206,7 @@ def _select_provider() -> str:
             if choice in choices_map:
                 return choices_map[choice]
             print(
-                "✖ "
-                + Colors.colorize("Invalid choice. ", Colors.RED)
+                Colors.colorize("✖ " + "Invalid choice. ", Colors.RED)
                 + Colors.colorize(
                     "Please enter a number (1-4) or provider name.", Colors.YELLOW
                 )
@@ -230,8 +228,7 @@ def _prompt_for_email(provider_name: str) -> str:
         email = _styled_input(prompt)
         if not email:
             print(
-                "✖ "
-                + Colors.colorize("Email is required. ", Colors.RED)
+                Colors.colorize("✖ " + "Email is required. ", Colors.RED)
                 + Colors.colorize("Please provide an email address.", Colors.YELLOW)
             )
             continue
@@ -240,8 +237,7 @@ def _prompt_for_email(provider_name: str) -> str:
             return email
 
         print(
-            "✖ "
-            + Colors.colorize("Invalid email format. ", Colors.RED)
+            Colors.colorize("✖ " + "Invalid email format. ", Colors.RED)
             + Colors.colorize(
                 "Please enter a valid email address (e.g., user@example.com).",
                 Colors.YELLOW,
@@ -309,8 +305,7 @@ def _prompt_for_password(provider_name: str) -> str:
     app_secret = _get_input()
     while not app_secret:
         print(
-            "✖ "
-            + Colors.colorize("Password is required. ", Colors.RED)
+            Colors.colorize("✖ " + "Password is required. ", Colors.RED)
             + Colors.colorize("Please provide a password.", Colors.YELLOW)
         )
         app_secret = _get_input()
@@ -419,9 +414,7 @@ def _validate_config_path(config_file: str) -> Path | None:
     """Validate the configuration file path securely."""
     if "\0" in config_file:
         print(
-            "✖ "
-            + Colors.colorize(
-                f"Error: Invalid configuration file path '{config_file}'. ", Colors.RED
+            Colors.colorize("✖ " + f"Error: Invalid configuration file path '{config_file}'. ", Colors.RED
             )
             + Colors.colorize("Ensure the path contains no null bytes.", Colors.YELLOW)
         )
@@ -434,9 +427,7 @@ def _validate_config_path(config_file: str) -> Path | None:
         or candidate_name != config_file
     ):
         print(
-            "✖ "
-            + Colors.colorize(
-                f"Error: Unsafe configuration file path '{config_file}'. ", Colors.RED
+            Colors.colorize("✖ " + f"Error: Unsafe configuration file path '{config_file}'. ", Colors.RED
             )
             + Colors.colorize("Use a filename only.", Colors.YELLOW)
         )
@@ -447,7 +438,7 @@ def _validate_config_path(config_file: str) -> Path | None:
 
 def _exit_with_error(message: str) -> None:
     """Helper to print a colored error message and exit."""
-    print("\n✖ " + Colors.colorize(message, Colors.RED))
+    print("\n" + Colors.colorize("✖ " + message, Colors.RED))
     import sys
 
     sys.exit(1)
@@ -502,7 +493,7 @@ def _write_config_file(
         )
         return True
     except Exception as e:
-        print("✖ " + Colors.colorize(f"Error writing config: {e}", Colors.RED))
+        print(Colors.colorize("✖ " + f"Error writing config: {e}", Colors.RED))
         _print_manual_setup_instructions(config_file, template_file)
         return False
 
@@ -527,7 +518,7 @@ def _read_template(template_file: str) -> str | None:
         with open(template_file, "r") as f:
             return f.read()
     except Exception as e:
-        print("✖ " + Colors.colorize(f"Error reading template: {e}", Colors.RED))
+        print(Colors.colorize("✖ " + f"Error reading template: {e}", Colors.RED))
         return None
 
 
@@ -598,9 +589,7 @@ def run_setup_wizard(
 
     if not Path(template_file).exists():
         print(
-            "✖ "
-            + Colors.colorize(
-                f"Error: Template file '{template_file}' not found. ", Colors.RED
+            Colors.colorize("✖ " + f"Error: Template file '{template_file}' not found. ", Colors.RED
             )
             + Colors.colorize(
                 "Ensure the file exists before running the wizard.", Colors.YELLOW
@@ -628,9 +617,7 @@ def main() -> int:
     """CLI entry point for setup.sh and other automation."""
     if not sys.stdin.isatty():
         print(
-            "✖ "
-            + Colors.colorize(
-                "Interactive credential setup requires a TTY.", Colors.RED
+            Colors.colorize("✖ " + "Interactive credential setup requires a TTY.", Colors.RED
             )
         )
         _print_manual_setup_instructions()
@@ -642,7 +629,7 @@ def main() -> int:
         _print_manual_setup_instructions()
         return 2
     except EOFError:
-        print("\n✖ " + Colors.colorize("Interactive input closed.", Colors.RED))
+        print("\n" + Colors.colorize("✖ " + "Interactive input closed.", Colors.RED))
         _print_manual_setup_instructions()
         return 1
     except KeyboardInterrupt:
