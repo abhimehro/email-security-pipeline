@@ -611,7 +611,7 @@ on elapsed time causes horizontal visual layout shifts that are jarring.
 
 ## 2024-08-12 - Prevent layout shift in countdown timers
 
-<<<<<<< Updated upstream **Learning:** Screen readers and terminal UIs suffer
+**Learning:** Screen readers and terminal UIs suffer
 from layout shifting when dynamic elements like a countdown timer don't
 immediately display the full initial state before the rapid drawing loop starts.
 **Action:** When initializing terminal UI components like a `CountdownTimer` or
@@ -632,5 +632,3 @@ rapidly updates using carriage returns, always render an initial static frame
 that includes the full progress bar, initial timer, and exact required
 formatting before the loop begins. This prevents horizontal layout shift and
 gives screen readers a stable state to announce.
-
->>>>>>> Stashed changes
