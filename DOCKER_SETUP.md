@@ -42,7 +42,7 @@ docker compose -f docker-compose.test.yml up
 - **Multi-stage build**: Reduces final image size by excluding build
   dependencies
 - **Non-root user**: Runs as `emailsec` (UID 1000)
-- **Minimal base image**: Uses `python:3.11-slim`
+- **Minimal base image**: Uses `python:3.13-slim`
 - **No pip cache**: `--no-cache-dir` flag reduces layer size
 - **Environment variables**: `PYTHONUNBUFFERED` and `PYTHONDONTWRITEBYTECODE`
 
