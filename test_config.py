@@ -29,27 +29,27 @@ def test_config_loading():
         if not Path(config_file).exists():
             print(
                 Colors.colorize(
-                    f"❌ ERROR: Configuration file '{config_file}' not found",
+                    f"✖ ERROR: Configuration file '{config_file}' not found",
                     Colors.RED,
                 )
             )
             return False
 
         print(
-            Colors.colorize(f"✓ Found configuration file: {config_file}", Colors.GREEN)
+            Colors.colorize(f"✔ Found configuration file: {config_file}", Colors.GREEN)
         )
 
         # Load configuration
         config = Config(config_file)
-        print(Colors.colorize("✓ Configuration object created", Colors.GREEN))
+        print(Colors.colorize("✔ Configuration object created", Colors.GREEN))
 
         # Validate configuration
         try:
             config.validate()
-            print(Colors.colorize("✓ Configuration validation passed", Colors.GREEN))
+            print(Colors.colorize("✔ Configuration validation passed", Colors.GREEN))
         except Exception as e:
             print(
-                Colors.colorize(f"❌ Configuration validation failed: {e}", Colors.RED)
+                Colors.colorize(f"✖ Configuration validation failed: {e}", Colors.RED)
             )
             return False
 
@@ -89,11 +89,11 @@ def test_config_loading():
         print(f"    - Max emails per batch: {config.system.max_emails_per_batch}")
         print(f"    - Max attachment size: {config.system.max_attachment_size_mb}MB")
 
-        print(Colors.colorize("\n✓ Configuration loading test PASSED", Colors.GREEN))
+        print(Colors.colorize("\n✔ Configuration loading test PASSED", Colors.GREEN))
         return True
 
     except Exception as e:
-        print(Colors.colorize(f"❌ ERROR: {e}", Colors.RED))
+        print(Colors.colorize(f"✖ ERROR: {e}", Colors.RED))
         import traceback
 
         traceback.print_exc()
@@ -119,15 +119,15 @@ def test_module_imports():
     for module_name in modules:
         try:
             __import__(module_name)
-            print(Colors.colorize(f"✓ {module_name}", Colors.GREEN))
+            print(Colors.colorize(f"✔ {module_name}", Colors.GREEN))
         except Exception as e:
-            print(Colors.colorize(f"❌ {module_name}: {e}", Colors.RED))
+            print(Colors.colorize(f"✖ {module_name}: {e}", Colors.RED))
             all_passed = False
 
     if all_passed:
-        print(Colors.colorize("\n✓ Module imports test PASSED", Colors.GREEN))
+        print(Colors.colorize("\n✔ Module imports test PASSED", Colors.GREEN))
     else:
-        print(Colors.colorize("\n❌ Module imports test FAILED", Colors.RED))
+        print(Colors.colorize("\n✖ Module imports test FAILED", Colors.RED))
 
     return all_passed
 
@@ -149,7 +149,7 @@ def test_analyzer_initialization():
 
         # Initialize analyzers
         spam_analyzer = SpamAnalyzer(config.analysis)
-        print(Colors.colorize("✓ SpamAnalyzer initialized", Colors.GREEN))
+        print(Colors.colorize("✔ SpamAnalyzer initialized", Colors.GREEN))
         print(f"    SpamAnalyzer config: {spam_analyzer}")
         # Use spam_analyzer to avoid unused variable warning
         if hasattr(spam_analyzer, "status"):
@@ -160,7 +160,7 @@ def test_analyzer_initialization():
             print(f"    SpamAnalyzer object: {spam_analyzer}")
 
         nlp_analyzer = NLPThreatAnalyzer(config.analysis)
-        print(Colors.colorize("✓ NLPThreatAnalyzer initialized", Colors.GREEN))
+        print(Colors.colorize("✔ NLPThreatAnalyzer initialized", Colors.GREEN))
         # Use nlp_analyzer to avoid unused variable warning
         if hasattr(nlp_analyzer, "status"):
             print(f"    NLPThreatAnalyzer status: {nlp_analyzer.status()}")
@@ -170,7 +170,7 @@ def test_analyzer_initialization():
             print(f"    NLPThreatAnalyzer object: {nlp_analyzer}")
 
         media_analyzer = MediaAuthenticityAnalyzer(config.analysis)
-        print(Colors.colorize("✓ MediaAuthenticityAnalyzer initialized", Colors.GREEN))
+        print(Colors.colorize("✔ MediaAuthenticityAnalyzer initialized", Colors.GREEN))
         # Use media_analyzer to avoid unused variable warning
         if hasattr(media_analyzer, "status"):
             print(f"    MediaAuthenticityAnalyzer status: {media_analyzer.status()}")
@@ -182,7 +182,7 @@ def test_analyzer_initialization():
             print(f"    MediaAuthenticityAnalyzer object: {media_analyzer}")
 
         alert_system = AlertSystem(config.alerts)
-        print(Colors.colorize("✓ AlertSystem initialized", Colors.GREEN))
+        print(Colors.colorize("✔ AlertSystem initialized", Colors.GREEN))
         # Use alert_system to avoid unused variable warning
         if hasattr(alert_system, "status"):
             print(f"    AlertSystem status: {alert_system.status()}")
@@ -191,11 +191,11 @@ def test_analyzer_initialization():
         else:
             print(f"    AlertSystem object: {alert_system}")
 
-        print(Colors.colorize("\n✓ Analyzer initialization test PASSED", Colors.GREEN))
+        print(Colors.colorize("\n✔ Analyzer initialization test PASSED", Colors.GREEN))
         return True
 
     except Exception as e:
-        print(Colors.colorize(f"❌ ERROR: {e}", Colors.RED))
+        print(Colors.colorize(f"✖ ERROR: {e}", Colors.RED))
         import traceback
 
         traceback.print_exc()
@@ -210,7 +210,7 @@ def _validate_config_for_test(config) -> bool:
         config.validate()
         return True
     except ConfigurationError as e:
-        print(Colors.colorize("❌ Configuration validation failed:", Colors.RED))
+        print(Colors.colorize("✖ Configuration validation failed:", Colors.RED))
         for error in e.args[0]:
             print(f"  - {error}")
         return False
@@ -255,7 +255,7 @@ def test_imap_connections(test_connections=True):
         if not config.email_accounts:
             print(
                 Colors.colorize(
-                    "⚠️  No email accounts configured, skipping connection test",
+                    "⚠  No email accounts configured, skipping connection test",
                     Colors.YELLOW,
                 )
             )
@@ -270,7 +270,7 @@ def test_imap_connections(test_connections=True):
         # Try to initialize clients
         if ingestion_manager.initialize_clients():
             print(
-                f"✓ Successfully connected to {len(ingestion_manager.clients)} account(s)"
+                f"✔ Successfully connected to {len(ingestion_manager.clients)} account(s)"
             )
 
             # List folders for each account
@@ -279,19 +279,19 @@ def test_imap_connections(test_connections=True):
 
             # Clean up
             ingestion_manager.close_all_connections()
-            print(Colors.colorize("\n✓ IMAP connections test PASSED", Colors.GREEN))
+            print(Colors.colorize("\n✔ IMAP connections test PASSED", Colors.GREEN))
             return True
         else:
             print(
                 Colors.colorize(
-                    "❌ Failed to connect to any email accounts", Colors.RED
+                    "✖ Failed to connect to any email accounts", Colors.RED
                 )
             )
             print("   Please check your credentials and IMAP settings")
             return False
 
     except Exception as e:
-        print(Colors.colorize(f"❌ ERROR: {e}", Colors.RED))
+        print(Colors.colorize(f"✖ ERROR: {e}", Colors.RED))
         import traceback
 
         traceback.print_exc()
@@ -319,25 +319,25 @@ def test_folder_parsing():
         for input_value, expected in test_cases:
             result = Config._parse_folders(input_value)
             if result == expected:
-                print(Colors.colorize(f"✓ '{input_value}' → {result}", Colors.GREEN))
+                print(Colors.colorize(f"✔ '{input_value}' → {result}", Colors.GREEN))
             else:
                 print(
                     Colors.colorize(
-                        f"❌ '{input_value}' → {result} (expected {expected})",
+                        f"✖ '{input_value}' → {result} (expected {expected})",
                         Colors.RED,
                     )
                 )
                 all_passed = False
 
         if all_passed:
-            print(Colors.colorize("\n✓ Folder parsing test PASSED", Colors.GREEN))
+            print(Colors.colorize("\n✔ Folder parsing test PASSED", Colors.GREEN))
         else:
-            print(Colors.colorize("\n❌ Folder parsing test FAILED", Colors.RED))
+            print(Colors.colorize("\n✖ Folder parsing test FAILED", Colors.RED))
 
         return all_passed
 
     except Exception as e:
-        print(Colors.colorize(f"❌ ERROR: {e}", Colors.RED))
+        print(Colors.colorize(f"✖ ERROR: {e}", Colors.RED))
         import traceback
 
         traceback.print_exc()
@@ -379,7 +379,7 @@ def _validate_script_result(result: subprocess.CompletedProcess) -> bool:
     if result.returncode != 0:
         print(
             Colors.colorize(
-                f"❌ Script failed with return code {result.returncode}", Colors.RED
+                f"✖ Script failed with return code {result.returncode}", Colors.RED
             )
         )
         print(f"   Stderr: {result.stderr}")
@@ -399,19 +399,19 @@ def _validate_json_output(output) -> bool:
     if not all(key in output for key in required_keys):
         print(
             Colors.colorize(
-                f"❌ JSON output missing required keys. Found: {list(output.keys())}",
+                f"✖ JSON output missing required keys. Found: {list(output.keys())}",
                 Colors.RED,
             )
         )
         return False
 
-    print(Colors.colorize("✓ JSON output contains all required keys", Colors.GREEN))
+    print(Colors.colorize("✔ JSON output contains all required keys", Colors.GREEN))
 
     if "host_resolved" not in output.get("server_reachable", {}):
-        print(Colors.colorize("❌ Nested structure is incorrect", Colors.RED))
+        print(Colors.colorize("✖ Nested structure is incorrect", Colors.RED))
         return False
 
-    print(Colors.colorize("✓ Nested structure appears correct", Colors.GREEN))
+    print(Colors.colorize("✔ Nested structure appears correct", Colors.GREEN))
     return True
 
 
@@ -429,7 +429,7 @@ def test_diagnostics_script():
         if not config.email_accounts:
             print(
                 Colors.colorize(
-                    "⚠️ No email accounts configured, skipping diagnostics script test",
+                    "⚠ No email accounts configured, skipping diagnostics script test",
                     Colors.YELLOW,
                 )
             )
@@ -438,7 +438,7 @@ def test_diagnostics_script():
         test_account_email = _get_first_enabled_account(config)
         if not test_account_email:
             print(
-                "⚠️ No enabled email accounts found, skipping diagnostics script test"
+                "⚠ No enabled email accounts found, skipping diagnostics script test"
             )
             return True
 
@@ -448,7 +448,7 @@ def test_diagnostics_script():
         if not _check_script_exists(script_path):
             print(
                 Colors.colorize(
-                    f"❌ ERROR: Diagnostics script not found at {script_path}",
+                    f"✖ ERROR: Diagnostics script not found at {script_path}",
                     Colors.RED,
                 )
             )
@@ -460,21 +460,21 @@ def test_diagnostics_script():
 
         try:
             output = json.loads(result.stdout)
-            print(Colors.colorize("✓ Script produced valid JSON output", Colors.GREEN))
+            print(Colors.colorize("✔ Script produced valid JSON output", Colors.GREEN))
             if _validate_json_output(output):
                 print(
-                    Colors.colorize("\n✓ Diagnostics script test PASSED", Colors.GREEN)
+                    Colors.colorize("\n✔ Diagnostics script test PASSED", Colors.GREEN)
                 )
                 return True
             return False
 
         except json.JSONDecodeError:
-            print(Colors.colorize("❌ Script output is not valid JSON", Colors.RED))
+            print(Colors.colorize("✖ Script output is not valid JSON", Colors.RED))
             print(f"   Stdout: {result.stdout}")
             return False
 
     except Exception as e:
-        print(Colors.colorize(f"❌ ERROR: {e}", Colors.RED))
+        print(Colors.colorize(f"✖ ERROR: {e}", Colors.RED))
         import traceback
 
         traceback.print_exc()
@@ -511,9 +511,9 @@ def main():
 
     for test_name, result in results:
         status = (
-            Colors.colorize("✓ PASS", Colors.GREEN)
+            Colors.colorize("✔ PASS", Colors.GREEN)
             if result
-            else Colors.colorize("❌ FAIL", Colors.RED)
+            else Colors.colorize("✖ FAIL", Colors.RED)
         )
         print(f"{status} - {test_name}")
 
@@ -530,7 +530,7 @@ def main():
     else:
         print(
             Colors.colorize(
-                "\n⚠️  Some tests FAILED. Please review the errors above.",
+                "\n⚠  Some tests FAILED. Please review the errors above.",
                 Colors.YELLOW,
             )
         )
