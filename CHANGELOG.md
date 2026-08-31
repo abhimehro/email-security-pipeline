@@ -508,6 +508,7 @@
 - ⚡ Bolt: Prevent per-email ThreadPoolExecutor allocation overhead [\#1538](https://github.com/abhimehro/email-security-pipeline/pull/1538) ([abhimehro](https://github.com/abhimehro))
 - 🎨 Palette: Prevent terminal UI layout shifting by truncating long dynamic strings correctly [\#1531](https://github.com/abhimehro/email-security-pipeline/pull/1531) ([abhimehro](https://github.com/abhimehro))
 - automation: bind pathlib.Path at runtime \(salvage \#1514\) [\#1515](https://github.com/abhimehro/email-security-pipeline/pull/1515) ([abhimehro](https://github.com/abhimehro))
+- chore\(deps\): bump charset-normalizer from 3.4.9 to 3.5.1 [\#1509](https://github.com/abhimehro/email-security-pipeline/pull/1509) ([dependabot[bot]](https://github.com/apps/dependabot))
 - Daily QA Check - No Issues Found [\#1506](https://github.com/abhimehro/email-security-pipeline/pull/1506) ([abhimehro](https://github.com/abhimehro))
 - 🎨 Palette: Add semantic colors to standalone CLI scripts [\#1492](https://github.com/abhimehro/email-security-pipeline/pull/1492) ([abhimehro](https://github.com/abhimehro))
 - \[repo-health\] Remove DATABASE\_\* stubs [\#1490](https://github.com/abhimehro/email-security-pipeline/pull/1490) ([abhimehro](https://github.com/abhimehro))
