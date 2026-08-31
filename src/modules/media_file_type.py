@@ -1,6 +1,6 @@
 """Media file type and metadata analysis helpers."""
 
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Dict, Set
 
 
 def _is_path_traversal_attempt(self, path: str) -> bool:
@@ -171,21 +171,20 @@ def _validate_missing_signature(self, filename: str) -> Tuple[float, str]:
 
     strict_validation_exts = cls._STRICT_VALIDATION_EXTS
     critical_media_exts = cls._CRITICAL_MEDIA_EXTS
-    for ext, type_desc in strict_validation_exts.items():
-        if filename_lower.endswith(ext):
-            # Return 5.0 (Critical) for media files to ensure they don't reach deepfake analysis
-            # which could trigger vulnerabilities in processing libraries (e.g., OpenCV)
-            # Note: 5.0 is intentionally chosen to fail the `threat_score < 5.0` gate (see earlier check),
-            # so that invalid media never reaches the deepfake/OpenCV processing pipeline.
-            if ext in critical_media_exts:
-                return (
-                    5.0,
-                    f"Invalid file signature for {ext}: expected {type_desc} signature but none found",
-                )
-            return (
-                2.0,
-                f"Invalid file signature for {ext}: expected {type_desc} signature but none found",
-            )
+
+    # Fast path: C-level tuple endswith before Python-level iteration.
+    exts_tuple = getattr(cls, "_STRICT_VALIDATION_EXTS_TUPLE", None)
+    if exts_tuple is None:
+        exts_tuple = tuple(strict_validation_exts.keys())
+        setattr(cls, "_STRICT_VALIDATION_EXTS_TUPLE", exts_tuple)
+
+    if filename_lower.endswith(exts_tuple):
+        return _evaluate_missing_signature_match(
+            filename_lower,
+            exts_tuple,
+            strict_validation_exts,
+            critical_media_exts,
+        )
 
     return 0.0, ""
 
@@ -221,6 +220,32 @@ def _check_size_anomaly(self, filename: str, size: int) -> Tuple[float, str]:
     if small_warning:
         return small_score, small_warning
 
+    return 0.0, ""
+
+
+
+def _evaluate_missing_signature_match(
+    filename_lower: str,
+    exts_tuple: Tuple[str, ...],
+    strict_validation_exts: Dict[str, str],
+    critical_media_exts: Set[str],
+) -> Tuple[float, str]:
+    """Evaluate missing-signature matches; tuple order matches dict insertion."""
+    for ext in exts_tuple:
+        if filename_lower.endswith(ext):
+            type_desc = strict_validation_exts[ext]
+            # Return 5.0 (Critical) for media files so they do not reach deepfake analysis
+            # which could trigger vulnerabilities in processing libraries (e.g., OpenCV).
+            # 5.0 is chosen to fail the `threat_score < 5.0` gate.
+            if ext in critical_media_exts:
+                return (
+                    5.0,
+                    f"Invalid file signature for {ext}: expected {type_desc} signature but none found",
+                )
+            return (
+                2.0,
+                f"Invalid file signature for {ext}: expected {type_desc} signature but none found",
+            )
     return 0.0, ""
 
 
