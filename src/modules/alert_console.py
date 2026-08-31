@@ -217,7 +217,7 @@ def print_nlp_details(nlp_analysis: Dict, risk_color: str, max_nlp: int) -> None
 
     if not has_nlp:
         print_alert_row(
-            f"{Colors.colorize('✓', Colors.GREEN)} No NLP threats detected",
+            f"{Colors.colorize('✔', Colors.GREEN)} No NLP threats detected",
             risk_color,
             indent=3,
         )
@@ -247,7 +247,7 @@ def print_media_details(media_analysis: Dict, risk_color: str, max_media: int) -
 
     if not has_media_warnings:
         print_alert_row(
-            f"{Colors.colorize('✓', Colors.GREEN)} Attachments appear safe",
+            f"{Colors.colorize('✔', Colors.GREEN)} Attachments appear safe",
             risk_color,
             indent=3,
         )
@@ -310,7 +310,7 @@ def print_spam_details(
     rows = spam_detail_rows(spam_analysis, max_spam, max_header, max_urls)
     if not rows:
         print_alert_row(
-            f"{Colors.colorize('✓', Colors.GREEN)} No suspicious patterns",
+            f"{Colors.colorize('✔', Colors.GREEN)} No suspicious patterns",
             risk_color,
             indent=3,
         )
@@ -390,7 +390,7 @@ def _print_wrapped_lines(
     print_alert_row(f"{Colors.colorize(icon, color)} {first_line}", risk_color)
 
     # Subsequent lines get indentation based on icon width
-    indent = "   " if icon == "⚠️ " else "  "
+    indent = "   " if icon == "⚠ " else "  "
 
     for line in wrapped_lines[1:]:
         print_alert_row(f"{indent}{line}", risk_color)
@@ -496,11 +496,11 @@ def render_clean_report(
 
     # Determine available width based on terminal size
     # Calculate width of fixed parts dynamically
-    # Structure: "✓ CLEAN | HH:MM:SS | Score: XX.X [■■···] | From: " + sender + " | " + subject
+    # Structure: "✔ CLEAN | HH:MM:SS | Score: XX.X [■■···] | From: " + sender + " | " + subject
 
     sep = Colors.colorize("│", Colors.GREY)
 
-    clean_str = Colors.colorize("✓ CLEAN", Colors.GREEN)
+    clean_str = Colors.colorize("✔ CLEAN", Colors.GREEN)
     prefix = f"{clean_str} {sep} {time_str} {sep} Score: {score_val:4.1f} {visual_bar} {sep} From: "
     prefix_len = get_visual_length(prefix)
 
@@ -534,7 +534,7 @@ def render_clean_report(
     subject = truncate_text(sanitized_subject, subject_width)
 
     # Format:
-    # ✓ CLEAN | HH:MM:SS | Score: XX.X [■■···] | From: Sender                       | Subject
+    # ✔ CLEAN | HH:MM:SS | Score: XX.X [■■···] | From: Sender                       | Subject
     print(
         f"{clean_str} "
         f"{sep} {time_str} "

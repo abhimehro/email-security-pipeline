@@ -12,7 +12,7 @@ from .nlp_analyzer import NLPAnalysisResult
 from .spam_analyzer import SpamAnalysisResult
 
 # Common prefixes for recommendations to strip during display to prevent duplication
-RECOMMENDATION_PREFIXES = ["⚠️ ", "🎣 ", "🔗 ", "⏰ ", "📎 ", "👤 "]
+RECOMMENDATION_PREFIXES = ["⚠ ", "🎣 ", "🔗 ", "⏰ ", "📎 ", "👤 "]
 
 # Pre-allocated tuple for fast C-level execution of startswith()
 RECOMMENDATION_PREFIXES_TUPLE = tuple(RECOMMENDATION_PREFIXES)
@@ -26,7 +26,7 @@ YELLOW_KEYWORDS_PATTERN = re.compile(r"SUSPICIOUS|VERIFY|URGENCY|IMPERSONATION")
 # specific threat condition is matched.  Defined at module level so the alert
 # facade can re-export it and tests can reference it without hardcoding the
 # string in two places.
-DEFAULT_CLEAN_RECOMMENDATION = "✅ No issues detected"
+DEFAULT_CLEAN_RECOMMENDATION = "✔ No issues detected"
 
 
 def generate_recommendations(
@@ -39,7 +39,7 @@ def generate_recommendations(
 
     # High-risk recommendations
     if spam_result.risk_level == "high":
-        recommendations.append("⚠️ HIGH RISK: Move to spam folder immediately")
+        recommendations.append("⚠ HIGH RISK: Move to spam folder immediately")
 
     if nlp_result.social_engineering_indicators:
         recommendations.append(

@@ -46,6 +46,8 @@
 
 **Closed issues:**
 
+- Daily QA & Agentic Review — 2026-08-30 [\#1549](https://github.com/abhimehro/email-security-pipeline/issues/1549)
+- Daily QA & Agentic Review — 2026-08-28 [\#1542](https://github.com/abhimehro/email-security-pipeline/issues/1542)
 - \[repo-automation\] Daily Status Report - 2026-08-26 [\#1530](https://github.com/abhimehro/email-security-pipeline/issues/1530)
 - Daily QA & Agentic Review — 2026-08-25 [\#1529](https://github.com/abhimehro/email-security-pipeline/issues/1529)
 - \[repo-automation\] Daily Status Report - 2026-08-25 [\#1528](https://github.com/abhimehro/email-security-pipeline/issues/1528)
@@ -500,7 +502,15 @@
 
 **Merged pull requests:**
 
+- 🎨 Palette: Standardize feedback symbols in CLI output [\#1548](https://github.com/abhimehro/email-security-pipeline/pull/1548) ([abhimehro](https://github.com/abhimehro))
+- Fix case conflict and unresolved merge markers in palette.md [\#1546](https://github.com/abhimehro/email-security-pipeline/pull/1546) ([abhimehro](https://github.com/abhimehro))
+- 🎨 Palette: Fix CLI visual hierarchy for error messages [\#1540](https://github.com/abhimehro/email-security-pipeline/pull/1540) ([abhimehro](https://github.com/abhimehro))
+- ⚡ Bolt: Prevent per-email ThreadPoolExecutor allocation overhead [\#1538](https://github.com/abhimehro/email-security-pipeline/pull/1538) ([abhimehro](https://github.com/abhimehro))
+- 🎨 Palette: Prevent terminal UI layout shifting by truncating long dynamic strings correctly [\#1531](https://github.com/abhimehro/email-security-pipeline/pull/1531) ([abhimehro](https://github.com/abhimehro))
 - automation: bind pathlib.Path at runtime \(salvage \#1514\) [\#1515](https://github.com/abhimehro/email-security-pipeline/pull/1515) ([abhimehro](https://github.com/abhimehro))
+- chore\(deps\): bump idna from 3.18 to 3.19 [\#1510](https://github.com/abhimehro/email-security-pipeline/pull/1510) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps\): bump charset-normalizer from 3.4.9 to 3.5.1 [\#1509](https://github.com/abhimehro/email-security-pipeline/pull/1509) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps\): bump python-dotenv from 1.2.2 to 1.2.3 [\#1508](https://github.com/abhimehro/email-security-pipeline/pull/1508) ([dependabot[bot]](https://github.com/apps/dependabot))
 - Daily QA Check - No Issues Found [\#1506](https://github.com/abhimehro/email-security-pipeline/pull/1506) ([abhimehro](https://github.com/abhimehro))
 - 🎨 Palette: Add semantic colors to standalone CLI scripts [\#1492](https://github.com/abhimehro/email-security-pipeline/pull/1492) ([abhimehro](https://github.com/abhimehro))
 - \[repo-health\] Remove DATABASE\_\* stubs [\#1490](https://github.com/abhimehro/email-security-pipeline/pull/1490) ([abhimehro](https://github.com/abhimehro))
