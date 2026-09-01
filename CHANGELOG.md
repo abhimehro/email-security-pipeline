@@ -46,8 +46,14 @@
 
 **Closed issues:**
 
+- Daily QA & Agentic Review — 2026-08-31 [\#1555](https://github.com/abhimehro/email-security-pipeline/issues/1555)
 - Daily QA & Agentic Review — 2026-08-30 [\#1549](https://github.com/abhimehro/email-security-pipeline/issues/1549)
+- \[repo-automation\] Weekly Retrospective - 2026-08-30 [\#1547](https://github.com/abhimehro/email-security-pipeline/issues/1547)
+- \[repo-automation\] Daily Status Report - 2026-08-30 [\#1545](https://github.com/abhimehro/email-security-pipeline/issues/1545)
+- \[repo-automation\] Daily Status Report - 2026-08-29 [\#1544](https://github.com/abhimehro/email-security-pipeline/issues/1544)
 - Daily QA & Agentic Review — 2026-08-28 [\#1542](https://github.com/abhimehro/email-security-pipeline/issues/1542)
+- \[repo-automation\] Daily Status Report - 2026-08-28 [\#1539](https://github.com/abhimehro/email-security-pipeline/issues/1539)
+- \[repo-automation\] Daily Status Report - 2026-08-27 [\#1534](https://github.com/abhimehro/email-security-pipeline/issues/1534)
 - \[repo-automation\] Daily Status Report - 2026-08-26 [\#1530](https://github.com/abhimehro/email-security-pipeline/issues/1530)
 - Daily QA & Agentic Review — 2026-08-25 [\#1529](https://github.com/abhimehro/email-security-pipeline/issues/1529)
 - \[repo-automation\] Daily Status Report - 2026-08-25 [\#1528](https://github.com/abhimehro/email-security-pipeline/issues/1528)
@@ -503,6 +509,8 @@
 
 **Merged pull requests:**
 
+- salvage\(\): tuple endswith fast-path for missing-signature check [\#1551](https://github.com/abhimehro/email-security-pipeline/pull/1551) ([abhimehro](https://github.com/abhimehro))
+- salvage\(\): print manual setup instructions on KeyboardInterrupt [\#1550](https://github.com/abhimehro/email-security-pipeline/pull/1550) ([abhimehro](https://github.com/abhimehro))
 - 🎨 Palette: Standardize feedback symbols in CLI output [\#1548](https://github.com/abhimehro/email-security-pipeline/pull/1548) ([abhimehro](https://github.com/abhimehro))
 - Fix case conflict and unresolved merge markers in palette.md [\#1546](https://github.com/abhimehro/email-security-pipeline/pull/1546) ([abhimehro](https://github.com/abhimehro))
 - 🎨 Palette: Fix CLI visual hierarchy for error messages [\#1540](https://github.com/abhimehro/email-security-pipeline/pull/1540) ([abhimehro](https://github.com/abhimehro))
