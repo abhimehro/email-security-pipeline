@@ -1,6 +1,6 @@
 """Media file type and metadata analysis helpers."""
 
-from typing import List, Optional, Tuple, Dict, Set
+from typing import Dict, List, Optional, Set, Tuple
 
 
 def _is_path_traversal_attempt(self, path: str) -> bool:
