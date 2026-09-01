@@ -223,7 +223,6 @@ def _check_size_anomaly(self, filename: str, size: int) -> Tuple[float, str]:
     return 0.0, ""
 
 
-
 def _evaluate_missing_signature_match(
     filename_lower: str,
     exts_tuple: Tuple[str, ...],
