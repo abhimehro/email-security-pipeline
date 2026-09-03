@@ -72,9 +72,8 @@ docker compose logs -f
 # Navigate to project directory
 cd ~/Documents/dev/email-security-pipeline
 
-# Install dependencies
-# Install dependencies
-python3 -m pip install -r requirements.txt
+# Install CI/dev dependencies (not the optional ML stack in requirements.txt)
+python3 -m pip install -r requirements-ci.txt
 
 # Copy and configure environment
 cp .env.example .env
@@ -191,8 +190,8 @@ ALERT_WEBHOOK_URL=https://your-webhook-endpoint.com/alerts
 ### "Module not found" errors
 
 - Ensure you're running from project root
-- Verify all dependencies are installed: `pip install -r requirements.txt`
-- Check Python version: `python3 --version` (should be 3.11+)
+- Verify all dependencies are installed: `pip install -r requirements-ci.txt`
+- Check Python version: `python3 --version` (should be 3.13+)
 
 ## Next Steps
 
