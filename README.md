@@ -418,7 +418,9 @@ email-security-pipeline/
 ├── src/
 │   ├── main.py                 # Main orchestrator
 │   ├── modules/
-│   │   ├── email_ingestion.py  # IMAP client & email parsing
+│   │   ├── email_ingestion.py  # IMAP client
+│   │   ├── email_parser.py     # Message parse
+│   │   ├── imap_connection.py  # IMAP session
 │   │   ├── spam_analyzer.py    # Layer 1: Spam detection
 │   │   ├── nlp_analyzer.py     # Layer 2: NLP threat detection
 │   │   ├── media_analyzer.py   # Layer 3: Media authenticity
@@ -429,10 +431,11 @@ email-security-pipeline/
 │       ├── metrics.py           # Metrics collection
 │       └── logging_utils.py     # Colored console logging
 ├── logs/                        # Application logs
-├── data/                        # Optional database
+├── scripts/                     # Diagnostics and helper CLIs
 ├── .env                         # Configuration (create from .env.example)
 ├── .env.example                 # Configuration template
-├── requirements.txt             # Python dependencies
+├── requirements-ci.txt          # CI / local-dev dependencies
+├── requirements.txt             # Full pin set (optional ML extras)
 ├── Dockerfile                   # Multi-stage Docker build
 ├── docker-compose.yml           # Docker Compose configuration
 └── README.md                    # This file

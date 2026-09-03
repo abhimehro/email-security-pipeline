@@ -31,8 +31,8 @@ From the repo root:
 python3 -m venv venv
 source venv/bin/activate  # or use ./venv/bin/python3 directly
 
-# Install Python dependencies
-python3 -m pip install -r requirements.txt
+# Install Python dependencies (CI/dev; skip optional ML in requirements.txt)
+python3 -m pip install -r requirements-ci.txt
 
 # Create config from template
 cp .env.example .env
