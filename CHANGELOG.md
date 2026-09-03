@@ -517,6 +517,7 @@
 **Merged pull requests:**
 
 - docs: align Python 3.13 guidance and fill General issue template [\#1562](https://github.com/abhimehro/email-security-pipeline/pull/1562) ([cursor[bot]](https://github.com/apps/cursor))
+- chore\(deps\): bump codescene-oss/pr-refactoring-agent from 1.0.8 to 1.1.1 [\#1554](https://github.com/abhimehro/email-security-pipeline/pull/1554) ([dependabot[bot]](https://github.com/apps/dependabot))
 - salvage\(\): tuple endswith fast-path for missing-signature check [\#1551](https://github.com/abhimehro/email-security-pipeline/pull/1551) ([abhimehro](https://github.com/abhimehro))
 - salvage\(\): print manual setup instructions on KeyboardInterrupt [\#1550](https://github.com/abhimehro/email-security-pipeline/pull/1550) ([abhimehro](https://github.com/abhimehro))
 - 🎨 Palette: Standardize feedback symbols in CLI output [\#1548](https://github.com/abhimehro/email-security-pipeline/pull/1548) ([abhimehro](https://github.com/abhimehro))
