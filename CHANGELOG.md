@@ -517,6 +517,7 @@
 **Merged pull requests:**
 
 - docs: align Python 3.13 guidance and fill General issue template [\#1562](https://github.com/abhimehro/email-security-pipeline/pull/1562) ([cursor[bot]](https://github.com/apps/cursor))
+- chore\(deps\): bump github/gh-aw/actions/setup from 0.86.2 to 0.87.10 [\#1561](https://github.com/abhimehro/email-security-pipeline/pull/1561) ([dependabot[bot]](https://github.com/apps/dependabot))
 - chore\(deps\): bump codescene-oss/pr-refactoring-agent from 1.0.8 to 1.1.1 [\#1554](https://github.com/abhimehro/email-security-pipeline/pull/1554) ([dependabot[bot]](https://github.com/apps/dependabot))
 - salvage\(\): tuple endswith fast-path for missing-signature check [\#1551](https://github.com/abhimehro/email-security-pipeline/pull/1551) ([abhimehro](https://github.com/abhimehro))
 - salvage\(\): print manual setup instructions on KeyboardInterrupt [\#1550](https://github.com/abhimehro/email-security-pipeline/pull/1550) ([abhimehro](https://github.com/abhimehro))
