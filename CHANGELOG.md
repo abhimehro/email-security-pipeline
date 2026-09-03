@@ -46,7 +46,13 @@
 
 **Closed issues:**
 
+- Daily QA & Agentic Review — 2026-09-03 [\#1565](https://github.com/abhimehro/email-security-pipeline/issues/1565)
+- \[repo-automation\] Daily Status Report - 2026-09-03 [\#1564](https://github.com/abhimehro/email-security-pipeline/issues/1564)
+- \[repo-automation\] Daily Status Report - 2026-09-02 [\#1559](https://github.com/abhimehro/email-security-pipeline/issues/1559)
+- Daily QA & Agentic Review — 2026-09-01 [\#1558](https://github.com/abhimehro/email-security-pipeline/issues/1558)
+- \[repo-automation\] Daily Status Report - 2026-09-01 [\#1557](https://github.com/abhimehro/email-security-pipeline/issues/1557)
 - Daily QA & Agentic Review — 2026-08-31 [\#1555](https://github.com/abhimehro/email-security-pipeline/issues/1555)
+- \[repo-automation\] Daily Status Report - 2026-08-31 [\#1552](https://github.com/abhimehro/email-security-pipeline/issues/1552)
 - Daily QA & Agentic Review — 2026-08-30 [\#1549](https://github.com/abhimehro/email-security-pipeline/issues/1549)
 - \[repo-automation\] Weekly Retrospective - 2026-08-30 [\#1547](https://github.com/abhimehro/email-security-pipeline/issues/1547)
 - \[repo-automation\] Daily Status Report - 2026-08-30 [\#1545](https://github.com/abhimehro/email-security-pipeline/issues/1545)
@@ -76,6 +82,7 @@
 - Daily QA & Agentic Review — 2026-08-14 [\#1481](https://github.com/abhimehro/email-security-pipeline/issues/1481)
 - \[repo-automation\] Daily Status Report - 2026-08-14 [\#1479](https://github.com/abhimehro/email-security-pipeline/issues/1479)
 - Daily QA & Agentic Review — 2026-08-13 [\#1477](https://github.com/abhimehro/email-security-pipeline/issues/1477)
+- \[repo-health\] Revisit DATABASE\_\* stubs + prune stale remotes \(\#1436 closed without change\) [\#1475](https://github.com/abhimehro/email-security-pipeline/issues/1475)
 - \[repo-health\] summary.yml fails: actions/ai-inference needs Copilot CLI [\#1474](https://github.com/abhimehro/email-security-pipeline/issues/1474)
 - \[repo-automation\] Daily Status Report - 2026-08-13 [\#1472](https://github.com/abhimehro/email-security-pipeline/issues/1472)
 - Daily QA & Agentic Review — 2026-08-12 [\#1470](https://github.com/abhimehro/email-security-pipeline/issues/1470)
@@ -509,6 +516,7 @@
 
 **Merged pull requests:**
 
+- docs: align Python 3.13 guidance and fill General issue template [\#1562](https://github.com/abhimehro/email-security-pipeline/pull/1562) ([cursor[bot]](https://github.com/apps/cursor))
 - salvage\(\): tuple endswith fast-path for missing-signature check [\#1551](https://github.com/abhimehro/email-security-pipeline/pull/1551) ([abhimehro](https://github.com/abhimehro))
 - salvage\(\): print manual setup instructions on KeyboardInterrupt [\#1550](https://github.com/abhimehro/email-security-pipeline/pull/1550) ([abhimehro](https://github.com/abhimehro))
 - 🎨 Palette: Standardize feedback symbols in CLI output [\#1548](https://github.com/abhimehro/email-security-pipeline/pull/1548) ([abhimehro](https://github.com/abhimehro))
