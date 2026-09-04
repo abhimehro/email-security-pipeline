@@ -516,6 +516,7 @@
 
 **Merged pull requests:**
 
+- salvage\(\#1512\): Aho-Corasick fast-path pre-check for NLP analyzer [\#1566](https://github.com/abhimehro/email-security-pipeline/pull/1566) ([abhimehro](https://github.com/abhimehro))
 - docs: align Python 3.13 guidance and fill General issue template [\#1562](https://github.com/abhimehro/email-security-pipeline/pull/1562) ([cursor[bot]](https://github.com/apps/cursor))
 - chore\(deps\): bump github/gh-aw/actions/setup from 0.86.2 to 0.87.10 [\#1561](https://github.com/abhimehro/email-security-pipeline/pull/1561) ([dependabot[bot]](https://github.com/apps/dependabot))
 - chore\(deps\): bump github/gh-aw/actions/setup-cli from 0.86.2 to 0.87.10 [\#1560](https://github.com/abhimehro/email-security-pipeline/pull/1560) ([dependabot[bot]](https://github.com/apps/dependabot))
