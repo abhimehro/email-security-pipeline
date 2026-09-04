@@ -6,79 +6,43 @@
 
 **Implemented enhancements:**
 
-- \[Code Quality\] Implement structured logging with JSON format support
-  [\#313](https://github.com/abhimehro/email-security-pipeline/issues/313)
-- \[Code Quality\] Add OAuth2 authentication support for email providers
-  [\#312](https://github.com/abhimehro/email-security-pipeline/issues/312)
-- \[Code Quality\] Add email analysis result caching to avoid redundant
-  processing
-  [\#305](https://github.com/abhimehro/email-security-pipeline/issues/305)
-- \[Code Quality\] Add comprehensive input validation and sanitization module
-  [\#285](https://github.com/abhimehro/email-security-pipeline/issues/285)
-- \[Code Quality\] Implement database persistence for threat analysis history
-  [\#284](https://github.com/abhimehro/email-security-pipeline/issues/284)
-- \[Code Quality\] Add async/await for parallel email processing
-  [\#283](https://github.com/abhimehro/email-security-pipeline/issues/283)
-- \[Code Quality\] Add integration tests with mock IMAP server
-  [\#249](https://github.com/abhimehro/email-security-pipeline/issues/249)
-- \[Code Quality\] Create metrics collection module for performance tracking
-  [\#248](https://github.com/abhimehro/email-security-pipeline/issues/248)
-- \[Code Quality\] Implement comprehensive unit test suite with pytest
-  [\#247](https://github.com/abhimehro/email-security-pipeline/issues/247)
-- \[Code Quality\] Implement structured JSON logging for production
-  observability
-  [\#246](https://github.com/abhimehro/email-security-pipeline/issues/246)
+- \[Code Quality\] Implement structured logging with JSON format support [\#313](https://github.com/abhimehro/email-security-pipeline/issues/313)
+- \[Code Quality\] Add OAuth2 authentication support for email providers [\#312](https://github.com/abhimehro/email-security-pipeline/issues/312)
+- \[Code Quality\] Add email analysis result caching to avoid redundant processing [\#305](https://github.com/abhimehro/email-security-pipeline/issues/305)
+- \[Code Quality\] Add comprehensive input validation and sanitization module [\#285](https://github.com/abhimehro/email-security-pipeline/issues/285)
+- \[Code Quality\] Implement database persistence for threat analysis history [\#284](https://github.com/abhimehro/email-security-pipeline/issues/284)
+- \[Code Quality\] Add async/await for parallel email processing [\#283](https://github.com/abhimehro/email-security-pipeline/issues/283)
+- \[Code Quality\] Add integration tests with mock IMAP server [\#249](https://github.com/abhimehro/email-security-pipeline/issues/249)
+- \[Code Quality\] Create metrics collection module for performance tracking [\#248](https://github.com/abhimehro/email-security-pipeline/issues/248)
+- \[Code Quality\] Implement comprehensive unit test suite with pytest [\#247](https://github.com/abhimehro/email-security-pipeline/issues/247)
+- \[Code Quality\] Implement structured JSON logging for production observability [\#246](https://github.com/abhimehro/email-security-pipeline/issues/246)
 
 **Fixed bugs:**
 
-- \[Code Quality\] Standardize file extension checking pattern for security
-  consistency
-  [\#363](https://github.com/abhimehro/email-security-pipeline/issues/363)
-- \[Code Quality\] Add TTL and size limits to NLP analyzer cache
-  [\#341](https://github.com/abhimehro/email-security-pipeline/issues/341)
-- \[Code Quality\] Fix ThreadPoolExecutor resource leak in media\_analyzer
-  [\#339](https://github.com/abhimehro/email-security-pipeline/issues/339)
+- \[Code Quality\] Standardize file extension checking pattern for security consistency [\#363](https://github.com/abhimehro/email-security-pipeline/issues/363)
+- \[Code Quality\] Add TTL and size limits to NLP analyzer cache [\#341](https://github.com/abhimehro/email-security-pipeline/issues/341)
+- \[Code Quality\] Fix ThreadPoolExecutor resource leak in media\_analyzer [\#339](https://github.com/abhimehro/email-security-pipeline/issues/339)
 
 **Security fixes:**
 
-- P0: Hardcoded API Key in Test File
-  [\#1511](https://github.com/abhimehro/email-security-pipeline/issues/1511)
-- \[Security\] Review HTTP Request Patterns for SSRF Vulnerabilities
-  [\#1498](https://github.com/abhimehro/email-security-pipeline/issues/1498)
-- P2: Potential Command Injection in Test Script
-  [\#1426](https://github.com/abhimehro/email-security-pipeline/issues/1426)
-- P1: SSRF Vulnerability via Configurable IMAP Server
-  [\#1425](https://github.com/abhimehro/email-security-pipeline/issues/1425)
-- P0: Password Exposure via Shell Variable in setup.sh
-  [\#1236](https://github.com/abhimehro/email-security-pipeline/issues/1236)
-- Security Review: No validated medium+ vulnerabilities \(2026-05-21\)
-  [\#890](https://github.com/abhimehro/email-security-pipeline/issues/890)
-- \[Security\] Script injection via workflow\_dispatch input in
-  copilot-setup-steps.yml \(CWE-94\)
-  [\#882](https://github.com/abhimehro/email-security-pipeline/issues/882)
-- Security review: no validated medium+ vulnerabilities found \(2026-05-14\)
-  [\#847](https://github.com/abhimehro/email-security-pipeline/issues/847)
-- \[CI\] Audit remaining workflow action versions and invalid gh-aw setup-cli
-  pin [\#763](https://github.com/abhimehro/email-security-pipeline/issues/763)
-- \[Code Quality\] Fix duplicate nested archive detection in ZIP inspection
-  [\#362](https://github.com/abhimehro/email-security-pipeline/issues/362)
-- \[Code Quality\] Centralize security validation patterns into validation
-  registry
-  [\#358](https://github.com/abhimehro/email-security-pipeline/issues/358)
-- \[Code Quality\] Add comprehensive unit tests for email\_parser module
-  [\#354](https://github.com/abhimehro/email-security-pipeline/issues/354)
-- \[Code Quality\] Standardize output sanitization with unified registry pattern
-  [\#353](https://github.com/abhimehro/email-security-pipeline/issues/353)
-- \[Code Quality\] Add input validation to URL redaction methods
-  [\#347](https://github.com/abhimehro/email-security-pipeline/issues/347)
-- \[Code Quality\] Add comprehensive unit tests for EmailParser module
-  [\#337](https://github.com/abhimehro/email-security-pipeline/issues/337)
-- \[Code Quality\] Add inline documentation for security-critical code paths
-  [\#277](https://github.com/abhimehro/email-security-pipeline/issues/277)
-- \[Code Quality\] Add unit tests for EmailParser module
-  [\#276](https://github.com/abhimehro/email-security-pipeline/issues/276)
-- \[Code Quality\] Integrate secrets management for production deployments
-  [\#271](https://github.com/abhimehro/email-security-pipeline/issues/271)
+- P0: Hardcoded API Key in Test File [\#1511](https://github.com/abhimehro/email-security-pipeline/issues/1511)
+- \[Security\] Review HTTP Request Patterns for SSRF Vulnerabilities [\#1498](https://github.com/abhimehro/email-security-pipeline/issues/1498)
+- P2: Potential Command Injection in Test Script [\#1426](https://github.com/abhimehro/email-security-pipeline/issues/1426)
+- P1: SSRF Vulnerability via Configurable IMAP Server [\#1425](https://github.com/abhimehro/email-security-pipeline/issues/1425)
+- P0: Password Exposure via Shell Variable in setup.sh [\#1236](https://github.com/abhimehro/email-security-pipeline/issues/1236)
+- Security Review: No validated medium+ vulnerabilities \(2026-05-21\) [\#890](https://github.com/abhimehro/email-security-pipeline/issues/890)
+- \[Security\] Script injection via workflow\_dispatch input in copilot-setup-steps.yml \(CWE-94\) [\#882](https://github.com/abhimehro/email-security-pipeline/issues/882)
+- Security review: no validated medium+ vulnerabilities found \(2026-05-14\) [\#847](https://github.com/abhimehro/email-security-pipeline/issues/847)
+- \[CI\] Audit remaining workflow action versions and invalid gh-aw setup-cli pin [\#763](https://github.com/abhimehro/email-security-pipeline/issues/763)
+- \[Code Quality\] Fix duplicate nested archive detection in ZIP inspection [\#362](https://github.com/abhimehro/email-security-pipeline/issues/362)
+- \[Code Quality\] Centralize security validation patterns into validation registry [\#358](https://github.com/abhimehro/email-security-pipeline/issues/358)
+- \[Code Quality\] Add comprehensive unit tests for email\_parser module [\#354](https://github.com/abhimehro/email-security-pipeline/issues/354)
+- \[Code Quality\] Standardize output sanitization with unified registry pattern [\#353](https://github.com/abhimehro/email-security-pipeline/issues/353)
+- \[Code Quality\] Add input validation to URL redaction methods [\#347](https://github.com/abhimehro/email-security-pipeline/issues/347)
+- \[Code Quality\] Add comprehensive unit tests for EmailParser module [\#337](https://github.com/abhimehro/email-security-pipeline/issues/337)
+- \[Code Quality\] Add inline documentation for security-critical code paths [\#277](https://github.com/abhimehro/email-security-pipeline/issues/277)
+- \[Code Quality\] Add unit tests for EmailParser module [\#276](https://github.com/abhimehro/email-security-pipeline/issues/276)
+- \[Code Quality\] Integrate secrets management for production deployments [\#271](https://github.com/abhimehro/email-security-pipeline/issues/271)
 
 **Closed issues:**
 
@@ -1244,5 +1208,6 @@
 - Project folder review and improvements [\#2](https://github.com/abhimehro/email-security-pipeline/pull/2) ([abhimehro](https://github.com/abhimehro))
 - build\(deps\): bump requests from 2.31.0 to 2.32.4 in the pip group across 1 directory [\#1](https://github.com/abhimehro/email-security-pipeline/pull/1) ([dependabot[bot]](https://github.com/apps/dependabot))
 
-\* _This Changelog was automatically generated by
-[github_changelog_generator](https://github.com/github-changelog-generator/github-changelog-generator)_
+
+
+\* *This Changelog was automatically generated by [github_changelog_generator](https://github.com/github-changelog-generator/github-changelog-generator)*
