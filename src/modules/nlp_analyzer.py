@@ -16,6 +16,8 @@ from ..utils.pattern_compiler import check_redos_safety, compile_patterns
 from ..utils.threat_scoring import calculate_risk_level
 from .email_data import EmailData
 
+import ahocorasick
+
 # Optional imports at module level
 try:
     import torch
@@ -101,6 +103,27 @@ class NLPThreatAnalyzer:
     # Pre-compiled patterns for optimization
     CAPS_WORDS_PATTERN = re.compile(r"\b[A-Z]{4,}\b")
     SENDER_DOMAIN_PATTERN = re.compile(r"@([\w\.-]+)")
+
+    # ⚡ BOLT: Aho-Corasick automaton for high-performance multi-keyword pre-check
+    # Extracts literal keywords from all patterns.
+    # This avoids expensive regex search overhead on clean emails.
+    NLP_LITERAL_WORDS = (
+        'access', 'account', 'act', 'activity', 'administrator', 'alert', 'amazon', 'apple', 'approved', 'asap',
+        'authorized', 'bank', 'blocked', 'bonus', 'breach', 'ceo', 'certified', 'chance', 'change', 'concern',
+        'confidential', 'confirm', 'court', 'credentials', 'critical', 'danger', 'days', 'delay', 'department',
+        'details', 'director', 'disabled', 'don', 'emergency', 'exclusive', 'expiration', 'expire', 'expiring',
+        'fbi', 'fear', 'federal', 'final', 'free', 'gift', 'google', 'government', 'guarantee', 'hours',
+        'immediate', 'immediately', 'information', 'insider', 'irs', 'last', 'lawsuit', 'legal', 'legitimate',
+        'limited', 'locked', 'login', 'manager', 'microsoft', 'minutes', 'national', 'notice', 'now', 'official',
+        'opportunity', 'password', 'paypal', 'police', 'president', 'private', 'prize', 'reset', 'respond',
+        'restricted', 'reward', 'risk', 'secret', 'security', 'sensitive', 'special', 'subpoena', 'supervisor',
+        'suspended', 'suspicious', 'threat', 'time', 'transaction', 'unauthorized', 'unusual', 'update', 'urgent',
+        'validate', 'verified', 'verify', 'warning', 'warrant', 'win', 'winner', 'within', 'won', 'worry', 'your'
+    )
+    NLP_AUTOMATON = ahocorasick.Automaton()
+    for _w in NLP_LITERAL_WORDS:
+        NLP_AUTOMATON.add_word(_w, _w)
+    NLP_AUTOMATON.make_automaton()
 
     def __init__(self, config):
         """
@@ -305,7 +328,15 @@ class NLPThreatAnalyzer:
             # before running expensive operations
             for part in valid_parts:
                 part_lower = part.lower()
-                if self.simple_master_pattern.search(part_lower):
+
+                # Fast path pre-check using Aho-Corasick automaton avoids executing complex regex on clean text
+                try:
+                    next(self.NLP_AUTOMATON.iter(part_lower))
+                    has_match = True
+                except StopIteration:
+                    has_match = False
+
+                if has_match and self.simple_master_pattern.search(part_lower):
                     self._extract_pattern_matches(part_lower, matches_by_category)
 
         return matches_by_category, exclamation_count, caps_count
