@@ -7,6 +7,7 @@
 [![CodeScene Hotspot Code Health](https://codescene.io/projects/80823/status-badges/hotspot-code-health)](https://codescene.io/projects/80823)
 [![CodeScene System Mastery](https://codescene.io/projects/80823/status-badges/system-mastery)](https://codescene.io/projects/80823)
 [![CodeScene Missed Goals](https://codescene.io/projects/80823/status-badges/missed-goals)](https://codescene.io/projects/80823)
+![CodeRabbit Pull Request Reviews](https://img.shields.io/coderabbit/prs/github/abhimehro/email-security-pipeline?utm_source=oss&utm_medium=github&utm_campaign=abhimehro%2Femail-security-pipeline&labelColor=171717&color=FF570A&link=https%3A%2F%2Fcoderabbit.ai&label=CodeRabbit+Reviews)
 
 A self-hosted, containerized email security analysis system that monitors IMAP
 folders for suspicious messages using multi-layered threat detection.
