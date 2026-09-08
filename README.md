@@ -1,5 +1,6 @@
 # Email Security Analysis Pipeline
 
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/24b45ba697fb4777b6ec494faf117b9c)](https://app.codacy.com/gh/abhimehro/email-security-pipeline?utm_source=github.com&utm_medium=referral&utm_content=abhimehro/email-security-pipeline&utm_campaign=Badge_Grade)
 [![CodeScene general](https://codescene.io/images/analyzed-by-codescene-badge.svg)](https://codescene.io/projects/80823)
 [![Changelog Status](https://github.com/abhimehro/email-security-pipeline/actions/workflows/changelog.yml/badge.svg)](https://github.com/abhimehro/email-security-pipeline/actions/workflows/changelog.yml)
 
