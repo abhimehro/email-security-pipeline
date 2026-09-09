@@ -10,7 +10,7 @@ numpy==2.5.2
 # libraries (libpng/libwebp) across all available PyPI versions. Accepted as a
 # known risk because a version bump cannot clear them and a refactor is
 # disproportionate to the low severity. Revisit if the risk profile changes.
-opencv-python-headless==4.13.0.92
+opencv-python-headless==5.0.0.93
 pre-commit==4.6.2
 pyahocorasick==2.3.1
 pytest==9.1.1
