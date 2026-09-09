@@ -11,7 +11,7 @@ COMPOSE_FILE="$HOME/dev/email-security-pipeline/docker-compose.yml"
 PROJECT_DIR="$HOME/dev/email-security-pipeline"
 DOCKER_CONTEXT="colima"
 # Colima cold-start on Apple Virtualization can exceed 3 minutes after a crash.
-READY_ATTEMPTS=150  # 150 * 2s = 300s
+READY_ATTEMPTS=150 # 150 * 2s = 300s
 LOG_TAG="email-security-pipeline"
 
 log() {
@@ -31,7 +31,7 @@ resolve_bin() {
 		"/usr/local/bin/${name}" \
 		"${HOME}/.local/bin/${name}" \
 		"${HOME}/bin/${name}"; do
-		if [[ -x "$candidate" ]]; then
+		if [[ -x $candidate ]]; then
 			print -r -- "$candidate"
 			return 0
 		fi
@@ -62,7 +62,7 @@ log "Using docker=$DOCKER_BIN colima=${COLIMA_BIN:-<missing>}"
 
 # Ensure Colima is up. Do not swallow failures — silent `|| true` left launchd
 # retrying forever while docker never became ready.
-if [[ -n "$COLIMA_BIN" ]]; then
+if [[ -n $COLIMA_BIN ]]; then
 	if ! "$COLIMA_BIN" status >/dev/null 2>&1; then
 		log "Colima not running; starting (shared VM — also used by other services)..."
 		# Prefer restarting the existing default profile; do not recreate the VM.
@@ -91,7 +91,7 @@ for i in {1..$READY_ATTEMPTS}; do
 		exec "$DOCKER_BIN" --context "$DOCKER_CONTEXT" compose -f "$COMPOSE_FILE" up -d --remove-orphans
 	fi
 	# Surface progress every ~30s so launchd stderr is actionable.
-	if (( i % 15 == 0 )); then
+	if ((i % 15 == 0)); then
 		log_err "Waiting for Docker context '$DOCKER_CONTEXT' (attempt $i/$READY_ATTEMPTS)..."
 		"$COLIMA_BIN" status 2>&1 | while IFS= read -r line; do
 			log_err "colima status: $line"

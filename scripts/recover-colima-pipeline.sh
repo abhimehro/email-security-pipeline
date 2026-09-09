@@ -10,19 +10,19 @@
 set -euo pipefail
 
 export PATH=/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/Users/speedybee/.local/bin:/usr/bin:/bin:/usr/sbin:/sbin
-REPO="${0:A:h:h}"
+REPO="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$REPO"
 
 REBUILD=0
 TEST_ALERT=0
 for arg in "$@"; do
 	case "$arg" in
-		--rebuild) REBUILD=1 ;;
-		--test-alert) TEST_ALERT=1 ;;
-		-h|--help)
-			sed -n '1,20p' "$0"
-			exit 0
-			;;
+	--rebuild) REBUILD=1 ;;
+	--test-alert) TEST_ALERT=1 ;;
+	-h | --help)
+		sed -n '1,20p' "$0"
+		exit 0
+		;;
 	esac
 done
 
@@ -34,7 +34,7 @@ resolve_bin() {
 		"/usr/local/bin/${name}" \
 		"${HOME}/.local/bin/${name}" \
 		"${HOME}/bin/${name}"; do
-		if [[ -x "$candidate" ]]; then
+		if [[ -x $candidate ]]; then
 			print -r -- "$candidate"
 			return 0
 		fi
@@ -77,13 +77,13 @@ for i in {1..90}; do
 		break
 	fi
 	sleep 2
-	if (( i == 90 )); then
+	if ((i == 90)); then
 		print -r -- "ERROR: Docker context colima not ready" >&2
 		exit 1
 	fi
 done
 
-if (( REBUILD )); then
+if ((REBUILD)); then
 	print -r -- "==> Rebuilding image (src/ is not bind-mounted in production compose)..."
 	"$DOCKER_BIN" --context colima compose -f "$REPO/docker-compose.yml" build
 fi
@@ -98,7 +98,7 @@ launchctl kickstart -k "gui/$(id -u)/com.abhimehrotra.email-security-pipeline" |
 print -r -- "==> Recent container logs"
 "$DOCKER_BIN" --context colima compose -f "$REPO/docker-compose.yml" logs --tail=40
 
-if (( TEST_ALERT )); then
+if ((TEST_ALERT)); then
 	# Non-secret: topic is already in .env as public ntfy channel name.
 	# Does not touch IMAP credentials. Confirms host→ntfy path only.
 	print -r -- "==> Sending synthetic ntfy test (host path; not via container)..."

@@ -4,16 +4,16 @@ Provides user-friendly output components like countdown timers.
 """
 
 import itertools
+import re
+import shutil
 import sys
 import threading
 import time
 
 from .colors import Colors
 
-import re
-import shutil
+ANSI_ESCAPE = re.compile(r"\x1b\[[0-9;]*[a-zA-Z]")
 
-ANSI_ESCAPE = re.compile(r'\x1b\[[0-9;]*[a-zA-Z]')
 
 def _truncate_for_terminal(text: str) -> str:
     """Truncates text to terminal width, ignoring ANSI escape sequences for length calculation."""
@@ -39,10 +39,11 @@ def _truncate_for_terminal(text: str) -> str:
         if i < len(escapes):
             result.append(escapes[i])
 
-    if visual_length < len(ANSI_ESCAPE.sub('', text)):
+    if visual_length < len(ANSI_ESCAPE.sub("", text)):
         # Ensure we don't leave hanging styles if we truncated
         return "".join(result) + "\033[0m"
     return "".join(result)
+
 
 CURSOR_HIDE = "\033[?25l"
 CURSOR_SHOW = "\033[?25h"

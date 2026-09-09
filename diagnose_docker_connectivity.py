@@ -174,9 +174,7 @@ def main():
             )
         else:
             print(
-                Colors.colorize(
-                    "\n⚠  Proton credentials not configured", Colors.YELLOW
-                )
+                Colors.colorize("\n⚠  Proton credentials not configured", Colors.YELLOW)
             )
 
     print("\n" + "=" * 60)

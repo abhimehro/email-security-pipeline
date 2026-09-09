@@ -175,7 +175,8 @@ class EmailSecurityPipeline:
         except Exception as e:
             self.logger.error(f"Fatal error: {e}", exc_info=True)
             print(
-                "\n" + Colors.colorize("✖ " + f"Fatal error: {e}. ", Colors.RED)
+                "\n"
+                + Colors.colorize("✖ " + f"Fatal error: {e}. ", Colors.RED)
                 + Colors.colorize("Check the logs for details.", Colors.YELLOW)
             )
             self.stop()

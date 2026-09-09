@@ -1,8 +1,12 @@
 # Palette's Journal
 
 ## 2024-08-30 - Standardizing Feedback Symbols in CLI
-**Learning:** Found inconsistent usage of visual feedback symbols (e.g., `✓` vs `✔`, `❌` vs `✖`, `⚠️` vs `⚠`) across CLI output, which can confuse users and reduce UX consistency.
-**Action:** Standardize on `✔` (success), `✖` (error), and `⚠` (warning) across standalone scripts to align with the core application's visual hierarchy.
+
+**Learning:** Found inconsistent usage of visual feedback symbols (e.g., `✓` vs
+`✔`, `❌` vs `✖`, `⚠️` vs `⚠`) across CLI output, which can confuse users and
+reduce UX consistency. **Action:** Standardize on `✔` (success), `✖` (error),
+and `⚠` (warning) across standalone scripts to align with the core application's
+visual hierarchy.
 
 ## 2025-05-15 - Initial Assessment
 
@@ -615,14 +619,14 @@ on elapsed time causes horizontal visual layout shifts that are jarring.
 
 ## 2024-08-12 - Prevent layout shift in countdown timers
 
-**Learning:** Screen readers and terminal UIs suffer
-from layout shifting when dynamic elements like a countdown timer don't
-immediately display the full initial state before the rapid drawing loop starts.
-**Action:** When initializing terminal UI components like a `CountdownTimer` or
-a `Spinner` that rapidly updates using carriage returns, always render an
-initial static frame that includes the full progress bar, initial timer, and
-exact required formatting before the loop begins. This prevents horizontal
-layout shift and gives screen readers a stable state to announce.
+**Learning:** Screen readers and terminal UIs suffer from layout shifting when
+dynamic elements like a countdown timer don't immediately display the full
+initial state before the rapid drawing loop starts. **Action:** When
+initializing terminal UI components like a `CountdownTimer` or a `Spinner` that
+rapidly updates using carriage returns, always render an initial static frame
+that includes the full progress bar, initial timer, and exact required
+formatting before the loop begins. This prevents horizontal layout shift and
+gives screen readers a stable state to announce.
 
 ## 2026-08-16 - Semantic Colors for Standalone Scripts
 

@@ -283,9 +283,7 @@ def test_imap_connections(test_connections=True):
             return True
         else:
             print(
-                Colors.colorize(
-                    "✖ Failed to connect to any email accounts", Colors.RED
-                )
+                Colors.colorize("✖ Failed to connect to any email accounts", Colors.RED)
             )
             print("   Please check your credentials and IMAP settings")
             return False
@@ -437,9 +435,7 @@ def test_diagnostics_script():
 
         test_account_email = _get_first_enabled_account(config)
         if not test_account_email:
-            print(
-                "⚠ No enabled email accounts found, skipping diagnostics script test"
-            )
+            print("⚠ No enabled email accounts found, skipping diagnostics script test")
             return True
 
         print(f"Testing diagnostics for: {test_account_email}")

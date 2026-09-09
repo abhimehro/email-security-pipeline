@@ -153,7 +153,9 @@ def _test_connection(email: str, app_password: str, provider_choice: str) -> boo
         # outside, we just print as before.
         error_msg = str(e).replace(app_password, "***") if app_password else str(e)
         print(
-            Colors.colorize("✖ " + f"Error during connection test: {error_msg}", Colors.RED)
+            Colors.colorize(
+                "✖ " + f"Error during connection test: {error_msg}", Colors.RED
+            )
         )
         if provider_choice == "3":
             print(OUTLOOK_AUTH_ERROR_TIP)
@@ -414,7 +416,9 @@ def _validate_config_path(config_file: str) -> Path | None:
     """Validate the configuration file path securely."""
     if "\0" in config_file:
         print(
-            Colors.colorize("✖ " + f"Error: Invalid configuration file path '{config_file}'. ", Colors.RED
+            Colors.colorize(
+                "✖ " + f"Error: Invalid configuration file path '{config_file}'. ",
+                Colors.RED,
             )
             + Colors.colorize("Ensure the path contains no null bytes.", Colors.YELLOW)
         )
@@ -427,7 +431,9 @@ def _validate_config_path(config_file: str) -> Path | None:
         or candidate_name != config_file
     ):
         print(
-            Colors.colorize("✖ " + f"Error: Unsafe configuration file path '{config_file}'. ", Colors.RED
+            Colors.colorize(
+                "✖ " + f"Error: Unsafe configuration file path '{config_file}'. ",
+                Colors.RED,
             )
             + Colors.colorize("Use a filename only.", Colors.YELLOW)
         )
@@ -589,7 +595,8 @@ def run_setup_wizard(
 
     if not Path(template_file).exists():
         print(
-            Colors.colorize("✖ " + f"Error: Template file '{template_file}' not found. ", Colors.RED
+            Colors.colorize(
+                "✖ " + f"Error: Template file '{template_file}' not found. ", Colors.RED
             )
             + Colors.colorize(
                 "Ensure the file exists before running the wizard.", Colors.YELLOW
@@ -618,7 +625,8 @@ def main() -> int:
     """CLI entry point for setup.sh and other automation."""
     if not sys.stdin.isatty():
         print(
-            Colors.colorize("✖ " + "Interactive credential setup requires a TTY.", Colors.RED
+            Colors.colorize(
+                "✖ " + "Interactive credential setup requires a TTY.", Colors.RED
             )
         )
         _print_manual_setup_instructions()
