@@ -569,14 +569,14 @@ tail -f logs/email_security.log
 
 ```bash
 # Run all tests
-python -m pytest
+python3 -m pytest
 
 # Run with coverage (requires pytest-cov, not included in requirements-ci.txt)
-python -m pip install pytest-cov
-python -m pytest --cov=src --cov-report=html
+python3 -m pip install pytest-cov
+python3 -m pytest --cov=src --cov-report=html
 
 # Run specific config tests
-python -m pytest test_config.py tests/test_config_edge_cases.py tests/test_config_security.py
+python3 -m pytest test_config.py tests/test_config_edge_cases.py tests/test_config_security.py
 ```
 
 ### Code Quality Tools
@@ -697,7 +697,7 @@ To measure performance in your environment:
 
 ```bash
 # Email parsing benchmark (requires test emails)
-python -m pytest tests/test_ingestion_optimization.py -v
+python3 -m pytest tests/test_ingestion_optimization.py -v
 
 # Media analysis benchmark (requires test videos)
 python tests/benchmark_media.py  # If available
