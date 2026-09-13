@@ -10,8 +10,33 @@ permissions:
   contents: read
 
 jobs:
+  sync-check:
+    runs-on: ubuntu-latest
+    name: Verify requirements sync
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Check pytest pin consistency
+        run: |
+          pytest_ci=$(grep "^pytest" requirements-ci.txt)
+          pytest_dev=$(grep "^pytest" requirements-dev.txt)
+          
+          if [ "$pytest_ci" != "$pytest_dev" ]; then
+            echo "❌ pytest versions differ across requirements files:"
+            echo "  requirements-ci.txt:  $pytest_ci"
+            echo "  requirements-dev.txt: $pytest_dev"
+            echo ""
+            echo "Keep both files in sync. Edit one, then update the other."
+            exit 1
+          fi
+          
+          echo "✅ pytest pin consistent: $pytest_ci"
+
   pytest:
     runs-on: ubuntu-latest
+    needs: sync-check
 
     steps:
       - name: Checkout

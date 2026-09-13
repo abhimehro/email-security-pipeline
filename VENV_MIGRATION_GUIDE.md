@@ -53,6 +53,9 @@ Recovery:
 
 ```bash
 # Stop and remove stale VM
+⚠️ **WARNING:** This command deletes the Colima VM and all cached Docker images.
+Run only if you have no local Docker builds you want to preserve.
+
 colima delete
 
 # Restart with explicit resource limits
