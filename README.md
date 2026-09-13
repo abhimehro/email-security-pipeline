@@ -1,9 +1,11 @@
-
 ## Runtime Dependencies
-Docker remains canonical.
-`requirements.txt` is runtime-only; `requirements-ci.txt` and `requirements-dev.txt` layer on top.
 
-# Email Security Analysis Pipeline
+**Docker remains canonical** (verified green build 2026-09-13). Dockerfile references `requirements.txt` (runtime-only), which now contains all pinned runtime deps: `requests`, `numpy`, `opencv-python-headless`, `python-dotenv`, `pyahocorasick`.
+
+`requirements-ci.txt` and `requirements-dev.txt` layer additional tools on top via `-r requirements.txt`.
+
+See **VENV_MIGRATION_GUIDE.md** for local development setup, Colima recovery, and version pinning strategy.
+
 
 [![CodeScene general](https://codescene.io/images/analyzed-by-codescene-badge.svg)](https://codescene.io/projects/80823)
 [![Changelog Status](https://github.com/abhimehro/email-security-pipeline/actions/workflows/changelog.yml/badge.svg)](https://github.com/abhimehro/email-security-pipeline/actions/workflows/changelog.yml)
