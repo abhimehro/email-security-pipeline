@@ -1,3 +1,8 @@
+
+## Runtime Dependencies
+Docker remains canonical.
+`requirements.txt` is runtime-only; `requirements-ci.txt` and `requirements-dev.txt` layer on top.
+
 # Email Security Analysis Pipeline
 
 [![CodeScene general](https://codescene.io/images/analyzed-by-codescene-badge.svg)](https://codescene.io/projects/80823)

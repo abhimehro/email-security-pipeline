@@ -1,0 +1,8 @@
+-r requirements.txt
+
+# Development and testing dependencies
+# pinned as of 2026-09-13 to match docker-compose.test.yml behavior
+
+pytest==9.1.1
+pytest-cov==6.0.0  # Coverage reporting for test suite
+# Note: unittest-xml-reporting (xmlrunner) is intentionally omitted due to incompatibility with Python 3.13.
