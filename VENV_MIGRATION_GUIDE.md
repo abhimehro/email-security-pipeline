@@ -10,10 +10,10 @@ python3.13 -m venv .venv
 source .venv/bin/activate
 
 # Install runtime + dev dependencies
-pip install -r requirements-dev.txt
+python3.13 -m pip install -r requirements-dev.txt
 
 # Run tests
-pytest
+python3 -m pytest
 ```
 
 ### Option 2: Docker - Canonical for reproducibility
@@ -21,7 +21,14 @@ pytest
 ```bash
 # Verify Docker is running - see Troubleshooting below
 docker build -t email-security-pipeline:latest .
-docker run --rm email-security-pipeline:latest pytest
+```
+
+The runtime image installs `requirements.txt` only (no pytest). Run tests on
+the host:
+
+```bash
+python3 -m pip install -r requirements-ci.txt
+python3 -m pytest
 ```
 
 ---
@@ -52,13 +59,9 @@ The Colima VM socket becomes stale when:
 Recovery:
 
 ```bash
-# Stop and remove stale VM
-⚠️ **WARNING:** This command deletes the Colima VM and all cached Docker images.
-Run only if you have no local Docker builds you want to preserve.
-
-colima delete
-
-# Restart with explicit resource limits
+# Restart the VM. Do not `colima delete` — that wipes the VM and is shared
+# with Jellyfin / Control D host DNS (see AGENTS.md).
+colima stop
 colima start --cpu 2 --memory 4 --disk 20
 
 # Verify Docker is ready
@@ -115,6 +118,6 @@ Benefits:
 
 To update a dependency:
 1. Edit requirements.txt with new version
-2. Test locally: pip install -r requirements.txt && pytest
+2. Test locally: python3 -m pip install -r requirements-ci.txt && python3 -m pytest
 3. Verify Docker: docker build -t email-security-pipeline:test .
 4. Commit: docs: bump requests to 2.35.0 for CVE fix

@@ -625,15 +625,15 @@ SPAM_KEYWORDS = [
 
 ### Integrating ML Models
 
-Uncomment transformer dependencies in `requirements.txt`:
+Optional ML libraries (`transformers`, `torch`, `sentencepiece`) are **not**
+in `requirements.txt` (runtime pins used by Docker) or `requirements-ci.txt`.
+Install them separately in a local venv only if you need model-backed NLP; the
+pipeline falls back to regex analysis without them.
 
-```txt
-transformers==4.35.0
-torch==2.1.0
-sentencepiece==0.1.99
-```
+Do not add those packages to `requirements.txt` / `requirements-ci.txt` without
+an explicit product choice — they are multi-GB and excluded from CI.
 
-Update `nlp_analyzer.py` to load models in `_initialize_model()`.
+Then update `nlp_analyzer.py` to load models in `_initialize_model()`.
 
 ### Custom Alert Channels
 
