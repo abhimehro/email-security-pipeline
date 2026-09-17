@@ -13,6 +13,7 @@ from unittest.mock import MagicMock, patch
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
+from src.modules.alert_console import print_recommendations
 from src.modules.alert_system import AlertSystem, ThreatReport
 from src.utils.config import AlertConfig
 
@@ -231,6 +232,15 @@ class TestConsoleAlert(unittest.TestCase):
         self.assertIn("Header Issues", output)
         self.assertIn("SPF check failed", output)
         self.assertNotIn("No suspicious patterns", output)
+
+    def test_print_recommendations_empty_state(self):
+        """Empty recommendations list outputs explicit 'No specific actions required' status."""
+        captured = StringIO()
+        with patch("sys.stdout", captured):
+            print_recommendations([], 70, "\033[32m")
+        output = captured.getvalue()
+        self.assertIn("RECOMMENDATIONS", output)
+        self.assertIn("No specific actions required", output)
 
 
 if __name__ == "__main__":
