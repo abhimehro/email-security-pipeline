@@ -20,8 +20,8 @@ jobs:
 
       - name: Check pytest pin consistency
         run: |
-          pytest_ci=$(grep "^pytest" requirements-ci.txt)
-          pytest_dev=$(grep "^pytest" requirements-dev.txt)
+          pytest_ci=$(grep "^pytest==" requirements-ci.txt)
+          pytest_dev=$(grep "^pytest==" requirements-dev.txt)
           
           if [ "$pytest_ci" != "$pytest_dev" ]; then
             echo "❌ pytest versions differ across requirements files:"
