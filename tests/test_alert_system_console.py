@@ -234,7 +234,6 @@ class TestConsoleAlert(unittest.TestCase):
         self.assertNotIn("No suspicious patterns", output)
 
     def test_print_recommendations_empty_state(self):
-        """Empty recommendations list outputs explicit 'No specific actions required' status."""
         captured = StringIO()
         with patch("sys.stdout", captured):
             print_recommendations([], 70, "\033[32m")
