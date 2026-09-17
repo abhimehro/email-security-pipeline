@@ -100,6 +100,9 @@ def sanitize_for_logging(text: str, max_length: int = 255) -> str:
     return text
 
 
+_DANGEROUS_CSV_CHARS = {"=", "+", "-", "@", "%", "|"}
+
+
 def sanitize_for_csv(text: str) -> str:
     """
     Sanitize text to prevent CSV Injection (Formula Injection).
@@ -117,26 +120,19 @@ def sanitize_for_csv(text: str) -> str:
     if not text:
         return ""
 
-    # Dangerous characters that can trigger formulas at the start of a cell
-    # Note: We check the original string for TAB/CR at the start,
-    # as lstrip() removes them.
-    # Added '%' to prevent DDE injection in older spreadsheet software
-    dangerous_chars = ("=", "+", "-", "@", "%")
+    # Fast path: If string starts with a non-whitespace char that is not dangerous, exit immediately
+    # avoiding unnecessary string allocation from text.lstrip() on clean inputs.
+    first = text[0]
+    if not first.isspace():
+        if first in _DANGEROUS_CSV_CHARS:
+            return "'" + text
+        return text
 
-    # Check if the string starts with characters that trigger formulas
-    # Note: We must check after stripping whitespace because "  =1+1" can also be dangerous.
-    stripped = text.lstrip()
-
-    if stripped.startswith(dangerous_chars):
-        return "'" + text
-
-    # Also check for pipe at the start, which can be problematic in some CSV delimiters
-    if stripped.startswith("|"):
-        return "'" + text
-
-    # Check for control characters at the very start (tab, carriage return)
-    # which might not be caught by stripped check if they ARE the whitespace
     if text.startswith(("\t", "\r")):
+        return "'" + text
+
+    stripped = text.lstrip()
+    if stripped and stripped[0] in _DANGEROUS_CSV_CHARS:
         return "'" + text
 
     return text
