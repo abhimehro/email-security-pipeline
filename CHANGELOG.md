@@ -25,6 +25,7 @@
 
 **Security fixes:**
 
+- \[SECURITY\] Secrets & SSRF Priority Scan - Initial Assessment [\#1568](https://github.com/abhimehro/email-security-pipeline/issues/1568)
 - P0: Hardcoded API Key in Test File [\#1511](https://github.com/abhimehro/email-security-pipeline/issues/1511)
 - \[Security\] Review HTTP Request Patterns for SSRF Vulnerabilities [\#1498](https://github.com/abhimehro/email-security-pipeline/issues/1498)
 - P2: Potential Command Injection in Test Script [\#1426](https://github.com/abhimehro/email-security-pipeline/issues/1426)
@@ -46,6 +47,11 @@
 
 **Closed issues:**
 
+- Daily QA & Agentic Review — 2026-09-17 [\#1607](https://github.com/abhimehro/email-security-pipeline/issues/1607)
+- Daily QA & Agentic Review — 2026-09-16 [\#1602](https://github.com/abhimehro/email-security-pipeline/issues/1602)
+- Daily QA & Agentic Review — 2026-09-15 [\#1600](https://github.com/abhimehro/email-security-pipeline/issues/1600)
+- Daily QA & Agentic Review — 2026-09-14 [\#1598](https://github.com/abhimehro/email-security-pipeline/issues/1598)
+- Daily QA & Agentic Review — 2026-09-13 [\#1595](https://github.com/abhimehro/email-security-pipeline/issues/1595)
 - Daily QA & Agentic Review — 2026-09-12 [\#1592](https://github.com/abhimehro/email-security-pipeline/issues/1592)
 - Daily QA & Agentic Review — 2026-09-11 [\#1590](https://github.com/abhimehro/email-security-pipeline/issues/1590)
 - Daily QA & Agentic Review — 2026-09-09 [\#1583](https://github.com/abhimehro/email-security-pipeline/issues/1583)
@@ -529,6 +535,9 @@
 
 **Merged pull requests:**
 
+- chore\(deps\): bump github/gh-aw/actions/setup from 0.87.10 to 0.88.7 [\#1589](https://github.com/abhimehro/email-security-pipeline/pull/1589) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps\): bump numpy from 2.5.2 to 2.5.3 [\#1587](https://github.com/abhimehro/email-security-pipeline/pull/1587) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps\): bump pnpm/action-setup from 6.0.10 to 6.1.0 [\#1579](https://github.com/abhimehro/email-security-pipeline/pull/1579) ([dependabot[bot]](https://github.com/apps/dependabot))
 - salvage\(\#1512\): Aho-Corasick fast-path pre-check for NLP analyzer [\#1566](https://github.com/abhimehro/email-security-pipeline/pull/1566) ([abhimehro](https://github.com/abhimehro))
 - docs: align Python 3.13 guidance and fill General issue template [\#1562](https://github.com/abhimehro/email-security-pipeline/pull/1562) ([cursor[bot]](https://github.com/apps/cursor))
 - chore\(deps\): bump github/gh-aw/actions/setup from 0.86.2 to 0.87.10 [\#1561](https://github.com/abhimehro/email-security-pipeline/pull/1561) ([dependabot[bot]](https://github.com/apps/dependabot))
