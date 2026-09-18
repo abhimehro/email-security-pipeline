@@ -143,3 +143,8 @@ iterations compared to ~0.39s when re-using a pre-allocated pool. **Action:**
 Always pre-allocate `ThreadPoolExecutor` instances at the class level (e.g., in
 `__init__`) or globally and re-use them for hot-path concurrency, ensuring
 proper resource teardown in a `shutdown()` method.
+
+## 2026-09-18 - Avoid lstrip() allocations in sanitize_for_csv
+
+**Learning:** In text sanitization routines like CSV formula injection prevention, checking if the non-whitespace first character (`not text[0].isspace()`) is in a static set of dangerous characters before calling `lstrip()` avoids unnecessary string allocations on clean inputs.
+**Action:** For CSV formula injection checks, use a fast path on the first character before calling `lstrip()`.
