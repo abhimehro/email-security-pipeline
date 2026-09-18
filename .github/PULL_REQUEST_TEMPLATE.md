@@ -40,7 +40,7 @@ Closes #<!-- issue number -->
 <!--
   Describe the tests you ran, e.g.:
   - "Added unit tests in tests/test_spam_analyzer.py covering X"
-  - "Ran python3 -m pytest and all 754 tests pass"
+  - "Ran `python3 -m pytest` and all tests pass"
   - "Manually verified against a live Gmail IMAP connection"
 -->
 

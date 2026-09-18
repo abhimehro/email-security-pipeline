@@ -104,9 +104,9 @@ Daemon logs are written to `~/Library/Logs/email-security-pipeline/` (see “Log
 
 ### 3. Configuration Tests & Diagnostics
 
-The maintained suite is pytest (`python3 -m pytest` from the repo root;
-CI collects 754 tests). Diagnostics scripts below remain useful for
-live IMAP / connectivity checks and are not a substitute for the suite.
+The maintained suite is pytest (`python3 -m pytest` from the repo root); CI
+runs the full pytest suite. Diagnostics scripts below remain useful for live
+IMAP / connectivity checks and are not a substitute for the suite.
 
 **Core configuration & import tests:**
 
