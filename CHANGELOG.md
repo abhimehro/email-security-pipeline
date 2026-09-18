@@ -535,6 +535,7 @@
 
 **Merged pull requests:**
 
+- ci+docs\(repo-health\): fix pytest-cov sync-check false fail [\#1603](https://github.com/abhimehro/email-security-pipeline/pull/1603) ([cursor[bot]](https://github.com/apps/cursor))
 - chore\(deps\): bump github/gh-aw/actions/setup from 0.87.10 to 0.88.7 [\#1589](https://github.com/abhimehro/email-security-pipeline/pull/1589) ([dependabot[bot]](https://github.com/apps/dependabot))
 - chore\(deps\): bump numpy from 2.5.2 to 2.5.3 [\#1587](https://github.com/abhimehro/email-security-pipeline/pull/1587) ([dependabot[bot]](https://github.com/apps/dependabot))
 - chore\(deps\): bump pnpm/action-setup from 6.0.10 to 6.1.0 [\#1579](https://github.com/abhimehro/email-security-pipeline/pull/1579) ([dependabot[bot]](https://github.com/apps/dependabot))
