@@ -100,8 +100,7 @@ def sanitize_for_logging(text: str, max_length: int = 255) -> str:
     return text
 
 
-_DANGEROUS_CSV_PREFIXES = ("=", "+", "-", "@", "%", "|")
-_DANGEROUS_CSV_PREFIXES_SET = {"=", "+", "-", "@", "%", "|"}
+_DANGEROUS_CSV_PREFIXES = frozenset(("=", "+", "-", "@", "%", "|"))
 
 
 def sanitize_for_csv(text: str) -> str:
@@ -125,7 +124,7 @@ def sanitize_for_csv(text: str) -> str:
     # Checking if first character is not whitespace and not in dangerous set
     # avoids unnecessary lstrip() string allocations and startswith() checks (~2.6x faster).
     first_char = text[0]
-    if not first_char.isspace() and first_char not in _DANGEROUS_CSV_PREFIXES_SET:
+    if not first_char.isspace() and first_char not in _DANGEROUS_CSV_PREFIXES:
         return text
 
     # Check for control characters at the very start (tab, carriage return)
@@ -135,7 +134,7 @@ def sanitize_for_csv(text: str) -> str:
 
     # Check if the string starts with characters that trigger formulas after whitespace
     stripped = text.lstrip()
-    if stripped.startswith(_DANGEROUS_CSV_PREFIXES):
+    if stripped and stripped[0] in _DANGEROUS_CSV_PREFIXES:
         return "'" + text
 
     return text
