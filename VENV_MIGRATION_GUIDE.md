@@ -59,19 +59,22 @@ The Colima VM socket becomes stale when:
 Recovery:
 
 ```bash
-# Restart the VM. Do not `colima delete` — that wipes the VM and is shared
-# with Jellyfin / Control D host DNS (see AGENTS.md).
-colima stop
-colima start --cpu 2 --memory 4 --disk 20
+# Do not `colima delete` — that wipes the VM and is shared with Jellyfin /
+# Control D host DNS (see AGENTS.md). Start the existing profile without
+# resource overrides so an existing disk is never accidentally shrunk.
+# If .colima/ was removed, verify/restore the shared DNS override first:
+# (required after that cleanup; see personal-config/AGENTS.md)
+~/dev/personal-config/scripts/free-port53-for-controld.sh --patch-colima-ignore
+colima start || { colima stop; colima start; }
 
 # Verify Docker is ready
 docker ps
 ```
 
-Why these flags?
-- --cpu 2: Allocate 2 CPUs. Adjust to your Mac capacity.
-- --memory 4: Allocate 4 GB RAM. CI containers typically use 2-3 GB.
-- --disk 20: 20 GB disk. Prevents out of space during image builds.
+Run the `--patch-colima-ignore` command whenever `.colima/` was removed.
+Configure any required CPU, memory, or disk growth separately through the
+existing Colima profile configuration; do not add a smaller `--disk` override
+to this recovery command.
 
 ### Docker build fails with dependency errors
 
