@@ -1,0 +1,9 @@
+-r requirements.txt
+
+# Development and testing dependencies
+# pinned as of 2026-09-13 to match CI behavior
+# NOTE: pytest is also in requirements-ci.txt; keep both lists in sync
+# NOTE: unittest-xml-reporting (xmlrunner) intentionally absent due to Python 3.13 incompatibility
+
+pytest==9.1.1
+pytest-cov==6.0.0
