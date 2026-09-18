@@ -55,14 +55,16 @@ directly by importing from `src.modules`.
   from ctrld.
 - **Alert gating:** Do not gate solely on `overall_threat_score >= THREAT_LOW` —
   layer-flagged medium/high can sit below the floor.
-- **ML dependencies not installed by default**: `torch`, `transformers`,
-  `sentencepiece` are commented out in `requirements.txt` and excluded from
+- **ML dependencies not installed by default**: optional `torch` /
+  `transformers` / `sentencepiece` are **not** in `requirements.txt`
+  (runtime-only pins for Docker) and are excluded from
   `requirements-ci.txt`. The NLP analyzer falls back to regex-based pattern
   matching when these are absent.
 - **Dependencies**: Use `requirements-ci.txt` for development to avoid
-  installing multi-GB ML libraries (`torch`, `transformers`, etc.). Uncomment
-  the optional ML dependencies in `requirements.txt` only when full model-backed
-  analysis is needed.
+  installing multi-GB ML libraries (`torch`, `transformers`, etc.). Do not
+  add optional ML packages to `requirements.txt` without an explicit product
+  choice — that file is the Docker/runtime pin set, not a commented extras
+  list.
 - **PATH for pip-installed scripts**: User-installed pip scripts land in
   `~/.local/bin`. Ensure this directory is in your `PATH`.
 - **`core.hooksPath` conflict**: If `pre-commit install` fails with a

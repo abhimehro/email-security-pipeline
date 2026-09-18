@@ -10,10 +10,10 @@ python3.13 -m venv .venv
 source .venv/bin/activate
 
 # Install runtime + dev dependencies
-pip install -r requirements-dev.txt
+python3.13 -m pip install -r requirements-dev.txt
 
 # Run tests
-pytest
+python3 -m pytest
 ```
 
 ### Option 2: Docker - Canonical for reproducibility
@@ -21,7 +21,14 @@ pytest
 ```bash
 # Verify Docker is running - see Troubleshooting below
 docker build -t email-security-pipeline:latest .
-docker run --rm email-security-pipeline:latest pytest
+```
+
+The runtime image installs `requirements.txt` only (no pytest). Run tests on
+the host:
+
+```bash
+python3 -m pip install -r requirements-ci.txt
+python3 -m pytest
 ```
 
 ---
@@ -52,23 +59,22 @@ The Colima VM socket becomes stale when:
 Recovery:
 
 ```bash
-# Stop and remove stale VM
-⚠️ **WARNING:** This command deletes the Colima VM and all cached Docker images.
-Run only if you have no local Docker builds you want to preserve.
-
-colima delete
-
-# Restart with explicit resource limits
-colima start --cpu 2 --memory 4 --disk 20
+# Do not `colima delete` — that wipes the VM and is shared with Jellyfin /
+# Control D host DNS (see AGENTS.md). Start the existing profile without
+# resource overrides so an existing disk is never accidentally shrunk.
+# If .colima/ was removed, verify/restore the shared DNS override first:
+# (required after that cleanup; see personal-config/AGENTS.md)
+~/dev/personal-config/scripts/free-port53-for-controld.sh --patch-colima-ignore
+colima start || { colima stop; colima start; }
 
 # Verify Docker is ready
 docker ps
 ```
 
-Why these flags?
-- --cpu 2: Allocate 2 CPUs. Adjust to your Mac capacity.
-- --memory 4: Allocate 4 GB RAM. CI containers typically use 2-3 GB.
-- --disk 20: 20 GB disk. Prevents out of space during image builds.
+Run the `--patch-colima-ignore` command whenever `.colima/` was removed.
+Configure any required CPU, memory, or disk growth separately through the
+existing Colima profile configuration; do not add a smaller `--disk` override
+to this recovery command.
 
 ### Docker build fails with dependency errors
 
@@ -115,6 +121,6 @@ Benefits:
 
 To update a dependency:
 1. Edit requirements.txt with new version
-2. Test locally: pip install -r requirements.txt && pytest
+2. Test locally: python3 -m pip install -r requirements-ci.txt && python3 -m pytest
 3. Verify Docker: docker build -t email-security-pipeline:test .
 4. Commit: docs: bump requests to 2.35.0 for CVE fix

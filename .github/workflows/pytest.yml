@@ -20,9 +20,11 @@ jobs:
 
       - name: Check pytest pin consistency
         run: |
-          pytest_ci=$(grep "^pytest" requirements-ci.txt)
-          pytest_dev=$(grep "^pytest" requirements-dev.txt)
-          
+          # ASSUMES: pin lines are `pytest==<ver>`. `^pytest` also matches
+          # pytest-cov in requirements-dev.txt and false-fails this job.
+          pytest_ci=$(grep -E '^pytest==' requirements-ci.txt)
+          pytest_dev=$(grep -E '^pytest==' requirements-dev.txt)
+
           if [ "$pytest_ci" != "$pytest_dev" ]; then
             echo "❌ pytest versions differ across requirements files:"
             echo "  requirements-ci.txt:  $pytest_ci"
@@ -31,7 +33,7 @@ jobs:
             echo "Keep both files in sync. Edit one, then update the other."
             exit 1
           fi
-          
+
           echo "✅ pytest pin consistent: $pytest_ci"
 
   pytest:
