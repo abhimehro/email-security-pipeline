@@ -104,8 +104,9 @@ Daemon logs are written to `~/Library/Logs/email-security-pipeline/` (see “Log
 
 ### 3. Configuration Tests & Diagnostics
 
-There is no formal pytest/coverage suite yet; testing is driven by rich
-diagnostics scripts and manual flows.
+The maintained suite is pytest (`python3 -m pytest` from the repo root); CI
+runs the full pytest suite. Diagnostics scripts below remain useful for live
+IMAP / connectivity checks and are not a substitute for the suite.
 
 **Core configuration & import tests:**
 
@@ -136,8 +137,15 @@ python3 scripts/diagnose_connectivity.py you@example.com
 python3 scripts/check_mail_connectivity.py
 ```
 
-If you add a real unit-test suite under `tests/` (e.g., pytest), document the
-test runner here and keep `requirements.txt` dev dependencies in sync.
+**pytest (primary suite):**
+
+```bash
+python3 -m pytest
+python3 -m pytest -v
+```
+
+Tests mock IMAP and external services; no `.env` is required. Keep
+`requirements-ci.txt` in sync when adding test dependencies.
 
 ### 4. Logs & Monitoring
 
