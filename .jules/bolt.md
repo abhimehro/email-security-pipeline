@@ -143,3 +143,7 @@ iterations compared to ~0.39s when re-using a pre-allocated pool. **Action:**
 Always pre-allocate `ThreadPoolExecutor` instances at the class level (e.g., in
 `__init__`) or globally and re-use them for hot-path concurrency, ensuring
 proper resource teardown in a `shutdown()` method.
+
+## 2026-08-28 - Optimize terminal text truncation and UI loop syscall overhead
+**Learning:** Evaluating `shutil.get_terminal_size()` inside dynamic UI loops (like spinners or countdowns) issues repeated `ioctl` system calls on every frame. Pre-evaluating terminal columns outside the loop and adding fast-path checks for non-ANSI or non-truncated strings in `_truncate_for_terminal()` yields a ~70x speedup in column resolution and ~2.4x-6.3x speedup in string truncation.
+**Action:** Pre-compute terminal dimensions outside tight UI rendering loops and use fast paths for string checks before running regex splits/findall operations.

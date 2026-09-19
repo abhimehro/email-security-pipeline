@@ -15,16 +15,29 @@ from .colors import Colors
 ANSI_ESCAPE = re.compile(r"\x1b\[[0-9;]*[a-zA-Z]")
 
 
-def _truncate_for_terminal(text: str) -> str:
+def _truncate_for_terminal(text: str, columns: int = 0) -> str:
     """Truncates text to terminal width, ignoring ANSI escape sequences for length calculation."""
     # Leave 1 col padding to avoid accidental wrap on some terminals
-    columns = shutil.get_terminal_size((80, 20)).columns - 1
+    if columns <= 0:
+        columns = shutil.get_terminal_size((80, 20)).columns - 1
 
+    # Fast path for plain text without ANSI escape sequences
+    if "\x1b" not in text:
+        if len(text) <= columns:
+            return text
+        if columns <= 0:
+            return ""
+        return text[:columns]
+
+    # Fast path for ANSI text when visual length fits within columns
+    parts = ANSI_ESCAPE.split(text)
+    total_visual_length = sum(len(part) for part in parts)
+    if total_visual_length <= columns:
+        return text
+
+    escapes = ANSI_ESCAPE.findall(text)
     visual_length = 0
     result = []
-
-    parts = ANSI_ESCAPE.split(text)
-    escapes = ANSI_ESCAPE.findall(text)
 
     for i, part in enumerate(parts):
         if visual_length + len(part) > columns:
@@ -39,7 +52,7 @@ def _truncate_for_terminal(text: str) -> str:
         if i < len(escapes):
             result.append(escapes[i])
 
-    if visual_length < len(ANSI_ESCAPE.sub("", text)):
+    if visual_length < total_visual_length:
         # Ensure we don't leave hanging styles if we truncated
         return "".join(result) + "\033[0m"
     return "".join(result)
@@ -82,12 +95,15 @@ class CountdownTimer:
             width = len(str(self.duration))
             initial_time = f"{self.duration:{width}d}s"
 
+        # Pre-evaluate terminal width to avoid ioctl syscalls in loop
+        columns = shutil.get_terminal_size((80, 20)).columns - 1
+
         # Accessibility & UX: Print an initial static frame so screen readers
         # have a chance to read the message and prevent layout shift before the loop.
         full_bar = "█" * self.PROGRESS_BAR_WIDTH
         colored_bar = Colors.colorize(full_bar, Colors.CYAN)
         line = f"{self.message}: {colored_bar} {initial_time}"
-        sys.stdout.write(f"\r{_truncate_for_terminal(line)}\033[K")
+        sys.stdout.write(f"\r{_truncate_for_terminal(line, columns)}\033[K")
         sys.stdout.flush()
 
         try:
@@ -111,7 +127,7 @@ class CountdownTimer:
 
                 # \r moves cursor to start of line, \033[K clears the line
                 line = f"{self.message}: {colored_bar} {time_str} "
-                sys.stdout.write(f"\r{_truncate_for_terminal(line)}\033[K")
+                sys.stdout.write(f"\r{_truncate_for_terminal(line, columns)}\033[K")
                 sys.stdout.flush()
 
                 time.sleep(self.interval)
@@ -190,6 +206,8 @@ class Spinner:
         if sys.stdout.isatty() and CTRL_C_HINT not in display_msg:
             display_msg += Colors.colorize(CTRL_C_HINT, Colors.GREY)
 
+        columns = shutil.get_terminal_size((80, 20)).columns - 1
+
         while self.busy:
             elapsed = time.time() - getattr(self, "start_time", time.time())
             time_str = Colors.colorize(f" [{elapsed:4.1f}s]", Colors.GREY)
@@ -197,7 +215,7 @@ class Spinner:
             # \r moves cursor to start of line, \033[K clears the line
             spin_char = Colors.colorize(next(self.spinner), Colors.CYAN)
             line = f"{spin_char} {display_msg}{time_str}   "
-            sys.stdout.write(f"\r{_truncate_for_terminal(line)}\033[K")
+            sys.stdout.write(f"\r{_truncate_for_terminal(line, columns)}\033[K")
             sys.stdout.flush()
             time.sleep(self.delay)
             # Check again to avoid writing after stop
@@ -225,12 +243,14 @@ class Spinner:
         # Hide cursor
         sys.stdout.write(CURSOR_HIDE)
 
+        columns = shutil.get_terminal_size((80, 20)).columns - 1
+
         # Accessibility & UX: Print an initial static frame so screen readers
         # can read it, and include the elapsed time to prevent layout shift.
         initial_time = Colors.colorize(" [ 0.0s]", Colors.GREY)
         spin_char = Colors.colorize(next(self.spinner), Colors.CYAN)
         line = f"{spin_char} {msg}{initial_time}"
-        sys.stdout.write(f"\r{_truncate_for_terminal(line)}\033[K")
+        sys.stdout.write(f"\r{_truncate_for_terminal(line, columns)}\033[K")
         sys.stdout.flush()
 
         self.busy = True
