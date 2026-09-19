@@ -538,6 +538,7 @@
 
 - chore\(deps\): bump ruby/setup-ruby from 1.321.0 to 1.323.0 [\#1614](https://github.com/abhimehro/email-security-pipeline/pull/1614) ([dependabot[bot]](https://github.com/apps/dependabot))
 - chore\(deps\): bump github/gh-aw/actions/setup-cli from 0.88.7 to 0.89.14 [\#1613](https://github.com/abhimehro/email-security-pipeline/pull/1613) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps\): bump github/gh-aw/actions/setup from 0.88.7 to 0.89.14 [\#1612](https://github.com/abhimehro/email-security-pipeline/pull/1612) ([dependabot[bot]](https://github.com/apps/dependabot))
 - ci+docs\(repo-health\): fix pytest-cov sync-check false fail [\#1603](https://github.com/abhimehro/email-security-pipeline/pull/1603) ([cursor[bot]](https://github.com/apps/cursor))
 - chore\(deps\): bump codescene-oss/pr-refactoring-agent from 1.1.1 to 1.1.2 [\#1597](https://github.com/abhimehro/email-security-pipeline/pull/1597) ([dependabot[bot]](https://github.com/apps/dependabot))
 - chore\(deps\): bump github/gh-aw/actions/setup from 0.87.10 to 0.88.7 [\#1589](https://github.com/abhimehro/email-security-pipeline/pull/1589) ([dependabot[bot]](https://github.com/apps/dependabot))
