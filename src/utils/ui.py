@@ -21,7 +21,6 @@ def _truncate_for_terminal(text: str, columns: int = 0) -> str:
     if columns <= 0:
         columns = shutil.get_terminal_size((80, 20)).columns - 1
 
-    # Fast path for plain text without ANSI escape sequences
     if "\x1b" not in text:
         if len(text) <= columns:
             return text
@@ -29,7 +28,6 @@ def _truncate_for_terminal(text: str, columns: int = 0) -> str:
             return ""
         return text[:columns]
 
-    # Fast path for ANSI text when visual length fits within columns
     parts = ANSI_ESCAPE.split(text)
     total_visual_length = sum(len(part) for part in parts)
     if total_visual_length <= columns:
@@ -84,34 +82,39 @@ class CountdownTimer:
             time.sleep(self.duration)
             return
 
+        # Resolve width before hiding the cursor so failures cannot leave it hidden.
+        columns = shutil.get_terminal_size((80, 20)).columns - 1
+        last_width_check = time.monotonic()
+
         # Hide cursor
         sys.stdout.write(CURSOR_HIDE)
         sys.stdout.flush()
 
-        # Format initial time based on duration to prevent layout shift
-        if self.duration >= 60:
-            initial_time = f"{self.duration // 60:02d}:{self.duration % 60:02d}"
-        else:
-            width = len(str(self.duration))
-            initial_time = f"{self.duration:{width}d}s"
-
-        # Pre-evaluate terminal width to avoid ioctl syscalls in loop
-        columns = shutil.get_terminal_size((80, 20)).columns - 1
-
-        # Accessibility & UX: Print an initial static frame so screen readers
-        # have a chance to read the message and prevent layout shift before the loop.
-        full_bar = "█" * self.PROGRESS_BAR_WIDTH
-        colored_bar = Colors.colorize(full_bar, Colors.CYAN)
-        line = f"{self.message}: {colored_bar} {initial_time}"
-        sys.stdout.write(f"\r{_truncate_for_terminal(line, columns)}\033[K")
-        sys.stdout.flush()
-
         try:
+            # Format initial time based on duration to prevent layout shift
+            if self.duration >= 60:
+                initial_time = f"{self.duration // 60:02d}:{self.duration % 60:02d}"
+            else:
+                width = len(str(self.duration))
+                initial_time = f"{self.duration:{width}d}s"
+
+            # Accessibility & UX: Print an initial static frame so screen readers
+            # have a chance to read the message and prevent layout shift before the loop.
+            full_bar = "█" * self.PROGRESS_BAR_WIDTH
+            colored_bar = Colors.colorize(full_bar, Colors.CYAN)
+            line = f"{self.message}: {colored_bar} {initial_time}"
+            sys.stdout.write(f"\r{_truncate_for_terminal(line, columns)}\033[K")
+            sys.stdout.flush()
+
             # Sleep briefly to ensure the screen reader announces it before the loop
             time.sleep(0.1)
 
             remaining = self.duration
             while remaining > 0 and not self._stop_event.is_set():
+                if time.monotonic() - last_width_check >= 0.5:
+                    columns = shutil.get_terminal_size((80, 20)).columns - 1
+                    last_width_check = time.monotonic()
+
                 # Format time as MM:SS if initial duration >= 60s, else just seconds
                 if self.duration >= 60:
                     time_str = f"{remaining // 60:02d}:{remaining % 60:02d}"
@@ -207,8 +210,12 @@ class Spinner:
             display_msg += Colors.colorize(CTRL_C_HINT, Colors.GREY)
 
         columns = shutil.get_terminal_size((80, 20)).columns - 1
+        last_width_check = time.monotonic()
 
         while self.busy:
+            if time.monotonic() - last_width_check >= 0.5:
+                columns = shutil.get_terminal_size((80, 20)).columns - 1
+                last_width_check = time.monotonic()
             elapsed = time.time() - getattr(self, "start_time", time.time())
             time_str = Colors.colorize(f" [{elapsed:4.1f}s]", Colors.GREY)
 
@@ -240,22 +247,27 @@ class Spinner:
 
     def _start_tty_spinner(self, msg: str):
         """Helper to initialize the background spinner for interactive terminals."""
-        # Hide cursor
-        sys.stdout.write(CURSOR_HIDE)
-
+        # Resolve width before hiding the cursor so failures cannot leave it hidden.
         columns = shutil.get_terminal_size((80, 20)).columns - 1
 
-        # Accessibility & UX: Print an initial static frame so screen readers
-        # can read it, and include the elapsed time to prevent layout shift.
-        initial_time = Colors.colorize(" [ 0.0s]", Colors.GREY)
-        spin_char = Colors.colorize(next(self.spinner), Colors.CYAN)
-        line = f"{spin_char} {msg}{initial_time}"
-        sys.stdout.write(f"\r{_truncate_for_terminal(line, columns)}\033[K")
-        sys.stdout.flush()
+        # Hide cursor
+        sys.stdout.write(CURSOR_HIDE)
+        try:
+            # Accessibility & UX: Print an initial static frame so screen readers
+            # can read it, and include the elapsed time to prevent layout shift.
+            initial_time = Colors.colorize(" [ 0.0s]", Colors.GREY)
+            spin_char = Colors.colorize(next(self.spinner), Colors.CYAN)
+            line = f"{spin_char} {msg}{initial_time}"
+            sys.stdout.write(f"\r{_truncate_for_terminal(line, columns)}\033[K")
+            sys.stdout.flush()
 
-        self.busy = True
-        self.thread = threading.Thread(target=self._spin)
-        self.thread.start()
+            self.busy = True
+            self.thread = threading.Thread(target=self._spin)
+            self.thread.start()
+        except BaseException:
+            sys.stdout.write(CURSOR_SHOW)
+            sys.stdout.flush()
+            raise
 
     def _get_final_message_components(self, exc_type) -> tuple[str, str]:
         """Determine the final symbol and message to display."""
