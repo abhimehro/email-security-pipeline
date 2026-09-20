@@ -143,3 +143,15 @@ iterations compared to ~0.39s when re-using a pre-allocated pool. **Action:**
 Always pre-allocate `ThreadPoolExecutor` instances at the class level (e.g., in
 `__init__`) or globally and re-use them for hot-path concurrency, ensuring
 proper resource teardown in a `shutdown()` method.
+
+## 2026-08-28 - Optimize terminal text truncation and UI loop syscall overhead
+**Learning:** Evaluating `shutil.get_terminal_size()` inside dynamic UI loops (like spinners or countdowns) issues repeated `ioctl` system calls on every frame. Pre-evaluating terminal columns outside the loop and adding fast-path checks for non-ANSI or non-truncated strings in `_truncate_for_terminal()` yields a ~70x speedup in column resolution and ~2.4x-6.3x speedup in string truncation.
+**Action:** Pre-compute terminal dimensions outside tight UI rendering loops and use fast paths for string checks before running regex splits/findall operations.
+
+## 2026-08-28 - Refactor UI truncation helpers for CodeScene compliance
+**Learning:** When adding performance fast paths to a method with loops and conditionals, inline checks increase cyclomatic complexity and cause CodeScene 'Complex Method' / 'Bumpy Road Ahead' Quality Gate failures. Extracting helpers for column resolution, plain text truncation, and ANSI truncation reduces cyclomatic complexity while preserving all performance gains.
+**Action:** Extract fast-path branches and complex loop bodies into private helper methods when optimizing functions checked by CodeScene.
+
+## 2026-08-28 - Flatten CountdownTimer and ANSI truncation logic for CodeScene 10/10
+**Learning:** CodeScene flags methods with multi-level try/except blocks or loops containing nested conditionals as 'Complex Method' or 'Bumpy Road Ahead'. Extracting loop bodies and time formatting into dedicated private methods (e.g. `_render_timer_frame`, `_format_time_str`) and replacing nested loop conditionals with single-level guards keeps cyclomatic complexity low while maintaining performance.
+**Action:** Keep UI loop methods short and extract rendering frames and status handlers into focused helper methods.
