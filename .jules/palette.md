@@ -640,3 +640,8 @@ rapidly updates using carriage returns, always render an initial static frame
 that includes the full progress bar, initial timer, and exact required
 formatting before the loop begins. This prevents horizontal layout shift and
 gives screen readers a stable state to announce.
+
+## 2026-09-17 - Explicit Empty State in Recommendation Cards
+
+**Learning:** When rendering structured CLI cards (like alert recommendation sections), leaving a section completely blank when there are no items causes user ambiguity about whether recommendations failed to load or were intentionally empty.
+**Action:** Always print an explicit, green-check empty state (e.g., `✔ No specific actions required`) when rendering empty lists in CLI card sections.
