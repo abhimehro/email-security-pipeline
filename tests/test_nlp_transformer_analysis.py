@@ -9,7 +9,7 @@ Tests cover:
 
 import unittest
 from datetime import datetime
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 from src.modules.email_data import EmailData
 from src.modules.nlp_analyzer import NLPThreatAnalyzer
@@ -49,7 +49,14 @@ class TestRunTransformerAnalysisScoring(unittest.TestCase):
 
     def setUp(self):
         self.config = MockConfig()
-        self.analyzer = NLPThreatAnalyzer(self.config)
+        with patch(
+            "src.modules.nlp_analyzer.AutoTokenizer.from_pretrained",
+            return_value=MagicMock(),
+        ), patch(
+            "src.modules.nlp_analyzer.AutoModelForSequenceClassification.from_pretrained",
+            return_value=MagicMock(),
+        ):
+            self.analyzer = NLPThreatAnalyzer(self.config)
         # Disable real model to isolate _run_transformer_analysis
         self.analyzer.model = MagicMock()
         self.analyzer.tokenizer = MagicMock()
