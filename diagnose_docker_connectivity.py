@@ -88,6 +88,13 @@ def test_connection(config: ConnectionConfig):
 
     except imaplib.IMAP4.error as e:
         print(Colors.colorize(f"✖ IMAP Error: {e}", Colors.RED))
+        if config.label.startswith("Outlook"):
+            print(
+                Colors.colorize(
+                    "   Tip: Personal Outlook accounts NO LONGER support App Passwords.",
+                    Colors.YELLOW,
+                )
+            )
     except ssl.SSLError as e:
         print(Colors.colorize(f"✖ SSL Error: {e}", Colors.RED))
         print(f"   Error type: {type(e).__name__}")
@@ -131,6 +138,30 @@ def main():
         else:
             print(
                 Colors.colorize("\n⚠  Gmail credentials not configured", Colors.YELLOW)
+            )
+
+    # Test Outlook
+    if os.getenv("OUTLOOK_ENABLED", "").lower() == "true":
+        outlook_email = os.getenv("OUTLOOK_EMAIL", "")
+        outlook_password = os.getenv("OUTLOOK_APP_PASSWORD", "")
+
+        if outlook_email and outlook_password:
+            results.append(
+                test_connection(
+                    ConnectionConfig(
+                        "Outlook",
+                        os.getenv("OUTLOOK_IMAP_SERVER") or "outlook.office365.com",
+                        int(os.getenv("OUTLOOK_IMAP_PORT", "993")),
+                        outlook_email,
+                        outlook_password,
+                        use_ssl=True,
+                        verify_ssl=True,
+                    )
+                )
+            )
+        else:
+            print(
+                Colors.colorize("\n⚠  Outlook credentials not configured", Colors.YELLOW)
             )
 
     # Test Proton with SSL verification
@@ -178,10 +209,17 @@ def main():
             )
 
     print("\n" + "=" * 60)
+    if not results:
+        print(
+            Colors.colorize(
+                "⚠  No email accounts were tested. Please ensure at least one provider is enabled and configured in .env",
+                Colors.YELLOW,
+            )
+        )
     print("Diagnostics complete")
     print("=" * 60)
 
-    sys.exit(0 if all(results) else 1)
+    sys.exit(0 if (results and all(results)) else 1)
 
 
 if __name__ == "__main__":
