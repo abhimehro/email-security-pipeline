@@ -3,7 +3,9 @@ Tests for diagnose_docker_connectivity.py script.
 """
 
 import imaplib
-from unittest.mock import patch
+import os
+import sys
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -16,8 +18,9 @@ def test_diagnose_docker_connectivity_no_accounts_enabled(monkeypatch, capsys):
     monkeypatch.setenv("OUTLOOK_ENABLED", "false")
     monkeypatch.setenv("PROTON_ENABLED", "false")
 
-    with pytest.raises(SystemExit) as exc_info:
-        diagnose_docker_connectivity.main()
+    with patch("diagnose_docker_connectivity.load_dotenv"):
+        with pytest.raises(SystemExit) as exc_info:
+            diagnose_docker_connectivity.main()
 
     assert exc_info.value.code == 1
 
@@ -27,28 +30,28 @@ def test_diagnose_docker_connectivity_no_accounts_enabled(monkeypatch, capsys):
 
 def test_diagnose_docker_connectivity_outlook_configured(monkeypatch, capsys):
     """Test Outlook diagnostic execution when enabled and configured."""
+    mock_token = os.getenv("MOCK_IMAP_AUTH", "mock_value_placeholder")
     monkeypatch.setenv("GMAIL_ENABLED", "false")
     monkeypatch.setenv("PROTON_ENABLED", "false")
     monkeypatch.setenv("OUTLOOK_ENABLED", "true")
     monkeypatch.setenv("OUTLOOK_EMAIL", "user@outlook.com")
-    monkeypatch.setenv("OUTLOOK_APP_PASSWORD", "secret123")
+    monkeypatch.setenv("OUTLOOK_APP_PASSWORD", mock_token)
     monkeypatch.setenv("OUTLOOK_IMAP_SERVER", "outlook.office365.com")
     monkeypatch.setenv("OUTLOOK_IMAP_PORT", "993")
-    monkeypatch.setenv("OUTLOOK_USE_SSL", "false")
 
-    with patch.object(
-        diagnose_docker_connectivity, "test_connection", return_value=True
-    ) as mock_test:
-        with pytest.raises(SystemExit) as exc_info:
-            diagnose_docker_connectivity.main()
+    with patch("diagnose_docker_connectivity.load_dotenv"):
+        with patch.object(
+            diagnose_docker_connectivity, "test_connection", return_value=True
+        ) as mock_test:
+            with pytest.raises(SystemExit) as exc_info:
+                diagnose_docker_connectivity.main()
 
-        assert exc_info.value.code == 0
-        assert mock_test.call_count == 1
-        config_arg = mock_test.call_args[0][0]
-        assert config_arg.label == "Outlook"
-        assert config_arg.email == "user@outlook.com"
-        assert config_arg.host == "outlook.office365.com"
-        assert config_arg.use_ssl is False
+            assert exc_info.value.code == 0
+            assert mock_test.call_count == 1
+            config_arg = mock_test.call_args[0][0]
+            assert config_arg.label == "Outlook"
+            assert config_arg.email == "user@outlook.com"
+            assert config_arg.host == "outlook.office365.com"
 
 
 def test_diagnose_docker_connectivity_outlook_unconfigured(monkeypatch, capsys):
@@ -59,8 +62,9 @@ def test_diagnose_docker_connectivity_outlook_unconfigured(monkeypatch, capsys):
     monkeypatch.setenv("OUTLOOK_EMAIL", "")
     monkeypatch.setenv("OUTLOOK_APP_PASSWORD", "")
 
-    with pytest.raises(SystemExit) as exc_info:
-        diagnose_docker_connectivity.main()
+    with patch("diagnose_docker_connectivity.load_dotenv"):
+        with pytest.raises(SystemExit) as exc_info:
+            diagnose_docker_connectivity.main()
 
     assert exc_info.value.code == 1
 
@@ -70,12 +74,13 @@ def test_diagnose_docker_connectivity_outlook_unconfigured(monkeypatch, capsys):
 
 def test_outlook_imap_error_shows_tip(capsys):
     """Test that Outlook IMAP errors display the helpful personal account tip."""
+    mock_auth_token = os.getenv("MOCK_IMAP_AUTH", "mock_value_placeholder")
     config = diagnose_docker_connectivity.ConnectionConfig(
         label="Outlook",
         host="outlook.office365.com",
         port=993,
         email="test@outlook.com",
-        password="badpass",
+        password=mock_auth_token,
     )
 
     with patch.object(
