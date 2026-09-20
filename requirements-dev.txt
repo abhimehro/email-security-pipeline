@@ -6,4 +6,4 @@
 # NOTE: unittest-xml-reporting (xmlrunner) intentionally absent due to Python 3.13 incompatibility
 
 pytest==9.1.1
-pytest-cov==6.0.0
+pytest-cov==7.1.0
