@@ -106,78 +106,32 @@ def test_connection(config: ConnectionConfig):
     return False
 
 
-def _test_gmail_account(results: list) -> None:
-    """Run connection diagnostics for Gmail if enabled."""
-    if os.getenv("GMAIL_ENABLED", "").lower() != "true":
+def _test_provider_account(
+    prefix: str, label: str, default_server: str, default_port: int, results: list
+) -> None:
+    """Run connection diagnostics for a specific provider if enabled."""
+    if os.getenv(f"{prefix}_ENABLED", "").lower() != "true":
         return
 
-    gmail_email = os.getenv("GMAIL_EMAIL", "")
-    gmail_password = os.getenv("GMAIL_APP_PASSWORD", "")
+    email = os.getenv(f"{prefix}_EMAIL", "")
+    password = os.getenv(f"{prefix}_APP_PASSWORD", "")
+    server = os.getenv(f"{prefix}_IMAP_SERVER") or default_server
+    port = int(os.getenv(f"{prefix}_IMAP_PORT", str(default_port)))
 
-    if gmail_email and gmail_password:
-        results.append(
-            test_connection(
-                ConnectionConfig(
-                    "Gmail",
-                    os.getenv("GMAIL_IMAP_SERVER") or "imap.gmail.com",
-                    int(os.getenv("GMAIL_IMAP_PORT", "993")),
-                    gmail_email,
-                    gmail_password,
-                    use_ssl=True,
-                    verify_ssl=True,
-                )
-            )
-        )
-    else:
-        print(Colors.colorize("\n⚠  Gmail credentials not configured", Colors.YELLOW))
-
-
-def _test_outlook_account(results: list) -> None:
-    """Run connection diagnostics for Outlook if enabled."""
-    if os.getenv("OUTLOOK_ENABLED", "").lower() != "true":
+    if not email or not password:
+        print(Colors.colorize(f"\n⚠  {label} credentials not configured", Colors.YELLOW))
         return
 
-    outlook_email = os.getenv("OUTLOOK_EMAIL", "")
-    outlook_password = os.getenv("OUTLOOK_APP_PASSWORD", "")
-
-    if outlook_email and outlook_password:
-        results.append(
-            test_connection(
-                ConnectionConfig(
-                    "Outlook",
-                    os.getenv("OUTLOOK_IMAP_SERVER") or "outlook.office365.com",
-                    int(os.getenv("OUTLOOK_IMAP_PORT", "993")),
-                    outlook_email,
-                    outlook_password,
-                    use_ssl=True,
-                    verify_ssl=True,
-                )
-            )
-        )
-    else:
-        print(Colors.colorize("\n⚠  Outlook credentials not configured", Colors.YELLOW))
-
-
-def _test_proton_account(results: list) -> None:
-    """Run connection diagnostics for Proton Mail Bridge if enabled."""
-    if os.getenv("PROTON_ENABLED", "").lower() != "true":
-        return
-
-    proton_email = os.getenv("PROTON_EMAIL", "")
-    proton_password = os.getenv("PROTON_APP_PASSWORD", "")
-    proton_server = os.getenv("PROTON_IMAP_SERVER") or "127.0.0.1"
-    proton_port = int(os.getenv("PROTON_IMAP_PORT", "1143"))
-
-    if proton_email and proton_password:
+    if prefix == "PROTON":
         verify = os.getenv("PROTON_VERIFY_SSL", "true").lower() != "false"
         results.append(
             test_connection(
                 ConnectionConfig(
                     "Proton Mail Bridge (as configured)",
-                    proton_server,
-                    proton_port,
-                    proton_email,
-                    proton_password,
+                    server,
+                    port,
+                    email,
+                    password,
                     use_ssl=True,
                     verify_ssl=verify,
                 )
@@ -188,17 +142,23 @@ def _test_proton_account(results: list) -> None:
             test_connection(
                 ConnectionConfig(
                     "Proton Mail Bridge (STARTTLS fallback)",
-                    proton_server,
-                    proton_port,
-                    proton_email,
-                    proton_password,
+                    server,
+                    port,
+                    email,
+                    password,
                     use_ssl=False,
                     verify_ssl=False,
                 )
             )
         )
     else:
-        print(Colors.colorize("\n⚠  Proton credentials not configured", Colors.YELLOW))
+        results.append(
+            test_connection(
+                ConnectionConfig(
+                    label, server, port, email, password, use_ssl=True, verify_ssl=True
+                )
+            )
+        )
 
 
 def main():
@@ -210,9 +170,13 @@ def main():
     print(f"TLS support: {ssl.HAS_TLSv1_2}, {ssl.HAS_TLSv1_3}")
 
     results = []
-    _test_gmail_account(results)
-    _test_outlook_account(results)
-    _test_proton_account(results)
+    providers = [
+        ("GMAIL", "Gmail", "imap.gmail.com", 993),
+        ("OUTLOOK", "Outlook", "outlook.office365.com", 993),
+        ("PROTON", "Proton Mail Bridge", "127.0.0.1", 1143),
+    ]
+    for prefix, label, server, port in providers:
+        _test_provider_account(prefix, label, server, port, results)
 
     print("\n" + "=" * 60)
     if not results:
