@@ -177,3 +177,16 @@ class TestPaletteUI(TestCase):
                 # Check actual output for fallback safety (no ANSI code directly interpolated)
                 output = mock_stdout.getvalue()
                 self.assertIn("📊 System Configuration:", output)
+
+    def test_run_setup_wizard_missing_template_error_formatting(self):
+        from io import StringIO
+        from src.utils.setup_wizard import run_setup_wizard
+
+        with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
+            result = run_setup_wizard(template_file="non_existent_template.example")
+            self.assertFalse(result)
+
+            output = mock_stdout.getvalue()
+            self.assertTrue(output.startswith("✖ "))
+            self.assertIn("Error: Template file 'non_existent_template.example' not found.", output)
+            self.assertIn("Ensure the file exists before running the wizard.", output)
