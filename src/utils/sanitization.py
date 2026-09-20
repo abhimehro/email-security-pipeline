@@ -117,6 +117,13 @@ def sanitize_for_csv(text: str) -> str:
     if not text:
         return ""
 
+    # ⚡ BOLT: Fast path for clean strings.
+    # Checking if the first non-whitespace character is in the set of dangerous chars
+    # avoids calling lstrip() and creating unnecessary string allocations on clean inputs.
+    first = text[0]
+    if not first.isspace() and first not in ("=", "+", "-", "@", "%", "|"):
+        return text
+
     # Dangerous characters that can trigger formulas at the start of a cell
     # Note: We check the original string for TAB/CR at the start,
     # as lstrip() removes them.
