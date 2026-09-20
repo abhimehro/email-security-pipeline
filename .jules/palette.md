@@ -628,6 +628,10 @@ that includes the full progress bar, initial timer, and exact required
 formatting before the loop begins. This prevents horizontal layout shift and
 gives screen readers a stable state to announce.
 
+## 2025-05-20 - Empty Test Results Feedback in CLI Diagnostics
+
+**Learning:** CLI diagnostic tools that return exit code 0 on empty test results (e.g., `all([]) == True`) cause false positive confidence when no accounts are enabled. **Action:** Check for empty results list, display a clear warning (`⚠ No email accounts were tested`), and return non-zero exit status to ensure users know configuration is needed.
+
 ## 2026-08-16 - Semantic Colors for Standalone Scripts
 
 # **Learning:** Standalone scripts often lack the visual polish of the main application, causing a disjointed UX. Textual output with symbols (like ❌) are more scannable when combined with semantic colors. **Action:** Use the centralized `Colors.colorize` utility to add semantic colors (Green for success, Red for errors, Yellow for warnings) to standalone scripts, aligning their visual hierarchy with the core CLI application.
