@@ -13,7 +13,7 @@ from dataclasses import dataclass
 from dotenv import load_dotenv
 
 from src.utils.colors import Colors
-from src.utils.security_validators import validate_mail_server_host
+from src.utils.security_validators import is_safe_email, validate_mail_server_host
 
 
 @dataclass
@@ -140,21 +140,42 @@ def main():
                 Colors.colorize("\n⚠  Gmail credentials not configured", Colors.YELLOW)
             )
 
-    # Test Outlook
     if os.getenv("OUTLOOK_ENABLED", "").lower() == "true":
         outlook_email = os.getenv("OUTLOOK_EMAIL", "")
         outlook_password = os.getenv("OUTLOOK_APP_PASSWORD", "")
+        outlook_port_value = os.getenv("OUTLOOK_IMAP_PORT", "993")
 
-        if outlook_email and outlook_password:
+        try:
+            outlook_port = int(outlook_port_value)
+        except (TypeError, ValueError):
+            outlook_port = None
+
+        if not is_safe_email(outlook_email):
+            print(
+                Colors.colorize(
+                    "\n⚠  Invalid Outlook email address configured", Colors.YELLOW
+                )
+            )
+            results.append(False)
+        elif outlook_port is None or not 1 <= outlook_port <= 65535:
+            print(
+                Colors.colorize(
+                    "\n⚠  Outlook IMAP port must be an integer from 1 to 65535",
+                    Colors.YELLOW,
+                )
+            )
+            results.append(False)
+        elif outlook_password:
             results.append(
                 test_connection(
                     ConnectionConfig(
                         "Outlook",
                         os.getenv("OUTLOOK_IMAP_SERVER") or "outlook.office365.com",
-                        int(os.getenv("OUTLOOK_IMAP_PORT", "993")),
+                        outlook_port,
                         outlook_email,
                         outlook_password,
-                        use_ssl=True,
+                        use_ssl=os.getenv("OUTLOOK_USE_SSL", "true").lower()
+                        != "false",
                         verify_ssl=True,
                     )
                 )
@@ -163,6 +184,7 @@ def main():
             print(
                 Colors.colorize("\n⚠  Outlook credentials not configured", Colors.YELLOW)
             )
+            results.append(False)
 
     # Test Proton with SSL verification
     if os.getenv("PROTON_ENABLED", "").lower() == "true":

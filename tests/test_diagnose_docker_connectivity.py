@@ -3,8 +3,7 @@ Tests for diagnose_docker_connectivity.py script.
 """
 
 import imaplib
-import sys
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 
@@ -35,6 +34,7 @@ def test_diagnose_docker_connectivity_outlook_configured(monkeypatch, capsys):
     monkeypatch.setenv("OUTLOOK_APP_PASSWORD", "secret123")
     monkeypatch.setenv("OUTLOOK_IMAP_SERVER", "outlook.office365.com")
     monkeypatch.setenv("OUTLOOK_IMAP_PORT", "993")
+    monkeypatch.setenv("OUTLOOK_USE_SSL", "false")
 
     with patch.object(
         diagnose_docker_connectivity, "test_connection", return_value=True
@@ -48,6 +48,7 @@ def test_diagnose_docker_connectivity_outlook_configured(monkeypatch, capsys):
         assert config_arg.label == "Outlook"
         assert config_arg.email == "user@outlook.com"
         assert config_arg.host == "outlook.office365.com"
+        assert config_arg.use_ssl is False
 
 
 def test_diagnose_docker_connectivity_outlook_unconfigured(monkeypatch, capsys):
