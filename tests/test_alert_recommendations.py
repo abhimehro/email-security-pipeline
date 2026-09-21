@@ -124,6 +124,7 @@ class TestGenerateRecommendations(unittest.TestCase):
         )
 
     def test_potential_deepfakes(self):
+        """Truthy potential_deepfakes → deepfake-media recommendation included."""
         result = AlertSystem._generate_recommendations(
             _make_spam(),
             _make_nlp(),
