@@ -640,3 +640,8 @@ rapidly updates using carriage returns, always render an initial static frame
 that includes the full progress bar, initial timer, and exact required
 formatting before the loop begins. This prevents horizontal layout shift and
 gives screen readers a stable state to announce.
+
+## 2026-03-30 - Deepfake Alert Recommendation Visual Alignment
+
+**Learning:** High-risk threat recommendations in CLI alert cards must align their keyword regex pattern with their severity placement (e.g. including 'DEEPFAKE' in `RED_KEYWORDS_PATTERN`) so that high-risk warnings are rendered with appropriate high-contrast semantic colors (Red) rather than blending with medium-risk warnings (Yellow).
+**Action:** When adding new high-risk threat categories to CLI recommendation generators, ensure the keyword is included in `RED_KEYWORDS_PATTERN` and prefix tuple for consistent color hierarchy.

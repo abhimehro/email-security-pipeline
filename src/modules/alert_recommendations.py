@@ -12,14 +12,14 @@ from .nlp_analyzer import NLPAnalysisResult
 from .spam_analyzer import SpamAnalysisResult
 
 # Common prefixes for recommendations to strip during display to prevent duplication
-RECOMMENDATION_PREFIXES = ["⚠ ", "🎣 ", "🔗 ", "⏰ ", "📎 ", "👤 "]
+RECOMMENDATION_PREFIXES = ["⚠ ", "🎣 ", "🔗 ", "⏰ ", "📎 ", "👤 ", "🎭 "]
 
 # Pre-allocated tuple for fast C-level execution of startswith()
 RECOMMENDATION_PREFIXES_TUPLE = tuple(RECOMMENDATION_PREFIXES)
 
 # Compiled regex patterns for fast substring keyword checks in recommendations
 # Use re.compile directly since we are passing a single regex string, not a list
-RED_KEYWORDS_PATTERN = re.compile(r"HIGH RISK|DANGEROUS|PHISHING")
+RED_KEYWORDS_PATTERN = re.compile(r"HIGH RISK|DANGEROUS|PHISHING|DEEPFAKE")
 YELLOW_KEYWORDS_PATTERN = re.compile(r"SUSPICIOUS|VERIFY|URGENCY|IMPERSONATION")
 
 # Fallback recommendation text used by generate_recommendations when no
@@ -29,6 +29,52 @@ YELLOW_KEYWORDS_PATTERN = re.compile(r"SUSPICIOUS|VERIFY|URGENCY|IMPERSONATION")
 DEFAULT_CLEAN_RECOMMENDATION = "✔ No issues detected"
 
 
+def _get_high_risk_recommendations(
+    spam_result: SpamAnalysisResult,
+    nlp_result: NLPAnalysisResult,
+    media_result: MediaAnalysisResult,
+) -> List[str]:
+    """Extract high-risk recommendations based on layer analysis results."""
+    recs = []
+    if spam_result.risk_level == "high":
+        recs.append("⚠ HIGH RISK: Move to spam folder immediately")
+
+    if nlp_result.social_engineering_indicators:
+        recs.append(
+            "🎣 Potential phishing: Do not click links or provide credentials"
+        )
+
+    if media_result.file_type_warnings:
+        recs.append("📎 Dangerous attachment detected: Do not open attachments")
+
+    if media_result.potential_deepfakes:
+        recs.append(
+            "🎭 Potential deepfake media: Do not trust audio or video attachments"
+        )
+    return recs
+
+
+def _get_medium_risk_recommendations(
+    spam_result: SpamAnalysisResult,
+    nlp_result: NLPAnalysisResult,
+) -> List[str]:
+    """Extract medium-risk recommendations based on layer analysis results."""
+    recs = []
+    if spam_result.suspicious_urls:
+        recs.append("🔗 Suspicious URLs detected: Verify links before clicking")
+
+    if nlp_result.authority_impersonation:
+        recs.append(
+            "👤 Authority impersonation suspected: Verify sender identity"
+        )
+
+    if nlp_result.urgency_markers:
+        recs.append(
+            "⏰ Urgency tactics detected: Take time to verify before acting"
+        )
+    return recs
+
+
 def generate_recommendations(
     spam_result: SpamAnalysisResult,
     nlp_result: NLPAnalysisResult,
@@ -36,38 +82,13 @@ def generate_recommendations(
 ) -> List[str]:
     """Generate actionable recommendations based on threat analysis results."""
     recommendations = []
+    recommendations.extend(
+        _get_high_risk_recommendations(spam_result, nlp_result, media_result)
+    )
+    recommendations.extend(
+        _get_medium_risk_recommendations(spam_result, nlp_result)
+    )
 
-    # High-risk recommendations
-    if spam_result.risk_level == "high":
-        recommendations.append("⚠ HIGH RISK: Move to spam folder immediately")
-
-    if nlp_result.social_engineering_indicators:
-        recommendations.append(
-            "🎣 Potential phishing: Do not click links or provide credentials"
-        )
-
-    if media_result.file_type_warnings:
-        recommendations.append(
-            "📎 Dangerous attachment detected: Do not open attachments"
-        )
-
-    # Medium-risk recommendations
-    if spam_result.suspicious_urls:
-        recommendations.append(
-            "🔗 Suspicious URLs detected: Verify links before clicking"
-        )
-
-    if nlp_result.authority_impersonation:
-        recommendations.append(
-            "👤 Authority impersonation suspected: Verify sender identity"
-        )
-
-    if nlp_result.urgency_markers:
-        recommendations.append(
-            "⏰ Urgency tactics detected: Take time to verify before acting"
-        )
-
-    # General recommendations
     if not recommendations:
         recommendations.append(DEFAULT_CLEAN_RECOMMENDATION)
 
