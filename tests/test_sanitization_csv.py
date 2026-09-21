@@ -4,7 +4,10 @@ Tests for CSV Sanitization.
 
 import unittest
 
-from src.utils.sanitization import sanitize_for_csv
+from src.utils.sanitization import (
+    _DANGEROUS_CSV_FIRST_CHARS,
+    sanitize_for_csv,
+)
 
 
 class TestCSVSanitization(unittest.TestCase):
@@ -31,6 +34,15 @@ class TestCSVSanitization(unittest.TestCase):
         self.assertEqual(sanitize_for_csv("|cmd"), "'|cmd")
         # Carriage return at start
         self.assertEqual(sanitize_for_csv("\r=cmd"), "'\r=cmd")
+
+    def test_all_configured_dangerous_prefixes(self):
+        """Every configured prefix is protected directly and after whitespace."""
+        for prefix in _DANGEROUS_CSV_FIRST_CHARS:
+            value = f"{prefix}cmd"
+            self.assertEqual(sanitize_for_csv(value), "'" + value)
+            if not prefix.isspace():
+                value = f"  {prefix}cmd"
+                self.assertEqual(sanitize_for_csv(value), "'" + value)
 
     def test_safe_strings(self):
         """Test safe strings are not modified."""
