@@ -12,14 +12,14 @@ from .nlp_analyzer import NLPAnalysisResult
 from .spam_analyzer import SpamAnalysisResult
 
 # Common prefixes for recommendations to strip during display to prevent duplication
-RECOMMENDATION_PREFIXES = ["⚠ ", "🎣 ", "🔗 ", "⏰ ", "📎 ", "👤 "]
+RECOMMENDATION_PREFIXES = ["⚠ ", "🎣 ", "🔗 ", "⏰ ", "📎 ", "👤 ", "🎭 "]
 
 # Pre-allocated tuple for fast C-level execution of startswith()
 RECOMMENDATION_PREFIXES_TUPLE = tuple(RECOMMENDATION_PREFIXES)
 
 # Compiled regex patterns for fast substring keyword checks in recommendations
 # Use re.compile directly since we are passing a single regex string, not a list
-RED_KEYWORDS_PATTERN = re.compile(r"HIGH RISK|DANGEROUS|PHISHING")
+RED_KEYWORDS_PATTERN = re.compile(r"HIGH RISK|DANGEROUS|PHISHING|DEEPFAKE")
 YELLOW_KEYWORDS_PATTERN = re.compile(r"SUSPICIOUS|VERIFY|URGENCY|IMPERSONATION")
 
 # Fallback recommendation text used by generate_recommendations when no
@@ -49,6 +49,11 @@ def generate_recommendations(
     if media_result.file_type_warnings:
         recommendations.append(
             "📎 Dangerous attachment detected: Do not open attachments"
+        )
+
+    if media_result.potential_deepfakes:
+        recommendations.append(
+            "🎭 Potential deepfake media: Do not trust audio or video attachments"
         )
 
     # Medium-risk recommendations
