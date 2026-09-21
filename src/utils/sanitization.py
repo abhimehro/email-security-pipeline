@@ -53,6 +53,9 @@ class _LazyTranslateDict(dict):
 
 _TRANSLATOR = _LazyTranslateDict()
 
+# Characters that trigger formula execution or control sequence issues at start of CSV cell
+_DANGEROUS_CSV_FIRST_CHARS = {"=", "+", "-", "@", "%", "|", "\t", "\r"}
+
 
 def sanitize_for_logging(text: str, max_length: int = 255) -> str:
     """
@@ -71,7 +74,9 @@ def sanitize_for_logging(text: str, max_length: int = 255) -> str:
         return ""
 
     # 1. Normalize unicode characters
-    text = unicodedata.normalize("NFKC", text)
+    # ⚡ BOLT: Fast-path for ASCII strings which are invariant under NFKC normalization.
+    if not text.isascii():
+        text = unicodedata.normalize("NFKC", text)
 
     # 2. Replace newlines and carriage returns with escaped versions
     text = text.replace("\n", "\\n").replace("\r", "\\r")
@@ -86,10 +91,10 @@ def sanitize_for_logging(text: str, max_length: int = 255) -> str:
     # We keep standard printable characters but remove controls and formatters
     # that could be used for obfuscation (like BiDi overrides).
     # We explicitly allow Tab as it is useful for formatting and harmless.
-    # Optimization: Use str.translate with a lazy-evaluating dictionary subclass
-    # for significantly faster filtering (~15-20x) than a list comprehension inside join().
-    # This evaluates characters dynamically on first encounter.
-    text = text.translate(_TRANSLATOR)
+    # ⚡ BOLT: Fast-path using isprintable() to skip translate(_TRANSLATOR) when
+    # all remaining characters are printable, avoiding dict lookups and allocations.
+    if not text.isprintable():
+        text = text.translate(_TRANSLATOR)
 
     # 5. Truncate if necessary to prevent log flooding
     if max_length <= 0:
@@ -117,26 +122,21 @@ def sanitize_for_csv(text: str) -> str:
     if not text:
         return ""
 
-    # Dangerous characters that can trigger formulas at the start of a cell
-    # Note: We check the original string for TAB/CR at the start,
-    # as lstrip() removes them.
-    # Added '%' to prevent DDE injection in older spreadsheet software
-    dangerous_chars = ("=", "+", "-", "@", "%")
+    # ⚡ BOLT: Fast-path for clean text. If first character is non-whitespace
+    # and not dangerous, return text immediately without calling lstrip() or startswith().
+    first = text[0]
+    if not first.isspace() and first not in _DANGEROUS_CSV_FIRST_CHARS:
+        return text
 
-    # Check if the string starts with characters that trigger formulas
-    # Note: We must check after stripping whitespace because "  =1+1" can also be dangerous.
+    # Check the shared dangerous-character definition after stripping whitespace
+    # because "  =1+1" can also be dangerous.
     stripped = text.lstrip()
-
-    if stripped.startswith(dangerous_chars):
+    if stripped and stripped[0] in _DANGEROUS_CSV_FIRST_CHARS:
         return "'" + text
 
-    # Also check for pipe at the start, which can be problematic in some CSV delimiters
-    if stripped.startswith("|"):
-        return "'" + text
-
-    # Check for control characters at the very start (tab, carriage return)
-    # which might not be caught by stripped check if they ARE the whitespace
-    if text.startswith(("\t", "\r")):
+    # lstrip() removes a leading tab or carriage return, so preserve their
+    # special handling using the same dangerous-character definition.
+    if first in _DANGEROUS_CSV_FIRST_CHARS and first in ("\t", "\r"):
         return "'" + text
 
     return text

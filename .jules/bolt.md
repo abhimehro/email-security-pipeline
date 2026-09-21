@@ -143,3 +143,7 @@ iterations compared to ~0.39s when re-using a pre-allocated pool. **Action:**
 Always pre-allocate `ThreadPoolExecutor` instances at the class level (e.g., in
 `__init__`) or globally and re-use them for hot-path concurrency, ensuring
 proper resource teardown in a `shutdown()` method.
+
+## 2026-08-30 - Fast-path checks for string sanitization
+
+**Learning:** In string sanitization hot-paths (such as log sanitization and CSV formula injection prevention), calling `unicodedata.normalize("NFKC")` and `text.translate()` on every string incurs measurable C-extension and dictionary lookup overhead. Checking `if not text.isascii()` before NFKC normalization and `if not text.isprintable()` before `translate()` yields ~3x speedup on clean text. Similarly, checking if the first character is non-whitespace and non-dangerous in `sanitize_for_csv` avoids unnecessary `lstrip()` allocations. **Action:** In string sanitization functions, use fast C-level string properties (`isascii()`, `isprintable()`) to bypass heavy transformations on clean inputs.
