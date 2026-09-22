@@ -266,3 +266,27 @@ def test_print_banner(mock_stdout, mock_app_runner):
     assert "=" * 80 in output
     assert "Email Security Analysis Pipeline" in output
     assert "Multi-layer threat detection for email security" in output
+
+
+def test_prompt_run_wizard_styles_hint(mock_app_runner):
+    with patch.object(mock_app_runner, "_styled_input", return_value="n") as mock_input:
+        mock_app_runner._prompt_run_wizard()
+        mock_input.assert_called_once()
+        prompt_arg = mock_input.call_args[0][0]
+        from src.utils.colors import Colors
+
+        assert Colors.colorize("[Y/n]", Colors.GREY) in prompt_arg
+
+
+def test_prompt_create_from_template_styles_hint(mock_app_runner):
+    with patch.object(mock_app_runner, "_styled_input", return_value="n") as mock_input, patch(
+        "sys.exit"
+    ) as mock_exit:
+        mock_app_runner._prompt_create_from_template()
+        mock_input.assert_called_once()
+        prompt_arg = mock_input.call_args[0][0]
+        from src.utils.colors import Colors
+
+        assert Colors.colorize("[Y/n]", Colors.GREY) in prompt_arg
+        assert Colors.colorize(mock_app_runner.config_file, Colors.CYAN) in prompt_arg
+        mock_exit.assert_called_once_with(1)
