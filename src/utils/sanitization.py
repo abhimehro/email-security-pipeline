@@ -54,22 +54,8 @@ class _LazyTranslateDict(dict):
 _TRANSLATOR = _LazyTranslateDict()
 
 
-def sanitize_for_logging(text: str, max_length: int = 255) -> str:
-    """
-    Sanitize text for safe logging to prevent Log Injection (CRLF),
-    terminal manipulation, and obfuscation via BiDi/format characters.
-
-    Args:
-        text: The input string to sanitize.
-        max_length: Maximum allowed length for the log entry (truncates if longer).
-
-    Returns:
-        Sanitized string safe for logging.
-
-    """
-    if not text:
-        return text if text is not None else ""
-
+def _normalize_and_clean(text: str) -> str:
+    """Helper method to normalize unicode and remove control/ANSI characters."""
     # 1. Normalize unicode characters
     # Optimization: Skip C-extension normalization if string is pure ASCII.
     if not text.isascii():
@@ -93,6 +79,27 @@ def sanitize_for_logging(text: str, max_length: int = 255) -> str:
     # Optimization: Skip translation lookup if string is already printable.
     if not text.isprintable():
         text = text.translate(_TRANSLATOR)
+
+    return text
+
+
+def sanitize_for_logging(text: str, max_length: int = 255) -> str:
+    """
+    Sanitize text for safe logging to prevent Log Injection (CRLF),
+    terminal manipulation, and obfuscation via BiDi/format characters.
+
+    Args:
+        text: The input string to sanitize.
+        max_length: Maximum allowed length for the log entry (truncates if longer).
+
+    Returns:
+        Sanitized string safe for logging.
+
+    """
+    if not text:
+        return text if text is not None else ""
+
+    text = _normalize_and_clean(text)
 
     # 5. Truncate if necessary to prevent log flooding
     if max_length <= 0:
