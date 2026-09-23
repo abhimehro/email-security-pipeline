@@ -126,8 +126,8 @@ class CountdownTimer:
             # Clean up line on interrupt
             warning = Colors.colorize("⚠", Colors.YELLOW)
             clean_msg = self.message.replace(
-                Colors.colorize(" (Press Ctrl+C to stop)", Colors.GREY), ""
-            ).replace(" (Press Ctrl+C to stop)", "")
+                Colors.colorize(CTRL_C_HINT, Colors.GREY), ""
+            ).replace(CTRL_C_HINT, "")
             # Ensure we print the cancellation message correctly
             colored_msg = Colors.colorize(f"{clean_msg} (Cancelled)", Colors.YELLOW)
             sys.stdout.write(f"\r\033[K{warning} {colored_msg}\n")
