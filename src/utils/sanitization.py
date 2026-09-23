@@ -71,7 +71,9 @@ def sanitize_for_logging(text: str, max_length: int = 255) -> str:
         return ""
 
     # 1. Normalize unicode characters
-    text = unicodedata.normalize("NFKC", text)
+    # Optimization: Skip normalization if the string is ASCII-only.
+    if not text.isascii():
+        text = unicodedata.normalize("NFKC", text)
 
     # 2. Replace newlines and carriage returns with escaped versions
     text = text.replace("\n", "\\n").replace("\r", "\\r")
@@ -86,10 +88,9 @@ def sanitize_for_logging(text: str, max_length: int = 255) -> str:
     # We keep standard printable characters but remove controls and formatters
     # that could be used for obfuscation (like BiDi overrides).
     # We explicitly allow Tab as it is useful for formatting and harmless.
-    # Optimization: Use str.translate with a lazy-evaluating dictionary subclass
-    # for significantly faster filtering (~15-20x) than a list comprehension inside join().
-    # This evaluates characters dynamically on first encounter.
-    text = text.translate(_TRANSLATOR)
+    # Optimization: Skip translate lookup if string is already printable.
+    if not text.isprintable():
+        text = text.translate(_TRANSLATOR)
 
     # 5. Truncate if necessary to prevent log flooding
     if max_length <= 0:
