@@ -35,7 +35,7 @@ initialize: |
 
 maintenance: |
   "$HOME/.venvs/email-security-pipeline/bin/python" -m pip install pre-commit==4.3.0
-  "$HOME/.venvs/email-security-pipeline/bin/python" -m pre_commit install --install-hooks --overwrite
+  "$HOME/.venvs/email-security-pipeline/bin/python" -m pre_commit install --install-hooks --overwrite || true
 
 knowledge:
   - name: lint
