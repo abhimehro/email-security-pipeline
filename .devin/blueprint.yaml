@@ -31,14 +31,13 @@ knowledge:
 runs-on: macos
 initialize: |
   mkdir -p "$HOME/.venvs"
-  /opt/homebrew/bin/python3.12 -m venv "$HOME/.venvs/email-security-pipeline"
+  "$(command -v python3.12 || printf '%s/bin/python3.12' "$(brew --prefix)")" -m venv "$HOME/.venvs/email-security-pipeline"
 
 maintenance: |
-  "$HOME/.venvs/email-security-pipeline/bin/python" -m pip install pre-commit==4.3.0
+  "$HOME/.venvs/email-security-pipeline/bin/python" -m pip install pre-commit==4.6.2
   "$HOME/.venvs/email-security-pipeline/bin/python" -m pre_commit install --install-hooks --overwrite || true
 
 knowledge:
   - name: lint
     contents: |
       "$HOME/.venvs/email-security-pipeline/bin/python" -m pre_commit run --all-files
-      The repository pin for pre-commit 4.6.2 is unavailable; use verified 4.3.0 on macOS.
