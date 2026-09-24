@@ -54,6 +54,30 @@ class _LazyTranslateDict(dict):
 _TRANSLATOR = _LazyTranslateDict()
 
 
+def _clean_text_formatting(text: str) -> str:
+    """
+    Helper function to normalize unicode, escape CRLF, and strip ANSI escape sequences.
+    Extracted to maintain low cyclomatic complexity for CodeScene quality gates.
+    """
+    # 1. Normalize unicode characters
+    # ⚡ BOLT: Fast path - skip unicodedata normalization for ASCII strings
+    if not text.isascii():
+        text = unicodedata.normalize("NFKC", text)
+
+    # 2. Replace newlines and carriage returns with escaped versions
+    # ⚡ BOLT: Fast path - check if replace is necessary to avoid string allocation
+    if "\n" in text or "\r" in text:
+        text = text.replace("\n", "\\n").replace("\r", "\\r")
+
+    # 3. Remove ANSI escape sequences (for terminal colors/cursor movement)
+    # Optimization: Only run the regex substitution if an ANSI escape character is present.
+    # This fast-path provides significant speedups for clean strings.
+    if "\x1b" in text:
+        text = ANSI_ESCAPE_PATTERN.sub("", text)
+
+    return text
+
+
 def sanitize_for_logging(text: str, max_length: int = 255) -> str:
     """
     Sanitize text for safe logging to prevent Log Injection (CRLF),
@@ -70,21 +94,7 @@ def sanitize_for_logging(text: str, max_length: int = 255) -> str:
     if not text:
         return ""
 
-    # 1. Normalize unicode characters
-    # ⚡ BOLT: Fast path - skip unicodedata normalization for ASCII strings
-    if not text.isascii():
-        text = unicodedata.normalize("NFKC", text)
-
-    # 2. Replace newlines and carriage returns with escaped versions
-    # ⚡ BOLT: Fast path - check if replace is necessary to avoid string allocation
-    if "\n" in text or "\r" in text:
-        text = text.replace("\n", "\\n").replace("\r", "\\r")
-
-    # 3. Remove ANSI escape sequences (for terminal colors/cursor movement)
-    # Optimization: Only run the regex substitution if an ANSI escape character is present.
-    # This fast-path provides significant speedups for clean strings.
-    if "\x1b" in text:
-        text = ANSI_ESCAPE_PATTERN.sub("", text)
+    text = _clean_text_formatting(text)
 
     # 4. Remove control characters and dangerous format characters
     # We keep standard printable characters but remove controls and formatters
