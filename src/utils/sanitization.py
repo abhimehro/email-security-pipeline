@@ -58,10 +58,14 @@ def sanitize_for_logging(text: str, max_length: int = 255) -> str:
     """
     Sanitize text for safe logging to prevent Log Injection (CRLF),
     terminal manipulation, and obfuscation via BiDi/format characters.
+    Non-ASCII text is normalized with NFKC before line breaks are escaped
+    and disallowed control characters are removed.
 
     Args:
-        text: The input string to sanitize.
-        max_length: Maximum allowed length for the log entry (truncates if longer).
+        text: The input string to sanitize. Empty strings and None return "".
+        max_length: Maximum number of sanitized characters to retain. Longer
+            results gain a "..." suffix; nonpositive values return "..." for
+            nonempty input.
 
     Returns:
         Sanitized string safe for logging.
