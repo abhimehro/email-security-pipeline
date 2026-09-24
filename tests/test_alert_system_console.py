@@ -232,6 +232,31 @@ class TestConsoleAlert(unittest.TestCase):
         self.assertIn("SPF check failed", output)
         self.assertNotIn("No suspicious patterns", output)
 
+    def test_render_alert_dynamic_terminal_width(self):
+        """Test render_alert respects dynamic terminal width limits (clamped 60 to 100)."""
+        from src.modules.alert_console import render_alert
+
+        report = _make_clean_report(
+            overall_threat_score=75.0,
+            risk_level="high",
+        )
+
+        # Test small width (clamped to 60) -> border line length = 58 chars + 2 corners = 60
+        captured = StringIO()
+        with patch("src.modules.alert_console.get_terminal_width", return_value=40):
+            with patch("sys.stdout", captured):
+                render_alert(report, {})
+        output = captured.getvalue()
+        self.assertIn("┌" + "─" * 58 + "┐", output)
+
+        # Test large width (clamped to 100) -> border line length = 98 chars + 2 corners = 100
+        captured = StringIO()
+        with patch("src.modules.alert_console.get_terminal_width", return_value=120):
+            with patch("sys.stdout", captured):
+                render_alert(report, {})
+        output = captured.getvalue()
+        self.assertIn("┌" + "─" * 98 + "┐", output)
+
 
 if __name__ == "__main__":
     unittest.main()
