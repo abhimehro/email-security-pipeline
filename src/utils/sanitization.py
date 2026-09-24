@@ -74,29 +74,19 @@ def sanitize_for_logging(text: str, max_length: int = 255) -> str:
     if not text:
         return ""
 
-    # 1. Normalize unicode characters
-    # Optimization: Skip normalization if the string is ASCII-only.
+    # ASCII text is already normalized.
     if not text.isascii():
         text = unicodedata.normalize("NFKC", text)
 
-    # 2. Replace newlines and carriage returns with escaped versions
-    text = text.replace("\n", "\\n").replace("\r", "\\r")
-
-    # 3. Remove ANSI escape sequences (for terminal colors/cursor movement)
-    # Optimization: Only run the regex substitution if an ANSI escape character is present.
-    # This fast-path provides significant speedups for clean strings.
-    if "\x1b" in text:
-        text = ANSI_ESCAPE_PATTERN.sub("", text)
-
-    # 4. Remove control characters and dangerous format characters
-    # We keep standard printable characters but remove controls and formatters
-    # that could be used for obfuscation (like BiDi overrides).
-    # We explicitly allow Tab as it is useful for formatting and harmless.
-    # Optimization: Skip translate lookup if string is already printable.
+    # Printable text has no line breaks, ANSI escapes, or controls to remove.
     if not text.isprintable():
-        text = text.translate(_TRANSLATOR)
+        text = text.replace("\n", "\\n").replace("\r", "\\r")
+        if "\x1b" in text:
+            text = ANSI_ESCAPE_PATTERN.sub("", text)
+        if not text.isprintable():
+            text = text.translate(_TRANSLATOR)
 
-    # 5. Truncate if necessary to prevent log flooding
+    # Truncate if necessary to prevent log flooding.
     if max_length <= 0:
         return "..."
     if len(text) > max_length:
