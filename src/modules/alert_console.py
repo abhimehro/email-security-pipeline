@@ -403,6 +403,12 @@ def print_recommendations(recommendations: List[str], width: int, risk_color: st
     print_alert_row(Colors.colorize("RECOMMENDATIONS", Colors.BOLD), risk_color)
     print_alert_row("", risk_color)
 
+    if not recommendations:
+        print_alert_row(
+            f"{Colors.colorize('✔', Colors.GREEN)} No specific actions required",
+            risk_color,
+        )
+
     for rec in recommendations:
         # Compute uppercase before stripping prefixes so keyword matching matches
         # the original implementation.

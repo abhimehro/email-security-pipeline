@@ -640,3 +640,7 @@ rapidly updates using carriage returns, always render an initial static frame
 that includes the full progress bar, initial timer, and exact required
 formatting before the loop begins. This prevents horizontal layout shift and
 gives screen readers a stable state to announce.
+
+## 2026-09-25 - Empty State Feedback in Alert Recommendations
+**Learning:** Blank sections in console alert cards create user ambiguity about whether data was omitted or clean. Displaying an explicit positive state ('✔ No specific actions required') in green completes the visual hierarchy and aligns with other card sections.
+**Action:** Always render explicit positive state feedback for empty recommendation lists in alert cards.
