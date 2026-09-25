@@ -54,22 +54,8 @@ class _LazyTranslateDict(dict):
 _TRANSLATOR = _LazyTranslateDict()
 
 
-def sanitize_for_logging(text: str, max_length: int = 255) -> str:
-    """
-    Sanitize text for safe logging to prevent Log Injection (CRLF),
-    terminal manipulation, and obfuscation via BiDi/format characters.
-
-    Args:
-        text: The input string to sanitize.
-        max_length: Maximum allowed length for the log entry (truncates if longer).
-
-    Returns:
-        Sanitized string safe for logging.
-
-    """
-    if not text:
-        return ""
-
+def _clean_log_text(text: str) -> str:
+    """Helper method to normalize and clean log text to keep cyclomatic complexity low."""
     # 1. Normalize unicode characters
     # Fast path: Skip C-extension unicodedata.normalize call for ASCII strings (~2x speedup on clean text).
     if not text.isascii():
@@ -87,14 +73,30 @@ def sanitize_for_logging(text: str, max_length: int = 255) -> str:
         text = ANSI_ESCAPE_PATTERN.sub("", text)
 
     # 4. Remove control characters and dangerous format characters
-    # We keep standard printable characters but remove controls and formatters
-    # that could be used for obfuscation (like BiDi overrides).
-    # We explicitly allow Tab as it is useful for formatting and harmless.
-    # Optimization: Use str.translate with a lazy-evaluating dictionary subclass
-    # for significantly faster filtering (~15-20x) than a list comprehension inside join().
     # Fast path: Check text.isprintable() first to skip translation overhead entirely for printable strings (~5x overall speedup).
     if not text.isprintable():
         text = text.translate(_TRANSLATOR)
+
+    return text
+
+
+def sanitize_for_logging(text: str, max_length: int = 255) -> str:
+    """
+    Sanitize text for safe logging to prevent Log Injection (CRLF),
+    terminal manipulation, and obfuscation via BiDi/format characters.
+
+    Args:
+        text: The input string to sanitize.
+        max_length: Maximum allowed length for the log entry (truncates if longer).
+
+    Returns:
+        Sanitized string safe for logging.
+
+    """
+    if not text:
+        return ""
+
+    text = _clean_log_text(text)
 
     # 5. Truncate if necessary to prevent log flooding
     if max_length <= 0:
