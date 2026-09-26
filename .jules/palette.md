@@ -640,3 +640,7 @@ rapidly updates using carriage returns, always render an initial static frame
 that includes the full progress bar, initial timer, and exact required
 formatting before the loop begins. This prevents horizontal layout shift and
 gives screen readers a stable state to announce.
+
+## 2026-03-06 - Centralized Colorization in Standalone Connectivity Scripts
+**Learning:** Using direct ANSI string concatenations like `f"{Colors.BOLD}...{Colors.RESET}"` in standalone scripts bypasses environment color detection (such as `sys.stdout.isatty()` or `NO_COLOR`), leading to raw escape codes in logs and non-TTY outputs.
+**Action:** Always use `Colors.colorize(text, color)` instead of manual reset strings across all standalone CLI tools and diagnostic scripts.
