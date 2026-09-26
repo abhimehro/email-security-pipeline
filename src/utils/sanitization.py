@@ -70,8 +70,18 @@ def sanitize_for_logging(text: str, max_length: int = 255) -> str:
     if not text:
         return ""
 
-    # 1. Normalize unicode characters
-    text = unicodedata.normalize("NFKC", text)
+    # Fast-path optimization: Clean ASCII printable strings (the vast majority of log messages)
+    # bypass NFKC normalization, CRLF/ANSI regex checks, and translation dictionary lookups.
+    if text.isascii() and text.isprintable():
+        if len(text) <= max_length:
+            return text
+        if max_length <= 0:
+            return "..."
+        return text[:max_length] + "..."
+
+    # 1. Normalize unicode characters (only necessary for non-ASCII text)
+    if not text.isascii():
+        text = unicodedata.normalize("NFKC", text)
 
     # 2. Replace newlines and carriage returns with escaped versions
     text = text.replace("\n", "\\n").replace("\r", "\\r")
@@ -116,6 +126,14 @@ def sanitize_for_csv(text: str) -> str:
     """
     if not text:
         return ""
+
+    # Optimization: For clean strings not starting with whitespace,
+    # inspect the first character directly to avoid lstrip() string allocation.
+    first_char = text[0]
+    if not first_char.isspace():
+        if first_char in ("=", "+", "-", "@", "%", "|"):
+            return "'" + text
+        return text
 
     # Dangerous characters that can trigger formulas at the start of a cell
     # Note: We check the original string for TAB/CR at the start,

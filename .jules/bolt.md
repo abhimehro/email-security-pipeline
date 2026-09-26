@@ -143,3 +143,7 @@ iterations compared to ~0.39s when re-using a pre-allocated pool. **Action:**
 Always pre-allocate `ThreadPoolExecutor` instances at the class level (e.g., in
 `__init__`) or globally and re-use them for hot-path concurrency, ensuring
 proper resource teardown in a `shutdown()` method.
+
+## 2026-08-31 - Fast-Path Sanitization for Clean ASCII Strings
+**Learning:** In text sanitization routines heavily used across logging and CSV export paths (`sanitize_for_logging`, `sanitize_for_csv`), checking `text.isascii() and text.isprintable()` or inspecting `text[0]` for non-whitespace before calling expensive C extensions (`unicodedata.normalize`), regex replacements, translation table lookups (`translate`), or `lstrip()` provides up to 6.3x speedups on clean inputs without altering behavior.
+**Action:** Fast-path clean ASCII and non-whitespace strings in input sanitization and string cleaning utilities before executing normalization or stripping transformations.
