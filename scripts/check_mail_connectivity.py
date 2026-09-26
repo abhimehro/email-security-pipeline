@@ -64,7 +64,7 @@ class ConnectionConfig:
 
 
 def print_header(text):
-    print(f"\n{Colors.BOLD}{Colors.colorize(text, Colors.BLUE)}{Colors.RESET}")
+    print(f"\n{Colors.colorize(text, Colors.BOLD + Colors.BLUE)}")
 
 
 def print_pending(protocol, host, port, use_ssl):
@@ -94,10 +94,13 @@ def print_summary(results):
     if not results:
         return
 
-    print(f"\n{Colors.BOLD}Connectivity Summary{Colors.RESET}")
+    print(f"\n{Colors.colorize('Connectivity Summary', Colors.BOLD)}")
     print("=" * 65)
     print(
-        f"{Colors.BOLD}{'Provider':<15} {'Protocol':<10} {'Host:Port':<25} {'Status':<10}{Colors.RESET}"
+        Colors.colorize(
+            f"{'Provider':<15} {'Protocol':<10} {'Host:Port':<25} {'Status':<10}",
+            Colors.BOLD,
+        )
     )
     print("-" * 65)
 
@@ -301,7 +304,7 @@ def _check_proton() -> List[dict]:
 
 
 def main():
-    print(f"\n{Colors.BOLD}🔍 Checking Email Connectivity...{Colors.RESET}")
+    print(f"\n{Colors.colorize('🔍 Checking Email Connectivity...', Colors.BOLD)}")
 
     results = []
     results.extend(_check_gmail())
@@ -316,10 +319,10 @@ def main():
             f"\n{Colors.colorize('⚠️  No email providers enabled in .env', Colors.YELLOW)}"
         )
         print(
-            f"   Please set {Colors.BOLD}GMAIL_ENABLED=true{Colors.RESET}, {Colors.BOLD}OUTLOOK_ENABLED=true{Colors.RESET}, or {Colors.BOLD}PROTON_ENABLED=true{Colors.RESET}"
+            f"   Please set {Colors.colorize('GMAIL_ENABLED=true', Colors.BOLD)}, {Colors.colorize('OUTLOOK_ENABLED=true', Colors.BOLD)}, or {Colors.colorize('PROTON_ENABLED=true', Colors.BOLD)}"
         )
     else:
-        print(f"\n{Colors.BOLD}✨ Done.{Colors.RESET}\n")
+        print(f"\n{Colors.colorize('✨ Done.', Colors.BOLD)}\n")
 
 
 if __name__ == "__main__":
