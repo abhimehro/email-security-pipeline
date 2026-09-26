@@ -54,6 +54,28 @@ class _LazyTranslateDict(dict):
 _TRANSLATOR = _LazyTranslateDict()
 
 
+def _truncate_text(text: str, max_length: int) -> str:
+    """Truncate text to max_length to prevent log flooding."""
+    if max_length <= 0:
+        return "..."
+    if len(text) > max_length:
+        return text[:max_length] + "..."
+    return text
+
+
+def _sanitize_complex_log_text(text: str) -> str:
+    """Apply normalization, CRLF escaping, ANSI removal, and character translation."""
+    if not text.isascii():
+        text = unicodedata.normalize("NFKC", text)
+
+    text = text.replace("\n", "\\n").replace("\r", "\\r")
+
+    if "\x1b" in text:
+        text = ANSI_ESCAPE_PATTERN.sub("", text)
+
+    return text.translate(_TRANSLATOR)
+
+
 def sanitize_for_logging(text: str, max_length: int = 255) -> str:
     """
     Sanitize text for safe logging to prevent Log Injection (CRLF),
@@ -70,34 +92,13 @@ def sanitize_for_logging(text: str, max_length: int = 255) -> str:
     if not text:
         return ""
 
-    # 1. Normalize unicode characters
-    text = unicodedata.normalize("NFKC", text)
+    # Fast-path optimization: Clean ASCII printable strings (the vast majority of log messages)
+    # bypass NFKC normalization, CRLF/ANSI regex checks, and translation dictionary lookups.
+    if text.isascii() and text.isprintable():
+        return _truncate_text(text, max_length)
 
-    # 2. Replace newlines and carriage returns with escaped versions
-    text = text.replace("\n", "\\n").replace("\r", "\\r")
-
-    # 3. Remove ANSI escape sequences (for terminal colors/cursor movement)
-    # Optimization: Only run the regex substitution if an ANSI escape character is present.
-    # This fast-path provides significant speedups for clean strings.
-    if "\x1b" in text:
-        text = ANSI_ESCAPE_PATTERN.sub("", text)
-
-    # 4. Remove control characters and dangerous format characters
-    # We keep standard printable characters but remove controls and formatters
-    # that could be used for obfuscation (like BiDi overrides).
-    # We explicitly allow Tab as it is useful for formatting and harmless.
-    # Optimization: Use str.translate with a lazy-evaluating dictionary subclass
-    # for significantly faster filtering (~15-20x) than a list comprehension inside join().
-    # This evaluates characters dynamically on first encounter.
-    text = text.translate(_TRANSLATOR)
-
-    # 5. Truncate if necessary to prevent log flooding
-    if max_length <= 0:
-        return "..."
-    if len(text) > max_length:
-        text = text[:max_length] + "..."
-
-    return text
+    text = _sanitize_complex_log_text(text)
+    return _truncate_text(text, max_length)
 
 
 def sanitize_for_csv(text: str) -> str:
@@ -116,6 +117,14 @@ def sanitize_for_csv(text: str) -> str:
     """
     if not text:
         return ""
+
+    # Optimization: For clean strings not starting with whitespace,
+    # inspect the first character directly to avoid lstrip() string allocation.
+    first_char = text[0]
+    if not first_char.isspace():
+        if first_char in ("=", "+", "-", "@", "%", "|"):
+            return "'" + text
+        return text
 
     # Dangerous characters that can trigger formulas at the start of a cell
     # Note: We check the original string for TAB/CR at the start,
