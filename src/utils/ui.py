@@ -20,29 +20,37 @@ def _truncate_for_terminal(text: str) -> str:
     # Leave 1 col padding to avoid accidental wrap on some terminals
     columns = shutil.get_terminal_size((80, 20)).columns - 1
 
-    visual_length = 0
-    result = []
+    # ⚡ BOLT: Fast path for non-ANSI text to bypass regex parsing and list reconstruction
+    if "\x1b" not in text:
+        if len(text) <= columns:
+            return text
+        return text[:columns] + "\033[0m"
 
     parts = ANSI_ESCAPE.split(text)
+
+    # ⚡ BOLT: Fast path if non-ANSI visual length fits within terminal columns
+    visual_length = sum(len(part) for part in parts)
+    if visual_length <= columns:
+        return text
+
     escapes = ANSI_ESCAPE.findall(text)
+    current_length = 0
+    result = []
 
     for i, part in enumerate(parts):
-        if visual_length + len(part) > columns:
-            allowed = columns - visual_length
+        if current_length + len(part) > columns:
+            allowed = columns - current_length
             if allowed > 0:
                 result.append(part[:allowed])
             break
         else:
             result.append(part)
-            visual_length += len(part)
+            current_length += len(part)
 
         if i < len(escapes):
             result.append(escapes[i])
 
-    if visual_length < len(ANSI_ESCAPE.sub("", text)):
-        # Ensure we don't leave hanging styles if we truncated
-        return "".join(result) + "\033[0m"
-    return "".join(result)
+    return "".join(result) + "\033[0m"
 
 
 CURSOR_HIDE = "\033[?25l"
