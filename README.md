@@ -7,7 +7,7 @@
 [![CodeScene Missed Goals](https://codescene.io/projects/80823/status-badges/missed-goals)](https://codescene.io/projects/80823)
 ![CodeRabbit Pull Request Reviews](https://img.shields.io/coderabbit/prs/github/abhimehro/email-security-pipeline?utm_source=oss&utm_medium=github&utm_campaign=abhimehro%2Femail-security-pipeline&labelColor=171717&color=FF570A&link=https%3A%2F%2Fcoderabbit.ai&label=CodeRabbit+Reviews)
 
-[![SonarQube Cloud](https://sonarcloud.io/images/project_badges/sonarcloud-highlight.svg)](https://sonarcloud.io/summary/new_code?id=abhimehro_email-security-pipeline)
+[![Quality gate](https://sonarcloud.io/api/project_badges/quality_gate?project=abhimehro_email-security-pipeline)](https://sonarcloud.io/summary/new_code?id=abhimehro_email-security-pipeline)
 
 A self-hosted, containerized email security analysis system that monitors IMAP
 folders for suspicious messages using multi-layered threat detection.
