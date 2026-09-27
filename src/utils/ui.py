@@ -15,6 +15,27 @@ from .colors import Colors
 ANSI_ESCAPE = re.compile(r"\x1b\[[0-9;]*[a-zA-Z]")
 
 
+def _truncate_ansi_parts(parts: list[str], escapes: list[str], columns: int) -> str:
+    """Helper to truncate ANSI-formatted text parts to fit within terminal column width."""
+    current_length = 0
+    result = []
+
+    for i, part in enumerate(parts):
+        if current_length + len(part) > columns:
+            allowed = columns - current_length
+            if allowed > 0:
+                result.append(part[:allowed])
+            break
+
+        result.append(part)
+        current_length += len(part)
+
+        if i < len(escapes):
+            result.append(escapes[i])
+
+    return "".join(result) + "\033[0m"
+
+
 def _truncate_for_terminal(text: str) -> str:
     """Truncates text to terminal width, ignoring ANSI escape sequences for length calculation."""
     # Leave 1 col padding to avoid accidental wrap on some terminals
@@ -29,28 +50,11 @@ def _truncate_for_terminal(text: str) -> str:
     parts = ANSI_ESCAPE.split(text)
 
     # ⚡ BOLT: Fast path if non-ANSI visual length fits within terminal columns
-    visual_length = sum(len(part) for part in parts)
-    if visual_length <= columns:
+    if sum(len(part) for part in parts) <= columns:
         return text
 
     escapes = ANSI_ESCAPE.findall(text)
-    current_length = 0
-    result = []
-
-    for i, part in enumerate(parts):
-        if current_length + len(part) > columns:
-            allowed = columns - current_length
-            if allowed > 0:
-                result.append(part[:allowed])
-            break
-        else:
-            result.append(part)
-            current_length += len(part)
-
-        if i < len(escapes):
-            result.append(escapes[i])
-
-    return "".join(result) + "\033[0m"
+    return _truncate_ansi_parts(parts, escapes, columns)
 
 
 CURSOR_HIDE = "\033[?25l"
