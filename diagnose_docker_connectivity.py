@@ -181,6 +181,10 @@ def main():
     print("Diagnostics complete")
     print("=" * 60)
 
+    if not results:
+        print(Colors.colorize("⚠  No email providers enabled in .env", Colors.YELLOW))
+        sys.exit(1)
+
     sys.exit(0 if all(results) else 1)
 
 
