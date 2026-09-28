@@ -547,6 +547,7 @@
 - chore\(deps\): bump github/gh-aw/actions/setup from 0.89.14 to 0.89.19 [\#1652](https://github.com/abhimehro/email-security-pipeline/pull/1652) ([dependabot[bot]](https://github.com/apps/dependabot))
 - chore\(deps\): bump github/gh-aw/actions/setup-cli from 0.89.14 to 0.89.19 [\#1651](https://github.com/abhimehro/email-security-pipeline/pull/1651) ([dependabot[bot]](https://github.com/apps/dependabot))
 - fix\(tests\): keep script subprocesses on active Python [\#1646](https://github.com/abhimehro/email-security-pipeline/pull/1646) ([coderabbitai[bot]](https://github.com/apps/coderabbitai))
+- 🎨 Palette: Refactor CountdownTimer cancellation message hint stripping [\#1639](https://github.com/abhimehro/email-security-pipeline/pull/1639) ([abhimehro](https://github.com/abhimehro))
 - ⚡ Bolt: optimize sanitize\_for\_logging fast paths [\#1638](https://github.com/abhimehro/email-security-pipeline/pull/1638) ([abhimehro](https://github.com/abhimehro))
 - ⚡ Bolt: Add fast path to CSV formula injection sanitization [\#1623](https://github.com/abhimehro/email-security-pipeline/pull/1623) ([abhimehro](https://github.com/abhimehro))
 - chore\(deps\): sort requirements.txt alphabetically [\#1617](https://github.com/abhimehro/email-security-pipeline/pull/1617) ([abhimehro](https://github.com/abhimehro))
