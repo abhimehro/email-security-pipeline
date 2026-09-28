@@ -12,7 +12,7 @@ from io import StringIO
 from unittest.mock import MagicMock, patch
 
 from src.utils.colors import Colors
-from src.utils.ui import CountdownTimer
+from src.utils.ui import CTRL_C_HINT, CountdownTimer
 
 
 class TestCountdownTimerNonTTY(unittest.TestCase):
