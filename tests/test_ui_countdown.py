@@ -12,7 +12,7 @@ from io import StringIO
 from unittest.mock import MagicMock, patch
 
 from src.utils.colors import Colors
-from src.utils.ui import CountdownTimer
+from src.utils.ui import CTRL_C_HINT, CountdownTimer
 
 
 class TestCountdownTimerNonTTY(unittest.TestCase):
@@ -160,6 +160,19 @@ class TestCountdownTimerTTY(unittest.TestCase):
         output = mock_stdout.getvalue()
         self.assertIn("(Cancelled)", output)
         self.assertNotIn("(Press Ctrl+C to stop)", output.split("\r")[-1])
+
+    @patch("time.sleep", side_effect=KeyboardInterrupt)
+    @patch("sys.stdout", new_callable=StringIO)
+    def test_start_tty_strips_colorized_hint_on_interrupt(self, mock_stdout, mock_sleep):
+        """start() should strip colorized CTRL_C_HINT from message when interrupted."""
+        mock_stdout.isatty = MagicMock(return_value=True)
+        colorized_msg = "Waiting" + Colors.colorize(CTRL_C_HINT, Colors.GREY)
+        timer = CountdownTimer(duration=1, message=colorized_msg)
+        with self.assertRaises(KeyboardInterrupt):
+            timer.start()
+        output = mock_stdout.getvalue()
+        self.assertIn("Waiting (Cancelled)", output)
+        self.assertNotIn(CTRL_C_HINT, output.split("\r")[-1])
 
 
 if __name__ == "__main__":
