@@ -58,10 +58,14 @@ def sanitize_for_logging(text: str, max_length: int = 255) -> str:
     """
     Sanitize text for safe logging to prevent Log Injection (CRLF),
     terminal manipulation, and obfuscation via BiDi/format characters.
+    Non-ASCII text is normalized with NFKC before line breaks are escaped
+    and disallowed control characters are removed.
 
     Args:
-        text: The input string to sanitize.
-        max_length: Maximum allowed length for the log entry (truncates if longer).
+        text: The input string to sanitize. Empty strings and None return "".
+        max_length: Maximum number of sanitized characters to retain. Longer
+            results gain a "..." suffix; nonpositive values return "..." for
+            nonempty input.
 
     Returns:
         Sanitized string safe for logging.
@@ -70,28 +74,19 @@ def sanitize_for_logging(text: str, max_length: int = 255) -> str:
     if not text:
         return ""
 
-    # 1. Normalize unicode characters
-    text = unicodedata.normalize("NFKC", text)
+    # ASCII text is already normalized.
+    if not text.isascii():
+        text = unicodedata.normalize("NFKC", text)
 
-    # 2. Replace newlines and carriage returns with escaped versions
-    text = text.replace("\n", "\\n").replace("\r", "\\r")
+    # Printable text has no line breaks, ANSI escapes, or controls to remove.
+    if not text.isprintable():
+        text = text.replace("\n", "\\n").replace("\r", "\\r")
+        if "\x1b" in text:
+            text = ANSI_ESCAPE_PATTERN.sub("", text)
+        if not text.isprintable():
+            text = text.translate(_TRANSLATOR)
 
-    # 3. Remove ANSI escape sequences (for terminal colors/cursor movement)
-    # Optimization: Only run the regex substitution if an ANSI escape character is present.
-    # This fast-path provides significant speedups for clean strings.
-    if "\x1b" in text:
-        text = ANSI_ESCAPE_PATTERN.sub("", text)
-
-    # 4. Remove control characters and dangerous format characters
-    # We keep standard printable characters but remove controls and formatters
-    # that could be used for obfuscation (like BiDi overrides).
-    # We explicitly allow Tab as it is useful for formatting and harmless.
-    # Optimization: Use str.translate with a lazy-evaluating dictionary subclass
-    # for significantly faster filtering (~15-20x) than a list comprehension inside join().
-    # This evaluates characters dynamically on first encounter.
-    text = text.translate(_TRANSLATOR)
-
-    # 5. Truncate if necessary to prevent log flooding
+    # Truncate if necessary to prevent log flooding.
     if max_length <= 0:
         return "..."
     if len(text) > max_length:
