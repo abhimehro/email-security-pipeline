@@ -1,12 +1,3 @@
-## Runtime Dependencies
-
-**Docker remains canonical** (verified green build 2026-09-13). Dockerfile references `requirements.txt` (runtime-only), which now contains all pinned runtime deps: `requests`, `numpy`, `opencv-python-headless`, `python-dotenv`, `pyahocorasick`.
-
-`requirements-ci.txt` and `requirements-dev.txt` layer additional tools on top via `-r requirements.txt`.
-
-See **VENV_MIGRATION_GUIDE.md** for local development setup, Colima recovery, and version pinning strategy.
-
-
 [![CodeScene general](https://codescene.io/images/analyzed-by-codescene-badge.svg)](https://codescene.io/projects/80823)
 [![Changelog Status](https://github.com/abhimehro/email-security-pipeline/actions/workflows/changelog.yml/badge.svg)](https://github.com/abhimehro/email-security-pipeline/actions/workflows/changelog.yml)
 
@@ -15,6 +6,8 @@ See **VENV_MIGRATION_GUIDE.md** for local development setup, Colima recovery, an
 [![CodeScene System Mastery](https://codescene.io/projects/80823/status-badges/system-mastery)](https://codescene.io/projects/80823)
 [![CodeScene Missed Goals](https://codescene.io/projects/80823/status-badges/missed-goals)](https://codescene.io/projects/80823)
 ![CodeRabbit Pull Request Reviews](https://img.shields.io/coderabbit/prs/github/abhimehro/email-security-pipeline?utm_source=oss&utm_medium=github&utm_campaign=abhimehro%2Femail-security-pipeline&labelColor=171717&color=FF570A&link=https%3A%2F%2Fcoderabbit.ai&label=CodeRabbit+Reviews)
+
+[![Quality gate](https://sonarcloud.io/api/project_badges/quality_gate?project=abhimehro_email-security-pipeline)](https://sonarcloud.io/summary/new_code?id=abhimehro_email-security-pipeline)
 
 A self-hosted, containerized email security analysis system that monitors IMAP
 folders for suspicious messages using multi-layered threat detection.
@@ -697,6 +690,14 @@ The pipeline has undergone significant performance improvements:
   caching
   - Transformer models typically process first 512 tokens only
   - Truncating before caching achieves ~300x speedup on repeated large inputs
+
+### Runtime Dependencies
+
+**Docker remains canonical** (verified green build 2026-09-13). Dockerfile references `requirements.txt` (runtime-only), which now contains all pinned runtime deps: `requests`, `numpy`, `opencv-python-headless`, `python-dotenv`, `pyahocorasick`.
+
+`requirements-ci.txt` and `requirements-dev.txt` layer additional tools on top via `-r requirements.txt`.
+
+See **VENV_MIGRATION_GUIDE.md** for local development setup, Colima recovery, and version pinning strategy.
 
 ### Performance Monitoring
 

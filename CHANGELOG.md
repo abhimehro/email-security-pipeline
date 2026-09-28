@@ -47,6 +47,12 @@
 
 **Closed issues:**
 
+- Daily QA & Agentic Review — 2026-09-27 [\#1662](https://github.com/abhimehro/email-security-pipeline/issues/1662)
+- Daily QA & Agentic Review — 2026-09-26 [\#1657](https://github.com/abhimehro/email-security-pipeline/issues/1657)
+- Daily QA & Agentic Review — 2026-09-25 [\#1653](https://github.com/abhimehro/email-security-pipeline/issues/1653)
+- Daily QA & Agentic Review — 2026-09-24 [\#1645](https://github.com/abhimehro/email-security-pipeline/issues/1645)
+- Daily QA & Agentic Review — 2026-09-23 [\#1640](https://github.com/abhimehro/email-security-pipeline/issues/1640)
+- Daily QA & Agentic Review — 2026-09-22 [\#1634](https://github.com/abhimehro/email-security-pipeline/issues/1634)
 - Daily QA & Agentic Review — 2026-09-19 [\#1620](https://github.com/abhimehro/email-security-pipeline/issues/1620)
 - Daily QA & Agentic Review — 2026-09-18 [\#1615](https://github.com/abhimehro/email-security-pipeline/issues/1615)
 - Daily QA & Agentic Review — 2026-09-17 [\#1607](https://github.com/abhimehro/email-security-pipeline/issues/1607)
@@ -537,10 +543,17 @@
 
 **Merged pull requests:**
 
+- ⚡ Bolt: optimize ANSI terminal truncation fast path [\#1660](https://github.com/abhimehro/email-security-pipeline/pull/1660) ([abhimehro](https://github.com/abhimehro))
+- chore\(deps\): bump github/gh-aw/actions/setup from 0.89.14 to 0.89.19 [\#1652](https://github.com/abhimehro/email-security-pipeline/pull/1652) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps\): bump github/gh-aw/actions/setup-cli from 0.89.14 to 0.89.19 [\#1651](https://github.com/abhimehro/email-security-pipeline/pull/1651) ([dependabot[bot]](https://github.com/apps/dependabot))
+- fix\(tests\): keep script subprocesses on active Python [\#1646](https://github.com/abhimehro/email-security-pipeline/pull/1646) ([coderabbitai[bot]](https://github.com/apps/coderabbitai))
+- ⚡ Bolt: optimize sanitize\_for\_logging fast paths [\#1638](https://github.com/abhimehro/email-security-pipeline/pull/1638) ([abhimehro](https://github.com/abhimehro))
+- ⚡ Bolt: Add fast path to CSV formula injection sanitization [\#1623](https://github.com/abhimehro/email-security-pipeline/pull/1623) ([abhimehro](https://github.com/abhimehro))
 - chore\(deps\): sort requirements.txt alphabetically [\#1617](https://github.com/abhimehro/email-security-pipeline/pull/1617) ([abhimehro](https://github.com/abhimehro))
 - chore\(deps\): bump ruby/setup-ruby from 1.321.0 to 1.323.0 [\#1614](https://github.com/abhimehro/email-security-pipeline/pull/1614) ([dependabot[bot]](https://github.com/apps/dependabot))
 - chore\(deps\): bump github/gh-aw/actions/setup-cli from 0.88.7 to 0.89.14 [\#1613](https://github.com/abhimehro/email-security-pipeline/pull/1613) ([dependabot[bot]](https://github.com/apps/dependabot))
 - chore\(deps\): bump github/gh-aw/actions/setup from 0.88.7 to 0.89.14 [\#1612](https://github.com/abhimehro/email-security-pipeline/pull/1612) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps-dev\): bump pytest-cov from 6.0.0 to 7.1.0 [\#1611](https://github.com/abhimehro/email-security-pipeline/pull/1611) ([dependabot[bot]](https://github.com/apps/dependabot))
 - ci+docs\(repo-health\): fix pytest-cov sync-check false fail [\#1603](https://github.com/abhimehro/email-security-pipeline/pull/1603) ([cursor[bot]](https://github.com/apps/cursor))
 - chore\(deps\): bump codescene-oss/pr-refactoring-agent from 1.1.1 to 1.1.2 [\#1597](https://github.com/abhimehro/email-security-pipeline/pull/1597) ([dependabot[bot]](https://github.com/apps/dependabot))
 - chore\(deps\): bump github/gh-aw/actions/setup from 0.87.10 to 0.88.7 [\#1589](https://github.com/abhimehro/email-security-pipeline/pull/1589) ([dependabot[bot]](https://github.com/apps/dependabot))
