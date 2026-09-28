@@ -232,6 +232,31 @@ class TestConsoleAlert(unittest.TestCase):
         self.assertIn("SPF check failed", output)
         self.assertNotIn("No suspicious patterns", output)
 
+    def test_render_alert_responsive_card_width_clamping(self):
+        """Test that card width is clamped between 60 and 100 columns based on terminal width."""
+        report = _make_clean_report(
+            overall_threat_score=75.0,
+            risk_level="high",
+        )
+
+        # Test narrow terminal (50 cols -> clamped to 60, border length 58)
+        captured_narrow = StringIO()
+        with patch("src.modules.alert_console.get_terminal_width", return_value=50):
+            with patch("sys.stdout", captured_narrow):
+                self.alert._console_alert(report)
+        out_narrow = captured_narrow.getvalue()
+        # Top border for width 60 is ┌ + 58 ─ + ┐
+        self.assertIn("┌" + "─" * 58 + "┐", out_narrow)
+
+        # Test wide terminal (120 cols -> clamped to 100, border length 98)
+        captured_wide = StringIO()
+        with patch("src.modules.alert_console.get_terminal_width", return_value=120):
+            with patch("sys.stdout", captured_wide):
+                self.alert._console_alert(report)
+        out_wide = captured_wide.getvalue()
+        # Top border for width 100 is ┌ + 98 ─ + ┐
+        self.assertIn("┌" + "─" * 98 + "┐", out_wide)
+
 
 if __name__ == "__main__":
     unittest.main()
