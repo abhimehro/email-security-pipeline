@@ -5,6 +5,7 @@ from __future__ import annotations
 import os
 import shutil
 import subprocess  # nosec: B404
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -66,6 +67,9 @@ def _base_env(tmp: Path) -> dict[str, str]:
     env.pop("GH_TOKEN", None)
     env.pop("GH_TOKEN_ENV_FILE", None)
     env["HOME"] = str(tmp / "home")
+    # Keep nested script invocations on the interpreter running pytest even
+    # when the virtual environment was not activated in the parent shell.
+    env["PATH"] = f"{Path(sys.executable).parent}{os.pathsep}{env.get('PATH', '')}"
     return env
 
 
