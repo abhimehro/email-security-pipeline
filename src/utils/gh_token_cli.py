@@ -4,7 +4,22 @@ import argparse
 import sys
 from pathlib import Path
 
+from src.utils.colors import Colors
 from src.utils.env_file_parser import EnvParseError, parse_env_file
+
+
+class _ColoredHelpFormatter(argparse.HelpFormatter):
+    """Custom help formatter providing semantic colors in interactive terminals without breaking column alignment."""
+
+    def start_section(self, heading):
+        if heading and Colors.ENABLED:
+            heading = Colors.colorize(heading, Colors.BOLD)
+        super().start_section(heading)
+
+    def add_usage(self, usage, actions, groups, prefix=None):
+        if prefix is None and Colors.ENABLED:
+            prefix = Colors.colorize("Usage: ", Colors.BOLD)
+        super().add_usage(usage, actions, groups, prefix)
 
 
 def _shell_escape(value: str) -> str:
@@ -13,11 +28,24 @@ def _shell_escape(value: str) -> str:
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="Safely read variables from an env file without shell execution."
+        description="Safely read variables from an env file without shell execution.",
+        formatter_class=_ColoredHelpFormatter,
     )
-    parser.add_argument("env_file", type=Path)
-    parser.add_argument("--get", metavar="VAR")
-    parser.add_argument("--export", action="store_true")
+    parser.add_argument(
+        "env_file",
+        type=Path,
+        help="Path to environment configuration file.",
+    )
+    parser.add_argument(
+        "--get",
+        metavar="VAR",
+        help="Retrieve value for specific variable name.",
+    )
+    parser.add_argument(
+        "--export",
+        action="store_true",
+        help="Format output as shell export statements.",
+    )
     return parser
 
 
