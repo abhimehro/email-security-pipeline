@@ -630,13 +630,8 @@ gives screen readers a stable state to announce.
 
 ## 2026-08-16 - Semantic Colors for Standalone Scripts
 
-# **Learning:** Standalone scripts often lack the visual polish of the main application, causing a disjointed UX. Textual output with symbols (like ❌) are more scannable when combined with semantic colors. **Action:** Use the centralized `Colors.colorize` utility to add semantic colors (Green for success, Red for errors, Yellow for warnings) to standalone scripts, aligning their visual hierarchy with the core CLI application.
+**Learning:** Standalone scripts often lack the visual polish of the main application, causing a disjointed UX. Textual output with symbols (like ❌) are more scannable when combined with semantic colors. **Action:** Use the centralized `Colors.colorize` utility to add semantic colors (Green for success, Red for errors, Yellow for warnings) to standalone scripts, aligning their visual hierarchy with the core CLI application.
 
-**Learning:** Screen readers and terminal UIs suffer from layout shifting when
-dynamic elements like a countdown timer don't immediately display the full
-initial state before the rapid drawing loop starts. **Action:** When
-initializing terminal UI components like a `CountdownTimer` or a `Spinner` that
-rapidly updates using carriage returns, always render an initial static frame
-that includes the full progress bar, initial timer, and exact required
-formatting before the loop begins. This prevents horizontal layout shift and
-gives screen readers a stable state to announce.
+## 2026-08-17 - Explicit Default Option Hints in Interactive Prompts
+
+**Learning:** Interactive CLI prompts with list items (like `1. Gmail`, `2. Proton`) cause user hesitation if pressing Enter without input isn't explicitly indicated as selecting the recommended default choice. **Action:** Always include `[default: X]` in prompt brackets (e.g., `[1-4, default: 1]`) and map empty string inputs (`""`) to the default choice in interactive wizards.

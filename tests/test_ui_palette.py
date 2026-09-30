@@ -177,3 +177,10 @@ class TestPaletteUI(TestCase):
                 # Check actual output for fallback safety (no ANSI code directly interpolated)
                 output = mock_stdout.getvalue()
                 self.assertIn("📊 System Configuration:", output)
+
+    def test_select_provider_default_choice(self):
+        from src.utils.setup_wizard import _select_provider
+
+        with patch("src.utils.setup_wizard._styled_input", return_value=""):
+            choice = _select_provider()
+            self.assertEqual(choice, "1")
