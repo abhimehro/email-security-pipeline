@@ -31,8 +31,7 @@ REDACTED_URL_PATTERN = re.compile(r"%5[bB]REDACTED%5[dD]", flags=0)
 def _sanitize_unprintable(text: str) -> str:
     """Helper to remove control characters, ANSI escapes, and normalize whitespace."""
     # Replace newlines and tabs with spaces
-    if "\n" in text or "\r" in text or "\t" in text:
-        text = text.translate(_WHITESPACE_TRANS)
+    text = text.translate(_WHITESPACE_TRANS)
 
     if "\x1b" in text:
         text = ANSI_ESCAPE_PATTERN.sub("", text)
