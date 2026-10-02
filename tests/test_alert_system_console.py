@@ -232,6 +232,19 @@ class TestConsoleAlert(unittest.TestCase):
         self.assertIn("SPF check failed", output)
         self.assertNotIn("No suspicious patterns", output)
 
+    def test_empty_recommendations_renders_explicit_empty_state(self):
+        """Empty recommendations list should render 'No specific actions required'."""
+        report = _make_clean_report(
+            overall_threat_score=35.0,
+            recommendations=[],
+        )
+        captured = StringIO()
+        with patch("sys.stdout", captured):
+            self.alert._console_alert(report)
+        output = captured.getvalue()
+        self.assertIn("RECOMMENDATIONS", output)
+        self.assertIn("No specific actions required", output)
+
 
 if __name__ == "__main__":
     unittest.main()
