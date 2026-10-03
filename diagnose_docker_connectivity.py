@@ -99,17 +99,8 @@ def test_connection(config: ConnectionConfig):
     return False
 
 
-def main():
-    # Load environment
-    load_dotenv(".env")
-
-    print("Email Security Pipeline - Connection Diagnostics")
-    print(f"Python SSL version: {ssl.OPENSSL_VERSION}")
-    print(f"TLS support: {ssl.HAS_TLSv1_2}, {ssl.HAS_TLSv1_3}")
-
-    results = []
-
-    # Test Gmail
+def _test_gmail_diagnostics(results: list) -> None:
+    """Run diagnostics for Gmail provider if enabled."""
     if os.getenv("GMAIL_ENABLED", "").lower() == "true":
         gmail_email = os.getenv("GMAIL_EMAIL", "")
         gmail_password = os.getenv("GMAIL_APP_PASSWORD", "")
@@ -133,7 +124,9 @@ def main():
                 Colors.colorize("\n⚠  Gmail credentials not configured", Colors.YELLOW)
             )
 
-    # Test Proton with SSL verification
+
+def _test_proton_diagnostics(results: list) -> None:
+    """Run diagnostics for Proton Mail Bridge if enabled."""
     if os.getenv("PROTON_ENABLED", "").lower() == "true":
         proton_email = os.getenv("PROTON_EMAIL", "")
         proton_password = os.getenv("PROTON_APP_PASSWORD", "")
@@ -177,9 +170,27 @@ def main():
                 Colors.colorize("\n⚠  Proton credentials not configured", Colors.YELLOW)
             )
 
+
+def main():
+    # Load environment
+    load_dotenv(".env")
+
+    print("Email Security Pipeline - Connection Diagnostics")
+    print(f"Python SSL version: {ssl.OPENSSL_VERSION}")
+    print(f"TLS support: {ssl.HAS_TLSv1_2}, {ssl.HAS_TLSv1_3}")
+
+    results = []
+
+    _test_gmail_diagnostics(results)
+    _test_proton_diagnostics(results)
+
     print("\n" + "=" * 60)
     print("Diagnostics complete")
     print("=" * 60)
+
+    if not results:
+        print(Colors.colorize("⚠  No email providers enabled in .env", Colors.YELLOW))
+        sys.exit(1)
 
     sys.exit(0 if all(results) else 1)
 

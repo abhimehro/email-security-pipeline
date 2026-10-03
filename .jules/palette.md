@@ -640,3 +640,8 @@ rapidly updates using carriage returns, always render an initial static frame
 that includes the full progress bar, initial timer, and exact required
 formatting before the loop begins. This prevents horizontal layout shift and
 gives screen readers a stable state to announce.
+
+## 2026-03-30 - Empty state feedback in CLI diagnostics
+
+**Learning:** In CLI diagnostic scripts evaluating check results via `all(results)`, `all([])` evaluates to `True` when no accounts/checks are enabled, causing false-positive zero exit codes when no diagnostics were actually run.
+**Action:** Explicitly check `if not results:` to render a yellow warning message and exit with a non-zero exit status code when no items were tested.
