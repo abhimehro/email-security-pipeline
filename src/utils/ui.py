@@ -94,11 +94,16 @@ class CountdownTimer:
             width = len(str(self.duration))
             initial_time = f"{self.duration:{width}d}s"
 
+        # Ensure keyboard interrupt hint is displayed when running in an interactive TTY
+        display_msg = self.message
+        if CTRL_C_HINT not in display_msg:
+            display_msg += Colors.colorize(CTRL_C_HINT, Colors.GREY)
+
         # Accessibility & UX: Print an initial static frame so screen readers
         # have a chance to read the message and prevent layout shift before the loop.
         full_bar = "█" * self.PROGRESS_BAR_WIDTH
         colored_bar = Colors.colorize(full_bar, Colors.CYAN)
-        line = f"{self.message}: {colored_bar} {initial_time}"
+        line = f"{display_msg}: {colored_bar} {initial_time}"
         sys.stdout.write(f"\r{_truncate_for_terminal(line)}\033[K")
         sys.stdout.flush()
 
@@ -122,7 +127,7 @@ class CountdownTimer:
                 colored_bar = Colors.colorize(progress_bar, Colors.CYAN)
 
                 # \r moves cursor to start of line, \033[K clears the line
-                line = f"{self.message}: {colored_bar} {time_str} "
+                line = f"{display_msg}: {colored_bar} {time_str} "
                 sys.stdout.write(f"\r{_truncate_for_terminal(line)}\033[K")
                 sys.stdout.flush()
 

@@ -27,6 +27,17 @@ class TestPaletteUI(TestCase):
                 CountdownTimer.wait(1, "Testing (Press Ctrl+C to stop)")
                 mock_timer_cls.assert_called_with(1, "Testing (Press Ctrl+C to stop)")
 
+    def test_countdown_initial_frame_includes_hint(self):
+        """Test that CountdownTimer.start() includes CTRL_C_HINT in the initial static frame in TTY mode."""
+        with patch("sys.stdout") as mock_stdout:
+            mock_stdout.isatty.return_value = True
+
+            timer = CountdownTimer(duration=0, message="Waiting")
+            timer.start()
+
+            writes = self._get_writes(mock_stdout)
+            self.assertIn("(Press Ctrl+C to stop)", writes)
+
     def test_countdown_cursor_hide_show_in_tty(self):
         """Test cursor is hidden and restored when isatty is True for CountdownTimer."""
         with patch("sys.stdout") as mock_stdout:
