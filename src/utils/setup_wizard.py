@@ -199,12 +199,14 @@ def _select_provider() -> str:
                 "\n"
                 + Colors.colorize("? ", Colors.CYAN)
                 + Colors.colorize("Select provider ", Colors.BOLD)
-                + Colors.colorize("[1-4]", Colors.GREY)
+                + Colors.colorize("[1-4, default: 1]", Colors.GREY)
                 + Colors.colorize(": ", Colors.BOLD)
             )
             choice = _styled_input(prompt).lower()
             if choice in ("q", "quit", "exit"):
                 raise KeyboardInterrupt()
+            if choice == "":
+                choice = "1"
             if choice in choices_map:
                 return choices_map[choice]
             print(
