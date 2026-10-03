@@ -187,9 +187,9 @@ class AppRunner:
     def _handle_missing_config_interactive(self) -> None:
         """Handle missing configuration interactively (wizard or copy)."""
         print(
-            Colors.colorize(
-                f"⚠ Configuration file '{self.config_file}' not found.", Colors.YELLOW
-            )
+            Colors.colorize("⚠ Configuration file '", Colors.YELLOW)
+            + Colors.colorize(self.config_file, Colors.CYAN)
+            + Colors.colorize("' not found.", Colors.YELLOW)
         )
         try:
             self._prompt_run_wizard()
@@ -263,7 +263,7 @@ class AppRunner:
                     print(f"  • {Colors.colorize(error, Colors.YELLOW)}")
 
                 print(
-                    f"\n{Colors.colorize('Please edit ', Colors.YELLOW)}{Colors.colorize(self.config_file, Colors.BOLD)}{Colors.colorize(' with your actual credentials.', Colors.YELLOW)}"
+                    f"\n{Colors.colorize('Please edit ', Colors.YELLOW)}{Colors.colorize(self.config_file, Colors.CYAN)}{Colors.colorize(' with your actual credentials.', Colors.YELLOW)}"
                 )
                 sys.exit(1)
 
@@ -317,10 +317,9 @@ class AppRunner:
         """Prompt the user to create a configuration file from the template."""
         prompt = (
             Colors.colorize("? ", Colors.CYAN)
-            + Colors.colorize(
-                f"Create '{self.config_file}' from template without wizard? ",
-                Colors.BOLD,
-            )
+            + Colors.colorize("Create '", Colors.BOLD)
+            + Colors.colorize(self.config_file, Colors.CYAN)
+            + Colors.colorize("' from template without wizard? ", Colors.BOLD)
             + Colors.colorize("[Y/n]", Colors.GREY)
             + Colors.colorize(" ", Colors.BOLD)
         )
