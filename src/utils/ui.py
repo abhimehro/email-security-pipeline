@@ -76,82 +76,75 @@ class CountdownTimer:
         self.interval = interval
         self._stop_event = threading.Event()
 
-    def start(self):
-        """Start the countdown timer."""
-        if not sys.stdout.isatty():
-            # In non-interactive mode, just wait
-            time.sleep(self.duration)
-            return
-
-        # Hide cursor
-        sys.stdout.write(CURSOR_HIDE)
-        sys.stdout.flush()
-
-        # Format initial time based on duration to prevent layout shift
-        if self.duration >= 60:
-            initial_time = f"{self.duration // 60:02d}:{self.duration % 60:02d}"
-        else:
-            width = len(str(self.duration))
-            initial_time = f"{self.duration:{width}d}s"
-
-        # Ensure keyboard interrupt hint is displayed when running in an interactive TTY
+    def _get_display_msg(self) -> str:
+        """Ensure keyboard interrupt hint is displayed when running in an interactive TTY."""
         display_msg = self.message
         if CTRL_C_HINT not in display_msg:
             display_msg += Colors.colorize(CTRL_C_HINT, Colors.GREY)
+        return display_msg
 
-        # Accessibility & UX: Print an initial static frame so screen readers
-        # have a chance to read the message and prevent layout shift before the loop.
-        full_bar = "█" * self.PROGRESS_BAR_WIDTH
-        colored_bar = Colors.colorize(full_bar, Colors.CYAN)
-        line = f"{display_msg}: {colored_bar} {initial_time}"
+    def _format_time_str(self, remaining: int) -> str:
+        """Format remaining time as MM:SS if duration >= 60s, else seconds."""
+        if self.duration >= 60:
+            return f"{remaining // 60:02d}:{remaining % 60:02d}"
+        width = len(str(self.duration))
+        return f"{remaining:{width}d}s"
+
+    def _render_progress_bar(self, remaining: int) -> str:
+        """Render colored progress bar based on remaining time."""
+        pct = remaining / self.duration if self.duration > 0 else 0
+        filled = int(pct * self.PROGRESS_BAR_WIDTH)
+        progress_bar = "█" * filled + "░" * (self.PROGRESS_BAR_WIDTH - filled)
+        return Colors.colorize(progress_bar, Colors.CYAN)
+
+    def _write_line(self, line: str) -> None:
+        """Write truncated line to stdout with carriage return and line clear."""
         sys.stdout.write(f"\r{_truncate_for_terminal(line)}\033[K")
         sys.stdout.flush()
 
-        try:
-            # Sleep briefly to ensure the screen reader announces it before the loop
-            time.sleep(0.1)
+    def _handle_interrupt(self) -> None:
+        """Clean up line and print cancellation message on interrupt."""
+        warning = Colors.colorize("⚠", Colors.YELLOW)
+        clean_msg = self.message.replace(
+            Colors.colorize(CTRL_C_HINT, Colors.GREY), ""
+        ).replace(CTRL_C_HINT, "")
+        colored_msg = Colors.colorize(f"{clean_msg} (Cancelled)", Colors.YELLOW)
+        sys.stdout.write(f"\r\033[K{warning} {colored_msg}\n")
+        sys.stdout.flush()
 
+    def start(self):
+        """Start the countdown timer."""
+        if not sys.stdout.isatty():
+            time.sleep(self.duration)
+            return
+
+        sys.stdout.write(CURSOR_HIDE)
+        sys.stdout.flush()
+
+        display_msg = self._get_display_msg()
+        initial_time = self._format_time_str(self.duration)
+        full_bar = Colors.colorize("█" * self.PROGRESS_BAR_WIDTH, Colors.CYAN)
+        self._write_line(f"{display_msg}: {full_bar} {initial_time}")
+
+        try:
+            time.sleep(0.1)
             remaining = self.duration
             while remaining > 0 and not self._stop_event.is_set():
-                # Format time as MM:SS if initial duration >= 60s, else just seconds
-                if self.duration >= 60:
-                    time_str = f"{remaining // 60:02d}:{remaining % 60:02d}"
-                else:
-                    width = len(str(self.duration))
-                    time_str = f"{remaining:{width}d}s"
-
-                # Progress bar
-                pct = remaining / self.duration if self.duration > 0 else 0
-                filled = int(pct * self.PROGRESS_BAR_WIDTH)
-                progress_bar = "█" * filled + "░" * (self.PROGRESS_BAR_WIDTH - filled)
-                colored_bar = Colors.colorize(progress_bar, Colors.CYAN)
-
-                # \r moves cursor to start of line, \033[K clears the line
-                line = f"{display_msg}: {colored_bar} {time_str} "
-                sys.stdout.write(f"\r{_truncate_for_terminal(line)}\033[K")
-                sys.stdout.flush()
+                time_str = self._format_time_str(remaining)
+                bar = self._render_progress_bar(remaining)
+                self._write_line(f"{display_msg}: {bar} {time_str} ")
 
                 time.sleep(self.interval)
                 remaining -= int(self.interval)
 
-            # Clear line after finish if not stopped early
             if not self._stop_event.is_set():
                 sys.stdout.write("\r\033[K")
                 sys.stdout.flush()
 
         except (EOFError, KeyboardInterrupt):
-            # Clean up line on interrupt
-            warning = Colors.colorize("⚠", Colors.YELLOW)
-            clean_msg = self.message.replace(
-                Colors.colorize(CTRL_C_HINT, Colors.GREY), ""
-            ).replace(CTRL_C_HINT, "")
-            # Ensure we print the cancellation message correctly
-            colored_msg = Colors.colorize(f"{clean_msg} (Cancelled)", Colors.YELLOW)
-            sys.stdout.write(f"\r\033[K{warning} {colored_msg}\n")
-            sys.stdout.flush()
+            self._handle_interrupt()
             raise KeyboardInterrupt()
         finally:
-            # Restore cursor
             sys.stdout.write(CURSOR_SHOW)
             sys.stdout.flush()
 
