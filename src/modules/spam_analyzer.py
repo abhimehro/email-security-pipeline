@@ -380,6 +380,10 @@ class SpamAnalyzer:
 
     def _check_urls(self, urls: List[str]) -> Tuple[float, List[str]]:
         """Check for suspicious URLs."""
+        # ⚡ BOLT: Early return fast-path when urls is empty avoids Counter allocation
+        if not urls:
+            return 0.0, []
+
         score = 0.0
         suspicious = []
 
