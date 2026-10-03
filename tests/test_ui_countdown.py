@@ -163,7 +163,9 @@ class TestCountdownTimerTTY(unittest.TestCase):
 
     @patch("time.sleep", side_effect=KeyboardInterrupt)
     @patch("sys.stdout", new_callable=StringIO)
-    def test_start_tty_strips_colorized_hint_on_interrupt(self, mock_stdout, mock_sleep):
+    def test_start_tty_strips_colorized_hint_on_interrupt(
+        self, mock_stdout, mock_sleep
+    ):
         """start() should strip colorized CTRL_C_HINT from message when interrupted."""
         mock_stdout.isatty = MagicMock(return_value=True)
         colorized_msg = "Waiting" + Colors.colorize(CTRL_C_HINT, Colors.GREY)

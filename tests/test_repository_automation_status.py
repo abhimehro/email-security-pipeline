@@ -17,7 +17,9 @@ def test_status_issue_publication_defaults_to_enabled() -> None:
 
 
 def test_status_issue_publication_can_be_disabled() -> None:
-    assert tasks.should_publish_status_issue({"publish_issue": False}, "failure") is False
+    assert (
+        tasks.should_publish_status_issue({"publish_issue": False}, "failure") is False
+    )
 
 
 def test_success_only_suppression_preserves_actionable_reports() -> None:
@@ -37,7 +39,9 @@ def test_successful_daily_report_skips_issue_creation() -> None:
         patch.object(tasks, "load_task_results", return_value=[{"status": "success"}]),
         patch.object(tasks, "daily_report_lines", return_value=["report"]),
         patch.object(tasks, "append_publication_result") as publish,
-        patch.object(tasks, "write_result", return_value={"status": "success"}) as write,
+        patch.object(
+            tasks, "write_result", return_value={"status": "success"}
+        ) as write,
     ):
         result = tasks.run_daily_status_report(config)
 
