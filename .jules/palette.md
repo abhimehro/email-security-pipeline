@@ -640,3 +640,8 @@ rapidly updates using carriage returns, always render an initial static frame
 that includes the full progress bar, initial timer, and exact required
 formatting before the loop begins. This prevents horizontal layout shift and
 gives screen readers a stable state to announce.
+
+## 2026-03-08 - Formatting Failure Symbols in Error Outputs
+
+**Learning:** When displaying error messages in the CLI, including the failure symbol (`✖ `) inside the red colorization block can cause string formatting inconsistency and visual alignment issues across terminal helpers.
+**Action:** Always place the failure indicator symbol (`✖ `) outside the `Colors.colorize()` call for error descriptions to maintain clean visual hierarchy and consistency.

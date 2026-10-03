@@ -595,8 +595,9 @@ def run_setup_wizard(
 
     if not Path(template_file).exists():
         print(
-            Colors.colorize(
-                "✖ " + f"Error: Template file '{template_file}' not found. ", Colors.RED
+            "✖ "
+            + Colors.colorize(
+                f"Error: Template file '{template_file}' not found. ", Colors.RED
             )
             + Colors.colorize(
                 "Ensure the file exists before running the wizard.", Colors.YELLOW
