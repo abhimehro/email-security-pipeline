@@ -659,17 +659,24 @@ class SpamAnalyzer:
         total_score += auth_score
         all_issues.extend(auth_issues)
 
-        check_functions = [
-            self._check_dkim_presence,
-            self._check_missing_headers,
-            self._check_suspicious_received_headers,
-            self._check_forged_sender,
-        ]
+        # ⚡ BOLT: Optimization - Call header check methods directly instead of iterating
+        # over a dynamically constructed list of bound methods.
+        # This avoids list allocation and bound method object creation overhead on every call.
+        score, issues = self._check_dkim_presence(headers)
+        total_score += score
+        all_issues.extend(issues)
 
-        for check_func in check_functions:
-            score, issues = check_func(headers)
-            total_score += score
-            all_issues.extend(issues)
+        score, issues = self._check_missing_headers(headers)
+        total_score += score
+        all_issues.extend(issues)
+
+        score, issues = self._check_suspicious_received_headers(headers)
+        total_score += score
+        all_issues.extend(issues)
+
+        score, issues = self._check_forged_sender(headers)
+        total_score += score
+        all_issues.extend(issues)
 
         return total_score, all_issues
 
