@@ -143,3 +143,13 @@ iterations compared to ~0.39s when re-using a pre-allocated pool. **Action:**
 Always pre-allocate `ThreadPoolExecutor` instances at the class level (e.g., in
 `__init__`) or globally and re-use them for hot-path concurrency, ensuring
 proper resource teardown in a `shutdown()` method.
+
+## 2026-09-02 - TTLCache Dict Pop Fast Path
+
+**Learning:** In LRU/TTL caches where accessing an entry requires checking key
+presence, retrieving the tuple, and re-inserting at the tail for LRU promotion,
+using `entry = store.pop(key, None)` combines key presence check, lookup, and
+deletion into a single C-level dictionary operation. This reduces dictionary hash
+lookups from 4 to 2 on cache hits and from 3 to 1 on misses or expired entries.
+**Action:** In dictionary-backed LRU/TTL caches, use `store.pop(key, None)` on
+cache accesses to halve CPython dictionary operations.

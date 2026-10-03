@@ -112,13 +112,16 @@ class TTLCache:
     # ------------------------------------------------------------------
 
     def _get_locked(self, key: str) -> Optional[Any]:
-        if key not in self._store:
+        # ⚡ BOLT: Using dict.pop(key, None) combines key presence check,
+        # retrieval, and removal into a single C-level dictionary operation.
+        # On hit, lookups drop from 4 to 2 (1 pop + 1 re-insert to tail for LRU promotion).
+        # On TTL expiry or miss, lookups drop to 1.
+        entry = self._store.pop(key, None)
+        if entry is None:
             return None
-        value, timestamp = self._store[key]
+        value, timestamp = entry
         if time.monotonic() - timestamp >= self._ttl:
-            del self._store[key]  # Lazy TTL eviction
-            return None
-        # Promote to most-recently-used by moving to the tail of the dict
-        del self._store[key]
-        self._store[key] = (value, timestamp)
+            return None  # Lazy TTL eviction (already popped)
+        # Promote to most-recently-used by re-inserting at the tail of the dict
+        self._store[key] = entry
         return value
