@@ -177,3 +177,28 @@ class TestPaletteUI(TestCase):
                 # Check actual output for fallback safety (no ANSI code directly interpolated)
                 output = mock_stdout.getvalue()
                 self.assertIn("📊 System Configuration:", output)
+
+    def test_check_mail_connectivity_print_status_symbols(self):
+        """Test print_status in check_mail_connectivity uses ✔ and ✖ symbols correctly."""
+        from io import StringIO
+        import sys
+        import os
+
+        # Ensure scripts directory is in sys.path
+        scripts_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "scripts"))
+        if scripts_dir not in sys.path:
+            sys.path.insert(0, scripts_dir)
+
+        import check_mail_connectivity
+
+        with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
+            check_mail_connectivity.print_status("IMAP", "imap.gmail.com", 993, True, True)
+            output = mock_stdout.getvalue()
+            self.assertIn("✔", output)
+            self.assertIn("OK", output)
+
+        with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
+            check_mail_connectivity.print_status("IMAP", "imap.gmail.com", 993, True, False, "Auth failed")
+            output = mock_stdout.getvalue()
+            self.assertIn("✖", output)
+            self.assertIn("ERROR", output)

@@ -77,8 +77,8 @@ def print_status(protocol, host, port, use_ssl, success, message=None):
     # Clear line to prevent artifacts
     print(" " * 80, end="\r")
 
-    symbol = "✅" if success else "❌"
     color = Colors.GREEN if success else Colors.RED
+    symbol = Colors.colorize("✔", color) if success else Colors.colorize("✖", color)
     status = (
         Colors.colorize("OK", color) if success else Colors.colorize("ERROR", color)
     )
