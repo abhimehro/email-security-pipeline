@@ -7,7 +7,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
-from contextlib import contextmanager, redirect_stderr
+from contextlib import contextmanager, redirect_stderr, redirect_stdout
 from io import StringIO
 from pathlib import Path
 from typing import Iterator
@@ -94,6 +94,13 @@ class TestGhTokenEnvParser(unittest.TestCase):
 
         self.assertEqual(ret_code, 1)
         self.assertIn("error:", stderr.getvalue())
+
+    def test_cli_main_displays_help(self) -> None:
+        with self.assertRaises(SystemExit) as cm:
+            with redirect_stdout(StringIO()) as stdout:
+                cli_main(["--help"])
+        self.assertEqual(cm.exception.code, 0)
+        self.assertIn("usage:", stdout.getvalue().lower())
 
 
 class TestAutomationScripts(unittest.TestCase):
