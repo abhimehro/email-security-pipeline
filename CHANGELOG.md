@@ -549,6 +549,7 @@
 
 **Merged pull requests:**
 
+- ⚡ Bolt: optimize header check dispatch in SpamAnalyzer [\#1671](https://github.com/abhimehro/email-security-pipeline/pull/1671) ([abhimehro](https://github.com/abhimehro))
 - chore\(deps\): bump github/gh-aw/actions/setup from 0.89.19 to 0.89.21 [\#1669](https://github.com/abhimehro/email-security-pipeline/pull/1669) ([dependabot[bot]](https://github.com/apps/dependabot))
 - chore\(deps\): bump codescene-oss/pr-refactoring-agent from 1.1.3 to 1.1.4 [\#1668](https://github.com/abhimehro/email-security-pipeline/pull/1668) ([dependabot[bot]](https://github.com/apps/dependabot))
 - chore\(deps\): bump ruby/setup-ruby from 1.323.0 to 1.327.0 [\#1667](https://github.com/abhimehro/email-security-pipeline/pull/1667) ([dependabot[bot]](https://github.com/apps/dependabot))
