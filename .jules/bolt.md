@@ -143,3 +143,12 @@ iterations compared to ~0.39s when re-using a pre-allocated pool. **Action:**
 Always pre-allocate `ThreadPoolExecutor` instances at the class level (e.g., in
 `__init__`) or globally and re-use them for hot-path concurrency, ensuring
 proper resource teardown in a `shutdown()` method.
+
+## 2026-08-30 - Optimize TTLCache Retrieval via dict.pop()
+
+**Learning:** In LRU/TTL caches where accessing an entry requires both retrieving
+the value and moving the key to the tail (MRU position), using `entry = store.pop(key, None)`
+combines lookup, retrieval, and removal into a single C-level dictionary operation. This
+reduces dictionary operations from 4 to 2 on cache hits and from 3 to 1 on expired TTL entries.
+**Action:** When implementing or updating LRU cache lookup logic, prefer `store.pop(key, None)`
+over `if key in store:` followed by `store[key]` and `del store[key]`.
