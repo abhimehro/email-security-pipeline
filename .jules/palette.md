@@ -640,3 +640,7 @@ rapidly updates using carriage returns, always render an initial static frame
 that includes the full progress bar, initial timer, and exact required
 formatting before the loop begins. This prevents horizontal layout shift and
 gives screen readers a stable state to announce.
+
+## 2025-06-15 - De-emphasize CLI Terminal Hints in AppRunner
+**Learning:** Terminal inputs with explicit options like [Y/n] or [1-4] often compete for visual attention when styled identically to the main question prompt (e.g. bold). Wrapping trailing option hints in a muted color like Colors.GREY clearly separates the primary question from the available inputs and reduces visual clutter.
+**Action:** Always wrap [Y/n] or similar choice hints in Colors.GREY when constructing interactive CLI prompts in AppRunner and wizard flows.
