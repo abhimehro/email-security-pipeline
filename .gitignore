@@ -84,3 +84,5 @@ pr_response.json
 dummy.txt
 test.txt
 *_project_code.txt
+# Causari local ledger — captured prompts, completions and reasoning.
+.causari/
