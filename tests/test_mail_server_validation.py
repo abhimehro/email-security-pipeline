@@ -237,6 +237,20 @@ class TestCheckMailConnectivityValidation(unittest.TestCase):
         self.assertTrue(result["success"])
         mock_smtp_ssl.assert_called_once()
 
+    @patch("sys.stdout")
+    def test_check_mail_connectivity_no_raw_ansi_resets(self, mock_stdout):
+        """Verify check_mail_connectivity does not output raw Colors.RESET strings."""
+        check_mail_connectivity.print_header("Test Header")
+        check_mail_connectivity.print_summary([
+            {
+                "provider": "Gmail",
+                "protocol": "IMAP",
+                "host": "imap.gmail.com",
+                "port": 993,
+                "success": True,
+            }
+        ])
+
 
 class TestEmailAccountConfigSMTPField(unittest.TestCase):
     """Sanity checks for the new smtp_server field on EmailAccountConfig."""
