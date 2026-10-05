@@ -317,7 +317,9 @@ def test_missing_config_interactive_highlights_path_cyan(
         mock_app_runner, "_prompt_create_from_template"
     ):
         mock_app_runner._handle_missing_config_interactive()
-    printed = " ".join(str(arg) for call in mock_print.call_args_list for arg in call.args)
+    printed = " ".join(
+        str(arg) for call in mock_print.call_args_list for arg in call.args
+    )
     assert Colors.colorize("⚠ Configuration file '", Colors.YELLOW) in printed
     assert Colors.colorize(mock_app_runner.config_file, Colors.CYAN) in printed
     assert Colors.colorize("' not found.", Colors.YELLOW) in printed
@@ -333,7 +335,9 @@ def test_validate_config_highlights_path_cyan(
     with patch("sys.exit") as mock_exit:
         mock_app_runner.validate_config()
         mock_exit.assert_called_once_with(1)
-    printed = " ".join(str(arg) for call in mock_print.call_args_list for arg in call.args)
+    printed = " ".join(
+        str(arg) for call in mock_print.call_args_list for arg in call.args
+    )
     assert Colors.colorize("Please edit ", Colors.YELLOW) in printed
     assert Colors.colorize(mock_app_runner.config_file, Colors.CYAN) in printed
     expected = (
