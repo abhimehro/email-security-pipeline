@@ -45,6 +45,26 @@ class ParseContext:
 
 logger = logging.getLogger(__name__)
 
+# Special characters that prevent fast-path plain email address matching
+_PLAIN_EMAIL_SPECIAL_CHARS = (
+    " ",
+    "\t",
+    "\n",
+    "\r",
+    ",",
+    "<",
+    ">",
+    "\"",
+    "(",
+    ")",
+    "[",
+    "]",
+    ":",
+    ";",
+    "=?",
+    "\\",
+)
+
 
 @dataclass
 class EmailParserConfig:
@@ -629,6 +649,19 @@ class EmailParser:
             )
             return value
 
+    @staticmethod
+    def _is_plain_email_address(stripped: str) -> bool:
+        """Check if a stripped header is a simple single email address without RFC 5322 specials."""
+        if "@" not in stripped or stripped.count("@") != 1:
+            return False
+        local_part, _, domain_part = stripped.partition("@")
+        if not local_part or not domain_part:
+            return False
+        for char in _PLAIN_EMAIL_SPECIAL_CHARS:
+            if char in stripped:
+                return False
+        return True
+
     @classmethod
     def _format_addresses(cls, header_value: str) -> str:
         """
@@ -652,31 +685,14 @@ class EmailParser:
         # Checking if '@' is present, verifying exactly 1 '@', and avoiding whitespace / RFC 5322
         # special characters bypasses expensive getaddresses() parsing, yielding ~40% faster email parsing.
         stripped = header_value.strip()
-        if (
-            "@" in stripped
-            and stripped.count("@") == 1
-            and not (
-                " " in stripped
-                or "\t" in stripped
-                or "\n" in stripped
-                or "\r" in stripped
-                or "," in stripped
-                or "<" in stripped
-                or ">" in stripped
-                or "\"" in stripped
-                or "(" in stripped
-                or ")" in stripped
-                or "[" in stripped
-                or "]" in stripped
-                or ":" in stripped
-                or ";" in stripped
-                or "=?" in stripped
-            )
-        ):
+        if cls._is_plain_email_address(stripped):
             return stripped
 
-        # Optimization: Use a list to avoid generator/filter double evaluation overhead.
-        # Inline the formatting logic to skip function call overhead on hot path.
+        return cls._parse_and_format_addresses(header_value)
+
+    @classmethod
+    def _parse_and_format_addresses(cls, header_value: str) -> str:
+        """Fallback address formatting using full RFC 5322 getaddresses() tokenization."""
         addresses = []
         for name, address in getaddresses([header_value]):
             name_clean = cls._decode_header_value(name)
