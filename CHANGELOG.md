@@ -551,6 +551,12 @@
 
 **Merged pull requests:**
 
+- 🎨 Palette: Add CLI help flag support to check\_mail\_connectivity.py [\#1711](https://github.com/abhimehro/email-security-pipeline/pull/1711) ([abhimehro](https://github.com/abhimehro))
+- ⚡ Bolt: Optimize TTLCache lookup via pop fast-path [\#1710](https://github.com/abhimehro/email-security-pipeline/pull/1710) ([abhimehro](https://github.com/abhimehro))
+- docs\(repo-health\): install pytest-cov from requirements-dev.txt [\#1708](https://github.com/abhimehro/email-security-pipeline/pull/1708) ([cursor[bot]](https://github.com/apps/cursor))
+- 🎨 Palette: Add keyboard shortcut hint to initial frame of CountdownTimer [\#1706](https://github.com/abhimehro/email-security-pipeline/pull/1706) ([abhimehro](https://github.com/abhimehro))
+- salvage\(email\#1633\): AppRunner cyan configuration-path highlight \(Stage 2\) [\#1704](https://github.com/abhimehro/email-security-pipeline/pull/1704) ([abhimehro](https://github.com/abhimehro))
+- salvage\(email\#1627\): deepfake alert recommendation \(Stage 2\) [\#1703](https://github.com/abhimehro/email-security-pipeline/pull/1703) ([abhimehro](https://github.com/abhimehro))
 - 🎨 Palette: Standardize connectivity status symbols [\#1698](https://github.com/abhimehro/email-security-pipeline/pull/1698) ([abhimehro](https://github.com/abhimehro))
 - ⚡ Bolt: Add early return fast-path for empty URL lists in SpamAnalyzer.\_check\_urls [\#1697](https://github.com/abhimehro/email-security-pipeline/pull/1697) ([abhimehro](https://github.com/abhimehro))
 - ⚡ Bolt: fast-path for sanitize\_text on printable strings [\#1693](https://github.com/abhimehro/email-security-pipeline/pull/1693) ([abhimehro](https://github.com/abhimehro))
