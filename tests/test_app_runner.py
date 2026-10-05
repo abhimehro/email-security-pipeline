@@ -270,6 +270,7 @@ def test_print_banner(mock_stdout, mock_app_runner):
 
 
 def test_prompt_run_wizard_styles_hint(mock_app_runner):
+    """Verify the wizard prompt displays its default-choice hint in grey."""
     with patch.object(mock_app_runner, "_styled_input", return_value="n") as mock_input:
         mock_app_runner._prompt_run_wizard()
         mock_input.assert_called_once()
@@ -278,6 +279,7 @@ def test_prompt_run_wizard_styles_hint(mock_app_runner):
 
 
 def test_prompt_create_from_template_styles_hint(mock_app_runner):
+    """Verify the template prompt styles its hint grey and config path cyan."""
     with patch.object(mock_app_runner, "_styled_input", return_value="n") as mock_input, patch(
         "sys.exit"
     ) as mock_exit:
