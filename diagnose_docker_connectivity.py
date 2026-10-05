@@ -4,6 +4,7 @@ Diagnostic script to test email connectivity from within Docker container contex
 This helps identify whether issues are credential-based or network/SSL-based.
 """
 
+import argparse
 import imaplib
 import os
 import ssl
@@ -99,7 +100,13 @@ def test_connection(config: ConnectionConfig):
     return False
 
 
-def main():
+def main(argv: list[str] | None = None):
+    parser = argparse.ArgumentParser(
+        prog="diagnose_docker_connectivity.py",
+        description="Diagnostic script to test email connectivity from within Docker container context.",
+    )
+    parser.parse_args(argv)
+
     # Load environment
     load_dotenv(".env")
 
@@ -181,8 +188,16 @@ def main():
     print("Diagnostics complete")
     print("=" * 60)
 
-    sys.exit(0 if all(results) else 1)
+    if not results:
+        print(
+            Colors.colorize(
+                "\n⚠  No email accounts were configured or tested.", Colors.YELLOW
+            )
+        )
+        return 1
+
+    return 0 if all(results) else 1
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
