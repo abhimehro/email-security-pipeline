@@ -185,7 +185,13 @@ class AppRunner:
             self._handle_missing_config_non_interactive()
 
     def _handle_missing_config_interactive(self) -> None:
-        """Handle missing configuration interactively (wizard or copy)."""
+        """Offer the setup wizard, then a template copy if the file is still missing.
+
+        Raises:
+            SystemExit: With status 0 after successful setup or a caught
+                KeyboardInterrupt; status 1 if template creation is declined
+                or fails, or an EOFError triggers non-interactive fallback.
+        """
         print(
             Colors.colorize("⚠ Configuration file '", Colors.YELLOW)
             + Colors.colorize(self.config_file, Colors.CYAN)
@@ -235,7 +241,15 @@ class AppRunner:
         )
 
     def validate_config(self) -> None:
-        """Validate configuration before starting the pipeline."""
+        """Load configuration into the environment and check it before startup.
+
+        Unexpected exceptions are caught, allowing startup to continue even
+        when validation could not finish.
+
+        Raises:
+            SystemExit: With status 1 if validation raises ConfigurationError
+                or default credentials or alert URLs are detected.
+        """
         try:
             config_validator = Config(self.config_file)
             config_validator.validate()
@@ -314,7 +328,17 @@ class AppRunner:
                 print(Colors.colorize("Setup skipped.", Colors.YELLOW))
 
     def _prompt_create_from_template(self) -> None:
-        """Prompt the user to create a configuration file from the template."""
+        """Offer to copy .env.example to self.config_file without overwriting it.
+
+        Empty input, 'y', or 'yes' (case-insensitive) accepts the copy, which
+        creates a file with mode 0o600.
+
+        Raises:
+            SystemExit: With status 0 after creation; status 1 if declined or
+                creation fails. File creation errors are caught and converted
+                to status 1.
+            KeyboardInterrupt: If input is interrupted or reaches EOF.
+        """
         prompt = (
             Colors.colorize("? ", Colors.CYAN)
             + Colors.colorize("Create '", Colors.BOLD)
