@@ -185,11 +185,22 @@ class AppRunner:
             self._handle_missing_config_non_interactive()
 
     def _handle_missing_config_interactive(self) -> None:
-        """Handle missing configuration interactively (wizard or copy)."""
+        """Handle missing configuration interactively (wizard or copy).
+
+        Offer template copying if the file is still missing after the wizard
+        prompt. Successful setup exits with status 0; declining template copying
+        or failing to create the file exits with status 1. Return only if the
+        file exists after an unsuccessful or declined wizard.
+
+        A KeyboardInterrupt reaching this handler exits with status 0. An
+        EOFError reaching it invokes the non-interactive fallback and exits
+        with status 1; EOF at the wizard or template prompt is converted to
+        KeyboardInterrupt by _styled_input.
+        """
         print(
-            Colors.colorize(
-                f"⚠ Configuration file '{self.config_file}' not found.", Colors.YELLOW
-            )
+            Colors.colorize("⚠ Configuration file '", Colors.YELLOW)
+            + Colors.colorize(self.config_file, Colors.CYAN)
+            + Colors.colorize("' not found.", Colors.YELLOW)
         )
         try:
             self._prompt_run_wizard()
@@ -235,7 +246,14 @@ class AppRunner:
         )
 
     def validate_config(self) -> None:
-        """Validate configuration before starting the pipeline."""
+        """Validate configuration before starting the pipeline.
+
+        Load self.config_file into the environment and check settings and
+        default credentials. ConfigurationError or detected default credentials
+        cause SystemExit with status 1. Other exceptions derived from Exception
+        during validation are reported as warnings and suppressed, allowing
+        startup to continue; returning does not guarantee valid configuration.
+        """
         try:
             config_validator = Config(self.config_file)
             config_validator.validate()
@@ -263,7 +281,7 @@ class AppRunner:
                     print(f"  • {Colors.colorize(error, Colors.YELLOW)}")
 
                 print(
-                    f"\n{Colors.colorize('Please edit ', Colors.YELLOW)}{Colors.colorize(self.config_file, Colors.BOLD)}{Colors.colorize(' with your actual credentials.', Colors.YELLOW)}"
+                    f"\n{Colors.colorize('Please edit ', Colors.YELLOW)}{Colors.colorize(self.config_file, Colors.CYAN)}{Colors.colorize(' with your actual credentials.', Colors.YELLOW)}"
                 )
                 sys.exit(1)
 
@@ -314,13 +332,22 @@ class AppRunner:
                 print(Colors.colorize("Setup skipped.", Colors.YELLOW))
 
     def _prompt_create_from_template(self) -> None:
-        """Prompt the user to create a configuration file from the template."""
+        """Prompt the user to create a configuration file from the template.
+
+        Empty input, 'y', or 'yes' (case-insensitive, with whitespace stripped)
+        copies .env.example to self.config_file without overwriting an existing
+        file, using mode 0o600. Successful creation raises SystemExit with status
+        0; any other response or a creation failure exits with status 1 after
+        printing manual setup instructions. File creation exceptions are caught
+        and converted to that failure exit.
+
+        KeyboardInterrupt propagates, including EOF converted by _styled_input.
+        """
         prompt = (
             Colors.colorize("? ", Colors.CYAN)
-            + Colors.colorize(
-                f"Create '{self.config_file}' from template without wizard? ",
-                Colors.BOLD,
-            )
+            + Colors.colorize("Create '", Colors.BOLD)
+            + Colors.colorize(self.config_file, Colors.CYAN)
+            + Colors.colorize("' from template without wizard? ", Colors.BOLD)
             + Colors.colorize("[Y/n]", Colors.GREY)
             + Colors.colorize(" ", Colors.BOLD)
         )
