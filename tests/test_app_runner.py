@@ -307,6 +307,7 @@ def test_prompt_create_from_template_styles_hint(mock_app_runner, force_colors):
         assert Colors.colorize(mock_app_runner.config_file, Colors.CYAN) in prompt_arg
         mock_exit.assert_called_once_with(1)
 
+
 @patch("src.app_runner.print")
 def test_missing_config_interactive_highlights_path_cyan(
     mock_print, mock_app_runner, force_colors
