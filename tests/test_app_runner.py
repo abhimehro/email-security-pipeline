@@ -312,7 +312,7 @@ def test_prompt_create_from_template_styles_hint(mock_app_runner, force_colors):
 def test_missing_config_interactive_highlights_path_cyan(
     mock_print, mock_app_runner, force_colors
 ):
-    """Kilo warning: the missing-config path must be CYAN, not only the template prompt."""
+    """The missing-config warning highlights only the config path in cyan."""
     with patch.object(mock_app_runner, "_prompt_run_wizard"), patch.object(
         mock_app_runner, "_prompt_create_from_template"
     ):
@@ -331,7 +331,7 @@ def test_missing_config_interactive_highlights_path_cyan(
 def test_validate_config_highlights_path_cyan(
     mock_print, mock_config, mock_check, mock_app_runner, force_colors
 ):
-    """Kilo warning: 'Please edit <path>' must color the path CYAN, not BOLD."""
+    """The 'Please edit <path>' hint colorizes the path cyan, not bold."""
     with patch("sys.exit") as mock_exit:
         mock_app_runner.validate_config()
         mock_exit.assert_called_once_with(1)
