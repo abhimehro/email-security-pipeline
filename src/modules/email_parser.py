@@ -45,6 +45,11 @@ class ParseContext:
 
 logger = logging.getLogger(__name__)
 
+# RFC 5322 structural, comment, display-name, and whitespace characters.
+# Presence of any of these characters indicates an address header is complex
+# (e.g., named recipient, multiple addresses, or comments) and requires getaddresses().
+_FORBIDDEN_ADDR_CHARS = set(" \t\n\r,<>\x22()[]:;\\")
+
 
 @dataclass
 class EmailParserConfig:
@@ -647,6 +652,20 @@ class EmailParser:
         """
         if not header_value:
             return ""
+
+        # ⚡ BOLT: Fast path for plain single email addresses (e.g. "user@example.com").
+        # Bypasses expensive email.utils.getaddresses() C/Python parsing overhead
+        # when no whitespace, quoted text, RFC 5322 comment/structural chars, or RFC 2047
+        # encodings are present.
+        stripped = header_value.strip()
+        if (
+            "@" in stripped
+            and "=?" not in stripped
+            and _FORBIDDEN_ADDR_CHARS.isdisjoint(stripped)
+        ):
+            parts = stripped.split("@")
+            if len(parts) == 2 and parts[0] and parts[1]:
+                return stripped
 
         # Optimization: Use a list to avoid generator/filter double evaluation overhead.
         # Inline the formatting logic to skip function call overhead on hot path.
