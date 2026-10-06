@@ -45,6 +45,11 @@ class ParseContext:
 
 logger = logging.getLogger(__name__)
 
+# RFC 5322 structural, comment, display-name, and whitespace characters.
+# Presence of any of these characters indicates an address header is complex
+# (e.g., named recipient, multiple addresses, or comments) and requires getaddresses().
+_FORBIDDEN_ADDR_CHARS = set(" \t\n\r,<>\x22()[]:;\\")
+
 
 @dataclass
 class EmailParserConfig:
@@ -629,6 +634,38 @@ class EmailParser:
             )
             return value
 
+    @staticmethod
+    def _is_simple_email_address(value: str) -> bool:
+        """
+        Determine if a stripped string is a plain single email address.
+
+        Fast path check to bypass expensive getaddresses() parsing when no
+        whitespace, RFC 5322 comment/structural characters, or RFC 2047
+        encodings are present.
+        """
+        if "@" not in value:
+            return False
+        if "=?" in value:
+            return False
+        if not _FORBIDDEN_ADDR_CHARS.isdisjoint(value):
+            return False
+        parts = value.split("@")
+        if len(parts) != 2:
+            return False
+        return bool(parts[0]) and bool(parts[1])
+
+    @classmethod
+    def _parse_complex_addresses(cls, header_value: str) -> str:
+        """Helper to parse complex RFC 5322 address headers using getaddresses."""
+        addresses = []
+        for name, address in getaddresses([header_value]):
+            name_clean = cls._decode_header_value(name)
+            if name_clean and address:
+                addresses.append(f"{name_clean} <{address}>")
+            elif address or name_clean:
+                addresses.append(address or name_clean)
+        return ", ".join(addresses)
+
     @classmethod
     def _format_addresses(cls, header_value: str) -> str:
         """
@@ -648,17 +685,12 @@ class EmailParser:
         if not header_value:
             return ""
 
-        # Optimization: Use a list to avoid generator/filter double evaluation overhead.
-        # Inline the formatting logic to skip function call overhead on hot path.
-        addresses = []
-        for name, address in getaddresses([header_value]):
-            name_clean = cls._decode_header_value(name)
-            if name_clean and address:
-                addresses.append(f"{name_clean} <{address}>")
-            elif address or name_clean:
-                addresses.append(address or name_clean)
+        # ⚡ BOLT: Fast path for plain single email addresses (e.g. "user@example.com").
+        stripped = header_value.strip()
+        if cls._is_simple_email_address(stripped):
+            return stripped
 
-        return ", ".join(addresses)
+        return cls._parse_complex_addresses(header_value)
 
     @staticmethod
     def _decode_part_payload(part: Message) -> str:
