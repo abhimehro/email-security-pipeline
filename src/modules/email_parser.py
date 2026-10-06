@@ -634,6 +634,24 @@ class EmailParser:
             )
             return value
 
+    @staticmethod
+    def _is_simple_email_address(value: str) -> bool:
+        """
+        Determine if a stripped string is a plain single email address.
+
+        Fast path check to bypass expensive getaddresses() parsing when no
+        whitespace, RFC 5322 comment/structural characters, or RFC 2047
+        encodings are present.
+        """
+        if (
+            "@" not in value
+            or "=?" in value
+            or not _FORBIDDEN_ADDR_CHARS.isdisjoint(value)
+        ):
+            return False
+        parts = value.split("@")
+        return len(parts) == 2 and bool(parts[0]) and bool(parts[1])
+
     @classmethod
     def _format_addresses(cls, header_value: str) -> str:
         """
@@ -654,18 +672,9 @@ class EmailParser:
             return ""
 
         # ⚡ BOLT: Fast path for plain single email addresses (e.g. "user@example.com").
-        # Bypasses expensive email.utils.getaddresses() C/Python parsing overhead
-        # when no whitespace, quoted text, RFC 5322 comment/structural chars, or RFC 2047
-        # encodings are present.
         stripped = header_value.strip()
-        if (
-            "@" in stripped
-            and "=?" not in stripped
-            and _FORBIDDEN_ADDR_CHARS.isdisjoint(stripped)
-        ):
-            parts = stripped.split("@")
-            if len(parts) == 2 and parts[0] and parts[1]:
-                return stripped
+        if cls._is_simple_email_address(stripped):
+            return stripped
 
         # Optimization: Use a list to avoid generator/filter double evaluation overhead.
         # Inline the formatting logic to skip function call overhead on hot path.
