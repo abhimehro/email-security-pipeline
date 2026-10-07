@@ -324,6 +324,9 @@ def main(argv: Optional[List[str]] = None) -> None:
         print(
             f"   Please set {Colors.BOLD}GMAIL_ENABLED=true{Colors.RESET}, {Colors.BOLD}OUTLOOK_ENABLED=true{Colors.RESET}, or {Colors.BOLD}PROTON_ENABLED=true{Colors.RESET}"
         )
+        print(
+            f"   {Colors.colorize('To configure interactively, run:', Colors.YELLOW)} {Colors.colorize('python src/utils/setup_wizard.py', Colors.CYAN)}\n"
+        )
     else:
         print(f"\n{Colors.BOLD}✨ Done.{Colors.RESET}\n")
 
