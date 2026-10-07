@@ -45,6 +45,10 @@ class ParseContext:
 
 logger = logging.getLogger(__name__)
 
+# Pre-computed set of structural, comment, quote, and whitespace characters
+# that invalidate the fast path for single plain email address parsing.
+_INVALID_ADDRESS_CHARS = set(" \t\n\r,< >\"()[]:;=\\?")
+
 
 @dataclass
 class EmailParserConfig:
@@ -647,6 +651,16 @@ class EmailParser:
         """
         if not header_value:
             return ""
+
+        # ⚡ BOLT: Fast path for plain single email addresses (e.g., "user@example.com").
+        # Verifying a single '@' and checking against RFC 5322 structural/comment/whitespace
+        # characters allows returning stripped immediately, bypassing getaddresses() overhead.
+        stripped = header_value.strip()
+        if "@" in stripped and stripped.count("@") == 1:
+            if not (set(stripped) & _INVALID_ADDRESS_CHARS):
+                local, domain = stripped.split("@", 1)
+                if local and domain:
+                    return stripped
 
         # Optimization: Use a list to avoid generator/filter double evaluation overhead.
         # Inline the formatting logic to skip function call overhead on hot path.
