@@ -629,6 +629,19 @@ class EmailParser:
             )
             return value
 
+    @staticmethod
+    def _is_plain_email(stripped: str) -> bool:
+        """
+        Helper method to evaluate if a stripped header string is a single plain email address.
+        Extracted to satisfy CodeScene quality gates and keep cyclomatic complexity low.
+        """
+        if "@" not in stripped or stripped.count("@") != 1:
+            return False
+        if any(c in stripped for c in " \t\n\r,<>\":;=[]()\\") or "=?" in stripped:
+            return False
+        parts = stripped.split("@")
+        return bool(parts[0] and parts[1])
+
     @classmethod
     def _format_addresses(cls, header_value: str) -> str:
         """
@@ -652,12 +665,8 @@ class EmailParser:
         # Bypasses expensive email.utils.getaddresses() parsing when no display names,
         # structural/comment characters, spaces, or encoded words are present.
         stripped = header_value.strip()
-        if "@" in stripped and stripped.count("@") == 1:
-            if not any(c in stripped for c in " \t\n\r,<>\":;=[]()\\"):
-                if "=?" not in stripped:
-                    parts = stripped.split("@")
-                    if parts[0] and parts[1]:
-                        return stripped
+        if cls._is_plain_email(stripped):
+            return stripped
 
         # Optimization: Use a list to avoid generator/filter double evaluation overhead.
         # Inline the formatting logic to skip function call overhead on hot path.
