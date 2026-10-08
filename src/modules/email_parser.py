@@ -648,6 +648,17 @@ class EmailParser:
         if not header_value:
             return ""
 
+        # ⚡ BOLT: Fast-path for single plain email addresses (e.g., "user@example.com").
+        # Bypasses expensive email.utils.getaddresses() parsing when no display names,
+        # structural/comment characters, spaces, or encoded words are present.
+        stripped = header_value.strip()
+        if "@" in stripped and stripped.count("@") == 1:
+            if not any(c in stripped for c in " \t\n\r,<>\":;=[]()\\"):
+                if "=?" not in stripped:
+                    parts = stripped.split("@")
+                    if parts[0] and parts[1]:
+                        return stripped
+
         # Optimization: Use a list to avoid generator/filter double evaluation overhead.
         # Inline the formatting logic to skip function call overhead on hot path.
         addresses = []
