@@ -189,6 +189,21 @@ class TestPaletteUI(TestCase):
                 output = mock_stdout.getvalue()
                 self.assertIn("📊 System Configuration:", output)
 
+    def test_print_configuration_summary_unconfigured_accounts_cyan_env(self):
+        from io import StringIO
+        from src.main import EmailSecurityPipeline
+        from src.utils.colors import Colors
+
+        pipeline = EmailSecurityPipeline()
+        pipeline.config.email_accounts = []
+
+        with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
+            with patch("src.main.Colors.colorize", wraps=Colors.colorize) as mock_colorize:
+                pipeline._print_configuration_summary()
+
+                # Verify .env was colorized with Colors.CYAN
+                mock_colorize.assert_any_call(".env", Colors.CYAN)
+
     def test_check_mail_connectivity_print_status_symbols(self):
         """Test print_status in check_mail_connectivity uses ✔ and ✖ symbols correctly."""
         from io import StringIO

@@ -419,7 +419,9 @@ class EmailSecurityPipeline:
         if not self.config.email_accounts:
             print(f"    - {Colors.colorize('⚠ No accounts configured', Colors.YELLOW)}")
             print(
-                f"      {Colors.colorize('→ Add credentials to your .env file to start processing emails.', Colors.GREY)}"
+                f"      {Colors.colorize('→ Add credentials to your ', Colors.GREY)}"
+                + f"{Colors.colorize('.env', Colors.CYAN)}"
+                + f"{Colors.colorize(' file to start processing emails.', Colors.GREY)}"
             )
         else:
             for account in self.config.email_accounts:

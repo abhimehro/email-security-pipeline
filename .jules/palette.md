@@ -645,3 +645,8 @@ gives screen readers a stable state to announce.
 
 **Learning:** Fixed card widths (e.g. 70 columns) cause visual clipping or awkward truncation on smaller terminals and leave unused horizontal space on wider displays. Dynamically clamping card width based on `get_terminal_width()` improves responsive CLI layouts.
 **Action:** Calculate console alert card width using `min(max(get_terminal_width(), 60), 100)`.
+
+## 2027-02-18 - Actionable Remediation File Paths in CLI Summaries
+
+**Learning:** Referencing configuration file paths (like `.env`) in unstyled plain text inside terminal warning messages causes the file reference to blend into surrounding instructional text. This slows down user scanning when identifying what file needs modification.
+**Action:** Always highlight actionable configuration file paths and file references with `Colors.CYAN` in terminal warnings and startup summaries to make them visually distinct and reduce cognitive friction.
