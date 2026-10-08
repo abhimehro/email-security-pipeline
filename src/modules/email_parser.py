@@ -643,6 +643,19 @@ class EmailParser:
         return bool(parts[0] and parts[1])
 
     @classmethod
+    def _parse_and_format_addresses_fallback(cls, header_value: str) -> str:
+        """Helper to parse complex address headers and keep _format_addresses complexity low."""
+        addresses = []
+        for name, address in getaddresses([header_value]):
+            name_clean = cls._decode_header_value(name)
+            if name_clean and address:
+                addresses.append(f"{name_clean} <{address}>")
+            elif address or name_clean:
+                addresses.append(address or name_clean)
+
+        return ", ".join(addresses)
+
+    @classmethod
     def _format_addresses(cls, header_value: str) -> str:
         """
         Parse and format email addresses from header.
@@ -668,17 +681,7 @@ class EmailParser:
         if cls._is_plain_email(stripped):
             return stripped
 
-        # Optimization: Use a list to avoid generator/filter double evaluation overhead.
-        # Inline the formatting logic to skip function call overhead on hot path.
-        addresses = []
-        for name, address in getaddresses([header_value]):
-            name_clean = cls._decode_header_value(name)
-            if name_clean and address:
-                addresses.append(f"{name_clean} <{address}>")
-            elif address or name_clean:
-                addresses.append(address or name_clean)
-
-        return ", ".join(addresses)
+        return cls._parse_and_format_addresses_fallback(header_value)
 
     @staticmethod
     def _decode_part_payload(part: Message) -> str:
