@@ -88,6 +88,13 @@ def test_connection(config: ConnectionConfig):
 
     except imaplib.IMAP4.error as e:
         print(Colors.colorize(f"✖ IMAP Error: {e}", Colors.RED))
+        if config.label.startswith("Outlook"):
+            print(
+                Colors.colorize(
+                    "   Tip: Personal Outlook accounts NO LONGER support App Passwords.",
+                    Colors.YELLOW,
+                )
+            )
     except ssl.SSLError as e:
         print(Colors.colorize(f"✖ SSL Error: {e}", Colors.RED))
         print(f"   Error type: {type(e).__name__}")
@@ -99,6 +106,61 @@ def test_connection(config: ConnectionConfig):
     return False
 
 
+def _test_provider_account(
+    prefix: str, label: str, default_server: str, default_port: int, results: list
+) -> None:
+    """Run connection diagnostics for a specific provider if enabled."""
+    if os.getenv(f"{prefix}_ENABLED", "").lower() != "true":
+        return
+
+    email = os.getenv(f"{prefix}_EMAIL", "")
+    password = os.getenv(f"{prefix}_APP_PASSWORD", "")
+    server = os.getenv(f"{prefix}_IMAP_SERVER") or default_server
+    port = int(os.getenv(f"{prefix}_IMAP_PORT", str(default_port)))
+
+    if not email or not password:
+        print(Colors.colorize(f"\n⚠  {label} credentials not configured", Colors.YELLOW))
+        return
+
+    if prefix == "PROTON":
+        verify = os.getenv("PROTON_VERIFY_SSL", "true").lower() != "false"
+        results.append(
+            test_connection(
+                ConnectionConfig(
+                    "Proton Mail Bridge (as configured)",
+                    server,
+                    port,
+                    email,
+                    password,
+                    use_ssl=True,
+                    verify_ssl=verify,
+                )
+            )
+        )
+        print("\n--- Trying Proton without SSL (STARTTLS) ---")
+        results.append(
+            test_connection(
+                ConnectionConfig(
+                    "Proton Mail Bridge (STARTTLS fallback)",
+                    server,
+                    port,
+                    email,
+                    password,
+                    use_ssl=False,
+                    verify_ssl=False,
+                )
+            )
+        )
+    else:
+        results.append(
+            test_connection(
+                ConnectionConfig(
+                    label, server, port, email, password, use_ssl=True, verify_ssl=True
+                )
+            )
+        )
+
+
 def main():
     # Load environment
     load_dotenv(".env")
@@ -108,80 +170,26 @@ def main():
     print(f"TLS support: {ssl.HAS_TLSv1_2}, {ssl.HAS_TLSv1_3}")
 
     results = []
-
-    # Test Gmail
-    if os.getenv("GMAIL_ENABLED", "").lower() == "true":
-        gmail_email = os.getenv("GMAIL_EMAIL", "")
-        gmail_password = os.getenv("GMAIL_APP_PASSWORD", "")
-
-        if gmail_email and gmail_password:
-            results.append(
-                test_connection(
-                    ConnectionConfig(
-                        "Gmail",
-                        os.getenv("GMAIL_IMAP_SERVER") or "imap.gmail.com",
-                        int(os.getenv("GMAIL_IMAP_PORT", "993")),
-                        gmail_email,
-                        gmail_password,
-                        use_ssl=True,
-                        verify_ssl=True,
-                    )
-                )
-            )
-        else:
-            print(
-                Colors.colorize("\n⚠  Gmail credentials not configured", Colors.YELLOW)
-            )
-
-    # Test Proton with SSL verification
-    if os.getenv("PROTON_ENABLED", "").lower() == "true":
-        proton_email = os.getenv("PROTON_EMAIL", "")
-        proton_password = os.getenv("PROTON_APP_PASSWORD", "")
-        proton_server = os.getenv("PROTON_IMAP_SERVER") or "127.0.0.1"
-        proton_port = int(os.getenv("PROTON_IMAP_PORT", "1143"))
-
-        if proton_email and proton_password:
-            # First try with verification disabled (as configured)
-            verify = os.getenv("PROTON_VERIFY_SSL", "true").lower() != "false"
-            results.append(
-                test_connection(
-                    ConnectionConfig(
-                        "Proton Mail Bridge (as configured)",
-                        proton_server,
-                        proton_port,
-                        proton_email,
-                        proton_password,
-                        use_ssl=True,
-                        verify_ssl=verify,
-                    )
-                )
-            )
-
-            # Also try without SSL entirely (STARTTLS fallback)
-            print("\n--- Trying Proton without SSL (STARTTLS) ---")
-            results.append(
-                test_connection(
-                    ConnectionConfig(
-                        "Proton Mail Bridge (STARTTLS fallback)",
-                        proton_server,
-                        proton_port,
-                        proton_email,
-                        proton_password,
-                        use_ssl=False,
-                        verify_ssl=False,
-                    )
-                )
-            )
-        else:
-            print(
-                Colors.colorize("\n⚠  Proton credentials not configured", Colors.YELLOW)
-            )
+    providers = [
+        ("GMAIL", "Gmail", "imap.gmail.com", 993),
+        ("OUTLOOK", "Outlook", "outlook.office365.com", 993),
+        ("PROTON", "Proton Mail Bridge", "127.0.0.1", 1143),
+    ]
+    for prefix, label, server, port in providers:
+        _test_provider_account(prefix, label, server, port, results)
 
     print("\n" + "=" * 60)
+    if not results:
+        print(
+            Colors.colorize(
+                "⚠  No email accounts were tested. Please ensure at least one provider is enabled and configured in .env",
+                Colors.YELLOW,
+            )
+        )
     print("Diagnostics complete")
     print("=" * 60)
 
-    sys.exit(0 if all(results) else 1)
+    sys.exit(0 if (results and all(results)) else 1)
 
 
 if __name__ == "__main__":
