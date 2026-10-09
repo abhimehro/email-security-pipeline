@@ -641,6 +641,11 @@ that includes the full progress bar, initial timer, and exact required
 formatting before the loop begins. This prevents horizontal layout shift and
 gives screen readers a stable state to announce.
 
+## 2025-05-20 - Dynamic Terminal Card Width
+
+**Learning:** Fixed card widths (e.g. 70 columns) cause visual clipping or awkward truncation on smaller terminals and leave unused horizontal space on wider displays. Dynamically clamping card width based on `get_terminal_width()` improves responsive CLI layouts.
+**Action:** Calculate console alert card width using `min(max(get_terminal_width(), 60), 100)`.
+
 ## 2026-03-06 - Centralized Colorization in Standalone Connectivity Scripts
 **Learning:** Using direct ANSI string concatenations like `f"{Colors.BOLD}...{Colors.RESET}"` in standalone scripts bypasses environment color detection (such as `sys.stdout.isatty()` or `NO_COLOR`), leading to raw escape codes in logs and non-TTY outputs.
 **Action:** Always use `Colors.colorize(text, color)` instead of manual reset strings across all standalone CLI tools and diagnostic scripts.

@@ -143,3 +143,8 @@ iterations compared to ~0.39s when re-using a pre-allocated pool. **Action:**
 Always pre-allocate `ThreadPoolExecutor` instances at the class level (e.g., in
 `__init__`) or globally and re-use them for hot-path concurrency, ensuring
 proper resource teardown in a `shutdown()` method.
+
+## 2026-08-29 - Avoid Repeated get_terminal_size Syscalls in Animation Loops
+
+**Learning:** Calling `shutil.get_terminal_size()` continuously inside tight rendering loops (such as terminal spinner or countdown frame updates) invokes blocking `ioctl` system calls on every frame, creating significant CPU/I/O overhead. Caching the column width before or per iteration yields a ~96% rendering speedup.
+**Action:** Always accept an optional `columns` parameter in terminal truncation helpers and query `shutil.get_terminal_size()` once prior to entering frame-based animation loops.

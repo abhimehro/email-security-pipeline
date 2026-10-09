@@ -251,6 +251,12 @@ class TestCheckMailConnectivityValidation(unittest.TestCase):
             }
         ])
 
+    def test_main_help_flag_exits_cleanly(self):
+        """check_mail_connectivity main() with --help should exit with SystemExit(0)."""
+        with self.assertRaises(SystemExit) as cm:
+            check_mail_connectivity.main(["--help"])
+        self.assertEqual(cm.exception.code, 0)
+
 
 class TestEmailAccountConfigSMTPField(unittest.TestCase):
     """Sanity checks for the new smtp_server field on EmailAccountConfig."""

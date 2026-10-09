@@ -426,7 +426,7 @@ def print_recommendations(recommendations: List[str], width: int, risk_color: st
 def render_alert(report: ThreatReport, limits: Dict[str, int]) -> None:
     """Render the full console alert card for a threat report."""
     # Configuration
-    width = 70
+    width = min(max(get_terminal_width(), 60), 100)
     risk_color = Colors.get_risk_color(report.risk_level)
     risk_symbol = Colors.get_risk_symbol(report.risk_level)
 
