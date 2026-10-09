@@ -189,7 +189,7 @@ class TestPaletteUI(TestCase):
                 output = mock_stdout.getvalue()
                 self.assertIn("📊 System Configuration:", output)
 
-    def test_print_configuration_summary_unconfigured_accounts_cyan_env(self):
+    def test_print_configuration_summary_unconfigured_accounts_cyan_env(self) -> None:
         from io import StringIO
         from src.main import EmailSecurityPipeline
         from src.utils.colors import Colors

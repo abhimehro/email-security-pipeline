@@ -410,7 +410,7 @@ class EmailSecurityPipeline:
         # Log detailed metrics at debug level
         self.logger.debug(f"Detailed metrics: {summary}")
 
-    def _print_summary_accounts(self):
+    def _print_summary_accounts(self) -> None:
         """Print summary of configured email accounts."""
         print(f"  📧 {Colors.colorize('Monitored Accounts:', Colors.CYAN)}")
         if not self.config.email_accounts:
@@ -429,7 +429,7 @@ class EmailSecurityPipeline:
                 )
                 print(f"    - {account.provider.title()}: {account.email} ({status})")
 
-    def _print_summary_analysis(self):
+    def _print_summary_analysis(self) -> None:
         """Print summary of active analysis layers."""
         print(f"  🔍 {Colors.colorize('Analysis Layers:', Colors.CYAN)}")
         print(
@@ -453,7 +453,7 @@ class EmailSecurityPipeline:
         )
         print(f"    - Media Check:      {media_status} (Deepfake: {deepfake_status})")
 
-    def _print_summary_alerts(self):
+    def _print_summary_alerts(self) -> None:
         """Print summary of enabled alert channels."""
         print(f"  🔔 {Colors.colorize('Alert Channels:', Colors.CYAN)}")
         channels = []
@@ -478,7 +478,7 @@ class EmailSecurityPipeline:
                 + f"{Colors.colorize(' file to receive notifications.', Colors.GREY)}"
             )
 
-    def _print_summary_system(self):
+    def _print_summary_system(self) -> None:
         """Print summary of system settings."""
         print(f"  ⚙️ {Colors.colorize('System:', Colors.CYAN)}")
         print(f"    - Log Level:  {self.config.system.log_level}")
@@ -491,7 +491,7 @@ class EmailSecurityPipeline:
         print(f"    - Metrics:    {metrics_status}")
         print(f"    - Interval:   {self.config.system.check_interval}s")
 
-    def _print_configuration_summary(self):
+    def _print_configuration_summary(self) -> None:
         """Print a summary of the current configuration."""
         print(f"\n{Colors.colorize('📊 System Configuration:', Colors.BOLD)}")
         self._print_summary_accounts()
