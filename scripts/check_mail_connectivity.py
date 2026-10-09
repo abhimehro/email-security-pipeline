@@ -6,6 +6,7 @@ No messages are fetched or sent; we only attempt to open sockets and issue
 minimal capability/NOOP commands.
 """
 
+import argparse
 import imaplib
 import os
 import smtplib
@@ -77,8 +78,8 @@ def print_status(protocol, host, port, use_ssl, success, message=None):
     # Clear line to prevent artifacts
     print(" " * 80, end="\r")
 
-    symbol = "✅" if success else "❌"
     color = Colors.GREEN if success else Colors.RED
+    symbol = Colors.colorize("✔", color) if success else Colors.colorize("✖", color)
     status = (
         Colors.colorize("OK", color) if success else Colors.colorize("ERROR", color)
     )
@@ -300,7 +301,12 @@ def _check_proton() -> List[dict]:
     return results
 
 
-def main():
+def main(argv: Optional[List[str]] = None) -> None:
+    parser = argparse.ArgumentParser(
+        description="Lightweight IMAP/SMTP connectivity check using .env values."
+    )
+    parser.parse_args(argv)
+
     print(f"\n{Colors.BOLD}🔍 Checking Email Connectivity...{Colors.RESET}")
 
     results = []
