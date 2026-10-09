@@ -27,6 +27,17 @@ class TestPaletteUI(TestCase):
                 CountdownTimer.wait(1, "Testing (Press Ctrl+C to stop)")
                 mock_timer_cls.assert_called_with(1, "Testing (Press Ctrl+C to stop)")
 
+    def test_countdown_initial_frame_includes_hint(self):
+        """Test that CountdownTimer.start() includes CTRL_C_HINT in the initial static frame in TTY mode."""
+        with patch("sys.stdout") as mock_stdout:
+            mock_stdout.isatty.return_value = True
+
+            timer = CountdownTimer(duration=0, message="Waiting")
+            timer.start()
+
+            writes = self._get_writes(mock_stdout)
+            self.assertIn("(Press Ctrl+C to stop)", writes)
+
     def test_countdown_cursor_hide_show_in_tty(self):
         """Test cursor is hidden and restored when isatty is True for CountdownTimer."""
         with patch("sys.stdout") as mock_stdout:
@@ -178,6 +189,30 @@ class TestPaletteUI(TestCase):
                 output = mock_stdout.getvalue()
                 self.assertIn("📊 System Configuration:", output)
 
+    def test_check_mail_connectivity_print_status_symbols(self):
+        """Test print_status in check_mail_connectivity uses ✔ and ✖ symbols correctly."""
+        from io import StringIO
+        import sys
+        import os
+
+        # Ensure scripts directory is in sys.path
+        scripts_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "scripts"))
+        if scripts_dir not in sys.path:
+            sys.path.insert(0, scripts_dir)
+
+        import check_mail_connectivity
+
+        with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
+            check_mail_connectivity.print_status("IMAP", "imap.gmail.com", 993, True, True)
+            output = mock_stdout.getvalue()
+            self.assertIn("✔", output)
+            self.assertIn("OK", output)
+
+        with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
+            check_mail_connectivity.print_status("IMAP", "imap.gmail.com", 993, True, False, "Auth failed")
+            output = mock_stdout.getvalue()
+            self.assertIn("✖", output)
+            self.assertIn("ERROR", output)
     def test_select_provider_default_choice(self):
         from src.utils.setup_wizard import _select_provider
 

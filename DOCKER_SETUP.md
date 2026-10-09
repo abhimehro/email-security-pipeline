@@ -236,7 +236,8 @@ docker inspect email-security-pipeline:latest | jq '.[0].Config.Labels'
 
 ## Local Development (Without Docker)
 
-While Docker remains the canonical path for testing, linting, and validation, you can set up a local Python venv for rapid iteration and debugging.
+While Docker remains the canonical path for testing, linting, and validation,
+you can set up a local Python venv for rapid iteration and debugging.
 
 ### Setup
 
@@ -265,20 +266,25 @@ pytest tests/test_threat_detection.py -v
 ### Limitations
 
 This local setup **does not include**:
-- Pre-commit hooks (use `pre-commit run --all-files` in Docker via `docker compose exec`)
+
+- Pre-commit hooks (use `pre-commit run --all-files` in Docker via
+  `docker compose exec`)
 - Linters and validators (black, pylint, etc.)
 - Environment isolation from your system Python
 
-For full validation before pushing, always run `docker compose -f docker-compose.test.yml up` to match CI behavior exactly.
+For full validation before pushing, always run
+`docker compose -f docker-compose.test.yml up` to match CI behavior exactly.
 
 ### Troubleshooting
 
 If pytest cannot find modules:
+
 ```bash
 export PYTHONPATH=/path/to/repo:$PYTHONPATH
 ```
 
 If you see import errors on `src/` modules, confirm your venv uses Python 3.13:
+
 ```bash
 python --version  # Should print 3.13.x
 ```

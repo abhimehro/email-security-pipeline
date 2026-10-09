@@ -1,10 +1,12 @@
 import io
 import signal
+from contextlib import ExitStack
 from unittest.mock import MagicMock, patch
 
 import pytest
 
 from src.app_runner import AppRunner
+from src.utils.colors import Colors
 
 
 @pytest.fixture
@@ -259,6 +261,23 @@ def test_print_help(mock_stdout, mock_app_runner):
     assert "-h, --help     Show this help message and exit" in output
 
 
+@pytest.fixture
+def force_colors():
+    """Pin the ANSI codes so styling assertions do not depend on the TTY."""
+    codes = {
+        "ENABLED": True,
+        "RESET": "\033[0m",
+        "BOLD": "\033[1m",
+        "CYAN": "\033[96m",
+        "GREY": "\033[90m",
+        "YELLOW": "\033[93m",
+    }
+    with ExitStack() as stack:
+        for name, value in codes.items():
+            stack.enter_context(patch.object(Colors, name, value))
+        yield
+
+
 @patch("sys.stdout", new_callable=io.StringIO)
 def test_print_banner(mock_stdout, mock_app_runner):
     mock_app_runner.print_banner()
@@ -266,3 +285,64 @@ def test_print_banner(mock_stdout, mock_app_runner):
     assert "=" * 80 in output
     assert "Email Security Analysis Pipeline" in output
     assert "Multi-layer threat detection for email security" in output
+
+
+def test_prompt_run_wizard_styles_hint(mock_app_runner, force_colors):
+    """Verify the wizard prompt displays its default-choice hint in grey."""
+    with patch.object(mock_app_runner, "_styled_input", return_value="n") as mock_input:
+        mock_app_runner._prompt_run_wizard()
+        mock_input.assert_called_once()
+        prompt_arg = mock_input.call_args[0][0]
+        assert Colors.colorize("[Y/n]", Colors.GREY) in prompt_arg
+
+
+def test_prompt_create_from_template_styles_hint(mock_app_runner, force_colors):
+    """Verify the template prompt styles its hint grey and config path cyan."""
+    styled_input = patch.object(mock_app_runner, "_styled_input", return_value="n")
+    with styled_input as mock_input, patch("sys.exit") as mock_exit:
+        mock_app_runner._prompt_create_from_template()
+        mock_input.assert_called_once()
+        prompt_arg = mock_input.call_args[0][0]
+        assert Colors.colorize("[Y/n]", Colors.GREY) in prompt_arg
+        assert Colors.colorize(mock_app_runner.config_file, Colors.CYAN) in prompt_arg
+        mock_exit.assert_called_once_with(1)
+
+
+@patch("src.app_runner.print")
+def test_missing_config_interactive_highlights_path_cyan(
+    mock_print, mock_app_runner, force_colors
+):
+    """The missing-config warning highlights only the config path in cyan."""
+    with patch.object(mock_app_runner, "_prompt_run_wizard"), patch.object(
+        mock_app_runner, "_prompt_create_from_template"
+    ):
+        mock_app_runner._handle_missing_config_interactive()
+    printed = " ".join(
+        str(arg) for call in mock_print.call_args_list for arg in call.args
+    )
+    assert Colors.colorize("⚠ Configuration file '", Colors.YELLOW) in printed
+    assert Colors.colorize(mock_app_runner.config_file, Colors.CYAN) in printed
+    assert Colors.colorize("' not found.", Colors.YELLOW) in printed
+
+
+@patch("src.utils.validators.check_default_credentials", return_value=["Test error"])
+@patch("src.app_runner.Config")
+@patch("src.app_runner.print")
+def test_validate_config_highlights_path_cyan(
+    mock_print, mock_config, mock_check, mock_app_runner, force_colors
+):
+    """The 'Please edit <path>' hint colorizes the path cyan, not bold."""
+    with patch("sys.exit") as mock_exit:
+        mock_app_runner.validate_config()
+        mock_exit.assert_called_once_with(1)
+    printed = " ".join(
+        str(arg) for call in mock_print.call_args_list for arg in call.args
+    )
+    assert Colors.colorize("Please edit ", Colors.YELLOW) in printed
+    assert Colors.colorize(mock_app_runner.config_file, Colors.CYAN) in printed
+    expected = (
+        Colors.colorize("Please edit ", Colors.YELLOW)
+        + Colors.colorize(mock_app_runner.config_file, Colors.CYAN)
+        + Colors.colorize(" with your actual credentials.", Colors.YELLOW)
+    )
+    assert expected in printed
