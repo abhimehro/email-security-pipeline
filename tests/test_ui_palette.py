@@ -214,7 +214,7 @@ class TestPaletteUI(TestCase):
             self.assertIn("✖", output)
             self.assertIn("ERROR", output)
 
-    def test_check_mail_connectivity_error_and_tip_styling(self):
+    def test_check_mail_connectivity_error_and_tip_styling(self) -> None:
         """Test check_imap and check_smtp in check_mail_connectivity style error details with RED and tips with YELLOW."""
         from io import StringIO
         import sys
@@ -227,6 +227,7 @@ class TestPaletteUI(TestCase):
         import check_mail_connectivity
         from check_mail_connectivity import ConnectionConfig, check_imap, check_smtp
 
+        Colors = check_mail_connectivity.Colors
         config = ConnectionConfig(
             provider_name="TestProvider",
             host="invalid.host.test",
@@ -237,18 +238,33 @@ class TestPaletteUI(TestCase):
             help_text="Check server configuration.",
         )
 
-        with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
+        # Keep the colors distinct even when non-TTY output disables ANSI codes.
+        with (
+            patch("sys.stdout", new_callable=StringIO) as mock_stdout,
+            patch.object(Colors, "RED", "\033[91m"),
+            patch.object(Colors, "YELLOW", "\033[93m"),
+            patch.object(Colors, "colorize", wraps=Colors.colorize) as mock_colorize,
+        ):
             res_imap = check_imap(config)
             output = mock_stdout.getvalue()
             self.assertFalse(res_imap["success"])
+            mock_colorize.assert_any_call(res_imap["error"], Colors.RED)
+            mock_colorize.assert_any_call(config.help_text, Colors.YELLOW)
             self.assertIn("Error:", output)
             self.assertIn("💡 Tip:", output)
             self.assertIn("Check server configuration.", output)
 
-        with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
+        with (
+            patch("sys.stdout", new_callable=StringIO) as mock_stdout,
+            patch.object(Colors, "RED", "\033[91m"),
+            patch.object(Colors, "YELLOW", "\033[93m"),
+            patch.object(Colors, "colorize", wraps=Colors.colorize) as mock_colorize,
+        ):
             res_smtp = check_smtp(config)
             output = mock_stdout.getvalue()
             self.assertFalse(res_smtp["success"])
+            mock_colorize.assert_any_call(res_smtp["error"], Colors.RED)
+            mock_colorize.assert_any_call(config.help_text, Colors.YELLOW)
             self.assertIn("Error:", output)
             self.assertIn("💡 Tip:", output)
             self.assertIn("Check server configuration.", output)
