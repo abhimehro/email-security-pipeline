@@ -730,10 +730,10 @@ class TestGeneralParsing(unittest.TestCase):
 class TestFormatAddresses(unittest.TestCase):
     """Unit tests for EmailParser._format_addresses fast-path and fallback."""
 
-    def test_format_addresses_empty(self):
+    def test_format_addresses_empty(self) -> None:
         self.assertEqual(EmailParser._format_addresses(""), "")
 
-    def test_format_addresses_plain_email_fast_path(self):
+    def test_format_addresses_plain_email_fast_path(self) -> None:
         self.assertEqual(
             EmailParser._format_addresses("user@example.com"), "user@example.com"
         )
@@ -741,13 +741,13 @@ class TestFormatAddresses(unittest.TestCase):
             EmailParser._format_addresses("  user@example.com  "), "user@example.com"
         )
 
-    def test_format_addresses_with_display_name_slow_path(self):
+    def test_format_addresses_with_display_name_slow_path(self) -> None:
         self.assertEqual(
             EmailParser._format_addresses('"John Doe" <john@example.com>'),
             "John Doe <john@example.com>",
         )
 
-    def test_format_addresses_multiple_emails(self):
+    def test_format_addresses_multiple_emails(self) -> None:
         self.assertEqual(
             EmailParser._format_addresses("alice@test.org, bob@test.org"),
             "alice@test.org, bob@test.org",
