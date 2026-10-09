@@ -214,7 +214,7 @@ class TestPaletteUI(TestCase):
             self.assertIn("✖", output)
             self.assertIn("ERROR", output)
 
-    def test_check_mail_connectivity_empty_state_remediation(self):
+    def test_check_mail_connectivity_empty_state_remediation(self) -> None:
         """Test main in check_mail_connectivity outputs setup wizard guidance when no providers are enabled."""
         from io import StringIO
         import sys
