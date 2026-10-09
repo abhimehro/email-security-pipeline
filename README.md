@@ -618,8 +618,8 @@ SPAM_KEYWORDS = [
 
 ### Integrating ML Models
 
-Optional ML libraries (`transformers`, `torch`, `sentencepiece`) are **not**
-in `requirements.txt` (runtime pins used by Docker) or `requirements-ci.txt`.
+Optional ML libraries (`transformers`, `torch`, `sentencepiece`) are **not** in
+`requirements.txt` (runtime pins used by Docker) or `requirements-ci.txt`.
 Install them separately in a local venv only if you need model-backed NLP; the
 pipeline falls back to regex analysis without them.
 
@@ -693,11 +693,16 @@ The pipeline has undergone significant performance improvements:
 
 ### Runtime Dependencies
 
-**Docker remains canonical** (verified green build 2026-09-13). Dockerfile references `requirements.txt` (runtime-only), which now contains all pinned runtime deps: `requests`, `numpy`, `opencv-python-headless`, `python-dotenv`, `pyahocorasick`.
+**Docker remains canonical** (verified green build 2026-09-13). Dockerfile
+references `requirements.txt` (runtime-only), which now contains all pinned
+runtime deps: `requests`, `numpy`, `opencv-python-headless`, `python-dotenv`,
+`pyahocorasick`.
 
-`requirements-ci.txt` and `requirements-dev.txt` layer additional tools on top via `-r requirements.txt`.
+`requirements-ci.txt` and `requirements-dev.txt` layer additional tools on top
+via `-r requirements.txt`.
 
-See **VENV_MIGRATION_GUIDE.md** for local development setup, Colima recovery, and version pinning strategy.
+See **VENV_MIGRATION_GUIDE.md** for local development setup, Colima recovery,
+and version pinning strategy.
 
 ### Performance Monitoring
 

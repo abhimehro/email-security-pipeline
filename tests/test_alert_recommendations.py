@@ -44,14 +44,14 @@ def _make_nlp(
     )
 
 
-def _make_media(file_type_warnings=None):
+def _make_media(file_type_warnings=None, potential_deepfakes=None):
     """Return a MediaAnalysisResult with safe defaults."""
     return MediaAnalysisResult(
         threat_score=0.0,
         suspicious_attachments=[],
         file_type_warnings=file_type_warnings or [],
         size_anomalies=[],
-        potential_deepfakes=[],
+        potential_deepfakes=potential_deepfakes or [],
         risk_level="low",
     )
 
@@ -121,6 +121,18 @@ class TestGenerateRecommendations(unittest.TestCase):
         self.assertTrue(
             any("Dangerous attachment" in r for r in result),
             f"Expected 'Dangerous attachment' in recommendations, got: {result}",
+        )
+
+    def test_potential_deepfakes(self):
+        """Truthy potential_deepfakes → deepfake-media recommendation included."""
+        result = AlertSystem._generate_recommendations(
+            _make_spam(),
+            _make_nlp(),
+            _make_media(potential_deepfakes=["Synthetic speech detected"]),
+        )
+        self.assertTrue(
+            any("Potential deepfake media" in r for r in result),
+            f"Expected 'Potential deepfake media' in recommendations, got: {result}",
         )
 
     def test_suspicious_urls(self):
