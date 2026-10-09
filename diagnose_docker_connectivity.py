@@ -4,6 +4,7 @@ Diagnostic script to test email connectivity from within Docker container contex
 This helps identify whether issues are credential-based or network/SSL-based.
 """
 
+import argparse
 import imaplib
 import os
 import ssl
@@ -99,7 +100,90 @@ def test_connection(config: ConnectionConfig):
     return False
 
 
-def main():
+def _test_gmail_account() -> list[bool]:
+    """Run diagnostics for Gmail if enabled."""
+    if os.getenv("GMAIL_ENABLED", "").lower() != "true":
+        return []
+
+    gmail_email = os.getenv("GMAIL_EMAIL", "")
+    gmail_password = os.getenv("GMAIL_APP_PASSWORD", "")
+
+    if gmail_email and gmail_password:
+        return [
+            test_connection(
+                ConnectionConfig(
+                    "Gmail",
+                    os.getenv("GMAIL_IMAP_SERVER") or "imap.gmail.com",
+                    int(os.getenv("GMAIL_IMAP_PORT", "993")),
+                    gmail_email,
+                    gmail_password,
+                    use_ssl=True,
+                    verify_ssl=True,
+                )
+            )
+        ]
+
+    print(Colors.colorize("\n⚠  Gmail credentials not configured", Colors.YELLOW))
+    return []
+
+
+def _test_proton_account() -> list[bool]:
+    """Run diagnostics for Proton Mail Bridge if enabled."""
+    if os.getenv("PROTON_ENABLED", "").lower() != "true":
+        return []
+
+    proton_email = os.getenv("PROTON_EMAIL", "")
+    proton_password = os.getenv("PROTON_APP_PASSWORD", "")
+    proton_server = os.getenv("PROTON_IMAP_SERVER") or "127.0.0.1"
+    proton_port = int(os.getenv("PROTON_IMAP_PORT", "1143"))
+
+    if not (proton_email and proton_password):
+        print(Colors.colorize("\n⚠  Proton credentials not configured", Colors.YELLOW))
+        return []
+
+    results = []
+    # First try with verification disabled (as configured)
+    verify = os.getenv("PROTON_VERIFY_SSL", "true").lower() != "false"
+    results.append(
+        test_connection(
+            ConnectionConfig(
+                "Proton Mail Bridge (as configured)",
+                proton_server,
+                proton_port,
+                proton_email,
+                proton_password,
+                use_ssl=True,
+                verify_ssl=verify,
+            )
+        )
+    )
+
+    # Also try without SSL entirely (STARTTLS fallback)
+    print("\n--- Trying Proton without SSL (STARTTLS) ---")
+    results.append(
+        test_connection(
+            ConnectionConfig(
+                "Proton Mail Bridge (STARTTLS fallback)",
+                proton_server,
+                proton_port,
+                proton_email,
+                proton_password,
+                use_ssl=False,
+                verify_ssl=False,
+            )
+        )
+    )
+
+    return results
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(
+        prog="diagnose_docker_connectivity.py",
+        description="Diagnostic script to test email connectivity from within Docker container context.",
+    )
+    parser.parse_args(argv)
+
     # Load environment
     load_dotenv(".env")
 
@@ -108,81 +192,23 @@ def main():
     print(f"TLS support: {ssl.HAS_TLSv1_2}, {ssl.HAS_TLSv1_3}")
 
     results = []
-
-    # Test Gmail
-    if os.getenv("GMAIL_ENABLED", "").lower() == "true":
-        gmail_email = os.getenv("GMAIL_EMAIL", "")
-        gmail_password = os.getenv("GMAIL_APP_PASSWORD", "")
-
-        if gmail_email and gmail_password:
-            results.append(
-                test_connection(
-                    ConnectionConfig(
-                        "Gmail",
-                        os.getenv("GMAIL_IMAP_SERVER") or "imap.gmail.com",
-                        int(os.getenv("GMAIL_IMAP_PORT", "993")),
-                        gmail_email,
-                        gmail_password,
-                        use_ssl=True,
-                        verify_ssl=True,
-                    )
-                )
-            )
-        else:
-            print(
-                Colors.colorize("\n⚠  Gmail credentials not configured", Colors.YELLOW)
-            )
-
-    # Test Proton with SSL verification
-    if os.getenv("PROTON_ENABLED", "").lower() == "true":
-        proton_email = os.getenv("PROTON_EMAIL", "")
-        proton_password = os.getenv("PROTON_APP_PASSWORD", "")
-        proton_server = os.getenv("PROTON_IMAP_SERVER") or "127.0.0.1"
-        proton_port = int(os.getenv("PROTON_IMAP_PORT", "1143"))
-
-        if proton_email and proton_password:
-            # First try with verification disabled (as configured)
-            verify = os.getenv("PROTON_VERIFY_SSL", "true").lower() != "false"
-            results.append(
-                test_connection(
-                    ConnectionConfig(
-                        "Proton Mail Bridge (as configured)",
-                        proton_server,
-                        proton_port,
-                        proton_email,
-                        proton_password,
-                        use_ssl=True,
-                        verify_ssl=verify,
-                    )
-                )
-            )
-
-            # Also try without SSL entirely (STARTTLS fallback)
-            print("\n--- Trying Proton without SSL (STARTTLS) ---")
-            results.append(
-                test_connection(
-                    ConnectionConfig(
-                        "Proton Mail Bridge (STARTTLS fallback)",
-                        proton_server,
-                        proton_port,
-                        proton_email,
-                        proton_password,
-                        use_ssl=False,
-                        verify_ssl=False,
-                    )
-                )
-            )
-        else:
-            print(
-                Colors.colorize("\n⚠  Proton credentials not configured", Colors.YELLOW)
-            )
+    results.extend(_test_gmail_account())
+    results.extend(_test_proton_account())
 
     print("\n" + "=" * 60)
     print("Diagnostics complete")
     print("=" * 60)
 
-    sys.exit(0 if all(results) else 1)
+    if not results:
+        print(
+            Colors.colorize(
+                "\n⚠  No email accounts were configured or tested.", Colors.YELLOW
+            )
+        )
+        return 1
+
+    return 0 if all(results) else 1
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
