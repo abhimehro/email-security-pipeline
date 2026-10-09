@@ -177,7 +177,7 @@ def _test_proton_account() -> list[bool]:
     return results
 
 
-def main(argv: list[str] | None = None):
+def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         prog="diagnose_docker_connectivity.py",
         description="Diagnostic script to test email connectivity from within Docker container context.",
