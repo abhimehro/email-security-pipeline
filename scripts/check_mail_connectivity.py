@@ -88,7 +88,9 @@ def print_status(protocol, host, port, use_ssl, success, message=None):
     print(f"  {symbol} {protocol:<4} ({host}:{port}, {ssl_str}) -> {status}")
 
     if not success and message:
-        print(f"    {Colors.colorize('Error:', Colors.RED)} {message}")
+        print(
+            f"    {Colors.colorize('Error:', Colors.RED)} {Colors.colorize(str(message), Colors.RED)}"
+        )
 
 
 def print_summary(results):
@@ -149,7 +151,9 @@ def check_imap(config: ConnectionConfig):
         print_status("IMAP", config.host, config.port, config.use_ssl, False, str(e))
         result["error"] = str(e)
         if config.help_text:
-            print(f"    {Colors.colorize('💡 Tip:', Colors.YELLOW)} {config.help_text}")
+            print(
+                f"    {Colors.colorize('💡 Tip:', Colors.YELLOW)} {Colors.colorize(config.help_text, Colors.YELLOW)}"
+            )
 
     return result
 
@@ -185,7 +189,9 @@ def check_smtp(config: ConnectionConfig):
         print_status("SMTP", config.host, config.port, config.use_ssl, False, str(e))
         result["error"] = str(e)
         if config.help_text:
-            print(f"    {Colors.colorize('💡 Tip:', Colors.YELLOW)} {config.help_text}")
+            print(
+                f"    {Colors.colorize('💡 Tip:', Colors.YELLOW)} {Colors.colorize(config.help_text, Colors.YELLOW)}"
+            )
 
     return result
 
