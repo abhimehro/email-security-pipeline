@@ -169,7 +169,7 @@ def print_alert_metadata(
 def print_threat_score(score: float, risk_level: str, width: int, risk_color: str):
     """Print the threat score and progress bar."""
     score_val = min(max(score, 0), 100)
-    meter_len = 40
+    meter_len = max(20, width - 30)
     filled_len = int(score_val / 100 * meter_len)
     bar = "█" * filled_len + "░" * (meter_len - filled_len)
     meter_color = Colors.get_risk_color(risk_level)
