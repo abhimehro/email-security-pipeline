@@ -403,20 +403,26 @@ def print_recommendations(recommendations: List[str], width: int, risk_color: st
     print_alert_row(Colors.colorize("RECOMMENDATIONS", Colors.BOLD), risk_color)
     print_alert_row("", risk_color)
 
-    for rec in recommendations:
-        # Compute uppercase before stripping prefixes so keyword matching matches
-        # the original implementation.
-        rec_upper = rec.upper()
-        rec = _strip_recommendation_prefix(rec)
-        color = _determine_recommendation_color(rec_upper)
-        icon = "►"
+    if not recommendations:
+        print_alert_row(
+            f"{Colors.colorize('✔', Colors.GREEN)} No specific actions required",
+            risk_color,
+        )
+    else:
+        for rec in recommendations:
+            # Compute uppercase before stripping prefixes so keyword matching matches
+            # the original implementation.
+            rec_upper = rec.upper()
+            rec = _strip_recommendation_prefix(rec)
+            color = _determine_recommendation_color(rec_upper)
+            icon = "►"
 
-        # Calculate available width for text
-        max_text_width = width - 8
+            # Calculate available width for text
+            max_text_width = width - 8
 
-        # Wrap text nicely
-        wrapped_lines = textwrap.wrap(rec, width=max_text_width)
-        _print_wrapped_lines(wrapped_lines, icon, color, risk_color)
+            # Wrap text nicely
+            wrapped_lines = textwrap.wrap(rec, width=max_text_width)
+            _print_wrapped_lines(wrapped_lines, icon, color, risk_color)
 
     # Bottom Border (└───┘)
     print(Colors.colorize(f"└{'─'*border_len}┘", risk_color))
