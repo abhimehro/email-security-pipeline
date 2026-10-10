@@ -629,6 +629,32 @@ class EmailParser:
             )
             return value
 
+    @staticmethod
+    def _is_plain_email(stripped: str) -> bool:
+        """
+        Helper method to evaluate if a stripped header string is a single plain email address.
+        Extracted to satisfy CodeScene quality gates and keep cyclomatic complexity low.
+        """
+        if "@" not in stripped or stripped.count("@") != 1:
+            return False
+        if any(c in stripped for c in " \t\n\r,<>\":;=[]()\\") or "=?" in stripped:
+            return False
+        parts = stripped.split("@")
+        return bool(parts[0] and parts[1])
+
+    @classmethod
+    def _parse_and_format_addresses_fallback(cls, header_value: str) -> str:
+        """Helper to parse complex address headers and keep _format_addresses complexity low."""
+        addresses = []
+        for name, address in getaddresses([header_value]):
+            name_clean = cls._decode_header_value(name)
+            if name_clean and address:
+                addresses.append(f"{name_clean} <{address}>")
+            elif address or name_clean:
+                addresses.append(address or name_clean)
+
+        return ", ".join(addresses)
+
     @classmethod
     def _format_addresses(cls, header_value: str) -> str:
         """
@@ -648,17 +674,14 @@ class EmailParser:
         if not header_value:
             return ""
 
-        # Optimization: Use a list to avoid generator/filter double evaluation overhead.
-        # Inline the formatting logic to skip function call overhead on hot path.
-        addresses = []
-        for name, address in getaddresses([header_value]):
-            name_clean = cls._decode_header_value(name)
-            if name_clean and address:
-                addresses.append(f"{name_clean} <{address}>")
-            elif address or name_clean:
-                addresses.append(address or name_clean)
+        # ⚡ BOLT: Fast-path for single plain email addresses (e.g., "user@example.com").
+        # Bypasses expensive email.utils.getaddresses() parsing when no display names,
+        # structural/comment characters, spaces, or encoded words are present.
+        stripped = header_value.strip()
+        if cls._is_plain_email(stripped):
+            return stripped
 
-        return ", ".join(addresses)
+        return cls._parse_and_format_addresses_fallback(header_value)
 
     @staticmethod
     def _decode_part_payload(part: Message) -> str:
