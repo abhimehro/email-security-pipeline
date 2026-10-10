@@ -629,6 +629,34 @@ class EmailParser:
             )
             return value
 
+    @staticmethod
+    def _is_simple_single_address(stripped: str) -> bool:
+        """
+        Check if a stripped string is a simple single email address.
+
+        ⚡ BOLT: Fast path for simple single address headers (e.g. "user@example.com").
+        Bypasses expensive email.utils.getaddresses() parsing (~9x speedup).
+        """
+        if "@" not in stripped or stripped.count("@") != 1:
+            return False
+        forbidden = " \t\n\r,<>'\"()[]:;=\\?"
+        if any(c in forbidden for c in stripped):
+            return False
+        local, domain = stripped.split("@")
+        return bool(local and domain)
+
+    @classmethod
+    def _parse_addresses_fallback(cls, header_value: str) -> str:
+        """Parse email addresses using email.utils.getaddresses fallback."""
+        addresses = []
+        for name, address in getaddresses([header_value]):
+            name_clean = cls._decode_header_value(name)
+            if name_clean and address:
+                addresses.append(f"{name_clean} <{address}>")
+            elif address or name_clean:
+                addresses.append(address or name_clean)
+        return ", ".join(addresses)
+
     @classmethod
     def _format_addresses(cls, header_value: str) -> str:
         """
@@ -648,28 +676,11 @@ class EmailParser:
         if not header_value:
             return ""
 
-        # ⚡ BOLT: Fast path for simple single address headers (e.g. "user@example.com").
-        # Fast-path checking for single simple address without quotes/comments/commas
-        # bypasses expensive email.utils.getaddresses() parsing (~9x speedup).
         stripped = header_value.strip()
-        if "@" in stripped and stripped.count("@") == 1:
-            forbidden = " \t\n\r,<>'\"()[]:;=\\?"
-            if not any(c in forbidden for c in stripped):
-                local, domain = stripped.split("@")
-                if local and domain:
-                    return stripped
+        if cls._is_simple_single_address(stripped):
+            return stripped
 
-        # Optimization: Use a list to avoid generator/filter double evaluation overhead.
-        # Inline the formatting logic to skip function call overhead on hot path.
-        addresses = []
-        for name, address in getaddresses([header_value]):
-            name_clean = cls._decode_header_value(name)
-            if name_clean and address:
-                addresses.append(f"{name_clean} <{address}>")
-            elif address or name_clean:
-                addresses.append(address or name_clean)
-
-        return ", ".join(addresses)
+        return cls._parse_addresses_fallback(header_value)
 
     @staticmethod
     def _decode_part_payload(part: Message) -> str:
