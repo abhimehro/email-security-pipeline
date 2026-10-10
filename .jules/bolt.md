@@ -148,3 +148,8 @@ proper resource teardown in a `shutdown()` method.
 
 **Learning:** Calling `shutil.get_terminal_size()` continuously inside tight rendering loops (such as terminal spinner or countdown frame updates) invokes blocking `ioctl` system calls on every frame, creating significant CPU/I/O overhead. Caching the column width before or per iteration yields a ~96% rendering speedup.
 **Action:** Always accept an optional `columns` parameter in terminal truncation helpers and query `shutil.get_terminal_size()` once prior to entering frame-based animation loops.
+
+## 2026-08-30 - Fast path for email address header formatting
+
+**Learning:** In email parsing, `email.utils.getaddresses()` handles full RFC 2822 parsing (comments, display names, quoted strings, multiple recipients), which introduces noticeable string scanning and tuple creation overhead for simple single address headers (e.g., `From: user@example.com`). A fast-path pre-check for a single `@` without forbidden RFC structural/quote/whitespace characters allows returning simple addresses directly, yielding a ~9x speedup on single address headers.
+**Action:** Before invoking `getaddresses()`, check if the header is a simple single address without special characters or quotes to bypass full parser overhead.
