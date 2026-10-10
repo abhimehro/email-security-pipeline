@@ -1,3 +1,4 @@
+import argparse
 import getpass
 import os
 import re
@@ -621,8 +622,15 @@ def run_setup_wizard(
         return False
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
     """CLI entry point for setup.sh and other automation."""
+    if argv is None:
+        argv = []
+    parser = argparse.ArgumentParser(
+        description="Interactive setup wizard for configuring email security pipeline credentials."
+    )
+    parser.parse_args(argv)
+
     if not sys.stdin.isatty():
         print(
             Colors.colorize(
@@ -646,4 +654,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(main(sys.argv[1:]))

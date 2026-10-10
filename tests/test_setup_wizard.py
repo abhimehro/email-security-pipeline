@@ -409,6 +409,12 @@ class TestSetupWizardCLI(unittest.TestCase):
         """CLI should return 1 on unexpected EOF."""
         self.assertEqual(main(), 1)
 
+    def test_main_help_flag(self):
+        """CLI should exit cleanly with status 0 when invoked with --help."""
+        with self.assertRaises(SystemExit) as cm:
+            main(["--help"])
+        self.assertEqual(cm.exception.code, 0)
+
     def test_cli_module_invocation_requires_tty(self):
         """The real module invocation should fail cleanly without a TTY."""
         repo_root = Path(__file__).resolve().parents[1]
