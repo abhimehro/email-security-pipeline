@@ -722,5 +722,37 @@ class TestGeneralParsing(unittest.TestCase):
         self.assertLessEqual(result.date, after)
 
 
+# ---------------------------------------------------------------------------
+# 6. Header address formatting
+# ---------------------------------------------------------------------------
+
+
+class TestFormatAddresses(unittest.TestCase):
+    """Unit tests for EmailParser._format_addresses fast-path and fallback."""
+
+    def test_format_addresses_empty(self) -> None:
+        self.assertEqual(EmailParser._format_addresses(""), "")
+
+    def test_format_addresses_plain_email_fast_path(self) -> None:
+        self.assertEqual(
+            EmailParser._format_addresses("user@example.com"), "user@example.com"
+        )
+        self.assertEqual(
+            EmailParser._format_addresses("  user@example.com  "), "user@example.com"
+        )
+
+    def test_format_addresses_with_display_name_slow_path(self) -> None:
+        self.assertEqual(
+            EmailParser._format_addresses('"John Doe" <john@example.com>'),
+            "John Doe <john@example.com>",
+        )
+
+    def test_format_addresses_multiple_emails(self) -> None:
+        self.assertEqual(
+            EmailParser._format_addresses("alice@test.org, bob@test.org"),
+            "alice@test.org, bob@test.org",
+        )
+
+
 if __name__ == "__main__":
     unittest.main()

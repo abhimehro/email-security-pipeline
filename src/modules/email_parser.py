@@ -45,6 +45,10 @@ class ParseContext:
 
 logger = logging.getLogger(__name__)
 
+# Pre-computed set of structural, comment, quote, and whitespace characters
+# that invalidate the fast path for single plain email address parsing.
+_INVALID_ADDRESS_CHARS = set(" \t\n\r,< >\"()[]:;=\\?")
+
 
 @dataclass
 class EmailParserConfig:
@@ -629,6 +633,28 @@ class EmailParser:
             )
             return value
 
+    @staticmethod
+    def _is_plain_single_email(stripped: str) -> bool:
+        """Check if header_value is a simple single email address safe for fast path."""
+        if "@" not in stripped or stripped.count("@") != 1:
+            return False
+        if set(stripped) & _INVALID_ADDRESS_CHARS:
+            return False
+        local, domain = stripped.split("@", 1)
+        return bool(local and domain)
+
+    @classmethod
+    def _format_addresses_fallback(cls, header_value: str) -> str:
+        """Fallback address formatting using email.utils.getaddresses."""
+        addresses = []
+        for name, address in getaddresses([header_value]):
+            name_clean = cls._decode_header_value(name)
+            if name_clean and address:
+                addresses.append(f"{name_clean} <{address}>")
+            elif address or name_clean:
+                addresses.append(address or name_clean)
+        return ", ".join(addresses)
+
     @classmethod
     def _format_addresses(cls, header_value: str) -> str:
         """
@@ -648,17 +674,14 @@ class EmailParser:
         if not header_value:
             return ""
 
-        # Optimization: Use a list to avoid generator/filter double evaluation overhead.
-        # Inline the formatting logic to skip function call overhead on hot path.
-        addresses = []
-        for name, address in getaddresses([header_value]):
-            name_clean = cls._decode_header_value(name)
-            if name_clean and address:
-                addresses.append(f"{name_clean} <{address}>")
-            elif address or name_clean:
-                addresses.append(address or name_clean)
+        # ⚡ BOLT: Fast path for plain single email addresses (e.g., "user@example.com").
+        # Verifying a single '@' and checking against RFC 5322 structural/comment/whitespace
+        # characters allows returning stripped immediately, bypassing getaddresses() overhead.
+        stripped = header_value.strip()
+        if cls._is_plain_single_email(stripped):
+            return stripped
 
-        return ", ".join(addresses)
+        return cls._format_addresses_fallback(header_value)
 
     @staticmethod
     def _decode_part_payload(part: Message) -> str:
