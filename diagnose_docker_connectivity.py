@@ -133,6 +133,32 @@ def main():
                 Colors.colorize("\n⚠  Gmail credentials not configured", Colors.YELLOW)
             )
 
+    # Test Outlook
+    if os.getenv("OUTLOOK_ENABLED", "").lower() == "true":
+        outlook_email = os.getenv("OUTLOOK_EMAIL", "")
+        outlook_password = os.getenv("OUTLOOK_APP_PASSWORD", "")
+
+        if outlook_email and outlook_password:
+            results.append(
+                test_connection(
+                    ConnectionConfig(
+                        "Outlook",
+                        os.getenv("OUTLOOK_IMAP_SERVER") or "outlook.office365.com",
+                        int(os.getenv("OUTLOOK_IMAP_PORT", "993")),
+                        outlook_email,
+                        outlook_password,
+                        use_ssl=True,
+                        verify_ssl=True,
+                    )
+                )
+            )
+        else:
+            print(
+                Colors.colorize(
+                    "\n⚠  Outlook credentials not configured", Colors.YELLOW
+                )
+            )
+
     # Test Proton with SSL verification
     if os.getenv("PROTON_ENABLED", "").lower() == "true":
         proton_email = os.getenv("PROTON_EMAIL", "")
@@ -177,11 +203,23 @@ def main():
                 Colors.colorize("\n⚠  Proton credentials not configured", Colors.YELLOW)
             )
 
+    if not results:
+        print(
+            Colors.colorize(
+                "\n⚠  No email providers enabled in .env", Colors.YELLOW
+            )
+        )
+        print(
+            "   Run "
+            + Colors.colorize("python src/utils/setup_wizard.py", Colors.CYAN)
+            + " to configure an email account."
+        )
+
     print("\n" + "=" * 60)
     print("Diagnostics complete")
     print("=" * 60)
 
-    sys.exit(0 if all(results) else 1)
+    sys.exit(0 if (results and all(results)) else 1)
 
 
 if __name__ == "__main__":
