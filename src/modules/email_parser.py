@@ -632,6 +632,16 @@ class EmailParser:
             )
             return value
 
+    @staticmethod
+    def _is_simple_address(val: str) -> bool:
+        """
+        Check if header value is a plain email address without RFC 5322 special characters.
+        Extracted to helper method to keep EmailParser._format_addresses cyclomatic complexity low.
+        """
+        if "@" not in val or "=?" in val or val.count("@") != 1:
+            return False
+        return not any(c in _HEADER_ADDRESS_SPECIAL_CHARS for c in val)
+
     @classmethod
     def _format_addresses(cls, header_value: str) -> str:
         """
@@ -656,11 +666,10 @@ class EmailParser:
         # allows returning the stripped string directly, bypassing email.utils.getaddresses()
         # and yielding a ~10x speedup for clean address headers.
         val = header_value.strip()
-        if "@" in val and "=?" not in val and val.count("@") == 1:
-            if not any(c in _HEADER_ADDRESS_SPECIAL_CHARS for c in val):
-                local, domain = val.split("@", 1)
-                if local and domain:
-                    return val
+        if cls._is_simple_address(val):
+            local, domain = val.split("@", 1)
+            if local and domain:
+                return val
 
         # Optimization: Use a list to avoid generator/filter double evaluation overhead.
         # Inline the formatting logic to skip function call overhead on hot path.
