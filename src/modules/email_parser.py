@@ -636,11 +636,28 @@ class EmailParser:
     def _is_simple_address(val: str) -> bool:
         """
         Check if header value is a plain email address without RFC 5322 special characters.
-        Extracted to helper method to keep EmailParser._format_addresses cyclomatic complexity low.
         """
         if "@" not in val or "=?" in val or val.count("@") != 1:
             return False
-        return not any(c in _HEADER_ADDRESS_SPECIAL_CHARS for c in val)
+        if any(c in _HEADER_ADDRESS_SPECIAL_CHARS for c in val):
+            return False
+        local, domain = val.split("@", 1)
+        return bool(local and domain)
+
+    @classmethod
+    def _format_addresses_fallback(cls, header_value: str) -> str:
+        """
+        Fallback address formatting using full email.utils.getaddresses parsing.
+        """
+        addresses = []
+        for name, address in getaddresses([header_value]):
+            name_clean = cls._decode_header_value(name)
+            if name_clean and address:
+                addresses.append(f"{name_clean} <{address}>")
+            elif address or name_clean:
+                addresses.append(address or name_clean)
+
+        return ", ".join(addresses)
 
     @classmethod
     def _format_addresses(cls, header_value: str) -> str:
@@ -667,21 +684,9 @@ class EmailParser:
         # and yielding a ~10x speedup for clean address headers.
         val = header_value.strip()
         if cls._is_simple_address(val):
-            local, domain = val.split("@", 1)
-            if local and domain:
-                return val
+            return val
 
-        # Optimization: Use a list to avoid generator/filter double evaluation overhead.
-        # Inline the formatting logic to skip function call overhead on hot path.
-        addresses = []
-        for name, address in getaddresses([header_value]):
-            name_clean = cls._decode_header_value(name)
-            if name_clean and address:
-                addresses.append(f"{name_clean} <{address}>")
-            elif address or name_clean:
-                addresses.append(address or name_clean)
-
-        return ", ".join(addresses)
+        return cls._format_addresses_fallback(header_value)
 
     @staticmethod
     def _decode_part_payload(part: Message) -> str:
