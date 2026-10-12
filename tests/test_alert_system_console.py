@@ -257,6 +257,17 @@ class TestConsoleAlert(unittest.TestCase):
         output = captured.getvalue()
         self.assertIn("┌" + "─" * 98 + "┐", output)
 
+    def test_empty_recommendations_rendered_with_positive_feedback(self):
+        """Empty recommendations list should display '✔ No specific actions required'."""
+        from src.modules.alert_console import print_recommendations
+
+        captured = StringIO()
+        with patch("sys.stdout", captured):
+            print_recommendations([], 60, "\033[32m")
+        output = captured.getvalue()
+        self.assertIn("RECOMMENDATIONS", output)
+        self.assertIn("No specific actions required", output)
+
 
 if __name__ == "__main__":
     unittest.main()
