@@ -646,6 +646,11 @@ gives screen readers a stable state to announce.
 **Learning:** Fixed card widths (e.g. 70 columns) cause visual clipping or awkward truncation on smaller terminals and leave unused horizontal space on wider displays. Dynamically clamping card width based on `get_terminal_width()` improves responsive CLI layouts.
 **Action:** Calculate console alert card width using `min(max(get_terminal_width(), 60), 100)`.
 
+## 2027-02-18 - Actionable Empty State Guidance in Diagnostic CLIs
+
+**Learning:** When CLI diagnostic tools encounter an unconfigured state where no tests are executed, returning exit status 0 without feedback creates a false-positive success signal. Providing clear empty state warnings and highlighting actionable setup commands in `Colors.CYAN` guides users to immediate remediation.
+**Action:** In diagnostic scripts, check for empty test result collections, print an explicit warning with `Colors.YELLOW`, highlight setup commands in `Colors.CYAN`, and exit with code 1.
+
 ## 2027-02-18 - Actionable Remediation File Paths in CLI Summaries
 
 **Learning:** Referencing configuration file paths (like `.env`) in unstyled plain text inside terminal warning messages causes the file reference to blend into surrounding instructional text. This slows down user scanning when identifying what file needs modification.

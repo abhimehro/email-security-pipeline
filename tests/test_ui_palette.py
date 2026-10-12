@@ -229,6 +229,32 @@ class TestPaletteUI(TestCase):
             self.assertIn("✖", output)
             self.assertIn("ERROR", output)
 
+    def test_diagnose_docker_connectivity_empty_state(self):
+        """Test diagnose_docker_connectivity.py main() when no providers are enabled."""
+        from io import StringIO
+        import os
+
+        import diagnose_docker_connectivity
+
+        with patch.dict(
+            os.environ,
+            {
+                "GMAIL_ENABLED": "false",
+                "OUTLOOK_ENABLED": "false",
+                "PROTON_ENABLED": "false",
+            },
+            clear=True,
+        ):
+            with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
+                with patch("dotenv.load_dotenv"):
+                    with self.assertRaises(SystemExit) as cm:
+                        diagnose_docker_connectivity.main()
+
+                    self.assertEqual(cm.exception.code, 1)
+                    output = mock_stdout.getvalue()
+                    self.assertIn("No email providers enabled in .env", output)
+                    self.assertIn("python src/utils/setup_wizard.py", output)
+
     def test_check_mail_connectivity_empty_state_remediation(self) -> None:
         """Test main in check_mail_connectivity outputs setup wizard guidance when no providers are enabled."""
         from io import StringIO
