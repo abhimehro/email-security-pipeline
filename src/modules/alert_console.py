@@ -359,16 +359,24 @@ def print_analysis_details(
     )
 
 
+def _match_single_prefix(rec: str) -> str | None:
+    """Find the first matching prefix at the start of the recommendation string."""
+    for prefix in RECOMMENDATION_PREFIXES:
+        if rec.startswith(prefix):
+            return prefix
+    return None
+
+
 def _extract_and_strip_recommendation_prefix(rec: str) -> tuple[str, str]:
     """Extract existing prefix icon (if present) and strip it to prevent duplicate icons."""
     found_icon = None
-    while rec.startswith(RECOMMENDATION_PREFIXES_TUPLE):
-        for prefix in RECOMMENDATION_PREFIXES:
-            if rec.startswith(prefix):
-                if found_icon is None:
-                    found_icon = prefix.strip()
-                rec = rec[len(prefix) :]
-                break
+    while True:
+        prefix = _match_single_prefix(rec)
+        if not prefix:
+            break
+        if found_icon is None:
+            found_icon = prefix.strip()
+        rec = rec[len(prefix) :]
     return found_icon or "►", rec
 
 
