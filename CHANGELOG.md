@@ -47,6 +47,9 @@
 
 **Closed issues:**
 
+- Daily QA & Agentic Review — 2026-10-11 [\#1746](https://github.com/abhimehro/email-security-pipeline/issues/1746)
+- Daily QA & Agentic Review — 2026-10-10 [\#1742](https://github.com/abhimehro/email-security-pipeline/issues/1742)
+- Daily QA & Agentic Review — 2026-10-09 [\#1739](https://github.com/abhimehro/email-security-pipeline/issues/1739)
 - Daily QA & Agentic Review — 2026-10-04 [\#1712](https://github.com/abhimehro/email-security-pipeline/issues/1712)
 - Daily QA & Agentic Review — 2026-10-03 [\#1707](https://github.com/abhimehro/email-security-pipeline/issues/1707)
 - Daily QA & Agentic Review — 2026-10-02 [\#1702](https://github.com/abhimehro/email-security-pipeline/issues/1702)
@@ -69,7 +72,10 @@
 - Daily QA & Agentic Review — 2026-09-13 [\#1595](https://github.com/abhimehro/email-security-pipeline/issues/1595)
 - Daily QA & Agentic Review — 2026-09-12 [\#1592](https://github.com/abhimehro/email-security-pipeline/issues/1592)
 - Daily QA & Agentic Review — 2026-09-11 [\#1590](https://github.com/abhimehro/email-security-pipeline/issues/1590)
+- \[repo-automation\] Daily Status Report - 2026-09-11 [\#1586](https://github.com/abhimehro/email-security-pipeline/issues/1586)
+- \[repo-automation\] Daily Status Report - 2026-09-10 [\#1585](https://github.com/abhimehro/email-security-pipeline/issues/1585)
 - Daily QA & Agentic Review — 2026-09-09 [\#1583](https://github.com/abhimehro/email-security-pipeline/issues/1583)
+- \[repo-automation\] Daily Status Report - 2026-09-09 [\#1582](https://github.com/abhimehro/email-security-pipeline/issues/1582)
 - Daily QA & Agentic Review — 2026-09-08 [\#1580](https://github.com/abhimehro/email-security-pipeline/issues/1580)
 - \[repo-automation\] Daily Status Report - 2026-09-08 [\#1578](https://github.com/abhimehro/email-security-pipeline/issues/1578)
 - Daily QA & Agentic Review — 2026-09-07 [\#1577](https://github.com/abhimehro/email-security-pipeline/issues/1577)
@@ -82,6 +88,7 @@
 - \[repo-automation\] Daily Status Report - 2026-09-04 [\#1567](https://github.com/abhimehro/email-security-pipeline/issues/1567)
 - Daily QA & Agentic Review — 2026-09-03 [\#1565](https://github.com/abhimehro/email-security-pipeline/issues/1565)
 - \[repo-automation\] Daily Status Report - 2026-09-03 [\#1564](https://github.com/abhimehro/email-security-pipeline/issues/1564)
+- \[repo-health\] summary.yml still failing: GitHub Models 410 retirement brownout [\#1563](https://github.com/abhimehro/email-security-pipeline/issues/1563)
 - \[repo-automation\] Daily Status Report - 2026-09-02 [\#1559](https://github.com/abhimehro/email-security-pipeline/issues/1559)
 - Daily QA & Agentic Review — 2026-09-01 [\#1558](https://github.com/abhimehro/email-security-pipeline/issues/1558)
 - \[repo-automation\] Daily Status Report - 2026-09-01 [\#1557](https://github.com/abhimehro/email-security-pipeline/issues/1557)
@@ -551,6 +558,13 @@
 
 **Merged pull requests:**
 
+- 🎨 Palette: Actionable empty state feedback in Docker connectivity diagnostics [\#1745](https://github.com/abhimehro/email-security-pipeline/pull/1745) ([abhimehro](https://github.com/abhimehro))
+- ⚡ Bolt: Fast-path clean email address header parsing in EmailParser.\_format\_addresses [\#1744](https://github.com/abhimehro/email-security-pipeline/pull/1744) ([abhimehro](https://github.com/abhimehro))
+- chore\(deps\): bump python-dotenv from 1.2.3 to 1.2.4 [\#1735](https://github.com/abhimehro/email-security-pipeline/pull/1735) ([dependabot[bot]](https://github.com/apps/dependabot))
+- 🎨 Palette: Render explicit positive feedback for empty alert recommendations [\#1734](https://github.com/abhimehro/email-security-pipeline/pull/1734) ([abhimehro](https://github.com/abhimehro))
+- 🎨 Palette: Highlight actionable remediation file paths in configuration summary warnings [\#1730](https://github.com/abhimehro/email-security-pipeline/pull/1730) ([abhimehro](https://github.com/abhimehro))
+- 🎨 Palette: Add interactive setup wizard guidance to mail connectivity check [\#1728](https://github.com/abhimehro/email-security-pipeline/pull/1728) ([abhimehro](https://github.com/abhimehro))
+- 🎨 Palette: Style error details and remediation tips in mail connectivity check [\#1725](https://github.com/abhimehro/email-security-pipeline/pull/1725) ([abhimehro](https://github.com/abhimehro))
 - 🎨 Palette: Add CLI help flag support to check\_mail\_connectivity.py [\#1711](https://github.com/abhimehro/email-security-pipeline/pull/1711) ([abhimehro](https://github.com/abhimehro))
 - ⚡ Bolt: Optimize TTLCache lookup via pop fast-path [\#1710](https://github.com/abhimehro/email-security-pipeline/pull/1710) ([abhimehro](https://github.com/abhimehro))
 - docs\(repo-health\): install pytest-cov from requirements-dev.txt [\#1708](https://github.com/abhimehro/email-security-pipeline/pull/1708) ([cursor[bot]](https://github.com/apps/cursor))
