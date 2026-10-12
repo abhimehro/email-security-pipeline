@@ -655,3 +655,7 @@ gives screen readers a stable state to announce.
 
 **Learning:** Referencing configuration file paths (like `.env`) in unstyled plain text inside terminal warning messages causes the file reference to blend into surrounding instructional text. This slows down user scanning when identifying what file needs modification.
 **Action:** Always highlight actionable configuration file paths and file references with `Colors.CYAN` in terminal warnings and startup summaries to make them visually distinct and reduce cognitive friction.
+
+## 2027-02-18 - Preserve Contextual Threat Icons in CLI Recommendations
+
+**Learning:** Replacing contextual threat icons (like 🎣 for phishing or 🔗 for suspicious URLs) with generic ► bullet points in CLI alert summaries strips valuable semantic context and reduces visual scannability. **Action:** Extract and preserve contextual threat icons as bullet markers in CLI recommendation cards while dynamically computing line-wrap indentation based on the icon's visual length.

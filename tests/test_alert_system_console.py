@@ -268,6 +268,50 @@ class TestConsoleAlert(unittest.TestCase):
         self.assertIn("RECOMMENDATIONS", output)
         self.assertIn("No specific actions required", output)
 
+    def test_contextual_recommendation_icons_rendered(self):
+        """Contextual recommendation icons (🎣, 🔗, ⏰, 📎, 🎭) should be preserved in console recommendations."""
+        from src.modules.alert_console import print_recommendations
+
+        recs = [
+            "🎣 Potential phishing: Do not click links or provide credentials",
+            "🔗 Suspicious URLs detected: Verify links before clicking",
+            "⏰ Urgency tactics detected: Take time to verify before acting",
+            "Unprefixed custom recommendation text",
+        ]
+        captured = StringIO()
+        with patch("sys.stdout", captured):
+            print_recommendations(recs, 80, "\033[31m")
+        output = captured.getvalue()
+
+        self.assertIn("🎣", output)
+        self.assertIn("🔗", output)
+        self.assertIn("⏰", output)
+        self.assertIn("►", output)  # Fallback for unprefixed recommendation
+        self.assertIn("Potential phishing: Do not click links", output)
+        self.assertIn("Suspicious URLs detected", output)
+
+    def test_extract_and_strip_recommendation_prefix_helper(self):
+        """Test _extract_and_strip_recommendation_prefix extracts icon and strips prefix."""
+        from src.modules.alert_console import _extract_and_strip_recommendation_prefix
+
+        icon1, text1 = _extract_and_strip_recommendation_prefix(
+            "🎣 Potential phishing: Do not click links"
+        )
+        self.assertEqual(icon1, "🎣")
+        self.assertEqual(text1, "Potential phishing: Do not click links")
+
+        icon2, text2 = _extract_and_strip_recommendation_prefix(
+            "🔗 Suspicious URLs detected"
+        )
+        self.assertEqual(icon2, "🔗")
+        self.assertEqual(text2, "Suspicious URLs detected")
+
+        icon3, text3 = _extract_and_strip_recommendation_prefix(
+            "Plain recommendation without prefix"
+        )
+        self.assertEqual(icon3, "►")
+        self.assertEqual(text3, "Plain recommendation without prefix")
+
 
 if __name__ == "__main__":
     unittest.main()
