@@ -255,6 +255,25 @@ class TestPaletteUI(TestCase):
                     self.assertIn("No email providers enabled in .env", output)
                     self.assertIn("python src/utils/setup_wizard.py", output)
 
+    def test_check_mail_connectivity_empty_state_remediation(self) -> None:
+        """Test main in check_mail_connectivity outputs setup wizard guidance when no providers are enabled."""
+        from io import StringIO
+        import sys
+        import os
+
+        scripts_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "scripts"))
+        if scripts_dir not in sys.path:
+            sys.path.insert(0, scripts_dir)
+
+        import check_mail_connectivity
+
+        with patch("os.getenv", return_value="false"):
+            with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
+                check_mail_connectivity.main([])
+                output = mock_stdout.getvalue()
+                self.assertIn("python src/utils/setup_wizard.py", output)
+                self.assertIn("To configure interactively, run:", output)
+
     def test_check_mail_connectivity_error_and_tip_styling(self) -> None:
         """Test check_imap and check_smtp in check_mail_connectivity style error details with RED and tips with YELLOW."""
         from io import StringIO
