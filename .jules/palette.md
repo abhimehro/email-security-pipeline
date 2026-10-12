@@ -650,3 +650,8 @@ gives screen readers a stable state to announce.
 
 **Learning:** When CLI diagnostic tools encounter an unconfigured state where no tests are executed, returning exit status 0 without feedback creates a false-positive success signal. Providing clear empty state warnings and highlighting actionable setup commands in `Colors.CYAN` guides users to immediate remediation.
 **Action:** In diagnostic scripts, check for empty test result collections, print an explicit warning with `Colors.YELLOW`, highlight setup commands in `Colors.CYAN`, and exit with code 1.
+
+## 2027-02-18 - Actionable Remediation File Paths in CLI Summaries
+
+**Learning:** Referencing configuration file paths (like `.env`) in unstyled plain text inside terminal warning messages causes the file reference to blend into surrounding instructional text. This slows down user scanning when identifying what file needs modification.
+**Action:** Always highlight actionable configuration file paths and file references with `Colors.CYAN` in terminal warnings and startup summaries to make them visually distinct and reduce cognitive friction.
