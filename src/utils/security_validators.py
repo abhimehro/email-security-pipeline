@@ -189,18 +189,7 @@ _MAX_EMAIL_LENGTH = 254
 # The TLD is required to be at least two letters.
 # Does NOT allow shell metacharacters such as ; | & ` $ < > \ or whitespace.
 _SAFE_EMAIL_PATTERN = re.compile(r"^[a-zA-Z0-9._%+-]+@[A-Za-z0-9.-]+\.[a-zA-Z]{2,}$")
-
-
-def _is_safe_label(label: str) -> bool:
-    """Return True if a domain label does not start/end with '.' or '-'."""
-    return bool(label) and not (
-        label.startswith((".", "-")) or label.endswith((".", "-"))
-    )
-
-
-def _is_safe_local(local: str) -> bool:
-    """Return True if the local part does not start/end with '.' or '-'."""
-    return not (local.startswith((".", "-")) or local.endswith((".", "-")))
+_SAFE_BOUNDARIES = (".", "-")
 
 
 def is_safe_email(email: str) -> bool:
@@ -222,8 +211,9 @@ def is_safe_email(email: str) -> bool:
     if not isinstance(email, str) or len(email) > _MAX_EMAIL_LENGTH:
         return False
 
-    # Reject consecutive dots anywhere in the address.
-    if ".." in email:
+    # ⚡ BOLT: Fast-path checks for missing @ or consecutive dots
+    # Avoids expensive regex matching attempts on malformed inputs.
+    if "@" not in email or ".." in email:
         return False
 
     if not _SAFE_EMAIL_PATTERN.match(email):
@@ -231,11 +221,12 @@ def is_safe_email(email: str) -> bool:
 
     local, _, domain = email.partition("@")
 
-    if not _is_safe_local(local):
+    # ⚡ BOLT: Direct boundary checks bypass helper function call overhead
+    if local[0] in _SAFE_BOUNDARIES or local[-1] in _SAFE_BOUNDARIES:
         return False
 
     for label in domain.split("."):
-        if not _is_safe_label(label):
+        if not label or label[0] in _SAFE_BOUNDARIES or label[-1] in _SAFE_BOUNDARIES:
             return False
 
     return True
