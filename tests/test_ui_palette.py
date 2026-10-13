@@ -256,7 +256,7 @@ class TestPaletteUI(TestCase):
                     self.assertIn("python src/utils/setup_wizard.py", output)
 
     def test_check_mail_connectivity_empty_state_remediation(self) -> None:
-        """Test main in check_mail_connectivity outputs setup wizard guidance when no providers are enabled."""
+        """Test main in check_mail_connectivity outputs setup wizard guidance and cyan config keys when no providers are enabled."""
         from io import StringIO
         import sys
         import os
@@ -266,13 +266,21 @@ class TestPaletteUI(TestCase):
             sys.path.insert(0, scripts_dir)
 
         import check_mail_connectivity
+        Colors = check_mail_connectivity.Colors
 
         with patch("os.getenv", return_value="false"):
-            with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
+            with (
+                patch("sys.stdout", new_callable=StringIO) as mock_stdout,
+                patch.object(Colors, "colorize", wraps=Colors.colorize) as mock_colorize,
+            ):
                 check_mail_connectivity.main([])
                 output = mock_stdout.getvalue()
                 self.assertIn("python src/utils/setup_wizard.py", output)
                 self.assertIn("To configure interactively, run:", output)
+                self.assertIn("⚠  No email providers enabled in .env", output)
+                mock_colorize.assert_any_call("GMAIL_ENABLED=true", Colors.CYAN)
+                mock_colorize.assert_any_call("OUTLOOK_ENABLED=true", Colors.CYAN)
+                mock_colorize.assert_any_call("PROTON_ENABLED=true", Colors.CYAN)
 
     def test_check_mail_connectivity_error_and_tip_styling(self) -> None:
         """Test check_imap and check_smtp in check_mail_connectivity style error details with RED and tips with YELLOW."""

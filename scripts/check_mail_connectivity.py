@@ -65,7 +65,7 @@ class ConnectionConfig:
 
 
 def print_header(text):
-    print(f"\n{Colors.BOLD}{Colors.colorize(text, Colors.BLUE)}{Colors.RESET}")
+    print(f"\n{Colors.colorize(text, Colors.BLUE + Colors.BOLD)}")
 
 
 def print_pending(protocol, host, port, use_ssl):
@@ -97,11 +97,10 @@ def print_summary(results):
     if not results:
         return
 
-    print(f"\n{Colors.BOLD}Connectivity Summary{Colors.RESET}")
+    print(f"\n{Colors.colorize('Connectivity Summary', Colors.BOLD)}")
     print("=" * 65)
-    print(
-        f"{Colors.BOLD}{'Provider':<15} {'Protocol':<10} {'Host:Port':<25} {'Status':<10}{Colors.RESET}"
-    )
+    header = f"{'Provider':<15} {'Protocol':<10} {'Host:Port':<25} {'Status':<10}"
+    print(Colors.colorize(header, Colors.BOLD))
     print("-" * 65)
 
     for res in results:
@@ -313,7 +312,7 @@ def main(argv: Optional[List[str]] = None) -> None:
     )
     parser.parse_args(argv)
 
-    print(f"\n{Colors.BOLD}🔍 Checking Email Connectivity...{Colors.RESET}")
+    print(f"\n{Colors.colorize('🔍 Checking Email Connectivity...', Colors.BOLD)}")
 
     results = []
     results.extend(_check_gmail())
@@ -325,16 +324,17 @@ def main(argv: Optional[List[str]] = None) -> None:
 
     if not results:
         print(
-            f"\n{Colors.colorize('⚠️  No email providers enabled in .env', Colors.YELLOW)}"
+            f"\n{Colors.colorize('⚠  No email providers enabled in .env', Colors.YELLOW)}"
         )
-        print(
-            f"   Please set {Colors.BOLD}GMAIL_ENABLED=true{Colors.RESET}, {Colors.BOLD}OUTLOOK_ENABLED=true{Colors.RESET}, or {Colors.BOLD}PROTON_ENABLED=true{Colors.RESET}"
-        )
+        gmail_key = Colors.colorize("GMAIL_ENABLED=true", Colors.CYAN)
+        outlook_key = Colors.colorize("OUTLOOK_ENABLED=true", Colors.CYAN)
+        proton_key = Colors.colorize("PROTON_ENABLED=true", Colors.CYAN)
+        print(f"   Please set {gmail_key}, {outlook_key}, or {proton_key}")
         print(
             f"   {Colors.colorize('To configure interactively, run:', Colors.YELLOW)} {Colors.colorize('python src/utils/setup_wizard.py', Colors.CYAN)}\n"
         )
     else:
-        print(f"\n{Colors.BOLD}✨ Done.{Colors.RESET}\n")
+        print(f"\n{Colors.colorize('✨ Done.', Colors.BOLD)}\n")
 
 
 if __name__ == "__main__":
