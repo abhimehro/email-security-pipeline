@@ -192,6 +192,13 @@ _SAFE_EMAIL_PATTERN = re.compile(r"^[a-zA-Z0-9._%+-]+@[A-Za-z0-9.-]+\.[a-zA-Z]{2
 _SAFE_BOUNDARIES = (".", "-")
 
 
+def _is_safe_boundary(s: str) -> bool:
+    """Return True if string exists and does not start or end with '.' or '-'."""
+    if not s:
+        return False
+    return s[0] not in _SAFE_BOUNDARIES and s[-1] not in _SAFE_BOUNDARIES
+
+
 def is_safe_email(email: str) -> bool:
     """
     Validate an email address for safe use in command arguments and IMAP config.
@@ -208,12 +215,16 @@ def is_safe_email(email: str) -> bool:
     Returns:
         True if the email appears safe and well-formed, False otherwise.
     """
-    if not isinstance(email, str) or len(email) > _MAX_EMAIL_LENGTH:
+    if not isinstance(email, str):
+        return False
+    if len(email) > _MAX_EMAIL_LENGTH:
         return False
 
     # ⚡ BOLT: Fast-path checks for missing @ or consecutive dots
     # Avoids expensive regex matching attempts on malformed inputs.
-    if "@" not in email or ".." in email:
+    if "@" not in email:
+        return False
+    if ".." in email:
         return False
 
     if not _SAFE_EMAIL_PATTERN.match(email):
@@ -221,12 +232,12 @@ def is_safe_email(email: str) -> bool:
 
     local, _, domain = email.partition("@")
 
-    # ⚡ BOLT: Direct boundary checks bypass helper function call overhead
-    if local[0] in _SAFE_BOUNDARIES or local[-1] in _SAFE_BOUNDARIES:
+    # ⚡ BOLT: Boundary checks with helper function to keep cyclomatic complexity low
+    if not _is_safe_boundary(local):
         return False
 
     for label in domain.split("."):
-        if not label or label[0] in _SAFE_BOUNDARIES or label[-1] in _SAFE_BOUNDARIES:
+        if not _is_safe_boundary(label):
             return False
 
     return True
