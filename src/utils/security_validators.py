@@ -192,11 +192,35 @@ _SAFE_EMAIL_PATTERN = re.compile(r"^[a-zA-Z0-9._%+-]+@[A-Za-z0-9.-]+\.[a-zA-Z]{2
 _SAFE_BOUNDARIES = (".", "-")
 
 
-def _is_safe_boundary(s: str) -> bool:
-    """Return True if string exists and does not start or end with '.' or '-'."""
-    if not s:
+def _is_safe_label(label: str) -> bool:
+    """Return True if a domain label does not start/end with '.' or '-'."""
+    if not label:
         return False
-    return s[0] not in _SAFE_BOUNDARIES and s[-1] not in _SAFE_BOUNDARIES
+    return label[0] not in _SAFE_BOUNDARIES and label[-1] not in _SAFE_BOUNDARIES
+
+
+def _is_safe_local(local: str) -> bool:
+    """Return True if the local part does not start/end with '.' or '-'."""
+    if not local:
+        return True
+    return local[0] not in _SAFE_BOUNDARIES and local[-1] not in _SAFE_BOUNDARIES
+
+
+def _is_safe_domain(domain: str) -> bool:
+    """Return True if all labels in domain pass boundary validation."""
+    for label in domain.split("."):
+        if not _is_safe_label(label):
+            return False
+    return True
+
+
+def _is_valid_email_syntax(email: str) -> bool:
+    """Return True if email meets length, fast-path @, and whitelist pattern checks."""
+    if not isinstance(email, str) or len(email) > _MAX_EMAIL_LENGTH:
+        return False
+    if "@" not in email or ".." in email:
+        return False
+    return _SAFE_EMAIL_PATTERN.match(email) is not None
 
 
 def is_safe_email(email: str) -> bool:
@@ -215,32 +239,11 @@ def is_safe_email(email: str) -> bool:
     Returns:
         True if the email appears safe and well-formed, False otherwise.
     """
-    if not isinstance(email, str):
-        return False
-    if len(email) > _MAX_EMAIL_LENGTH:
-        return False
-
-    # ⚡ BOLT: Fast-path checks for missing @ or consecutive dots
-    # Avoids expensive regex matching attempts on malformed inputs.
-    if "@" not in email:
-        return False
-    if ".." in email:
-        return False
-
-    if not _SAFE_EMAIL_PATTERN.match(email):
+    if not _is_valid_email_syntax(email):
         return False
 
     local, _, domain = email.partition("@")
-
-    # ⚡ BOLT: Boundary checks with helper function to keep cyclomatic complexity low
-    if not _is_safe_boundary(local):
-        return False
-
-    for label in domain.split("."):
-        if not _is_safe_boundary(label):
-            return False
-
-    return True
+    return _is_safe_local(local) and _is_safe_domain(domain)
 
 
 def create_secure_ssl_context() -> ssl.SSLContext:
