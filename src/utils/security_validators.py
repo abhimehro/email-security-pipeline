@@ -191,6 +191,11 @@ _MAX_EMAIL_LENGTH = 254
 _SAFE_EMAIL_PATTERN = re.compile(r"^[a-zA-Z0-9._%+-]+@[A-Za-z0-9.-]+\.[a-zA-Z]{2,}$")
 
 
+def _has_invalid_boundary(s: str) -> bool:
+    """Return True if a non-empty string label starts or ends with '.' or '-'."""
+    return s[0] in (".", "-") or s[-1] in (".", "-")
+
+
 def is_safe_email(email: str) -> bool:
     """
     Validate an email address for safe use in command arguments and IMAP config.
@@ -213,7 +218,9 @@ def is_safe_email(email: str) -> bool:
     # ⚡ BOLT: Fast-path guard checks for '@' and '..' before regex/partitioning.
     # Placing '@' check first skips unnecessary regex parsing and partitioning
     # for non-email inputs (~25%+ speedup overall).
-    if "@" not in email or ".." in email:
+    if "@" not in email:
+        return False
+    if ".." in email:
         return False
 
     if not _SAFE_EMAIL_PATTERN.match(email):
@@ -221,12 +228,12 @@ def is_safe_email(email: str) -> bool:
 
     local, _, domain = email.partition("@")
 
-    # Direct character boundary indexing avoids helper function calls and startswith/endswith tuple allocations
-    if local[0] in (".", "-") or local[-1] in (".", "-"):
+    # Direct character boundary indexing in helper avoids startswith/endswith tuple allocations
+    if _has_invalid_boundary(local):
         return False
 
     for label in domain.split("."):
-        if not label or label[0] in (".", "-") or label[-1] in (".", "-"):
+        if not label or _has_invalid_boundary(label):
             return False
 
     return True
