@@ -501,7 +501,10 @@ class EmailSecurityPipeline:
 
         # Documentation footer
         print(
-            f"\n📚 {Colors.colorize('For help, see README.md or OUTLOOK_TROUBLESHOOTING.md', Colors.GREY)}\n"
+            f"\n📚 {Colors.colorize('For help, see ', Colors.GREY)}"
+            + f"{Colors.colorize('README.md', Colors.CYAN)}"
+            + f"{Colors.colorize(' or ', Colors.GREY)}"
+            + f"{Colors.colorize('OUTLOOK_TROUBLESHOOTING.md', Colors.CYAN)}\n"
         )
 
 
