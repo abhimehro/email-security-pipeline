@@ -4,5 +4,5 @@
 # NOTE: This intentionally avoids optional NLP/ML stacks (torch/transformers)
 # NOTE: pytest is also in requirements-dev.txt; keep both lists in sync
 
-pre-commit==4.6.2
+pre-commit==4.7.0
 pytest==9.1.1
