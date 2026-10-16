@@ -36,18 +36,34 @@ def _create_ssl_context(verify_ssl: bool):
     return ssl._create_unverified_context()  # nosec B323
 
 
+def _print_pending(msg: str) -> None:
+    """Print immediate visual pending indicator before blocking network operations."""
+    if sys.stdout.isatty():
+        sys.stdout.write(f"  ⏳ {msg} ...\r")
+        sys.stdout.flush()
+    else:
+        print(f"  ⏳ {msg} ...")
+
+
+def _clear_pending() -> None:
+    """Clear pending line in interactive TTY environments."""
+    if sys.stdout.isatty():
+        sys.stdout.write("\r\033[K")
+        sys.stdout.flush()
+
+
 def _create_imap_client(config: ConnectionConfig):
     """Create an IMAP client based on SSL/STARTTLS configuration."""
     if config.use_ssl:
         context = _create_ssl_context(config.verify_ssl)
-        print(f"Connecting to {config.host}:{config.port} with SSL...")
+        _print_pending(f"Connecting to {config.host}:{config.port} with SSL")
         return imaplib.IMAP4_SSL(
             config.host, config.port, ssl_context=context, timeout=30
         )
 
-    print(f"Connecting to {config.host}:{config.port} without SSL...")
+    _print_pending(f"Connecting to {config.host}:{config.port} without SSL")
     imap = imaplib.IMAP4(config.host, config.port, timeout=30)
-    print("Upgrading to TLS...")
+    _print_pending("Upgrading to TLS")
     imap.starttls(ssl_context=_create_ssl_context(config.verify_ssl))
     return imap
 
@@ -72,14 +88,18 @@ def test_connection(config: ConnectionConfig):
 
     try:
         imap = _create_imap_client(config)
+        _clear_pending()
         print(Colors.colorize("✔ Connection established", Colors.GREEN))
-        print(f"Logging in as {config.email}...")
+        _print_pending(f"Logging in as {config.email}")
 
         imap.login(config.email, config.password)
+        _clear_pending()
         print(Colors.colorize("✔ SUCCESS - Authentication successful!", Colors.GREEN))
 
         # Try to list folders
+        _print_pending("Listing folders")
         status, folders = imap.list()
+        _clear_pending()
         if status == "OK":
             print(Colors.colorize(f"✔ Found {len(folders)} folders", Colors.GREEN))
 
@@ -87,12 +107,15 @@ def test_connection(config: ConnectionConfig):
         return True
 
     except imaplib.IMAP4.error as e:
+        _clear_pending()
         print(Colors.colorize(f"✖ IMAP Error: {e}", Colors.RED))
     except ssl.SSLError as e:
+        _clear_pending()
         print(Colors.colorize(f"✖ SSL Error: {e}", Colors.RED))
         print(f"   Error type: {type(e).__name__}")
         print(f"   Error args: {e.args}")
     except Exception as e:
+        _clear_pending()
         print(Colors.colorize(f"✖ Unexpected Error: {e}", Colors.RED))
         print(f"   Error type: {type(e).__name__}")
 
