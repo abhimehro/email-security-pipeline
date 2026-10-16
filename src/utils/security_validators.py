@@ -201,6 +201,14 @@ def _is_safe_local(local: str) -> bool:
     return not (local and (local[0] in (".", "-") or local[-1] in (".", "-")))
 
 
+def _is_safe_domain(domain: str) -> bool:
+    """Helper to validate domain labels and keep cyclomatic complexity low."""
+    for label in domain.split("."):
+        if not _is_safe_label(label):
+            return False
+    return True
+
+
 def is_safe_email(email: str) -> bool:
     """
     Validate an email address for safe use in command arguments and IMAP config.
@@ -233,11 +241,7 @@ def is_safe_email(email: str) -> bool:
     if not _is_safe_local(local):
         return False
 
-    for label in domain.split("."):
-        if not _is_safe_label(label):
-            return False
-
-    return True
+    return _is_safe_domain(domain)
 
 
 def create_secure_ssl_context() -> ssl.SSLContext:
