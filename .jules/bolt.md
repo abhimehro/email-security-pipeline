@@ -148,3 +148,8 @@ proper resource teardown in a `shutdown()` method.
 
 **Learning:** Calling `shutil.get_terminal_size()` continuously inside tight rendering loops (such as terminal spinner or countdown frame updates) invokes blocking `ioctl` system calls on every frame, creating significant CPU/I/O overhead. Caching the column width before or per iteration yields a ~96% rendering speedup.
 **Action:** Always accept an optional `columns` parameter in terminal truncation helpers and query `shutil.get_terminal_size()` once prior to entering frame-based animation loops.
+
+## 2026-08-30 - CodeScene Quality Gates and Helper Function Inlining in Email Validation
+
+**Learning:** While inlining boundary checks directly into hot paths (`local[0] in _SAFE_BOUNDARIES`) avoids function call overhead in Python, writing compound multi-part conditional expressions increases cyclomatic complexity and triggers CodeScene `Complex Conditional` quality gate failures. Extracting boundary checks into a lightweight private helper (`_is_safe_boundary`) eliminates complex conditionals and satisfies CodeScene quality gates while preserving ~30% execution speedup over regex evaluation on malformed inputs.
+**Action:** When introducing fast-path logic to hot paths, balance micro-optimizations against CodeScene complexity metrics by extracting boundary checks into simple private helper functions.

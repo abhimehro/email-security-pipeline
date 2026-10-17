@@ -189,18 +189,38 @@ _MAX_EMAIL_LENGTH = 254
 # The TLD is required to be at least two letters.
 # Does NOT allow shell metacharacters such as ; | & ` $ < > \ or whitespace.
 _SAFE_EMAIL_PATTERN = re.compile(r"^[a-zA-Z0-9._%+-]+@[A-Za-z0-9.-]+\.[a-zA-Z]{2,}$")
+_SAFE_BOUNDARIES = (".", "-")
 
 
 def _is_safe_label(label: str) -> bool:
     """Return True if a domain label does not start/end with '.' or '-'."""
-    return bool(label) and not (
-        label.startswith((".", "-")) or label.endswith((".", "-"))
-    )
+    if not label:
+        return False
+    return label[0] not in _SAFE_BOUNDARIES and label[-1] not in _SAFE_BOUNDARIES
 
 
 def _is_safe_local(local: str) -> bool:
     """Return True if the local part does not start/end with '.' or '-'."""
-    return not (local.startswith((".", "-")) or local.endswith((".", "-")))
+    if not local:
+        return True
+    return local[0] not in _SAFE_BOUNDARIES and local[-1] not in _SAFE_BOUNDARIES
+
+
+def _is_safe_domain(domain: str) -> bool:
+    """Return True if all labels in domain pass boundary validation."""
+    for label in domain.split("."):
+        if not _is_safe_label(label):
+            return False
+    return True
+
+
+def _is_valid_email_syntax(email: str) -> bool:
+    """Return True if email meets length, fast-path @, and whitelist pattern checks."""
+    if not isinstance(email, str) or len(email) > _MAX_EMAIL_LENGTH:
+        return False
+    if "@" not in email or ".." in email:
+        return False
+    return _SAFE_EMAIL_PATTERN.match(email) is not None
 
 
 def is_safe_email(email: str) -> bool:
@@ -219,26 +239,11 @@ def is_safe_email(email: str) -> bool:
     Returns:
         True if the email appears safe and well-formed, False otherwise.
     """
-    if not isinstance(email, str) or len(email) > _MAX_EMAIL_LENGTH:
-        return False
-
-    # Reject consecutive dots anywhere in the address.
-    if ".." in email:
-        return False
-
-    if not _SAFE_EMAIL_PATTERN.match(email):
+    if not _is_valid_email_syntax(email):
         return False
 
     local, _, domain = email.partition("@")
-
-    if not _is_safe_local(local):
-        return False
-
-    for label in domain.split("."):
-        if not _is_safe_label(label):
-            return False
-
-    return True
+    return _is_safe_local(local) and _is_safe_domain(domain)
 
 
 def create_secure_ssl_context() -> ssl.SSLContext:
