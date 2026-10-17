@@ -359,14 +359,30 @@ def print_analysis_details(
     )
 
 
+def _match_single_prefix(rec: str) -> str | None:
+    """Find the first matching prefix at the start of the recommendation string."""
+    for prefix in RECOMMENDATION_PREFIXES:
+        if rec.startswith(prefix):
+            return prefix
+    return None
+
+
+def _extract_and_strip_recommendation_prefix(rec: str) -> tuple[str, str]:
+    """Extract existing prefix icon (if present) and strip it to prevent duplicate icons."""
+    found_icon = None
+    while True:
+        prefix = _match_single_prefix(rec)
+        if not prefix:
+            break
+        if found_icon is None:
+            found_icon = prefix.strip()
+        rec = rec[len(prefix) :]
+    return found_icon or "►", rec
+
+
 def _strip_recommendation_prefix(rec: str) -> str:
     """Remove existing prefixes to prevent double icons."""
-    while rec.startswith(RECOMMENDATION_PREFIXES_TUPLE):
-        for prefix in RECOMMENDATION_PREFIXES:
-            if rec.startswith(prefix):
-                rec = rec[len(prefix) :]
-                break
-    return rec
+    return _extract_and_strip_recommendation_prefix(rec)[1]
 
 
 def _determine_recommendation_color(rec_upper: str) -> str:
@@ -389,8 +405,9 @@ def _print_wrapped_lines(
     first_line = wrapped_lines[0]
     print_alert_row(f"{Colors.colorize(icon, color)} {first_line}", risk_color)
 
-    # Subsequent lines get indentation based on icon width
-    indent = "   " if icon == "⚠ " else "  "
+    # Subsequent lines get indentation based on icon visual width
+    icon_vis_len = get_visual_length(icon)
+    indent = " " * (icon_vis_len + 1)
 
     for line in wrapped_lines[1:]:
         print_alert_row(f"{indent}{line}", risk_color)
@@ -413,9 +430,8 @@ def print_recommendations(recommendations: List[str], width: int, risk_color: st
             # Compute uppercase before stripping prefixes so keyword matching matches
             # the original implementation.
             rec_upper = rec.upper()
-            rec = _strip_recommendation_prefix(rec)
+            icon, rec = _extract_and_strip_recommendation_prefix(rec)
             color = _determine_recommendation_color(rec_upper)
-            icon = "►"
 
             # Calculate available width for text
             max_text_width = width - 8
