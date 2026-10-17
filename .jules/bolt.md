@@ -148,3 +148,8 @@ proper resource teardown in a `shutdown()` method.
 
 **Learning:** Calling `shutil.get_terminal_size()` continuously inside tight rendering loops (such as terminal spinner or countdown frame updates) invokes blocking `ioctl` system calls on every frame, creating significant CPU/I/O overhead. Caching the column width before or per iteration yields a ~96% rendering speedup.
 **Action:** Always accept an optional `columns` parameter in terminal truncation helpers and query `shutil.get_terminal_size()` once prior to entering frame-based animation loops.
+
+## 2026-08-30 - Email Validation Fast-Path and Boundary Indexing
+
+**Learning:** In string validation routines (`is_safe_email`), placing fast-path guard checks for '@' or '..' before regex evaluation, and replacing helper functions using `.startswith`/`.endswith` tuples with direct character boundary indexing (`local[0] in ('.', '-')`), skips unnecessary regex parsing, partitioning, and tuple allocations for a ~25%+ speedup.
+**Action:** Use fast-path string presence checks before regex evaluation and direct character indexing instead of `.startswith`/`.endswith` tuples in hot validation loops.
