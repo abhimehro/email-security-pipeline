@@ -148,3 +148,8 @@ proper resource teardown in a `shutdown()` method.
 
 **Learning:** Calling `shutil.get_terminal_size()` continuously inside tight rendering loops (such as terminal spinner or countdown frame updates) invokes blocking `ioctl` system calls on every frame, creating significant CPU/I/O overhead. Caching the column width before or per iteration yields a ~96% rendering speedup.
 **Action:** Always accept an optional `columns` parameter in terminal truncation helpers and query `shutil.get_terminal_size()` once prior to entering frame-based animation loops.
+
+## 2026-08-30 - Replace Generator Membership Check with set.isdisjoint
+
+**Learning:** Using Python generator expressions like `any(c in char_set for c in text)` to check if a string contains any character from a set creates generator frames and executes Python bytecode on every character iteration. Using `not char_set.isdisjoint(text)` delegates the character iteration and hash lookups directly to CPython's C implementation, yielding up to a ~5x speedup.
+**Action:** Replace generator `any(c in set for c in string)` checks with `not set.isdisjoint(string)` in hot paths.
