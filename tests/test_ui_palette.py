@@ -201,8 +201,25 @@ class TestPaletteUI(TestCase):
             with patch("src.main.Colors.colorize", wraps=Colors.colorize) as mock_colorize:
                 pipeline._print_configuration_summary()
 
-                # Verify .env was colorized with Colors.CYAN
+                # Verify .env, README.md, and OUTLOOK_TROUBLESHOOTING.md were colorized with Colors.CYAN
                 mock_colorize.assert_any_call(".env", Colors.CYAN)
+                mock_colorize.assert_any_call("README.md", Colors.CYAN)
+                mock_colorize.assert_any_call("OUTLOOK_TROUBLESHOOTING.md", Colors.CYAN)
+
+    def test_app_runner_fallback_instructions_cyan_files(self) -> None:
+        """Test _print_fallback_instructions in AppRunner colorizes .env and .env.example with Colors.CYAN."""
+        from io import StringIO
+        from src.app_runner import AppRunner
+        from src.utils.colors import Colors
+
+        runner = AppRunner([ "main.py", ".env" ])
+
+        with patch("sys.stdout", new_callable=StringIO):
+            with patch("src.app_runner.Colors.colorize", wraps=Colors.colorize) as mock_colorize:
+                runner._print_fallback_instructions()
+
+                mock_colorize.assert_any_call(".env", Colors.CYAN)
+                mock_colorize.assert_any_call(".env.example", Colors.CYAN)
 
     def test_check_mail_connectivity_print_status_symbols(self):
         """Test print_status in check_mail_connectivity uses ✔ and ✖ symbols correctly."""
