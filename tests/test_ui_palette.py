@@ -272,6 +272,36 @@ class TestPaletteUI(TestCase):
                     self.assertIn("No email providers enabled in .env", output)
                     self.assertIn("python src/utils/setup_wizard.py", output)
 
+    def test_diagnose_docker_connectivity_pending_visual_indicators(self):
+        """Test test_connection in diagnose_docker_connectivity includes pending indicators."""
+        from io import StringIO
+        import diagnose_docker_connectivity
+        from diagnose_docker_connectivity import ConnectionConfig
+
+        config = ConnectionConfig(
+            label="GmailTest",
+            host="imap.gmail.com",
+            port=993,
+            email="test@gmail.com",
+            password="pass",
+            use_ssl=True,
+            verify_ssl=True,
+        )
+
+        mock_imap = MagicMock()
+        mock_imap.list.return_value = ("OK", [b"INBOX"])
+
+        with patch("imaplib.IMAP4_SSL", return_value=mock_imap):
+            with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
+                res = diagnose_docker_connectivity.test_connection(config)
+                self.assertTrue(res)
+                output = mock_stdout.getvalue()
+                self.assertIn("⏳ Connecting to imap.gmail.com:993 with SSL", output)
+                self.assertIn("⏳ Logging in as test@gmail.com", output)
+                self.assertIn("⏳ Listing folders", output)
+                self.assertIn("✔ Connection established", output)
+                self.assertIn("✔ SUCCESS - Authentication successful!", output)
+
     def test_check_mail_connectivity_empty_state_remediation(self) -> None:
         """Test main in check_mail_connectivity outputs setup wizard guidance and cyan config keys when no providers are enabled."""
         from io import StringIO
