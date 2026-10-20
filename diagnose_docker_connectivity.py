@@ -109,6 +109,19 @@ def test_connection(config: ConnectionConfig):
     except imaplib.IMAP4.error as e:
         _clear_pending()
         print(Colors.colorize(f"✖ IMAP Error: {e}", Colors.RED))
+        if config.label.startswith("Outlook"):
+            print(
+                Colors.colorize(
+                    "   Tip: Personal Outlook accounts no longer support password "
+                    "authentication (OAuth2 required).",
+                    Colors.YELLOW,
+                )
+            )
+            print(
+                "   See "
+                + Colors.colorize("OUTLOOK_TROUBLESHOOTING.md", Colors.CYAN)
+                + "; for now, disable Outlook or use Gmail/Proton."
+            )
     except ssl.SSLError as e:
         _clear_pending()
         print(Colors.colorize(f"✖ SSL Error: {e}", Colors.RED))
