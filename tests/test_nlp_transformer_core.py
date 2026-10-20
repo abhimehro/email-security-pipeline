@@ -46,7 +46,14 @@ class DummyProb:
 class TestAnalyzeWithTransformer(unittest.TestCase):
     def setUp(self):
         self.config = MockConfig()
-        self.analyzer = NLPThreatAnalyzer(self.config)
+        with patch(
+            "src.modules.nlp_analyzer.AutoTokenizer.from_pretrained",
+            return_value=MagicMock(),
+        ), patch(
+            "src.modules.nlp_analyzer.AutoModelForSequenceClassification.from_pretrained",
+            return_value=MagicMock(),
+        ):
+            self.analyzer = NLPThreatAnalyzer(self.config)
 
     def test_analyze_with_transformer_truncation_and_cache_miss(self):
         """Test that long text is truncated, cache is checked, _analyze_core_impl is called, and result is cached."""
@@ -91,7 +98,14 @@ class TestAnalyzeWithTransformer(unittest.TestCase):
 class TestAnalyzeCoreImpl(unittest.TestCase):
     def setUp(self):
         self.config = MockConfig()
-        self.analyzer = NLPThreatAnalyzer(self.config)
+        with patch(
+            "src.modules.nlp_analyzer.AutoTokenizer.from_pretrained",
+            return_value=MagicMock(),
+        ), patch(
+            "src.modules.nlp_analyzer.AutoModelForSequenceClassification.from_pretrained",
+            return_value=MagicMock(),
+        ):
+            self.analyzer = NLPThreatAnalyzer(self.config)
         self.analyzer.logger = MagicMock()
 
     def test_missing_model(self):
