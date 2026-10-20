@@ -371,6 +371,31 @@ OUTLOOK_APP_PASSWORD=password
         self._run_edge_case(["1", "test@gmail.com", "n"], False, None, True, True)
 
 
+
+
+
+
+
+
+
+
+
+    def test_generate_config_content_newline_injection(self):
+        """Test that newlines in credentials are stripped to prevent .env injection."""
+        template_content = self.example_content
+        provider_key = "GMAIL"
+        email = "test@gmail.com\nMALICIOUS=true"
+        app_secret = "password\nOTHER=false"
+
+        updated_content = _generate_config_content(
+            template_content, provider_key, email, app_secret
+        )
+
+        self.assertNotIn("\nMALICIOUS=true", updated_content)
+        self.assertNotIn("\nOTHER=false", updated_content)
+        self.assertIn("GMAIL_EMAIL=test@gmail.comMALICIOUS=true", updated_content)
+        self.assertIn("GMAIL_APP_PASSWORD=passwordOTHER=false", updated_content)
+
 class TestSetupWizardCLI(unittest.TestCase):
     """Smoke tests for the setup_wizard CLI entry point."""
 
