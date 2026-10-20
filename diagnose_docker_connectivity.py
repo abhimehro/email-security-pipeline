@@ -4,6 +4,7 @@ Diagnostic script to test email connectivity from within Docker container contex
 This helps identify whether issues are credential-based or network/SSL-based.
 """
 
+import argparse
 import imaplib
 import os
 import ssl
@@ -135,7 +136,24 @@ def test_connection(config: ConnectionConfig):
     return False
 
 
-def main():
+def _build_arg_parser() -> argparse.ArgumentParser:
+    """Build the CLI parser so ``--help`` works without touching .env or IMAP."""
+    return argparse.ArgumentParser(
+        prog="diagnose_docker_connectivity.py",
+        description=(
+            "Diagnostic script to test email connectivity from within Docker "
+            "container context. Reads provider settings from .env in the "
+            "current directory."
+        ),
+    )
+
+
+def main(argv: list[str] | None = None) -> None:
+    # No options yet: parse so --help/-h exit cleanly and unknown args fail fast.
+    # argv=None means "no CLI args" (programmatic/test callers); the __main__
+    # entry point passes sys.argv[1:] explicitly.
+    _args = _build_arg_parser().parse_args([] if argv is None else argv)
+
     # Load environment
     load_dotenv(".env")
 
@@ -259,4 +277,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    main(sys.argv[1:])
