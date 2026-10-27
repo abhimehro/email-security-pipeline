@@ -581,6 +581,9 @@
 
 **Merged pull requests:**
 
+- chore\(deps\): bump codescene-oss/pr-refactoring-agent from 1.1.5 to 1.1.7 [\#1791](https://github.com/abhimehro/email-security-pipeline/pull/1791) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps\): bump github/gh-aw/actions/setup-cli from 0.91.3 to 0.92.0 [\#1790](https://github.com/abhimehro/email-security-pipeline/pull/1790) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps\): bump release-drafter/release-drafter from 7.9.0 to 7.10.0 [\#1789](https://github.com/abhimehro/email-security-pipeline/pull/1789) ([dependabot[bot]](https://github.com/apps/dependabot))
 - chore\(deps\): bump actions/setup-node from 7.0.0 to 7.1.0 [\#1788](https://github.com/abhimehro/email-security-pipeline/pull/1788) ([dependabot[bot]](https://github.com/apps/dependabot))
 - feat\(alert-console\): scale threat-score meter with card width \(salvage \#1665\) [\#1787](https://github.com/abhimehro/email-security-pipeline/pull/1787) ([abhimehro](https://github.com/abhimehro))
 - fix\(diagnose\): explain Outlook OAuth2 requirement on IMAP auth failure \(salvage \#1624\) [\#1784](https://github.com/abhimehro/email-security-pipeline/pull/1784) ([abhimehro](https://github.com/abhimehro))
