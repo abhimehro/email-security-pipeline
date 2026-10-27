@@ -65,10 +65,18 @@
 - \[repo-automation\] Daily Status Report - 2026-09-28 [\#1663](https://github.com/abhimehro/email-security-pipeline/issues/1663)
 - Daily QA & Agentic Review — 2026-09-27 [\#1662](https://github.com/abhimehro/email-security-pipeline/issues/1662)
 - Daily QA & Agentic Review — 2026-09-26 [\#1657](https://github.com/abhimehro/email-security-pipeline/issues/1657)
+- \[repo-automation\] Daily Status Report - 2026-09-26 [\#1654](https://github.com/abhimehro/email-security-pipeline/issues/1654)
 - Daily QA & Agentic Review — 2026-09-25 [\#1653](https://github.com/abhimehro/email-security-pipeline/issues/1653)
+- \[repo-automation\] Daily Status Report - 2026-09-25 [\#1648](https://github.com/abhimehro/email-security-pipeline/issues/1648)
 - Daily QA & Agentic Review — 2026-09-24 [\#1645](https://github.com/abhimehro/email-security-pipeline/issues/1645)
+- \[repo-automation\] Daily Status Report - 2026-09-24 [\#1641](https://github.com/abhimehro/email-security-pipeline/issues/1641)
 - Daily QA & Agentic Review — 2026-09-23 [\#1640](https://github.com/abhimehro/email-security-pipeline/issues/1640)
+- \[repo-automation\] Daily Status Report - 2026-09-23 [\#1637](https://github.com/abhimehro/email-security-pipeline/issues/1637)
 - Daily QA & Agentic Review — 2026-09-22 [\#1634](https://github.com/abhimehro/email-security-pipeline/issues/1634)
+- \[repo-automation\] Daily Status Report - 2026-09-22 [\#1631](https://github.com/abhimehro/email-security-pipeline/issues/1631)
+- \[repo-automation\] Daily Status Report - 2026-09-21 [\#1625](https://github.com/abhimehro/email-security-pipeline/issues/1625)
+- \[repo-automation\] Weekly Retrospective - 2026-09-20 [\#1622](https://github.com/abhimehro/email-security-pipeline/issues/1622)
+- \[repo-automation\] Daily Status Report - 2026-09-20 [\#1621](https://github.com/abhimehro/email-security-pipeline/issues/1621)
 - Daily QA & Agentic Review — 2026-09-19 [\#1620](https://github.com/abhimehro/email-security-pipeline/issues/1620)
 - \[repo-automation\] Daily Status Report - 2026-09-19 [\#1616](https://github.com/abhimehro/email-security-pipeline/issues/1616)
 - Daily QA & Agentic Review — 2026-09-18 [\#1615](https://github.com/abhimehro/email-security-pipeline/issues/1615)
@@ -573,6 +581,9 @@
 
 **Merged pull requests:**
 
+- chore\(deps\): bump actions/setup-node from 7.0.0 to 7.1.0 [\#1788](https://github.com/abhimehro/email-security-pipeline/pull/1788) ([dependabot[bot]](https://github.com/apps/dependabot))
+- feat\(alert-console\): scale threat-score meter with card width \(salvage \#1665\) [\#1787](https://github.com/abhimehro/email-security-pipeline/pull/1787) ([abhimehro](https://github.com/abhimehro))
+- fix\(diagnose\): explain Outlook OAuth2 requirement on IMAP auth failure \(salvage \#1624\) [\#1784](https://github.com/abhimehro/email-security-pipeline/pull/1784) ([abhimehro](https://github.com/abhimehro))
 - chore\(deps\): bump pre-commit from 4.6.2 to 4.7.0 [\#1777](https://github.com/abhimehro/email-security-pipeline/pull/1777) ([dependabot[bot]](https://github.com/apps/dependabot))
 - chore\(deps\): bump numpy from 2.5.3 to 2.5.4 [\#1776](https://github.com/abhimehro/email-security-pipeline/pull/1776) ([dependabot[bot]](https://github.com/apps/dependabot))
 - 🎨 Palette: Add visual pending states to Docker connectivity diagnostics [\#1775](https://github.com/abhimehro/email-security-pipeline/pull/1775) ([abhimehro](https://github.com/abhimehro))
