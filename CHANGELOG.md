@@ -47,6 +47,7 @@
 
 **Closed issues:**
 
+- Daily QA & Agentic Review — 2026-10-27 [\#1802](https://github.com/abhimehro/email-security-pipeline/issues/1802)
 - \[repo-automation\] Weekly Retrospective - 2026-10-18 [\#1779](https://github.com/abhimehro/email-security-pipeline/issues/1779)
 - Daily QA & Agentic Review — 2026-10-16 [\#1778](https://github.com/abhimehro/email-security-pipeline/issues/1778)
 - Daily QA & Agentic Review — 2026-10-15 [\#1773](https://github.com/abhimehro/email-security-pipeline/issues/1773)
@@ -64,6 +65,8 @@
 - Daily QA & Agentic Review — 2026-09-29 [\#1673](https://github.com/abhimehro/email-security-pipeline/issues/1673)
 - \[repo-automation\] Daily Status Report - 2026-09-28 [\#1663](https://github.com/abhimehro/email-security-pipeline/issues/1663)
 - Daily QA & Agentic Review — 2026-09-27 [\#1662](https://github.com/abhimehro/email-security-pipeline/issues/1662)
+- \[repo-automation\] Weekly Retrospective - 2026-09-27 [\#1659](https://github.com/abhimehro/email-security-pipeline/issues/1659)
+- \[repo-automation\] Daily Status Report - 2026-09-27 [\#1658](https://github.com/abhimehro/email-security-pipeline/issues/1658)
 - Daily QA & Agentic Review — 2026-09-26 [\#1657](https://github.com/abhimehro/email-security-pipeline/issues/1657)
 - \[repo-automation\] Daily Status Report - 2026-09-26 [\#1654](https://github.com/abhimehro/email-security-pipeline/issues/1654)
 - Daily QA & Agentic Review — 2026-09-25 [\#1653](https://github.com/abhimehro/email-security-pipeline/issues/1653)
@@ -581,6 +584,7 @@
 
 **Merged pull requests:**
 
+- chore\(deps\): bump actions/download-artifact from 8.0.1 to 8.0.2 [\#1798](https://github.com/abhimehro/email-security-pipeline/pull/1798) ([dependabot[bot]](https://github.com/apps/dependabot))
 - chore\(deps\): bump codescene-oss/pr-refactoring-agent from 1.1.5 to 1.1.7 [\#1791](https://github.com/abhimehro/email-security-pipeline/pull/1791) ([dependabot[bot]](https://github.com/apps/dependabot))
 - chore\(deps\): bump github/gh-aw/actions/setup-cli from 0.91.3 to 0.92.0 [\#1790](https://github.com/abhimehro/email-security-pipeline/pull/1790) ([dependabot[bot]](https://github.com/apps/dependabot))
 - chore\(deps\): bump release-drafter/release-drafter from 7.9.0 to 7.10.0 [\#1789](https://github.com/abhimehro/email-security-pipeline/pull/1789) ([dependabot[bot]](https://github.com/apps/dependabot))
