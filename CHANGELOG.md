@@ -584,7 +584,11 @@
 
 **Merged pull requests:**
 
+- chore\(deps\): bump github/gh-aw/actions/setup from 0.91.3 to 0.93.4 [\#1801](https://github.com/abhimehro/email-security-pipeline/pull/1801) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps\): bump codescene-oss/pr-refactoring-agent from 1.1.7 to 1.1.9 [\#1800](https://github.com/abhimehro/email-security-pipeline/pull/1800) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps\): bump ruby/setup-ruby from 1.327.0 to 1.335.0 [\#1799](https://github.com/abhimehro/email-security-pipeline/pull/1799) ([dependabot[bot]](https://github.com/apps/dependabot))
 - chore\(deps\): bump actions/download-artifact from 8.0.1 to 8.0.2 [\#1798](https://github.com/abhimehro/email-security-pipeline/pull/1798) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps\): bump github/gh-aw/actions/setup-cli from 0.92.0 to 0.93.4 [\#1797](https://github.com/abhimehro/email-security-pipeline/pull/1797) ([dependabot[bot]](https://github.com/apps/dependabot))
 - chore\(deps\): bump codescene-oss/pr-refactoring-agent from 1.1.5 to 1.1.7 [\#1791](https://github.com/abhimehro/email-security-pipeline/pull/1791) ([dependabot[bot]](https://github.com/apps/dependabot))
 - chore\(deps\): bump github/gh-aw/actions/setup-cli from 0.91.3 to 0.92.0 [\#1790](https://github.com/abhimehro/email-security-pipeline/pull/1790) ([dependabot[bot]](https://github.com/apps/dependabot))
 - chore\(deps\): bump release-drafter/release-drafter from 7.9.0 to 7.10.0 [\#1789](https://github.com/abhimehro/email-security-pipeline/pull/1789) ([dependabot[bot]](https://github.com/apps/dependabot))
