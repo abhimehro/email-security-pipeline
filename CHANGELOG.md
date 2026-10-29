@@ -47,6 +47,7 @@
 
 **Closed issues:**
 
+- Daily QA & Agentic Review — 2026-10-28 [\#1806](https://github.com/abhimehro/email-security-pipeline/issues/1806)
 - Daily QA & Agentic Review — 2026-10-27 [\#1802](https://github.com/abhimehro/email-security-pipeline/issues/1802)
 - \[repo-automation\] Weekly Retrospective - 2026-10-18 [\#1779](https://github.com/abhimehro/email-security-pipeline/issues/1779)
 - Daily QA & Agentic Review — 2026-10-16 [\#1778](https://github.com/abhimehro/email-security-pipeline/issues/1778)
@@ -584,6 +585,9 @@
 
 **Merged pull requests:**
 
+- chore\(deps\): bump actions/upload-artifact from 7.0.1 to 7.0.2 [\#1805](https://github.com/abhimehro/email-security-pipeline/pull/1805) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps\): bump github/gh-aw/actions/setup-cli from 0.93.4 to 0.93.5 [\#1804](https://github.com/abhimehro/email-security-pipeline/pull/1804) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps\): bump github/gh-aw/actions/setup from 0.93.4 to 0.93.5 [\#1803](https://github.com/abhimehro/email-security-pipeline/pull/1803) ([dependabot[bot]](https://github.com/apps/dependabot))
 - chore\(deps\): bump github/gh-aw/actions/setup from 0.91.3 to 0.93.4 [\#1801](https://github.com/abhimehro/email-security-pipeline/pull/1801) ([dependabot[bot]](https://github.com/apps/dependabot))
 - chore\(deps\): bump codescene-oss/pr-refactoring-agent from 1.1.7 to 1.1.9 [\#1800](https://github.com/abhimehro/email-security-pipeline/pull/1800) ([dependabot[bot]](https://github.com/apps/dependabot))
 - chore\(deps\): bump ruby/setup-ruby from 1.327.0 to 1.335.0 [\#1799](https://github.com/abhimehro/email-security-pipeline/pull/1799) ([dependabot[bot]](https://github.com/apps/dependabot))
