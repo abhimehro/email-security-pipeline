@@ -260,7 +260,7 @@ pytest
 pytest --cov=src --cov-report=html
 
 # Specific test file
-pytest tests/test_threat_detection.py -v
+pytest tests/test_threat_scoring.py -v
 ```
 
 ### Limitations
