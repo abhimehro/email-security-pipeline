@@ -383,3 +383,33 @@ class TestPaletteUI(TestCase):
             self.assertIn("Error:", output)
             self.assertIn("💡 Tip:", output)
             self.assertIn("Check server configuration.", output)
+
+    def test_select_provider_empty_input_uses_advertised_default(self) -> None:
+        """Pressing Enter picks the default provider shown in the prompt hint."""
+        from io import StringIO
+
+        from src.utils import setup_wizard
+
+        with (
+            patch("src.utils.setup_wizard._styled_input", return_value="") as mock_in,
+            patch("sys.stdout", new_callable=StringIO),
+        ):
+            choice = setup_wizard._select_provider()
+
+        self.assertEqual(choice, "1")
+        self.assertEqual(choice, setup_wizard.DEFAULT_PROVIDER_CHOICE)
+        mock_in.assert_called_once()
+        prompt = mock_in.call_args.args[0]
+        self.assertIn("[1-4, default: 1]", prompt)
+
+    def test_select_provider_explicit_choice_overrides_default(self) -> None:
+        """An explicit selection still wins over the default."""
+        from io import StringIO
+
+        from src.utils import setup_wizard
+
+        with (
+            patch("src.utils.setup_wizard._styled_input", return_value="proton"),
+            patch("sys.stdout", new_callable=StringIO),
+        ):
+            self.assertEqual(setup_wizard._select_provider(), "2")
