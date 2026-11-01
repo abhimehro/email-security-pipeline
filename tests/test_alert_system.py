@@ -85,7 +85,6 @@ class TestAlertSystemWorkerLifecycle(unittest.TestCase):
         config = _create_mock_config()
         system = AlertSystem(config)
 
-        # Mock threading.Thread so it doesn't actually set _queue_ready
         with patch("src.modules.alert_system.threading.Thread") as mock_thread_cls, \
              patch.object(system.logger, "warning") as mock_warning:
             mock_thread = MagicMock()
@@ -117,7 +116,6 @@ class TestAlertSystemWorkerLifecycle(unittest.TestCase):
     def test_stop_worker_sentinel_exception_handled(self):
         config = _create_mock_config()
         system = AlertSystem(config)
-
         mock_loop = MagicMock()
         mock_loop.is_closed.return_value = False
         system._loop = mock_loop
@@ -132,7 +130,6 @@ class TestAlertSystemWorkerLifecycle(unittest.TestCase):
     def test_stop_worker_join_timeout_logs_warning(self):
         config = _create_mock_config()
         system = AlertSystem(config)
-
         mock_loop = MagicMock()
         mock_loop.is_closed.return_value = False
         system._loop = mock_loop
@@ -157,27 +154,21 @@ class TestAlertSystemWorkerLifecycle(unittest.TestCase):
 class TestAlertSystemSendAlert(unittest.TestCase):
     """Test send_alert filtering and synchronization logic."""
 
-    def test_send_alert_threat_too_low_without_console(self):
-        config = _create_mock_config(console=False, threat_low=20.0)
-        system = AlertSystem(config)
-        report = _create_threat_report(score=5.0, risk_level="low")
+    def test_send_alert_threat_too_low(self):
+        for console_enabled in (False, True):
+            with self.subTest(console=console_enabled):
+                config = _create_mock_config(console=console_enabled, threat_low=20.0)
+                system = AlertSystem(config)
+                report = _create_threat_report(score=5.0, risk_level="low")
 
-        with patch.object(system, "_console_clean_report") as mock_clean, \
-             patch.object(system, "_dispatch_alert_sync") as mock_sync:
-            system.send_alert(report)
-            mock_clean.assert_not_called()
-            mock_sync.assert_not_called()
-
-    def test_send_alert_threat_too_low_with_console(self):
-        config = _create_mock_config(console=True, threat_low=20.0)
-        system = AlertSystem(config)
-        report = _create_threat_report(score=5.0, risk_level="low")
-
-        with patch.object(system, "_console_clean_report") as mock_clean, \
-             patch.object(system, "_dispatch_alert_sync") as mock_sync:
-            system.send_alert(report)
-            mock_clean.assert_called_once_with(report)
-            mock_sync.assert_not_called()
+                with patch.object(system, "_console_clean_report") as mock_clean, \
+                     patch.object(system, "_dispatch_alert_sync") as mock_sync:
+                    system.send_alert(report)
+                    if console_enabled:
+                        mock_clean.assert_called_once_with(report)
+                    else:
+                        mock_clean.assert_not_called()
+                    mock_sync.assert_not_called()
 
     def test_send_alert_dispatches_sync_when_worker_not_running(self):
         config = _create_mock_config(console=True, threat_low=10.0)
@@ -247,133 +238,89 @@ class TestAlertSystemAsyncDispatch(unittest.IsolatedAsyncioTestCase):
 
 
 class TestAlertSystemChannelAlerts(unittest.TestCase):
-    """Test webhook and Slack alert execution and error handling."""
+    """Test webhook and Slack alert execution and error handling with unified helpers."""
 
-    def test_webhook_alert_ssrf_blocked(self):
-        config = _create_mock_config(
-            webhook_enabled=True, webhook_url="http://169.254.169.254/latest/meta-data"
-        )
-        system = AlertSystem(config)
-        report = _create_threat_report()
+    def _get_channel_spec(self, channel: str):
+        if channel == "webhook":
+            return {
+                "config_kwargs": {
+                    "webhook_enabled": True,
+                    "webhook_url": "https://example.com/webhook",
+                },
+                "method_name": "_webhook_alert",
+                "label": "Webhook",
+            }
+        return {
+            "config_kwargs": {
+                "slack_enabled": True,
+                "slack_webhook": "https://hooks.slack.com/services/TEST",
+            },
+            "method_name": "_slack_alert",
+            "label": "Slack",
+        }
 
-        with patch("src.modules.alert_system.is_safe_webhook_url", return_value=(False, "SSRF blocked")), \
-             patch.object(system.logger, "error") as mock_error:
-            result = system._webhook_alert(report)
-            self.assertFalse(result)
-            mock_error.assert_called_once()
-            self.assertIn("SSRF prevention", mock_error.call_args[0][0])
+    def test_channels_ssrf_blocked(self):
+        for channel in ("webhook", "slack"):
+            spec = self._get_channel_spec(channel)
+            with self.subTest(channel=channel):
+                system = AlertSystem(_create_mock_config(**spec["config_kwargs"]))
+                report = _create_threat_report()
 
-    def test_webhook_alert_success(self):
-        config = _create_mock_config(
-            webhook_enabled=True, webhook_url="https://example.com/webhook"
-        )
-        system = AlertSystem(config)
-        report = _create_threat_report()
+                with patch("src.modules.alert_system.is_safe_webhook_url", return_value=(False, "SSRF blocked")), \
+                     patch.object(system.logger, "error") as mock_error:
+                    dispatch_func = getattr(system, spec["method_name"])
+                    result = dispatch_func(report)
+                    self.assertFalse(result)
+                    mock_error.assert_called_once()
+                    self.assertIn("SSRF prevention", mock_error.call_args[0][0])
 
-        mock_resp = MagicMock()
-        mock_resp.status_code = 200
+    def test_channels_success(self):
+        for channel in ("webhook", "slack"):
+            spec = self._get_channel_spec(channel)
+            with self.subTest(channel=channel):
+                system = AlertSystem(_create_mock_config(**spec["config_kwargs"]))
+                report = _create_threat_report()
 
-        with patch("src.modules.alert_system.is_safe_webhook_url", return_value=(True, "")), \
-             patch("src.modules.alert_system.requests.post", return_value=mock_resp), \
-             patch.object(system.logger, "info") as mock_info:
-            result = system._webhook_alert(report)
-            self.assertTrue(result)
-            mock_info.assert_called_once_with("Webhook alert sent successfully")
+                mock_resp = MagicMock(status_code=200)
+                with patch("src.modules.alert_system.is_safe_webhook_url", return_value=(True, "")), \
+                     patch("src.modules.alert_system.requests.post", return_value=mock_resp), \
+                     patch.object(system.logger, "info") as mock_info:
+                    dispatch_func = getattr(system, spec["method_name"])
+                    result = dispatch_func(report)
+                    self.assertTrue(result)
+                    mock_info.assert_called_once_with(f"{spec['label']} alert sent successfully")
 
-    def test_webhook_alert_non_200_failure(self):
-        config = _create_mock_config(
-            webhook_enabled=True, webhook_url="https://example.com/webhook"
-        )
-        system = AlertSystem(config)
-        report = _create_threat_report()
+    def test_channels_non_200_failure(self):
+        for channel, code in (("webhook", 500), ("slack", 400)):
+            spec = self._get_channel_spec(channel)
+            with self.subTest(channel=channel, code=code):
+                system = AlertSystem(_create_mock_config(**spec["config_kwargs"]))
+                report = _create_threat_report()
 
-        mock_resp = MagicMock()
-        mock_resp.status_code = 500
+                mock_resp = MagicMock(status_code=code)
+                with patch("src.modules.alert_system.is_safe_webhook_url", return_value=(True, "")), \
+                     patch("src.modules.alert_system.requests.post", return_value=mock_resp), \
+                     patch.object(system.logger, "warning") as mock_warn:
+                    dispatch_func = getattr(system, spec["method_name"])
+                    result = dispatch_func(report)
+                    self.assertFalse(result)
+                    mock_warn.assert_called_once_with(f"{spec['label']} alert failed: {code}")
 
-        with patch("src.modules.alert_system.is_safe_webhook_url", return_value=(True, "")), \
-             patch("src.modules.alert_system.requests.post", return_value=mock_resp), \
-             patch.object(system.logger, "warning") as mock_warn:
-            result = system._webhook_alert(report)
-            self.assertFalse(result)
-            mock_warn.assert_called_once_with("Webhook alert failed: 500")
+    def test_channels_exception_handling(self):
+        for channel in ("webhook", "slack"):
+            spec = self._get_channel_spec(channel)
+            with self.subTest(channel=channel):
+                system = AlertSystem(_create_mock_config(**spec["config_kwargs"]))
+                report = _create_threat_report()
 
-    def test_webhook_alert_exception_handling(self):
-        config = _create_mock_config(
-            webhook_enabled=True, webhook_url="https://example.com/webhook"
-        )
-        system = AlertSystem(config)
-        report = _create_threat_report()
-
-        with patch("src.modules.alert_system.is_safe_webhook_url", return_value=(True, "")), \
-             patch("src.modules.alert_system.requests.post", side_effect=Exception("Connection reset")), \
-             patch.object(system.logger, "error") as mock_error:
-            result = system._webhook_alert(report)
-            self.assertFalse(result)
-            mock_error.assert_called_once()
-            self.assertIn("Failed to send webhook alert", mock_error.call_args[0][0])
-
-    def test_slack_alert_ssrf_blocked(self):
-        config = _create_mock_config(
-            slack_enabled=True, slack_webhook="http://127.0.0.1:8080/hook"
-        )
-        system = AlertSystem(config)
-        report = _create_threat_report()
-
-        with patch("src.modules.alert_system.is_safe_webhook_url", return_value=(False, "SSRF blocked")), \
-             patch.object(system.logger, "error") as mock_error:
-            result = system._slack_alert(report)
-            self.assertFalse(result)
-            mock_error.assert_called_once()
-            self.assertIn("SSRF prevention", mock_error.call_args[0][0])
-
-    def test_slack_alert_success(self):
-        config = _create_mock_config(
-            slack_enabled=True, slack_webhook="https://hooks.slack.com/services/TEST"
-        )
-        system = AlertSystem(config)
-        report = _create_threat_report()
-
-        mock_resp = MagicMock()
-        mock_resp.status_code = 200
-
-        with patch("src.modules.alert_system.is_safe_webhook_url", return_value=(True, "")), \
-             patch("src.modules.alert_system.requests.post", return_value=mock_resp), \
-             patch.object(system.logger, "info") as mock_info:
-            result = system._slack_alert(report)
-            self.assertTrue(result)
-            mock_info.assert_called_once_with("Slack alert sent successfully")
-
-    def test_slack_alert_non_200_failure(self):
-        config = _create_mock_config(
-            slack_enabled=True, slack_webhook="https://hooks.slack.com/services/TEST"
-        )
-        system = AlertSystem(config)
-        report = _create_threat_report()
-
-        mock_resp = MagicMock()
-        mock_resp.status_code = 400
-
-        with patch("src.modules.alert_system.is_safe_webhook_url", return_value=(True, "")), \
-             patch("src.modules.alert_system.requests.post", return_value=mock_resp), \
-             patch.object(system.logger, "warning") as mock_warn:
-            result = system._slack_alert(report)
-            self.assertFalse(result)
-            mock_warn.assert_called_once_with("Slack alert failed: 400")
-
-    def test_slack_alert_exception_handling(self):
-        config = _create_mock_config(
-            slack_enabled=True, slack_webhook="https://hooks.slack.com/services/TEST"
-        )
-        system = AlertSystem(config)
-        report = _create_threat_report()
-
-        with patch("src.modules.alert_system.is_safe_webhook_url", return_value=(True, "")), \
-             patch("src.modules.alert_system.requests.post", side_effect=Exception("Timeout")), \
-             patch.object(system.logger, "error") as mock_error:
-            result = system._slack_alert(report)
-            self.assertFalse(result)
-            mock_error.assert_called_once()
-            self.assertIn("Failed to send Slack alert", mock_error.call_args[0][0])
+                with patch("src.modules.alert_system.is_safe_webhook_url", return_value=(True, "")), \
+                     patch("src.modules.alert_system.requests.post", side_effect=Exception("Network error")), \
+                     patch.object(system.logger, "error") as mock_error:
+                    dispatch_func = getattr(system, spec["method_name"])
+                    result = dispatch_func(report)
+                    self.assertFalse(result)
+                    mock_error.assert_called_once()
+                    self.assertIn(f"Failed to send {channel} alert".lower(), mock_error.call_args[0][0].lower())
 
 
 class TestAlertSystemDelegatedHelpers(unittest.TestCase):
