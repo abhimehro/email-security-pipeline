@@ -2,7 +2,7 @@ import unittest
 from unittest.mock import MagicMock, Mock
 
 from src.utils.config import AlertConfig, Config, EmailAccountConfig
-from src.utils.validators import check_default_credentials
+from src.utils.validators import _is_placeholder_password, check_default_credentials
 
 SCENARIOS = [
     (
@@ -87,6 +87,39 @@ SCENARIOS = [
             "Slack alerts enabled but uses default Webhook URL",
         ],
     ),
+    (
+        "bridge_placeholder_password",
+        True,
+        "safe@domain.org",
+        "your-bridge-password-here",
+        False,
+        None,
+        False,
+        None,
+        ["Gmail account enabled but uses default password"],
+    ),
+    (
+        "empty_password",
+        True,
+        "safe@domain.org",
+        "",
+        False,
+        None,
+        False,
+        None,
+        ["Gmail account enabled but uses default password"],
+    ),
+    (
+        "whitespace_password",
+        True,
+        "safe@domain.org",
+        "   ",
+        False,
+        None,
+        False,
+        None,
+        ["Gmail account enabled but uses default password"],
+    ),
 ]
 
 
@@ -122,7 +155,7 @@ class TestValidators(unittest.TestCase):
                             provider="gmail",
                         )
                     ]
-                    if acc_email
+                    if acc_email is not None
                     else []
                 )
                 self.config.alerts.webhook_enabled = wh_enabled
@@ -132,6 +165,15 @@ class TestValidators(unittest.TestCase):
 
                 errors = check_default_credentials(self.config)
                 self.assertEqual(errors, expected)
+
+    def test_is_placeholder_password(self):
+        self.assertTrue(_is_placeholder_password(""))
+        self.assertTrue(_is_placeholder_password("   "))
+        self.assertTrue(_is_placeholder_password("your-app-password-here"))
+        self.assertTrue(_is_placeholder_password("your-bridge-password-here"))
+        self.assertTrue(_is_placeholder_password("YOUR-PASSWORD-HERE"))
+        self.assertFalse(_is_placeholder_password("valid-app-token-1234"))
+        self.assertFalse(_is_placeholder_password("my-secret-key"))
 
 
 if __name__ == "__main__":
