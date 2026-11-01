@@ -81,11 +81,6 @@ def _read_next_frame(cap: Any) -> Tuple[bool, Optional[np.ndarray]]:
     return cap.read()
 
 
-def _is_video_capture_open(cap: Any) -> bool:
-    """Check if the video capture is opened successfully."""
-    return cap.isOpened()
-
-
 def _extract_frames_sequential(
     self, cap, max_frames: int, max_dim: int
 ) -> List[np.ndarray]:
