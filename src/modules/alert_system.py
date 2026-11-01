@@ -422,10 +422,6 @@ class AlertSystem:
         """Redact sensitive information from URL (query params and specific paths)."""
         return alert_channels.redact_url_secrets(url)
 
-    def _redact_sensitive_url_params(self, url: str) -> str:
-        """Redact sensitive query parameters from URL."""
-        return alert_channels.redact_sensitive_url_params(url)
-
     def _webhook_alert(self, report: ThreatReport) -> bool:
         """Send alert via webhook.
 
