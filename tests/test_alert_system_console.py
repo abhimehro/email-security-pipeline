@@ -302,25 +302,33 @@ class TestConsoleAlert(unittest.TestCase):
         self.assertNotIn("█" * 51, output)
 
 
-
-
 class TestPrintAlertMetadata(unittest.TestCase):
     """Unit tests for print_alert_metadata."""
 
-    def test_print_alert_metadata_basic(self):
-        """Test basic metadata printing without truncation."""
+    def _render_metadata(
+        self, report, width: int = 80, formatted_time: str = "2023-10-24"
+    ) -> str:
+        """Helper to invoke print_alert_metadata and capture stdout."""
         from src.modules.alert_console import print_alert_metadata
 
+        captured = StringIO()
+        with patch("sys.stdout", captured), patch("src.utils.colors.Colors.colorize", side_effect=lambda text, color: text):
+            print_alert_metadata(
+                report, width=width, risk_color="", formatted_time=formatted_time
+            )
+        return captured.getvalue()
+
+    def test_print_alert_metadata_basic(self):
+        """Test basic metadata printing without truncation."""
         report = _make_clean_report(
             subject="Urgent invoice",
             sender="finance@example.com",
             recipient="accounting@example.com",
         )
-        captured = StringIO()
-        with patch("sys.stdout", captured), patch("src.utils.colors.Colors.ENABLED", False):
-            print_alert_metadata(report, width=80, risk_color="", formatted_time="Oct 24, 2023 at 10:00:00")
+        output = self._render_metadata(
+            report, formatted_time="Oct 24, 2023 at 10:00:00"
+        )
 
-        output = captured.getvalue()
         self.assertIn("Timestamp: Oct 24, 2023 at 10:00:00", output)
         self.assertIn("Subject:   Urgent invoice", output)
         self.assertIn("From:      finance@example.com", output)
@@ -328,8 +336,6 @@ class TestPrintAlertMetadata(unittest.TestCase):
 
     def test_print_alert_metadata_truncation(self):
         """Test fields exceeding max_field_len (width - 15) are truncated with ellipsis."""
-        from src.modules.alert_console import print_alert_metadata
-
         width = 40  # max_field_len = 25
         long_subject = "A" * 30
         report = _make_clean_report(
@@ -337,11 +343,8 @@ class TestPrintAlertMetadata(unittest.TestCase):
             sender="user@example.com",
             recipient="target@example.com",
         )
-        captured = StringIO()
-        with patch("sys.stdout", captured), patch("src.utils.colors.Colors.ENABLED", False):
-            print_alert_metadata(report, width=width, risk_color="", formatted_time="2023-10-24")
+        output = self._render_metadata(report, width=width)
 
-        output = captured.getvalue()
         # max_field_len is 25, so truncated to 25 - 3 = 22 characters + '...'
         expected_subject = "A" * 22 + "..."
         self.assertIn(f"Subject:   {expected_subject}", output)
@@ -349,8 +352,6 @@ class TestPrintAlertMetadata(unittest.TestCase):
 
     def test_print_alert_metadata_exact_boundary(self):
         """Test fields exactly at max_field_len are not truncated."""
-        from src.modules.alert_console import print_alert_metadata
-
         width = 40  # max_field_len = 25
         exact_subject = "B" * 25
         report = _make_clean_report(
@@ -358,50 +359,46 @@ class TestPrintAlertMetadata(unittest.TestCase):
             sender="user@example.com",
             recipient="target@example.com",
         )
-        captured = StringIO()
-        with patch("sys.stdout", captured), patch("src.utils.colors.Colors.ENABLED", False):
-            print_alert_metadata(report, width=width, risk_color="", formatted_time="2023-10-24")
+        output = self._render_metadata(report, width=width)
 
-        output = captured.getvalue()
         self.assertIn(f"Subject:   {exact_subject}", output)
         self.assertNotIn("...", output)
 
     def test_print_alert_metadata_csv_sanitization(self):
         """Test fields with formula injection prefixes are sanitized."""
-        from src.modules.alert_console import print_alert_metadata
-
         report = _make_clean_report(
             subject="=1+1",
             sender="@danger.com",
             recipient="+12345",
         )
-        captured = StringIO()
-        with patch("sys.stdout", captured), patch("src.utils.colors.Colors.ENABLED", False):
-            print_alert_metadata(report, width=80, risk_color="", formatted_time="2023-10-24")
+        output = self._render_metadata(report)
 
-        output = captured.getvalue()
         # CSV safe sanitization prefixes formula chars (=, +, -, @) with single quote
         self.assertIn("Subject:   '=1+1", output)
         self.assertIn("From:      '@danger.com", output)
         self.assertIn("To:        '+12345", output)
 
     def test_print_alert_metadata_empty_or_none_fields(self):
-        """Test handling of empty or None fields without crashing."""
-        from src.modules.alert_console import print_alert_metadata
-
-        report = _make_clean_report(
+        """Test handling of empty and None fields without crashing."""
+        report_empty = _make_clean_report(
             subject="",
             sender="",
             recipient="",
         )
-        captured = StringIO()
-        with patch("sys.stdout", captured), patch("src.utils.colors.Colors.ENABLED", False):
-            print_alert_metadata(report, width=80, risk_color="", formatted_time="2023-10-24")
+        output_empty = self._render_metadata(report_empty)
+        self.assertIn("Subject:", output_empty)
+        self.assertIn("From:", output_empty)
+        self.assertIn("To:", output_empty)
 
-        output = captured.getvalue()
-        self.assertIn("Subject:", output)
-        self.assertIn("From:", output)
-        self.assertIn("To:", output)
+        report_none = _make_clean_report(
+            subject=None,
+            sender=None,
+            recipient=None,
+        )
+        output_none = self._render_metadata(report_none)
+        self.assertIn("Subject:", output_none)
+        self.assertIn("From:", output_none)
+        self.assertIn("To:", output_none)
 
 
 if __name__ == "__main__":
