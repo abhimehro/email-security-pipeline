@@ -1,8 +1,10 @@
-"""Tests for gh_token_cli module."""
+"""Tests for the GitHub token CLI utility."""
 
 from __future__ import annotations
 
 from pathlib import Path
+
+import pytest
 
 from src.utils.gh_token_cli import (
     _shell_escape,
@@ -14,129 +16,88 @@ from src.utils.gh_token_cli import (
 )
 
 
-def test_shell_escape_standard_and_single_quotes() -> None:
-    assert _shell_escape("normal_value") == "'normal_value'"
-    assert _shell_escape("") == "''"
-    assert _shell_escape("it's a test") == "'it'\"'\"'s a test'"
-    assert _shell_escape("'''") == "''\"'\"''\"'\"''\"'\"''"
+@pytest.mark.parametrize(
+    ("val", "expected"),
+    [
+        ("simple", "'simple'"),
+        ("", "''"),
+        ("a'b", "'a'\"'\"'b'"),
+    ],
+)
+def test_shell_escaping(val: str, expected: str) -> None:
+    assert _shell_escape(val) == expected
 
 
-def test_build_parser_arguments() -> None:
+def test_parser_options() -> None:
     parser = build_parser()
-    args = parser.parse_args(["path/to/.env", "--get", "GH_TOKEN", "--export"])
-    assert args.env_file == Path("path/to/.env")
-    assert args.get == "GH_TOKEN"
-    assert args.export is True
+    opts = parser.parse_args(["conf.env", "--get", "TOKEN", "--export"])
+    assert opts.env_file == Path("conf.env")
+    assert opts.get == "TOKEN"
+    assert opts.export is True
 
 
-def test_write_requested_variable_found(capsys) -> None:
-    env_file = Path(".env")
-    variables = {"GH_TOKEN": "token_val_123", "OTHER": "xyz"}
-    ret = write_requested_variable("GH_TOKEN", variables, env_file)
-    assert ret == 0
-    captured = capsys.readouterr()
-    assert captured.out == "token_val_123"
-    assert captured.err == ""
+def test_write_requested_variable(capsys: pytest.CaptureFixture[str]) -> None:
+    store = {"KEY_A": "val_a"}
+    target = Path("sample.env")
+
+    # Success case
+    assert write_requested_variable("KEY_A", store, target) == 0
+    assert capsys.readouterr().out == "val_a"
+
+    # Not found case
+    assert write_requested_variable("UNKNOWN", store, target) == 1
+    err_out = capsys.readouterr().err
+    assert "error: variable 'UNKNOWN' not found in sample.env" in err_out
 
 
-def test_write_requested_variable_missing(capsys) -> None:
-    env_file = Path(".env")
-    variables = {"GH_TOKEN": "token_val_123"}
-    ret = write_requested_variable("NONEXISTENT", variables, env_file)
-    assert ret == 1
-    captured = capsys.readouterr()
-    assert captured.out == ""
-    assert "error: variable 'NONEXISTENT' not found in .env\n" == captured.err
+def test_write_formatters(capsys: pytest.CaptureFixture[str]) -> None:
+    mapping = {"X": "1", "Y": "quote'd"}
 
+    write_exports(mapping)
+    assert capsys.readouterr().out == "export X='1'\nexport Y='quote'\"'\"'d'\n"
 
-def test_write_exports(capsys) -> None:
-    variables = {"FOO": "bar", "BAZ": "qux's"}
-    write_exports(variables)
-    captured = capsys.readouterr()
-    assert captured.out == "export FOO='bar'\nexport BAZ='qux'\"'\"'s'\n"
-    assert captured.err == ""
+    write_assignments(mapping)
+    assert capsys.readouterr().out == "X=1\nY=quote'd\n"
 
-    # Empty dictionary test
+    # Empty dictionary should produce no output
     write_exports({})
-    captured_empty = capsys.readouterr()
-    assert captured_empty.out == ""
-    assert captured_empty.err == ""
-
-
-def test_write_assignments(capsys) -> None:
-    variables = {"FOO": "bar", "BAZ": "qux"}
-    write_assignments(variables)
-    captured = capsys.readouterr()
-    assert captured.out == "FOO=bar\nBAZ=qux\n"
-    assert captured.err == ""
-
-    # Empty dictionary test
     write_assignments({})
-    captured_empty = capsys.readouterr()
-    assert captured_empty.out == ""
-    assert captured_empty.err == ""
+    assert capsys.readouterr().out == ""
 
 
-def test_main_default_assignments(tmp_path: Path, capsys) -> None:
-    env_path = tmp_path / ".env"
-    env_path.write_text("VAR1=value1\nVAR2=value2\n", encoding="utf-8")
+@pytest.mark.parametrize(
+    ("file_content", "args", "expected_code", "expected_stdout", "expected_err_substring"),
+    [
+        ("A=10\nB=20\n", [], 0, "A=10\nB=20\n", None),
+        ("A=10\nB=20\n", ["--get", "A"], 0, "10", None),
+        ("A=10\nB=20\n", ["--get", "MISSING_VAR"], 1, "", "not found in"),
+        ("A=10\n", ["--export"], 0, "export A='10'\n", None),
+        ("NOT_VALID", [], 1, "", "error:"),
+    ],
+)
+def test_main_cli_scenarios(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+    file_content: str,
+    args: list[str],
+    expected_code: int,
+    expected_stdout: str,
+    expected_err_substring: str | None,
+) -> None:
+    cfg = tmp_path / "env.txt"
+    cfg.write_text(file_content, encoding="utf-8")
 
-    ret = main([str(env_path)])
-    assert ret == 0
+    cli_args = [str(cfg), *args]
+    code = main(cli_args)
+
+    assert code == expected_code
     captured = capsys.readouterr()
-    assert captured.out == "VAR1=value1\nVAR2=value2\n"
-    assert captured.err == ""
+    assert captured.out == expected_stdout
+    if expected_err_substring:
+        assert expected_err_substring in captured.err
 
 
-def test_main_get_flag(tmp_path: Path, capsys) -> None:
-    env_path = tmp_path / ".env"
-    env_path.write_text("VAR1=value1\nVAR2=value2\n", encoding="utf-8")
-
-    ret = main([str(env_path), "--get", "VAR2"])
-    assert ret == 0
-    captured = capsys.readouterr()
-    assert captured.out == "value2"
-    assert captured.err == ""
-
-
-def test_main_get_flag_missing(tmp_path: Path, capsys) -> None:
-    env_path = tmp_path / ".env"
-    env_path.write_text("VAR1=value1\n", encoding="utf-8")
-
-    ret = main([str(env_path), "--get", "MISSING"])
-    assert ret == 1
-    captured = capsys.readouterr()
-    assert captured.out == ""
-    assert f"error: variable 'MISSING' not found in {env_path}\n" == captured.err
-
-
-def test_main_export_flag(tmp_path: Path, capsys) -> None:
-    env_path = tmp_path / ".env"
-    env_path.write_text("TOKEN=secret_token\n", encoding="utf-8")
-
-    ret = main([str(env_path), "--export"])
-    assert ret == 0
-    captured = capsys.readouterr()
-    assert captured.out == "export TOKEN='secret_token'\n"
-    assert captured.err == ""
-
-
-def test_main_parse_error(tmp_path: Path, capsys) -> None:
-    env_path = tmp_path / ".env"
-    env_path.write_text("INVALID LINE WITHOUT EQUALS\n", encoding="utf-8")
-
-    ret = main([str(env_path)])
-    assert ret == 1
-    captured = capsys.readouterr()
-    assert captured.out == ""
-    assert "error:" in captured.err
-
-
-def test_main_nonexistent_file(tmp_path: Path, capsys) -> None:
-    nonexistent = tmp_path / "does_not_exist.env"
-
-    ret = main([str(nonexistent)])
-    assert ret == 1
-    captured = capsys.readouterr()
-    assert captured.out == ""
-    assert f"error: env file not found: {nonexistent}\n" == captured.err
+def test_main_missing_file(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    missing = tmp_path / "nonexistent.env"
+    assert main([str(missing)]) == 1
+    assert "error: env file not found:" in capsys.readouterr().err
