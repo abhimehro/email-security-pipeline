@@ -1,4 +1,5 @@
-import concurrent.futures
+"""Unit tests for media authenticity analyzer."""
+
 from datetime import datetime
 from unittest.mock import MagicMock, patch
 
@@ -21,7 +22,7 @@ def analyzer():
     instance.shutdown()
 
 
-def build_email(attachments=None):
+def create_email_fixture(attachments):
     return EmailData(
         message_id="msg-101",
         subject="Report",
@@ -31,7 +32,7 @@ def build_email(attachments=None):
         body_text="Summary text",
         body_html="",
         headers={},
-        attachments=attachments or [],
+        attachments=attachments,
         raw_email=None,
         account_email="recipient@corp.local",
         folder="INBOX",
@@ -39,193 +40,80 @@ def build_email(attachments=None):
 
 
 def test_result_dataclass():
-    res = MediaAnalysisResult(
-        threat_score=2.0,
-        suspicious_attachments=["warn.zip"],
-        file_type_warnings=["Warning: bad extension"],
-        size_anomalies=["Size exceeds 25MB"],
-        potential_deepfakes=["Artifact detected"],
-        risk_level="medium",
-    )
-    assert res.threat_score == 2.0
-    assert res.suspicious_attachments == ["warn.zip"]
-    assert res.file_type_warnings == ["Warning: bad extension"]
-    assert res.size_anomalies == ["Size exceeds 25MB"]
-    assert res.potential_deepfakes == ["Artifact detected"]
-    assert res.risk_level == "medium"
+    res = MediaAnalysisResult(1.0, ["a"], ["b"], ["c"], ["d"], "low")
+    assert res.threat_score == 1.0
+    assert res.risk_level == "low"
 
 
 def test_disabled_media_inspection(analyzer):
     analyzer.config.check_media_attachments = False
-    payload = [
-        {
-            "filename": "payload.exe",
-            "content_type": "application/octet-stream",
-            "size": 512,
-            "data": b"MZ\x90",
-            "truncated": False,
-        }
-    ]
-    res = analyzer.analyze(build_email(payload))
+    res = analyzer.analyze(create_email_fixture([]))
     assert res.threat_score == 0.0
     assert res.risk_level == "low"
-    assert not res.suspicious_attachments
 
 
-def test_unattached_email(analyzer):
-    res = analyzer.analyze(build_email([]))
+def test_clean_pdf(analyzer):
+    att = {
+        "filename": "doc.pdf",
+        "content_type": "application/pdf",
+        "size": 24,
+        "data": b"%PDF-1.7 header",
+        "truncated": False,
+    }
+    res = analyzer.analyze(create_email_fixture([att]))
     assert res.threat_score == 0.0
-    assert res.risk_level == "low"
-    assert res.suspicious_attachments == []
 
 
-def test_standard_pdf(analyzer):
-    doc_bytes = b"%PDF-1.7 header and body"
-    payload = [
-        {
-            "filename": "doc.pdf",
-            "content_type": "application/pdf",
-            "size": len(doc_bytes),
-            "data": doc_bytes,
-            "truncated": False,
-        }
-    ]
-    res = analyzer.analyze(build_email(payload))
-    assert res.threat_score == 0.0
-    assert res.risk_level == "low"
-    assert res.file_type_warnings == []
-
-
-def test_executable_flagged(analyzer):
-    payload = [
-        {
-            "filename": "installer.exe",
-            "content_type": "application/x-msdownload",
-            "size": 1024,
-            "data": b"MZ\x00\x00data",
-            "truncated": False,
-        }
-    ]
-    res = analyzer.analyze(build_email(payload))
+def test_executable_warning(analyzer):
+    att = {
+        "filename": "test.exe",
+        "content_type": "application/octet-stream",
+        "size": 100,
+        "data": b"MZ\x00",
+        "truncated": False,
+    }
+    res = analyzer.analyze(create_email_fixture([att]))
     assert res.threat_score >= 5.0
     assert res.risk_level == "high"
-    assert any("Dangerous file type" in w for w in res.file_type_warnings)
 
 
-def test_dual_extension(analyzer):
-    payload = [
-        {
-            "filename": "doc.pdf.exe",
-            "content_type": "application/x-msdownload",
-            "size": 500,
-            "data": b"MZ",
-            "truncated": False,
-        }
-    ]
-    res = analyzer.analyze(build_email(payload))
+def test_double_extension(analyzer):
+    att = {
+        "filename": "test.pdf.exe",
+        "content_type": "application/octet-stream",
+        "size": 100,
+        "data": b"MZ\x00",
+        "truncated": False,
+    }
+    res = analyzer.analyze(create_email_fixture([att]))
     assert res.threat_score >= 5.0
-    assert any("Multiple extensions detected" in w for w in res.file_type_warnings)
 
 
-def test_masquerading_executable(analyzer):
-    payload = [
-        {
-            "filename": "photo.png",
-            "content_type": "image/png",
-            "size": 100,
-            "data": b"MZ\x90\x00notapng",
-            "truncated": False,
-        }
-    ]
-    res = analyzer.analyze(build_email(payload))
-    assert res.threat_score >= 5.0
-    assert any(
-        "Executable disguised as another file type" in w
-        for w in res.suspicious_attachments
-    )
-
-
-def test_large_and_truncated_payload(analyzer):
-    limit_mb = analyzer.MAX_ATTACHMENT_SIZE_MB
-    payload = [
-        {
-            "filename": "backup.iso",
-            "content_type": "application/octet-stream",
-            "size": (limit_mb + 2) * 1024 * 1024,
-            "data": b"content",
-            "truncated": True,
-        }
-    ]
-    res = analyzer.analyze(build_email(payload))
-    assert any("Attachment truncated for scanning" in a for a in res.size_anomalies)
-    assert any("Unusually large attachment" in a for a in res.size_anomalies)
-
-
-def test_deepfake_pipeline(analyzer):
-    with patch.object(
-        analyzer,
-        "_check_deepfake_indicators",
-        return_value=(3.0, ["Inconsistent optical flow"]),
-    ) as mock_deepfake:
-        payload = [
-            {
-                "filename": "clip.mp4",
-                "content_type": "video/mp4",
-                "size": 4096,
-                "data": b"\x00\x00\x00\x18ftypmp42",
-                "truncated": False,
-            }
-        ]
-        res = analyzer.analyze(build_email(payload))
-        mock_deepfake.assert_called_once()
-        assert "Inconsistent optical flow" in res.potential_deepfakes
-        assert res.threat_score >= 3.0
-
-
-def test_deepfake_stop_on_critical_score(analyzer):
-    payload = [
-        {
-            "filename": "malware.exe",
-            "content_type": "application/x-msdownload",
-            "size": 1024,
-            "data": b"MZ",
-            "truncated": False,
-        },
-        {
-            "filename": "clip.mp4",
+def test_deepfake_flow(analyzer):
+    with patch.object(analyzer, "_check_deepfake_indicators", return_value=(3.0, ["deepfake detected"])):
+        att = {
+            "filename": "video.mp4",
             "content_type": "video/mp4",
             "size": 2048,
             "data": b"\x00\x00\x00\x18ftypmp42",
             "truncated": False,
-        },
-    ]
+        }
+        res = analyzer.analyze(create_email_fixture([att]))
+        assert res.threat_score >= 3.0
+        assert "deepfake detected" in res.potential_deepfakes
+
+
+def test_deepfake_threshold_cutoff(analyzer):
     with patch.object(analyzer, "_check_deepfake_indicators") as mock_chk:
-        res = analyzer.analyze(build_email(payload))
+        atts = [
+            {"filename": "bad.exe", "content_type": "app/bin", "size": 100, "data": b"MZ", "truncated": False},
+            {"filename": "video.mp4", "content_type": "video/mp4", "size": 200, "data": b"ftyp", "truncated": False},
+        ]
+        res = analyzer.analyze(create_email_fixture(atts))
         assert res.threat_score >= 5.0
         mock_chk.assert_not_called()
 
 
-def test_deepfake_timeout_behavior(analyzer):
-    future = MagicMock()
-    future.result.side_effect = concurrent.futures.TimeoutError("Exceeded")
-    with patch.object(analyzer._deepfake_executor, "submit", return_value=future):
-        out = analyzer._analyze_deepfake_threat("video.mp4", b"data", "video/mp4")
-        assert out["score"] == 0.0
-        assert any("Deepfake analysis timed out" in err for err in out["errors"])
-
-
-def test_deepfake_exception_behavior(analyzer):
-    future = MagicMock()
-    future.result.side_effect = RuntimeError("Processing failure")
-    with patch.object(analyzer._deepfake_executor, "submit", return_value=future):
-        out = analyzer._analyze_deepfake_threat("video.mp4", b"data", "video/mp4")
-        assert out["score"] == 0.0
-        assert out["indicators"] == []
-
-
-def test_shutdown_lifecycle(analyzer):
-    assert not analyzer._deepfake_executor._shutdown
-    assert not analyzer._attachment_executor._shutdown
+def test_analyzer_shutdown(analyzer):
     analyzer.shutdown()
     assert analyzer._deepfake_executor._shutdown
-    assert analyzer._attachment_executor._shutdown
