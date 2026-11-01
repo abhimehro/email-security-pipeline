@@ -151,5 +151,11 @@ proper resource teardown in a `shutdown()` method.
 
 ## 2026-08-30 - Avoid intermediate list allocation in generator loops
 
-**Learning:** Iterating over a list comprehension that wraps a generator expression (e.g., ) eagerly evaluates and allocates an entire intermediate list in memory before loop execution. Converting the outer bracket list comprehension to parentheses  streams items lazily, avoiding list memory allocation entirely while maintaining identical iteration semantics.
-**Action:** When a loop iterates directly over a filtered mapping comprehension, use a generator expression instead of a list comprehension to save memory allocations.
+**Learning:** Iterating over a list comprehension that wraps a generator
+expression eagerly evaluates and allocates an entire intermediate list in
+memory before loop execution. Converting the outer bracket list comprehension
+to a generator expression streams items lazily, avoiding list memory
+allocation entirely while maintaining identical iteration semantics.
+**Action:** When a loop iterates directly over a filtered mapping
+comprehension, use a generator expression instead of a list comprehension to
+save memory allocations.
