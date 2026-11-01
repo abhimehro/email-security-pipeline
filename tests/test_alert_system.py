@@ -1,5 +1,12 @@
 """
 Unit tests for AlertSystem in src/modules/alert_system.py.
+
+Covers:
+- System initialization and constant integrity checks
+- Worker lifecycle, start/stop conditions, and timeout handling
+- Alert dispatching, threshold gating, and synchronous fallbacks
+- Multi-channel delivery for webhook and Slack endpoints
+- Console, string sanitization, and threat recommendation helpers
 """
 
 import asyncio
