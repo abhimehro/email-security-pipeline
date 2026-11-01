@@ -20,7 +20,7 @@ from .alert_recommendations import (
     YELLOW_KEYWORDS_PATTERN,
     generate_recommendations,
 )
-from .alert_report import ThreatReport, generate_threat_report  # noqa: F401
+from .alert_report import ThreatReport
 from .media_analyzer import MediaAnalysisResult
 from .nlp_analyzer import NLPAnalysisResult
 from .spam_analyzer import SpamAnalysisResult
