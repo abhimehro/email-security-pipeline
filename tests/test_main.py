@@ -52,13 +52,13 @@ def _create_mock_pipeline_config(
 @pytest.fixture
 def mock_pipeline_deps(tmp_path):
     """Encapsulate mock dependencies for EmailSecurityPipeline to avoid decorator duplication."""
-    with patch("src.main.AlertSystem") as mock_alert, patch(
+    with patch("src.main.AlertSystem"), patch(
         "src.main.MediaAuthenticityAnalyzer"
-    ) as mock_media, patch("src.main.NLPThreatAnalyzer") as mock_nlp, patch(
+    ), patch("src.main.NLPThreatAnalyzer"), patch(
         "src.main.SpamAnalyzer"
-    ) as mock_spam, patch(
+    ), patch(
         "src.main.EmailIngestionManager"
-    ) as mock_ingestion, patch(
+    ), patch(
         "src.main.Config"
     ) as mock_config:
 
