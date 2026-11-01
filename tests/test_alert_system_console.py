@@ -302,5 +302,107 @@ class TestConsoleAlert(unittest.TestCase):
         self.assertNotIn("█" * 51, output)
 
 
+
+
+class TestPrintAlertMetadata(unittest.TestCase):
+    """Unit tests for print_alert_metadata."""
+
+    def test_print_alert_metadata_basic(self):
+        """Test basic metadata printing without truncation."""
+        from src.modules.alert_console import print_alert_metadata
+
+        report = _make_clean_report(
+            subject="Urgent invoice",
+            sender="finance@example.com",
+            recipient="accounting@example.com",
+        )
+        captured = StringIO()
+        with patch("sys.stdout", captured), patch("src.utils.colors.Colors.ENABLED", False):
+            print_alert_metadata(report, width=80, risk_color="", formatted_time="Oct 24, 2023 at 10:00:00")
+
+        output = captured.getvalue()
+        self.assertIn("Timestamp: Oct 24, 2023 at 10:00:00", output)
+        self.assertIn("Subject:   Urgent invoice", output)
+        self.assertIn("From:      finance@example.com", output)
+        self.assertIn("To:        accounting@example.com", output)
+
+    def test_print_alert_metadata_truncation(self):
+        """Test fields exceeding max_field_len (width - 15) are truncated with ellipsis."""
+        from src.modules.alert_console import print_alert_metadata
+
+        width = 40  # max_field_len = 25
+        long_subject = "A" * 30
+        report = _make_clean_report(
+            subject=long_subject,
+            sender="user@example.com",
+            recipient="target@example.com",
+        )
+        captured = StringIO()
+        with patch("sys.stdout", captured), patch("src.utils.colors.Colors.ENABLED", False):
+            print_alert_metadata(report, width=width, risk_color="", formatted_time="2023-10-24")
+
+        output = captured.getvalue()
+        # max_field_len is 25, so truncated to 25 - 3 = 22 characters + '...'
+        expected_subject = "A" * 22 + "..."
+        self.assertIn(f"Subject:   {expected_subject}", output)
+        self.assertNotIn(long_subject, output)
+
+    def test_print_alert_metadata_exact_boundary(self):
+        """Test fields exactly at max_field_len are not truncated."""
+        from src.modules.alert_console import print_alert_metadata
+
+        width = 40  # max_field_len = 25
+        exact_subject = "B" * 25
+        report = _make_clean_report(
+            subject=exact_subject,
+            sender="user@example.com",
+            recipient="target@example.com",
+        )
+        captured = StringIO()
+        with patch("sys.stdout", captured), patch("src.utils.colors.Colors.ENABLED", False):
+            print_alert_metadata(report, width=width, risk_color="", formatted_time="2023-10-24")
+
+        output = captured.getvalue()
+        self.assertIn(f"Subject:   {exact_subject}", output)
+        self.assertNotIn("...", output)
+
+    def test_print_alert_metadata_csv_sanitization(self):
+        """Test fields with formula injection prefixes are sanitized."""
+        from src.modules.alert_console import print_alert_metadata
+
+        report = _make_clean_report(
+            subject="=1+1",
+            sender="@danger.com",
+            recipient="+12345",
+        )
+        captured = StringIO()
+        with patch("sys.stdout", captured), patch("src.utils.colors.Colors.ENABLED", False):
+            print_alert_metadata(report, width=80, risk_color="", formatted_time="2023-10-24")
+
+        output = captured.getvalue()
+        # CSV safe sanitization prefixes formula chars (=, +, -, @) with single quote
+        self.assertIn("Subject:   '=1+1", output)
+        self.assertIn("From:      '@danger.com", output)
+        self.assertIn("To:        '+12345", output)
+
+    def test_print_alert_metadata_empty_or_none_fields(self):
+        """Test handling of empty or None fields without crashing."""
+        from src.modules.alert_console import print_alert_metadata
+
+        report = _make_clean_report(
+            subject="",
+            sender="",
+            recipient="",
+        )
+        captured = StringIO()
+        with patch("sys.stdout", captured), patch("src.utils.colors.Colors.ENABLED", False):
+            print_alert_metadata(report, width=80, risk_color="", formatted_time="2023-10-24")
+
+        output = captured.getvalue()
+        self.assertIn("Subject:", output)
+        self.assertIn("From:", output)
+        self.assertIn("To:", output)
+
+
 if __name__ == "__main__":
     unittest.main()
