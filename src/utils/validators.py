@@ -1,10 +1,13 @@
+"""Credential and configuration validators."""
+
 from typing import List
 
 from src.utils.config import Config
 
 
 def _is_placeholder_password(password: str) -> bool:
-    """Check if a password matches placeholder patterns or is empty.
+    """
+    Check if a password matches placeholder patterns or is empty.
 
     Avoids storing hardcoded default passwords in source code.
     """
@@ -12,14 +15,12 @@ def _is_placeholder_password(password: str) -> bool:
         return True
 
     val = str(password).strip().lower()
-    if val.startswith("your-") and val.endswith("-here"):
-        return True
-
-    return False
+    return val.startswith("your-") and val.endswith("-here")
 
 
 def check_default_credentials(config: Config) -> List[str]:
-    """Check if the configuration uses default example values.
+    """
+    Check if the configuration uses default example values.
 
     Returns a list of error messages.
     """
@@ -47,12 +48,10 @@ def check_default_credentials(config: Config) -> List[str]:
                 )
 
     # Check Alerts
-    if config.alerts.webhook_enabled:
-        if config.alerts.webhook_url == DEFAULT_WEBHOOK:
-            errors.append("Webhook alerts enabled but uses default URL")
+    if config.alerts.webhook_enabled and config.alerts.webhook_url == DEFAULT_WEBHOOK:
+        errors.append("Webhook alerts enabled but uses default URL")
 
-    if config.alerts.slack_enabled:
-        if config.alerts.slack_webhook == DEFAULT_SLACK:
-            errors.append("Slack alerts enabled but uses default Webhook URL")
+    if config.alerts.slack_enabled and config.alerts.slack_webhook == DEFAULT_SLACK:
+        errors.append("Slack alerts enabled but uses default Webhook URL")
 
     return errors
