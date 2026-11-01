@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import NamedTuple
 
 import pytest
 
@@ -14,6 +15,14 @@ from src.utils.gh_token_cli import (
     write_exports,
     write_requested_variable,
 )
+
+
+class CliCase(NamedTuple):
+    content: str
+    args: list[str]
+    code: int
+    out: str = ""
+    err: str = ""
 
 
 @pytest.mark.parametrize(
@@ -66,35 +75,31 @@ def test_write_formatters(capsys: pytest.CaptureFixture[str]) -> None:
 
 
 @pytest.mark.parametrize(
-    ("file_content", "args", "expected_code", "expected_stdout", "expected_err_substring"),
+    "case",
     [
-        ("A=10\nB=20\n", [], 0, "A=10\nB=20\n", None),
-        ("A=10\nB=20\n", ["--get", "A"], 0, "10", None),
-        ("A=10\nB=20\n", ["--get", "MISSING_VAR"], 1, "", "not found in"),
-        ("A=10\n", ["--export"], 0, "export A='10'\n", None),
-        ("NOT_VALID", [], 1, "", "error:"),
+        CliCase("A=10\nB=20\n", [], 0, "A=10\nB=20\n"),
+        CliCase("A=10\nB=20\n", ["--get", "A"], 0, "10"),
+        CliCase("A=10\nB=20\n", ["--get", "MISSING_VAR"], 1, err="not found in"),
+        CliCase("A=10\n", ["--export"], 0, "export A='10'\n"),
+        CliCase("NOT_VALID", [], 1, err="error:"),
     ],
 )
 def test_main_cli_scenarios(
     tmp_path: Path,
     capsys: pytest.CaptureFixture[str],
-    file_content: str,
-    args: list[str],
-    expected_code: int,
-    expected_stdout: str,
-    expected_err_substring: str | None,
+    case: CliCase,
 ) -> None:
     cfg = tmp_path / "env.txt"
-    cfg.write_text(file_content, encoding="utf-8")
+    cfg.write_text(case.content, encoding="utf-8")
 
-    cli_args = [str(cfg), *args]
+    cli_args = [str(cfg), *case.args]
     code = main(cli_args)
 
-    assert code == expected_code
+    assert code == case.code
     captured = capsys.readouterr()
-    assert captured.out == expected_stdout
-    if expected_err_substring:
-        assert expected_err_substring in captured.err
+    assert captured.out == case.out
+    if case.err:
+        assert case.err in captured.err
 
 
 def test_main_missing_file(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
