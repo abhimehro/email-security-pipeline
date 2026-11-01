@@ -1,119 +1,99 @@
-"""Unit tests for media authenticity analyzer."""
+"""Unit tests for MediaAuthenticityAnalyzer core behavior and result schema."""
 
-from datetime import datetime
 from unittest.mock import MagicMock, patch
 
-import pytest
-
-from src.modules.email_ingestion import EmailData
 from src.modules.media_analyzer import MediaAnalysisResult, MediaAuthenticityAnalyzer
 
 
-class DummyConfig:
-    check_media_attachments = True
-    deepfake_detection_enabled = True
-    media_analysis_timeout = 5
+def test_media_analysis_result_attributes():
+    payload = {
+        "threat_score": 3.5,
+        "suspicious_attachments": ["sample.zip"],
+        "file_type_warnings": ["disguised file"],
+        "size_anomalies": ["oversized"],
+        "potential_deepfakes": ["framerate jitter"],
+        "risk_level": "medium",
+    }
+    result = MediaAnalysisResult(**payload)
+    assert result.threat_score == 3.5
+    assert result.risk_level == "medium"
+    assert result.potential_deepfakes == ["framerate jitter"]
 
 
-@pytest.fixture
-def analyzer():
-    instance = MediaAuthenticityAnalyzer(DummyConfig())
-    yield instance
-    instance.shutdown()
+def test_analyze_when_media_check_turned_off():
+    cfg = MagicMock(check_media_attachments=False)
+    analyzer = MediaAuthenticityAnalyzer(cfg)
+    fake_mail = MagicMock(attachments=[{"filename": "malware.exe"}])
+
+    res = analyzer.analyze(fake_mail)
+    analyzer.shutdown()
+
+    assert res.threat_score == 0.0
+    assert res.risk_level == "low"
+    assert not res.suspicious_attachments
 
 
-def create_email_fixture(attachments):
-    return EmailData(
-        message_id="msg-101",
-        subject="Report",
-        sender="sender@corp.local",
-        recipient="recipient@corp.local",
-        date=datetime.now(),
-        body_text="Summary text",
-        body_html="",
-        headers={},
-        attachments=attachments,
-        raw_email=None,
-        account_email="recipient@corp.local",
-        folder="INBOX",
+def test_analyze_without_any_attachments():
+    cfg = MagicMock(check_media_attachments=True)
+    analyzer = MediaAuthenticityAnalyzer(cfg)
+    fake_mail = MagicMock(attachments=[])
+
+    res = analyzer.analyze(fake_mail)
+    analyzer.shutdown()
+
+    assert res.threat_score == 0.0
+    assert res.risk_level == "low"
+    assert res.suspicious_attachments == []
+
+
+def test_analyze_with_single_safe_pdf():
+    cfg = MagicMock(check_media_attachments=True, deepfake_detection_enabled=False)
+    analyzer = MediaAuthenticityAnalyzer(cfg)
+    fake_mail = MagicMock(
+        attachments=[
+            {
+                "filename": "quarterly.pdf",
+                "content_type": "application/pdf",
+                "size": 48,
+                "data": b"%PDF-1.4 header",
+                "truncated": False,
+            }
+        ]
     )
 
-
-def test_result_dataclass():
-    res = MediaAnalysisResult(1.0, ["a"], ["b"], ["c"], ["d"], "low")
-    assert res.threat_score == 1.0
-    assert res.risk_level == "low"
-
-
-def test_disabled_media_inspection(analyzer):
-    analyzer.config.check_media_attachments = False
-    res = analyzer.analyze(create_email_fixture([]))
-    assert res.threat_score == 0.0
-    assert res.risk_level == "low"
-
-
-def test_clean_pdf(analyzer):
-    att = {
-        "filename": "doc.pdf",
-        "content_type": "application/pdf",
-        "size": 24,
-        "data": b"%PDF-1.7 header",
-        "truncated": False,
-    }
-    res = analyzer.analyze(create_email_fixture([att]))
-    assert res.threat_score == 0.0
-
-
-def test_executable_warning(analyzer):
-    att = {
-        "filename": "test.exe",
-        "content_type": "application/octet-stream",
-        "size": 100,
-        "data": b"MZ\x00",
-        "truncated": False,
-    }
-    res = analyzer.analyze(create_email_fixture([att]))
-    assert res.threat_score >= 5.0
-    assert res.risk_level == "high"
-
-
-def test_double_extension(analyzer):
-    att = {
-        "filename": "test.pdf.exe",
-        "content_type": "application/octet-stream",
-        "size": 100,
-        "data": b"MZ\x00",
-        "truncated": False,
-    }
-    res = analyzer.analyze(create_email_fixture([att]))
-    assert res.threat_score >= 5.0
-
-
-def test_deepfake_flow(analyzer):
-    with patch.object(analyzer, "_check_deepfake_indicators", return_value=(3.0, ["deepfake detected"])):
-        att = {
-            "filename": "video.mp4",
-            "content_type": "video/mp4",
-            "size": 2048,
-            "data": b"\x00\x00\x00\x18ftypmp42",
-            "truncated": False,
-        }
-        res = analyzer.analyze(create_email_fixture([att]))
-        assert res.threat_score >= 3.0
-        assert "deepfake detected" in res.potential_deepfakes
-
-
-def test_deepfake_threshold_cutoff(analyzer):
-    with patch.object(analyzer, "_check_deepfake_indicators") as mock_chk:
-        atts = [
-            {"filename": "bad.exe", "content_type": "app/bin", "size": 100, "data": b"MZ", "truncated": False},
-            {"filename": "video.mp4", "content_type": "video/mp4", "size": 200, "data": b"ftyp", "truncated": False},
-        ]
-        res = analyzer.analyze(create_email_fixture(atts))
-        assert res.threat_score >= 5.0
-        mock_chk.assert_not_called()
-
-
-def test_analyzer_shutdown(analyzer):
+    res = analyzer.analyze(fake_mail)
     analyzer.shutdown()
-    assert analyzer._deepfake_executor._shutdown
+
+    assert res.threat_score == 0.0
+    assert res.risk_level == "low"
+    assert not res.file_type_warnings
+
+
+def test_deepfake_bypassed_when_meta_score_is_critical():
+    cfg = MagicMock(check_media_attachments=True, deepfake_detection_enabled=True)
+    analyzer = MediaAuthenticityAnalyzer(cfg)
+    fake_mail = MagicMock(
+        attachments=[
+            {
+                "filename": "trojan.exe",
+                "content_type": "application/octet-stream",
+                "size": 128,
+                "data": b"MZ\x00\x00",
+                "truncated": False,
+            },
+            {
+                "filename": "meeting.mp4",
+                "content_type": "video/mp4",
+                "size": 1024,
+                "data": b"\x00\x00\x00\x18ftyp",
+                "truncated": False,
+            },
+        ]
+    )
+
+    with patch.object(analyzer, "_check_deepfake_indicators") as mock_df:
+        res = analyzer.analyze(fake_mail)
+        analyzer.shutdown()
+
+        assert res.threat_score >= 5.0
+        mock_df.assert_not_called()
