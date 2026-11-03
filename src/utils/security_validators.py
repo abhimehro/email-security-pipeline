@@ -193,14 +193,20 @@ _SAFE_EMAIL_PATTERN = re.compile(r"^[a-zA-Z0-9._%+-]+@[A-Za-z0-9.-]+\.[a-zA-Z]{2
 
 def _is_safe_label(label: str) -> bool:
     """Return True if a domain label does not start/end with '.' or '-'."""
-    return bool(label) and not (
-        label.startswith((".", "-")) or label.endswith((".", "-"))
-    )
+    return bool(label) and label[0] not in (".", "-") and label[-1] not in (".", "-")
 
 
 def _is_safe_local(local: str) -> bool:
     """Return True if the local part does not start/end with '.' or '-'."""
-    return not (local.startswith((".", "-")) or local.endswith((".", "-")))
+    return not (local and (local[0] in (".", "-") or local[-1] in (".", "-")))
+
+
+def _is_safe_domain(domain: str) -> bool:
+    """Helper to validate domain labels and keep cyclomatic complexity low."""
+    for label in domain.split("."):
+        if not _is_safe_label(label):
+            return False
+    return True
 
 
 def is_safe_email(email: str) -> bool:
@@ -219,11 +225,12 @@ def is_safe_email(email: str) -> bool:
     Returns:
         True if the email appears safe and well-formed, False otherwise.
     """
+    # ⚡ BOLT: Fast path checks for invalid type, length, missing '@', or consecutive dots
+    # Placing these before regex evaluation skips unnecessary regex engine execution.
     if not isinstance(email, str) or len(email) > _MAX_EMAIL_LENGTH:
         return False
 
-    # Reject consecutive dots anywhere in the address.
-    if ".." in email:
+    if "@" not in email or ".." in email:
         return False
 
     if not _SAFE_EMAIL_PATTERN.match(email):
@@ -234,11 +241,7 @@ def is_safe_email(email: str) -> bool:
     if not _is_safe_local(local):
         return False
 
-    for label in domain.split("."):
-        if not _is_safe_label(label):
-            return False
-
-    return True
+    return _is_safe_domain(domain)
 
 
 def create_secure_ssl_context() -> ssl.SSLContext:
