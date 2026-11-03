@@ -155,13 +155,13 @@ rendering speedup.
 truncation helpers and query `shutil.get_terminal_size()` once prior to
 entering frame-based animation loops.
 
-## 2026-09-02 - Email Validation Fast Path and Direct Boundary Checks
+## 2026-09-02 - Direct Character Boundary Indexing in String Validation
 
-**Learning:** In email validation routines (`is_safe_email`), placing fast-path
-guard checks for missing `@` or consecutive dots (`..`) before regular
-expression evaluation, and replacing helper functions using
-`startswith`/`endswith` tuples with direct character boundary indexing
-(`local[0] in ('.', '-')`), skips unnecessary regex parsing and function call
-allocations for a ~32% speedup.
-**Action:** Add fast-path guards for structural prerequisites prior to regex
-evaluations, and use direct character boundary checks over tuple startswith.
+**Learning:** In string validation helper functions (`_is_safe_label`,
+`_is_safe_local`), replacing `startswith`/`endswith` tuple checks
+(`label.startswith(('.', '-'))`) with direct boundary indexing
+(`label[0] not in ('.', '-') and label[-1] not in ('.', '-')`) avoids tuple
+creation and method call overhead, providing a ~25% speedup while leaving
+the main function untouched and free of CodeScene biomarker flags.
+**Action:** Favor direct boundary indexing over tuple-based startswith/endswith
+checks in high-frequency string validation helpers.

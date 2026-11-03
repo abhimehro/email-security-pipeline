@@ -222,10 +222,6 @@ def is_safe_email(email: str) -> bool:
     if not isinstance(email, str) or len(email) > _MAX_EMAIL_LENGTH:
         return False
 
-    # ⚡ BOLT: Fast-path guard check for missing '@' skips regex execution on non-email strings
-    if "@" not in email:
-        return False
-
     # Reject consecutive dots anywhere in the address.
     if ".." in email:
         return False
