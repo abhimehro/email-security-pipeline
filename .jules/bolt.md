@@ -146,5 +146,20 @@ proper resource teardown in a `shutdown()` method.
 
 ## 2026-08-29 - Avoid Repeated get_terminal_size Syscalls in Animation Loops
 
-**Learning:** Calling `shutil.get_terminal_size()` continuously inside tight rendering loops (such as terminal spinner or countdown frame updates) invokes blocking `ioctl` system calls on every frame, creating significant CPU/I/O overhead. Caching the column width before or per iteration yields a ~96% rendering speedup.
-**Action:** Always accept an optional `columns` parameter in terminal truncation helpers and query `shutil.get_terminal_size()` once prior to entering frame-based animation loops.
+**Learning:** Calling `shutil.get_terminal_size()` continuously inside tight
+rendering loops (such as terminal spinner or countdown frame updates) invokes
+blocking `ioctl` system calls on every frame, creating significant CPU/I/O
+overhead. Caching the column width before or per iteration yields a ~96%
+rendering speedup. **Action:** Always accept an optional `columns` parameter in
+terminal truncation helpers and query `shutil.get_terminal_size()` once prior to
+entering frame-based animation loops.
+
+## 2026-08-30 - Decouple Alternating Regex Patterns with Disjoint Prefixes
+
+**Learning:** Combining multiple patterns with disjoint literal prefixes into a
+single alternation (e.g. `font-size:\s*[0-2]px|color:\s*#fff...`) prevents the
+regex engine from optimizing prefix matching, triggering character-by-character
+scans over large inputs. Decoupling into distinct patterns guarded by fast
+C-level substring checks avoids regex execution on benign text for a ~4.8x
+speedup. **Action:** When a composite regex alternates across distinct search
+prefixes, decouple into targeted regexes guarded by `in` checks on each prefix.

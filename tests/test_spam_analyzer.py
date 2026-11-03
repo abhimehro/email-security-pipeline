@@ -128,16 +128,24 @@ def test_excessive_links(spam_analyzer, clean_email):
     assert found_excessive
 
 
-def test_hidden_text(spam_analyzer, clean_email):
-    clean_email.body_html = "<html><span style='font-size: 0px'>hidden</span></html>"
+@pytest.mark.parametrize(
+    "html_snippet,should_detect",
+    [
+        ("<span style='font-size: 0px'>hidden</span>", True),
+        ("<span style='font-size: 1px'>hidden</span>", True),
+        ("<span style='font-size: 2px'>hidden</span>", True),
+        ("<span style='color: #ffffff; background-color: #ffffff'>white-on-white</span>", True),
+        ("<span style='color: #fff; background: #fff'>short-hex</span>", True),
+        ("<span style='font-size: 14px'>normal size</span>", False),
+        ("<span style='color: #333333; background-color: #ffffff'>normal contrast</span>", False),
+        ("<p>No inline styles</p>", False),
+    ],
+)
+def test_hidden_text_variations(spam_analyzer, clean_email, html_snippet, should_detect):
+    clean_email.body_html = f"<html><body>{html_snippet}</body></html>"
     result = spam_analyzer.analyze(clean_email)
-
-    found_hidden = False
-    for indicator in result.indicators:
-        if "Hidden text detected" in indicator:
-            found_hidden = True
-            break
-    assert found_hidden
+    detected = any("Hidden text detected" in ind for ind in result.indicators)
+    assert detected == should_detect
 
 
 def test_suspicious_urls(spam_analyzer, clean_email):
