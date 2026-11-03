@@ -193,12 +193,18 @@ _SAFE_EMAIL_PATTERN = re.compile(r"^[a-zA-Z0-9._%+-]+@[A-Za-z0-9.-]+\.[a-zA-Z]{2
 
 def _is_safe_label(label: str) -> bool:
     """Return True if a domain label does not start/end with '.' or '-'."""
-    return bool(label) and label[0] not in (".", "-") and label[-1] not in (".", "-")
+    if not label:
+        return False
+    # ⚡ BOLT: Direct character boundary indexing avoids tuple startswith/endswith overhead
+    return label[0] not in (".", "-") and label[-1] not in (".", "-")
 
 
 def _is_safe_local(local: str) -> bool:
     """Return True if the local part does not start/end with '.' or '-'."""
-    return bool(local) and local[0] not in (".", "-") and local[-1] not in (".", "-")
+    if not local:
+        return False
+    # ⚡ BOLT: Direct character boundary indexing avoids tuple startswith/endswith overhead
+    return local[0] not in (".", "-") and local[-1] not in (".", "-")
 
 
 def is_safe_email(email: str) -> bool:
@@ -217,12 +223,18 @@ def is_safe_email(email: str) -> bool:
     Returns:
         True if the email appears safe and well-formed, False otherwise.
     """
-    if not isinstance(email, str) or len(email) > _MAX_EMAIL_LENGTH:
+    if not isinstance(email, str):
         return False
 
-    # ⚡ BOLT: Fast-path guard check for missing '@' and consecutive dots '..'
+    if len(email) > _MAX_EMAIL_LENGTH:
+        return False
+
+    # ⚡ BOLT: Fast-path guard checks for missing '@' and consecutive dots '..'
     # This skips regex engine evaluation entirely on non-email or malformed inputs.
-    if "@" not in email or ".." in email:
+    if "@" not in email:
+        return False
+
+    if ".." in email:
         return False
 
     if not _SAFE_EMAIL_PATTERN.match(email):
@@ -230,13 +242,11 @@ def is_safe_email(email: str) -> bool:
 
     local, _, domain = email.partition("@")
 
-    # ⚡ BOLT: Direct character boundary indexing is ~30% faster than startswith/endswith tuples
-    # and avoids helper function invocation overhead in hot validation paths.
-    if local[0] in (".", "-") or local[-1] in (".", "-"):
+    if not _is_safe_local(local):
         return False
 
     for label in domain.split("."):
-        if not label or label[0] in (".", "-") or label[-1] in (".", "-"):
+        if not _is_safe_label(label):
             return False
 
     return True
