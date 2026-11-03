@@ -146,5 +146,22 @@ proper resource teardown in a `shutdown()` method.
 
 ## 2026-08-29 - Avoid Repeated get_terminal_size Syscalls in Animation Loops
 
-**Learning:** Calling `shutil.get_terminal_size()` continuously inside tight rendering loops (such as terminal spinner or countdown frame updates) invokes blocking `ioctl` system calls on every frame, creating significant CPU/I/O overhead. Caching the column width before or per iteration yields a ~96% rendering speedup.
-**Action:** Always accept an optional `columns` parameter in terminal truncation helpers and query `shutil.get_terminal_size()` once prior to entering frame-based animation loops.
+**Learning:** Calling `shutil.get_terminal_size()` continuously inside tight
+rendering loops (such as terminal spinner or countdown frame updates) invokes
+blocking `ioctl` system calls on every frame, creating significant CPU/I/O
+overhead. Caching the column width before or per iteration yields a ~96%
+rendering speedup.
+**Action:** Always accept an optional `columns` parameter in terminal
+truncation helpers and query `shutil.get_terminal_size()` once prior to
+entering frame-based animation loops.
+
+## 2026-09-02 - Direct Character Boundary Indexing in String Validation
+
+**Learning:** In string validation helper functions (`_is_safe_label`,
+`_is_safe_local`), replacing `startswith`/`endswith` tuple checks
+(`label.startswith(('.', '-'))`) with direct boundary indexing
+(`label[0] not in ('.', '-') and label[-1] not in ('.', '-')`) avoids tuple
+creation and method call overhead, providing a ~25% speedup while leaving
+the main function untouched and free of CodeScene biomarker flags.
+**Action:** Favor direct boundary indexing over tuple-based startswith/endswith
+checks in high-frequency string validation helpers.

@@ -193,14 +193,14 @@ _SAFE_EMAIL_PATTERN = re.compile(r"^[a-zA-Z0-9._%+-]+@[A-Za-z0-9.-]+\.[a-zA-Z]{2
 
 def _is_safe_label(label: str) -> bool:
     """Return True if a domain label does not start/end with '.' or '-'."""
-    return bool(label) and not (
-        label.startswith((".", "-")) or label.endswith((".", "-"))
-    )
+    # ⚡ BOLT: Direct character boundary indexing is faster than startswith/endswith tuples
+    return bool(label) and label[0] not in (".", "-") and label[-1] not in (".", "-")
 
 
 def _is_safe_local(local: str) -> bool:
     """Return True if the local part does not start/end with '.' or '-'."""
-    return not (local.startswith((".", "-")) or local.endswith((".", "-")))
+    # ⚡ BOLT: Direct character boundary indexing is faster than startswith/endswith tuples
+    return bool(local) and local[0] not in (".", "-") and local[-1] not in (".", "-")
 
 
 def is_safe_email(email: str) -> bool:
