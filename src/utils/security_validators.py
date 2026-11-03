@@ -193,18 +193,14 @@ _SAFE_EMAIL_PATTERN = re.compile(r"^[a-zA-Z0-9._%+-]+@[A-Za-z0-9.-]+\.[a-zA-Z]{2
 
 def _is_safe_label(label: str) -> bool:
     """Return True if a domain label does not start/end with '.' or '-'."""
-    if not label:
-        return False
-    # ⚡ BOLT: Direct character boundary indexing avoids tuple startswith/endswith overhead
-    return label[0] not in (".", "-") and label[-1] not in (".", "-")
+    # ⚡ BOLT: Direct character boundary indexing is faster than startswith/endswith tuples
+    return bool(label) and label[0] not in (".", "-") and label[-1] not in (".", "-")
 
 
 def _is_safe_local(local: str) -> bool:
     """Return True if the local part does not start/end with '.' or '-'."""
-    if not local:
-        return False
-    # ⚡ BOLT: Direct character boundary indexing avoids tuple startswith/endswith overhead
-    return local[0] not in (".", "-") and local[-1] not in (".", "-")
+    # ⚡ BOLT: Direct character boundary indexing is faster than startswith/endswith tuples
+    return bool(local) and local[0] not in (".", "-") and local[-1] not in (".", "-")
 
 
 def is_safe_email(email: str) -> bool:
@@ -223,17 +219,14 @@ def is_safe_email(email: str) -> bool:
     Returns:
         True if the email appears safe and well-formed, False otherwise.
     """
-    if not isinstance(email, str):
+    if not isinstance(email, str) or len(email) > _MAX_EMAIL_LENGTH:
         return False
 
-    if len(email) > _MAX_EMAIL_LENGTH:
-        return False
-
-    # ⚡ BOLT: Fast-path guard checks for missing '@' and consecutive dots '..'
-    # This skips regex engine evaluation entirely on non-email or malformed inputs.
+    # ⚡ BOLT: Fast-path guard check for missing '@' skips regex execution on non-email strings
     if "@" not in email:
         return False
 
+    # Reject consecutive dots anywhere in the address.
     if ".." in email:
         return False
 
