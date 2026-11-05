@@ -421,9 +421,9 @@ class IMAPConnection:
             status, size_data = self.connection.fetch(ids_str, "(RFC822.SIZE)")
 
             if status == "OK" and isinstance(size_data, list):
-                for seq, size in [
+                for seq, size in (
                     p for p in (self._parse_size_item(item) for item in size_data) if p
-                ]:
+                ):
                     # Check against limit
                     if size > self.max_email_size:
                         self.logger.warning(
