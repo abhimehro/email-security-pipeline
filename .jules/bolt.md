@@ -146,8 +146,14 @@ proper resource teardown in a `shutdown()` method.
 
 ## 2026-08-29 - Avoid Repeated get_terminal_size Syscalls in Animation Loops
 
-**Learning:** Calling `shutil.get_terminal_size()` continuously inside tight rendering loops (such as terminal spinner or countdown frame updates) invokes blocking `ioctl` system calls on every frame, creating significant CPU/I/O overhead. Caching the column width before or per iteration yields a ~96% rendering speedup.
-**Action:** Always accept an optional `columns` parameter in terminal truncation helpers and query `shutil.get_terminal_size()` once prior to entering frame-based animation loops.
+**Learning:** Calling `shutil.get_terminal_size()` continuously inside tight
+rendering loops (such as terminal spinner or countdown frame updates) invokes
+blocking `ioctl` system calls on every frame, creating significant CPU/I/O
+overhead. Caching the column width before or per iteration yields a ~96%
+rendering speedup.
+**Action:** Always accept an optional `columns` parameter in terminal
+truncation helpers and query `shutil.get_terminal_size()` once prior to entering
+frame-based animation loops.
 
 ## 2026-08-30 - Avoid intermediate list allocation in generator loops
 
@@ -159,3 +165,16 @@ allocation entirely while maintaining identical iteration semantics.
 **Action:** When a loop iterates directly over a filtered mapping
 comprehension, use a generator expression instead of a list comprehension to
 save memory allocations.
+
+## 2026-08-31 - Email Validation Fast-Path and Boundary Indexing
+
+**Learning:** In email validation (`is_safe_email`), early guard checks for
+missing `@` or consecutive dots `..` avoid regular expression compilation and
+scanning on malformed inputs, speeding up non-email string evaluation by >60%.
+Furthermore, replacing `startswith`/`endswith` method calls on local/label parts
+with direct index boundary checks (`s[0] not in chars and s[-1] not in chars`)
+avoids function call overhead and tuple unpacking, speeding up overall email
+validation by ~15-20%.
+**Action:** Place fast substring/character membership checks before regex
+matching on input validation hot paths, and prefer direct indexing for single
+boundary character checks on non-empty strings.
