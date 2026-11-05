@@ -20,7 +20,7 @@ from .alert_recommendations import (
     YELLOW_KEYWORDS_PATTERN,
     generate_recommendations,
 )
-from .alert_report import ThreatReport
+from .alert_report import ThreatReport, generate_threat_report  # noqa: F401
 from .media_analyzer import MediaAnalysisResult
 from .nlp_analyzer import NLPAnalysisResult
 from .spam_analyzer import SpamAnalysisResult
@@ -369,6 +369,10 @@ class AlertSystem:
             else:
                 self.logger.error("Failed to enqueue alert: %s", exc)
 
+    def _safe_console_url(self, url: str) -> str:
+        """Return a URL safe for console output with tokens redacted."""
+        return alert_console.safe_console_url(url)
+
     def _get_terminal_width(self) -> int:
         """Get the current terminal width or default to 80."""
         return alert_console.get_terminal_width()
@@ -417,6 +421,10 @@ class AlertSystem:
     def _redact_url_secrets(self, url: str) -> str:
         """Redact sensitive information from URL (query params and specific paths)."""
         return alert_channels.redact_url_secrets(url)
+
+    def _redact_sensitive_url_params(self, url: str) -> str:
+        """Redact sensitive query parameters from URL."""
+        return alert_channels.redact_sensitive_url_params(url)
 
     def _webhook_alert(self, report: ThreatReport) -> bool:
         """Send alert via webhook.

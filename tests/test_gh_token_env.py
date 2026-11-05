@@ -1,5 +1,7 @@
 """Security tests for safe env-file parsing used by automation shell scripts."""
 
+from __future__ import annotations
+
 import os
 import subprocess
 import sys
