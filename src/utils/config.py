@@ -6,7 +6,6 @@ Handles loading and validation of environment variables and settings.
 import logging
 import os
 from dataclasses import dataclass, field
-from pathlib import Path
 from typing import List, Optional
 from urllib.parse import urlparse
 
@@ -16,6 +15,7 @@ from .security_validators import (
     _normalize_mail_server_host,
     is_safe_email,
     is_safe_webhook_url,
+    resolve_ca_path,
     validate_mail_server_host,
 )
 
@@ -145,9 +145,7 @@ class Config:
         # SECURITY & RELIABILITY: Only load .env if it is a file, NOT a directory.
         # python-dotenv silently ignores directory paths, which previously masked
         # .env directory corruption and resulted in confusing "No email accounts configured" errors.
-        if env_file and os.path.isdir(env_file):
-            pass
-        else:
+        if not (env_file and os.path.isdir(env_file)):
             load_dotenv(env_file)
 
         self.email_accounts = self._load_email_accounts()
@@ -362,9 +360,7 @@ class Config:
                     )
                 else:
                     try:
-                        base_dir = Path.cwd().resolve()
-                        ca_path = (base_dir / account.tls_ca_file).resolve()
-                        ca_path.relative_to(base_dir)
+                        ca_path = resolve_ca_path(account.tls_ca_file)
                         if not ca_path.is_file():
                             errors.append(
                                 f"TLS CA file does not exist or is not a file for {account.provider} account: {account.tls_ca_file}"

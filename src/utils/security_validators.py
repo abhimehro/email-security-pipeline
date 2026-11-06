@@ -242,6 +242,14 @@ def is_safe_email(email: str) -> bool:
     return True
 
 
+def resolve_ca_path(ca_file: str) -> Path:
+    """Resolve a CA path and reject paths outside the current working tree."""
+    base_dir = Path.cwd().resolve()
+    ca_path = (base_dir / ca_file).resolve()
+    ca_path.relative_to(base_dir)
+    return ca_path
+
+
 class SSLContextWrapper:
     """
     Delegate wrapper around ssl.SSLContext that allows pinning server_hostname
@@ -309,10 +317,8 @@ def create_secure_ssl_context(
     if ca_file:
         if "\0" in ca_file:
             raise ValueError("Null byte in CA file path")
-        base_dir = Path.cwd().resolve()
-        resolved_ca = (base_dir / ca_file).resolve()
         try:
-            resolved_ca.relative_to(base_dir)
+            resolved_ca = resolve_ca_path(ca_file)
         except ValueError as err:
             raise ValueError(
                 f"CA file path '{ca_file}' must stay within working tree"
