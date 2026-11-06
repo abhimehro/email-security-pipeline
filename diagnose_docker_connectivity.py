@@ -240,11 +240,7 @@ def main():
             )
 
     if not results:
-        print(
-            Colors.colorize(
-                "\n⚠  No email providers enabled in .env", Colors.YELLOW
-            )
-        )
+        print(Colors.colorize("\n⚠  No email providers enabled in .env", Colors.YELLOW))
         print(
             "   Run "
             + Colors.colorize("python src/utils/setup_wizard.py", Colors.CYAN)
