@@ -268,6 +268,39 @@ class TestConsoleAlert(unittest.TestCase):
         self.assertIn("RECOMMENDATIONS", output)
         self.assertIn("No specific actions required", output)
 
+    def test_threat_score_meter_scales_with_card_width(self) -> None:
+        """The threat-score meter length follows the card width (floor 20)."""
+        from src.modules.alert_console import print_threat_score
+
+        for width, expected_len in ((40, 20), (60, 30), (70, 40), (100, 70)):
+            captured = StringIO()
+            with (
+                patch("sys.stdout", captured),
+                patch("src.utils.colors.Colors.ENABLED", False),
+            ):
+                print_threat_score(50.0, "medium", width, "")
+            bar_line = captured.getvalue().splitlines()[1]
+            bar = bar_line.lstrip("│ ")
+            self.assertEqual(len(bar), expected_len, msg=f"width={width}")
+            self.assertEqual(bar.count("█"), expected_len // 2)
+
+    def test_render_alert_meter_uses_terminal_width(self) -> None:
+        """An in-range terminal width drives both the card and the meter."""
+        from src.modules.alert_console import render_alert
+
+        report = _make_clean_report(overall_threat_score=100.0, risk_level="high")
+        captured = StringIO()
+        with (
+            patch("src.modules.alert_console.get_terminal_width", return_value=80),
+            patch("src.utils.colors.Colors.ENABLED", False),
+            patch("sys.stdout", captured),
+        ):
+            render_alert(report, {})
+        output = captured.getvalue()
+        self.assertIn("┌" + "─" * 78 + "┐", output)
+        self.assertIn("█" * 50, output)
+        self.assertNotIn("█" * 51, output)
+
 
 if __name__ == "__main__":
     unittest.main()
