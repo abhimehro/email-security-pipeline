@@ -125,7 +125,7 @@ class TestEnvFileParser(unittest.TestCase):
             "'hello",
             '"hello',
             "'hello\"",
-            '"hello\'',
+            "\"hello'",
         ]
         for val in unterminated_cases:
             with self.subTest(val=val):

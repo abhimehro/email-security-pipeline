@@ -146,16 +146,20 @@ proper resource teardown in a `shutdown()` method.
 
 ## 2026-08-29 - Avoid Repeated get_terminal_size Syscalls in Animation Loops
 
-**Learning:** Calling `shutil.get_terminal_size()` continuously inside tight rendering loops (such as terminal spinner or countdown frame updates) invokes blocking `ioctl` system calls on every frame, creating significant CPU/I/O overhead. Caching the column width before or per iteration yields a ~96% rendering speedup.
-**Action:** Always accept an optional `columns` parameter in terminal truncation helpers and query `shutil.get_terminal_size()` once prior to entering frame-based animation loops.
+**Learning:** Calling `shutil.get_terminal_size()` continuously inside tight
+rendering loops (such as terminal spinner or countdown frame updates) invokes
+blocking `ioctl` system calls on every frame, creating significant CPU/I/O
+overhead. Caching the column width before or per iteration yields a ~96%
+rendering speedup. **Action:** Always accept an optional `columns` parameter in
+terminal truncation helpers and query `shutil.get_terminal_size()` once prior to
+entering frame-based animation loops.
 
 ## 2026-08-30 - Avoid intermediate list allocation in generator loops
 
 **Learning:** Iterating over a list comprehension that wraps a generator
-expression eagerly evaluates and allocates an entire intermediate list in
-memory before loop execution. Converting the outer bracket list comprehension
-to a generator expression streams items lazily, avoiding list memory
-allocation entirely while maintaining identical iteration semantics.
-**Action:** When a loop iterates directly over a filtered mapping
-comprehension, use a generator expression instead of a list comprehension to
-save memory allocations.
+expression eagerly evaluates and allocates an entire intermediate list in memory
+before loop execution. Converting the outer bracket list comprehension to a
+generator expression streams items lazily, avoiding list memory allocation
+entirely while maintaining identical iteration semantics. **Action:** When a
+loop iterates directly over a filtered mapping comprehension, use a generator
+expression instead of a list comprehension to save memory allocations.

@@ -100,9 +100,11 @@ class IMAPConnection:
                 f"(SSL={self.config.use_ssl})"
             )
 
-            # Create secure SSL context (TLS 1.2+ enforced)
-            context = create_secure_ssl_context()
-
+            # Create secure SSL context (TLS 1.2+ enforced, with optional pinned CA / server hostname)
+            context = create_secure_ssl_context(
+                ca_file=self.config.tls_ca_file,
+                server_hostname=self.config.tls_server_hostname,
+            )
             # Initialize client based on SSL configuration
             self.connection = self._create_imap_client(context)
 

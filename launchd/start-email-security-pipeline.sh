@@ -4,11 +4,12 @@
 # docker compose mounts .env into the container.
 set -euo pipefail
 
-export HOME=/Users/speedybee
-export PATH=/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/Users/speedybee/.local/bin:/usr/bin:/bin:/usr/sbin:/sbin
+export HOME="${HOME:-/Users/speedybee}"
+export PATH=/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:${HOME}/.local/bin:/usr/bin:/bin:/usr/sbin:/sbin
 
-COMPOSE_FILE="$HOME/dev/email-security-pipeline/docker-compose.yml"
-PROJECT_DIR="$HOME/dev/email-security-pipeline"
+PROJECT_DIR="${PROJECT_DIR:-${0:A:h:h}}"
+COMPOSE_FILE="${COMPOSE_FILE:-$PROJECT_DIR/docker-compose.yml}"
+ENV_FILE="${ENV_FILE:-$PROJECT_DIR/.env}"
 DOCKER_CONTEXT="colima"
 # Colima cold-start on Apple Virtualization can exceed 3 minutes after a crash.
 READY_ATTEMPTS=150 # 150 * 2s = 300s
@@ -44,6 +45,21 @@ resolve_bin() {
 }
 
 cd "$PROJECT_DIR"
+
+# SECURITY & OPERATIONAL RELIABILITY: Fail fast if .env is a directory or missing.
+# Docker bind-mounting ./.env:/app/.env:ro when .env is missing auto-creates .env/ as a directory,
+# breaking docker compose and python-dotenv. Checking upfront prevents this corruption state.
+if [[ -d $ENV_FILE ]]; then
+	log_err "Configuration path $ENV_FILE is a directory, not a file (often auto-created by Docker when bind-mounting a missing .env)."
+	log_err "Remove the empty directory and create a valid .env file."
+	exit 1
+fi
+
+if [[ ! -f $ENV_FILE ]]; then
+	log_err "Configuration file $ENV_FILE not found."
+	log_err "Refusing to start compose so Docker does not create an empty .env/ directory. Copy .env.example to .env first."
+	exit 1
+fi
 
 DOCKER_BIN="$(resolve_bin docker)" || {
 	log_err "docker CLI not found on PATH ($PATH)"

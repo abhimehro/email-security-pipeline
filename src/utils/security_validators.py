@@ -13,6 +13,7 @@ import logging
 import re
 import socket
 import ssl
+from pathlib import Path
 from typing import Any, List, Optional, Tuple
 from urllib.parse import urlparse
 
@@ -241,31 +242,69 @@ def is_safe_email(email: str) -> bool:
     return True
 
 
-def create_secure_ssl_context() -> ssl.SSLContext:
+class SSLContextWrapper:
     """
-    Create a secure SSL context with modern TLS settings.
+    Delegate wrapper around ssl.SSLContext that allows pinning server_hostname
+    during wrap_socket (e.g. for Proton Mail Bridge at 127.0.0.1).
 
-    SECURITY STORY: This enforces TLS 1.2+ to protect against attacks on
-    older protocols like SSLv3 (POODLE) and TLS 1.0/1.1 (BEAST, CRIME).
-    We also set secure cipher suites and enable hostname checking to
-    prevent man-in-the-middle attacks.
-
-    Returns:
-        Configured SSL context with security best practices
-
+    SECURITY STORY: Useful when connecting via localhost where the certificate CN
+    or SAN matches a specific IP or hostname, ensuring strict verification.
     """
-    # Create SSL context with TLS 1.2+ (protects against SSLv3/TLS1.0/1.1 attacks)
+
+    def __init__(
+        self, context: ssl.SSLContext, pinned_server_hostname: Optional[str] = None
+    ):
+        self._context = context
+        self._pinned_server_hostname = pinned_server_hostname
+
+    def wrap_socket(self, sock, server_side=False, *args, **kwargs):
+        if self._pinned_server_hostname:
+            kwargs["server_hostname"] = self._pinned_server_hostname
+        return self._context.wrap_socket(sock, server_side, *args, **kwargs)
+
+    def __getattr__(self, name):
+        return getattr(self._context, name)
+
+
+def create_secure_ssl_context(
+    ca_file: Optional[str] = None,
+    server_hostname: Optional[str] = None,
+) -> ssl.SSLContext:
+    """
+    Create a secure SSL context with modern TLS settings and optional custom CA / hostname pinning.
+
+    SECURITY STORY: Enforces TLS 1.2+, CERT_REQUIRED, and check_hostname=True.
+    If ca_file is provided, pins trust exclusively to that certificate authority bundle.
+    If server_hostname is provided, pins the TLS SNI and validation hostname.
+    """
     context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
     context.minimum_version = ssl.TLSVersion.TLSv1_2
-
-    # Enable hostname checking (prevents MITM attacks)
     context.check_hostname = True
     context.verify_mode = ssl.CERT_REQUIRED
 
-    # Load default CA certificates for verification
-    context.load_default_certs()
+    if ca_file:
+        if "\0" in ca_file:
+            raise ValueError("Null byte in CA file path")
+        base_dir = Path.cwd().resolve()
+        resolved_ca = (base_dir / ca_file).resolve()
+        try:
+            resolved_ca.relative_to(base_dir)
+        except ValueError as err:
+            raise ValueError(
+                f"CA file path '{ca_file}' must stay within working tree"
+            ) from err
+        if not resolved_ca.is_file():
+            raise FileNotFoundError(f"CA file not found: {resolved_ca}")
+        context.load_verify_locations(cafile=str(resolved_ca))
+        logger.info(f"Loaded pinned TLS CA bundle from {resolved_ca}")
+    else:
+        context.load_default_certs()
 
     logger.debug("Created secure SSL context with TLS 1.2+ enforcement")
+
+    if server_hostname:
+        server_hostname = validate_mail_server_host(server_hostname)
+        return SSLContextWrapper(context, pinned_server_hostname=server_hostname)
     return context
 
 

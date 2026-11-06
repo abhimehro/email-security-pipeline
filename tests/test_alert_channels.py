@@ -185,7 +185,9 @@ class TestRedactUrlSecrets(unittest.TestCase):
 
     def test_redact_webhook_by_platform_not_matching(self):
         parsed = urlparse("https://otherdomain.com/services/T1/B2/token")
-        self.assertIsNone(_redact_webhook_by_platform(parsed, "/services/", "slack.com"))
+        self.assertIsNone(
+            _redact_webhook_by_platform(parsed, "/services/", "slack.com")
+        )
 
     def test_url_with_sensitive_query_parameters(self):
         url = "https://example.com/callback?code=xyz&token=secret123&state=ok"
@@ -195,8 +197,12 @@ class TestRedactUrlSecrets(unittest.TestCase):
         self.assertIn("state=ok", redacted)
 
     def test_malformed_url_exception_fallback(self):
-        with patch("src.modules.alert_channels.urlparse", side_effect=ValueError("bad url")):
-            self.assertEqual(redact_url_secrets("https://invalid-url"), "https://invalid-url")
+        with patch(
+            "src.modules.alert_channels.urlparse", side_effect=ValueError("bad url")
+        ):
+            self.assertEqual(
+                redact_url_secrets("https://invalid-url"), "https://invalid-url"
+            )
 
 
 class TestRedactSensitiveUrlParams(unittest.TestCase):
@@ -245,7 +251,9 @@ class TestRedactSensitiveUrlParams(unittest.TestCase):
         self.assertEqual(redact_sensitive_url_params(url), url)
 
     def test_exception_fallback(self):
-        with patch("src.modules.alert_channels.parse_qs", side_effect=Exception("parsing fail")):
+        with patch(
+            "src.modules.alert_channels.parse_qs", side_effect=Exception("parsing fail")
+        ):
             self.assertEqual(
                 redact_sensitive_url_params("https://example.com?token=123"),
                 "https://example.com?token=123",
@@ -268,7 +276,9 @@ class TestSanitizeErrorMessage(unittest.TestCase):
     """Tests for sanitize_error_message."""
 
     def test_redacts_http_and_https_urls(self):
-        err = "Request failed for https://api.slack.com/services/T1/B2/SECRET_TOKEN: 404"
+        err = (
+            "Request failed for https://api.slack.com/services/T1/B2/SECRET_TOKEN: 404"
+        )
         result = sanitize_error_message(err)
         self.assertIn("[REDACTED]", result)
         self.assertNotIn("SECRET_TOKEN", result)
@@ -300,7 +310,10 @@ class TestSanitizeErrorMessage(unittest.TestCase):
         self.assertEqual(sanitize_error_message(err), "Timeout connecting to host")
 
     def test_exception_fallback(self):
-        with patch("src.modules.alert_channels.redact_url_secrets", side_effect=Exception("redaction error")):
+        with patch(
+            "src.modules.alert_channels.redact_url_secrets",
+            side_effect=Exception("redaction error"),
+        ):
             self.assertEqual(
                 sanitize_error_message("https://example.com"),
                 "An error occurred (details redacted for security)",
@@ -311,7 +324,9 @@ class TestSlackFieldsAndPayload(unittest.TestCase):
     """Tests for Slack field formatting and Slack / webhook payload generation."""
 
     def test_create_slack_field(self):
-        field = create_slack_field("Spam Analysis", {"risk_level": "high", "score": 85.0}, " - Suspicious URLs")
+        field = create_slack_field(
+            "Spam Analysis", {"risk_level": "high", "score": 85.0}, " - Suspicious URLs"
+        )
         self.assertEqual(field["title"], "Spam Analysis")
         self.assertIn("HIGH (85.00)", field["value"])
         self.assertIn("- Suspicious URLs", field["value"])
@@ -323,7 +338,11 @@ class TestSlackFieldsAndPayload(unittest.TestCase):
 
     def test_get_analysis_indicator_with_defaults(self):
         data = {"suspicious_urls": ["http://phish.com"]}
-        indicator = _get_analysis_indicator(data, ["indicators", "suspicious_urls"], {"suspicious_urls": "Suspicious URLs"})
+        indicator = _get_analysis_indicator(
+            data,
+            ["indicators", "suspicious_urls"],
+            {"suspicious_urls": "Suspicious URLs"},
+        )
         self.assertEqual(indicator, " - Suspicious URLs")
 
     def test_get_analysis_indicator_with_list_value(self):
@@ -353,11 +372,19 @@ class TestSlackFieldsAndPayload(unittest.TestCase):
         self.assertEqual(rec_field["value"], "Review email")
 
     def test_build_slack_payload_colors(self):
-        for risk, expected_color in [("low", "#36a64f"), ("medium", "#ff9900"), ("high", "#ff0000"), ("unknown", "#808080")]:
+        for risk, expected_color in [
+            ("low", "#36a64f"),
+            ("medium", "#ff9900"),
+            ("high", "#ff0000"),
+            ("unknown", "#808080"),
+        ]:
             report = _create_sample_report(risk_level=risk)
             payload = build_slack_payload(report)
             self.assertEqual(payload["attachments"][0]["color"], expected_color)
-            self.assertIn(f"🚨 Security Alert - {risk.upper()} Risk", payload["attachments"][0]["title"])
+            self.assertIn(
+                f"🚨 Security Alert - {risk.upper()} Risk",
+                payload["attachments"][0]["title"],
+            )
             self.assertEqual(payload["text"], "New email security threat detected")
 
     def test_build_webhook_payload_redacts_suspicious_urls(self):

@@ -6,6 +6,7 @@ Handles loading and validation of environment variables and settings.
 import logging
 import os
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import List, Optional
 from urllib.parse import urlparse
 
@@ -38,12 +39,18 @@ class EmailAccountConfig:
     provider: str
     use_ssl: bool
     smtp_server: Optional[str] = None
+    tls_ca_file: Optional[str] = None
+    tls_server_hostname: Optional[str] = None
 
     def __post_init__(self):
         """Normalize server hostnames so comparisons and connections match."""
         self.imap_server = _normalize_mail_server_host(self.imap_server)
         if self.smtp_server is not None:
             self.smtp_server = _normalize_mail_server_host(self.smtp_server)
+        if self.tls_server_hostname is not None:
+            self.tls_server_hostname = _normalize_mail_server_host(
+                self.tls_server_hostname
+            )
 
 
 @dataclass
@@ -128,7 +135,14 @@ class Config:
             env_file: Path to environment file (default: .env)
 
         """
-        load_dotenv(env_file)
+        self._env_file = env_file
+        # SECURITY & RELIABILITY: Only load .env if it is a file, NOT a directory.
+        # python-dotenv silently ignores directory paths, which previously masked
+        # .env directory corruption and resulted in confusing "No email accounts configured" errors.
+        if env_file and os.path.isdir(env_file):
+            pass
+        else:
+            load_dotenv(env_file)
 
         self.email_accounts = self._load_email_accounts()
         self.analysis = self._load_analysis_config()
@@ -153,6 +167,8 @@ class Config:
             provider=provider,
             use_ssl=self._get_bool(f"{prefix}_USE_SSL", True),
             smtp_server=os.getenv(f"{prefix}_SMTP_SERVER") or smtp_default,
+            tls_ca_file=os.getenv(f"{prefix}_TLS_CA_FILE") or None,
+            tls_server_hostname=os.getenv(f"{prefix}_TLS_SERVER_HOSTNAME") or None,
         )
 
     def _load_email_accounts(self) -> List[EmailAccountConfig]:
@@ -318,6 +334,35 @@ class Config:
                 errors.append(f"No folders configured for {account.provider} account")
             if account.imap_port <= 0:
                 errors.append(f"Invalid IMAP port for {account.provider} account")
+            if account.tls_ca_file:
+                if "\0" in account.tls_ca_file:
+                    errors.append(
+                        f"Invalid TLS CA file path for {account.provider} account: contains null bytes"
+                    )
+                else:
+                    try:
+                        base_dir = Path.cwd().resolve()
+                        ca_path = (base_dir / account.tls_ca_file).resolve()
+                        ca_path.relative_to(base_dir)
+                        if not ca_path.is_file():
+                            errors.append(
+                                f"TLS CA file does not exist or is not a file for {account.provider} account: {account.tls_ca_file}"
+                            )
+                    except ValueError:
+                        errors.append(
+                            f"TLS CA file path must stay within working tree for {account.provider} account: {account.tls_ca_file}"
+                        )
+                    except Exception as e:
+                        errors.append(
+                            f"Invalid TLS CA file path for {account.provider} account: {e}"
+                        )
+            if account.tls_server_hostname:
+                try:
+                    validate_mail_server_host(account.tls_server_hostname)
+                except ValueError as e:
+                    errors.append(
+                        f"Invalid TLS server hostname for {account.provider} account: {e}"
+                    )
             self._add_account_host_errors(account, errors)
         return errors
 
@@ -385,6 +430,11 @@ class Config:
 
         if self.system.log_rotation_keep_files <= 0:
             errors.append("LOG_ROTATION_KEEP_FILES must be greater than zero")
+
+        if self._env_file and os.path.isdir(self._env_file):
+            errors.append(
+                f"Configuration path '{self._env_file}' is a directory, expected a file"
+            )
         return errors
 
     def validate(self) -> bool:
