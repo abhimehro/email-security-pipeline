@@ -3,6 +3,7 @@ from io import StringIO
 from unittest.mock import MagicMock, patch
 
 from src.utils.colors import Colors
+from src.utils.setup_wizard import main as setup_wizard_main
 from src.utils.ui import CountdownTimer, Spinner
 
 
@@ -61,6 +62,16 @@ class TestUI(unittest.TestCase):
         spinner = Spinner("Testing")
         color = spinner._get_color_for_symbol("?")
         self.assertEqual(color, Colors.WHITE)
+
+    @patch("sys.stdout", new_callable=StringIO)
+    def test_setup_wizard_help_flag(self, mock_stdout):
+        """Test that setup wizard --help prints usage and exits cleanly with SystemExit 0."""
+        with patch("sys.argv", ["setup_wizard.py", "--help"]):
+            with self.assertRaises(SystemExit) as cm:
+                setup_wizard_main()
+            self.assertEqual(cm.exception.code, 0)
+        output = mock_stdout.getvalue()
+        self.assertIn("Interactive setup wizard for the Email Security Pipeline.", output)
 
 
 if __name__ == "__main__":

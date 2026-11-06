@@ -377,19 +377,19 @@ class TestSetupWizardCLI(unittest.TestCase):
     @patch("src.utils.setup_wizard.sys.stdin.isatty", return_value=False)
     def test_main_requires_tty(self, _mock_isatty):
         """CLI should fail immediately without a TTY."""
-        self.assertEqual(main(), 1)
+        self.assertEqual(main([]), 1)
 
     @patch("src.utils.setup_wizard.sys.stdin.isatty", return_value=True)
     @patch("src.utils.setup_wizard.run_setup_wizard", return_value=True)
     def test_main_success(self, _mock_wizard, _mock_isatty):
         """CLI should return 0 when the wizard succeeds."""
-        self.assertEqual(main(), 0)
+        self.assertEqual(main([]), 0)
 
     @patch("src.utils.setup_wizard.sys.stdin.isatty", return_value=True)
     @patch("src.utils.setup_wizard.run_setup_wizard", return_value=False)
     def test_main_failure(self, _mock_wizard, _mock_isatty):
         """CLI should return 1 when the wizard returns False."""
-        self.assertEqual(main(), 1)
+        self.assertEqual(main([]), 1)
 
     @patch("src.utils.setup_wizard.sys.stdin.isatty", return_value=True)
     @patch(
@@ -398,7 +398,7 @@ class TestSetupWizardCLI(unittest.TestCase):
     )
     def test_main_skip(self, _mock_wizard, _mock_isatty):
         """CLI should return 2 when the wizard is skipped."""
-        self.assertEqual(main(), 2)
+        self.assertEqual(main([]), 2)
 
     @patch("src.utils.setup_wizard.sys.stdin.isatty", return_value=True)
     @patch(
@@ -407,7 +407,7 @@ class TestSetupWizardCLI(unittest.TestCase):
     )
     def test_main_eof(self, _mock_wizard, _mock_isatty):
         """CLI should return 1 on unexpected EOF."""
-        self.assertEqual(main(), 1)
+        self.assertEqual(main([]), 1)
 
     def test_cli_module_invocation_requires_tty(self):
         """The real module invocation should fail cleanly without a TTY."""
