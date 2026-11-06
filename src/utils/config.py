@@ -39,9 +39,9 @@ class EmailAccountConfig:
     folders: List[str]
     provider: str
     use_ssl: bool
-    smtp_server: Optional[str] = None
-    tls_ca_file: Optional[str] = None
-    tls_server_hostname: Optional[str] = None
+    smtp_server: str | None = None
+    tls_ca_file: str | None = None
+    tls_server_hostname: str | None = None
 
     def __post_init__(self):
         """Normalize server hostnames so comparisons and connections match."""
@@ -168,6 +168,7 @@ class Config:
 
         Raises:
             ValueError: If the configured IMAP port cannot be converted to int.
+
         """
         imap_default, smtp_default, port_default = defaults
         return EmailAccountConfig(
@@ -328,6 +329,47 @@ class Config:
                 "SMTP", account.smtp_server, account.provider, errors
             )
 
+    def _append_tls_ca_error(
+        self, account: EmailAccountConfig, errors: List[str]
+    ) -> None:
+        """Validate account TLS CA file and append any errors."""
+        if not account.tls_ca_file:
+            return
+        try:
+            validate_tls_ca_path(account.tls_ca_file)
+        except NullByteInCAPathError:
+            errors.append(
+                f"Invalid TLS CA file path for {account.provider} "
+                "account: contains null bytes"
+            )
+        except FileNotFoundError:
+            errors.append(
+                f"TLS CA file does not exist or is not a file "
+                f"for {account.provider} account: {account.tls_ca_file}"
+            )
+        except ValueError:
+            errors.append(
+                f"TLS CA file path must stay within working tree "
+                f"for {account.provider} account: {account.tls_ca_file}"
+            )
+        except OSError as err:
+            errors.append(
+                f"Invalid TLS CA file path for {account.provider} " f"account: {err}"
+            )
+
+    def _add_account_tls_errors(
+        self, account: EmailAccountConfig, errors: List[str]
+    ) -> None:
+        """Validate account TLS CA and server hostname settings."""
+        self._append_tls_ca_error(account, errors)
+        if account.tls_server_hostname:
+            try:
+                validate_mail_server_host(account.tls_server_hostname)
+            except ValueError as err:
+                errors.append(
+                    f"Invalid TLS server hostname for {account.provider} account: {err}"
+                )
+
     def _validate_email_accounts(self) -> List[str]:
         """Return account validation errors, or an empty list when valid.
 
@@ -354,32 +396,7 @@ class Config:
                 errors.append(f"No folders configured for {account.provider} account")
             if account.imap_port <= 0:
                 errors.append(f"Invalid IMAP port for {account.provider} account")
-            if account.tls_ca_file:
-                try:
-                    validate_tls_ca_path(account.tls_ca_file)
-                except NullByteInCAPathError:
-                    errors.append(
-                        f"Invalid TLS CA file path for {account.provider} account: contains null bytes"
-                    )
-                except FileNotFoundError:
-                    errors.append(
-                        f"TLS CA file does not exist or is not a file for {account.provider} account: {account.tls_ca_file}"
-                    )
-                except ValueError:
-                    errors.append(
-                        f"TLS CA file path must stay within working tree for {account.provider} account: {account.tls_ca_file}"
-                    )
-                except OSError as e:
-                    errors.append(
-                        f"Invalid TLS CA file path for {account.provider} account: {e}"
-                    )
-            if account.tls_server_hostname:
-                try:
-                    validate_mail_server_host(account.tls_server_hostname)
-                except ValueError as e:
-                    errors.append(
-                        f"Invalid TLS server hostname for {account.provider} account: {e}"
-                    )
+            self._add_account_tls_errors(account, errors)
             self._add_account_host_errors(account, errors)
         return errors
 

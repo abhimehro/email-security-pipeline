@@ -16,6 +16,7 @@ lint:
     - prettier
   enabled:
     - grype@0.121.2
+    # Keep pinact on 4.x: pinact 5.x rejects Trunk plugin's single-dash '-format sarif' flag
     - pinact@4.1.1
     - actionlint@1.7.12
     - bandit@1.9.4

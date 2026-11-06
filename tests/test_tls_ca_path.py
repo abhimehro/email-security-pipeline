@@ -22,16 +22,28 @@ def test_invalid_ca_paths_rejected_by_both_callers(tmp_path, monkeypatch, kind):
         "null": ("bad\0.pem", NullByteInCAPathError, "contains null bytes"),
         "outside": (str(outside), ValueError, "working tree"),
         "symlink": ("link.pem", ValueError, "working tree"),
-        "missing": ("missing.pem", FileNotFoundError, "does not exist or is not a file"),
+        "missing": (
+            "missing.pem",
+            FileNotFoundError,
+            "does not exist or is not a file",
+        ),
         "directory": (".", FileNotFoundError, "does not exist or is not a file"),
     }
     ca_file, exception, message = cases[kind]
     cfg = Config.__new__(Config)
-    cfg.email_accounts = [EmailAccountConfig(
-        enabled=True, email="test@pm.me", imap_server="127.0.0.1", imap_port=1143,
-        app_password="fixture", folders=["INBOX"], provider="proton", use_ssl=True,
-        tls_ca_file=ca_file,
-    )]
+    cfg.email_accounts = [
+        EmailAccountConfig(
+            enabled=True,
+            email="test@pm.me",
+            imap_server="127.0.0.1",
+            imap_port=1143,
+            app_password="fixture",
+            folders=["INBOX"],
+            provider="proton",
+            use_ssl=True,
+            tls_ca_file=ca_file,
+        )
+    ]
     assert any(message in error for error in cfg._validate_email_accounts())
     with pytest.raises(exception):
         create_secure_ssl_context(ca_file=ca_file)

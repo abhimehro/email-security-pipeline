@@ -22,68 +22,70 @@ from unittest.mock import MagicMock, patch
 from src.utils.config import Config, ConfigurationError
 from src.utils.security_validators import create_secure_ssl_context
 
+# Generated secret token for tests; prevents hardcoded secret warnings in static analysis.
 _TEST_SECRET = secrets.token_hex(16)
 
 
 class TestLaunchdAndEnvDirectory(unittest.TestCase):
-    def test_start_script_env_directory(self) -> None:
-        """
-        Test that start-email-security-pipeline.sh fails fast with exit 1 and prints
-        'is a directory' when .env is a directory, without invoking Docker.
-        """
+    """Test suite for launchd startup script validation, plist configuration, and TLS pinning."""
+
+    @staticmethod
+    def _proton_env(**overrides: str) -> dict[str, str]:
+        """Build an in-memory Proton environment mapping for Config validation tests."""
+        base = {
+            "PROTON_ENABLED": "true",
+            "PROTON_EMAIL": "test@pm.me",
+            "PROTON_IMAP_SERVER": "127.0.0.1",
+            "PROTON_IMAP_PORT": "1143",
+            "PROTON_APP_PASSWORD": _TEST_SECRET,
+            "PROTON_FOLDERS": "INBOX",
+            "PROTON_USE_SSL": "true",
+        }
+        base.update(overrides)
+        return base
+
+    def test_start_script_validations(self) -> None:
+        """Test that start-email-security-pipeline.sh fails fast when .env is a directory or missing."""
         zsh = shutil.which("zsh")
         if zsh is None:
             self.skipTest("zsh is unavailable")
-        with tempfile.TemporaryDirectory() as tmpdir:
-            tmp_path = Path(tmpdir)
-            env_dir = tmp_path / ".env"
-            env_dir.mkdir()
+        script_path = (
+            Path(__file__).resolve().parents[1]
+            / "launchd/start-email-security-pipeline.sh"
+        )
+        scenarios = [
+            ("directory", "is a directory"),
+            ("missing", "not found"),
+        ]
+        for setup_type, expected_msg in scenarios:
+            with self.subTest(
+                setup_type=setup_type
+            ), tempfile.TemporaryDirectory() as tmpdir:
+                tmp_path = Path(tmpdir)
+                env_path = tmp_path / ".env"
+                if setup_type == "directory":
+                    env_path.mkdir()
+                else:
+                    self.assertFalse(env_path.exists())
 
-            script_path = (
-                Path(__file__).resolve().parents[1]
-                / "launchd/start-email-security-pipeline.sh"
-            )
-            result = subprocess.run(  # nosec B603
-                [zsh, str(script_path)],
-                env={**os.environ, "PROJECT_DIR": str(tmp_path), "HOME": str(tmp_path)},
-                capture_output=True,
-                text=True,
-            )
+                result = subprocess.run(  # nosec B603
+                    [zsh, str(script_path)],
+                    env={
+                        **os.environ,
+                        "PROJECT_DIR": str(tmp_path),
+                        "HOME": str(tmp_path),
+                    },
+                    capture_output=True,
+                    text=True,
+                    check=False,
+                )
 
-            self.assertEqual(result.returncode, 1)
-            self.assertTrue(
-                "is a directory" in result.stderr or "is a directory" in result.stdout
-            )
-
-    def test_start_script_env_missing(self) -> None:
-        """
-        Test that start-email-security-pipeline.sh fails fast with exit 1 and prints
-        'not found' when .env does not exist, leaving .env non-existent.
-        """
-        zsh = shutil.which("zsh")
-        if zsh is None:
-            self.skipTest("zsh is unavailable")
-        with tempfile.TemporaryDirectory() as tmpdir:
-            tmp_path = Path(tmpdir)
-            env_file = tmp_path / ".env"
-            self.assertFalse(env_file.exists())
-
-            script_path = (
-                Path(__file__).resolve().parents[1]
-                / "launchd/start-email-security-pipeline.sh"
-            )
-            result = subprocess.run(  # nosec B603
-                [zsh, str(script_path)],
-                env={**os.environ, "PROJECT_DIR": str(tmp_path), "HOME": str(tmp_path)},
-                capture_output=True,
-                text=True,
-            )
-
-            self.assertEqual(result.returncode, 1)
-            self.assertTrue(
-                "not found" in result.stderr or "not found" in result.stdout
-            )
-            self.assertFalse(env_file.exists())
+                self.assertEqual(result.returncode, 1)
+                self.assertTrue(
+                    expected_msg in result.stderr or expected_msg in result.stdout
+                )
+                if setup_type == "missing":
+                    self.assertFalse(env_path.exists())
 
     def test_plist_keepalive_configuration(self) -> None:
         """
@@ -109,7 +111,7 @@ class TestLaunchdAndEnvDirectory(unittest.TestCase):
             env_dir = tmp_path / ".env"
             env_dir.mkdir()
 
-            with patch.dict(os.environ, {}, clear=True):
+            with patch.dict(os.environ, self._proton_env(), clear=True):
                 cfg = Config(str(env_dir))
                 with self.assertRaises(ConfigurationError) as exc_info:
                     cfg.validate()
@@ -117,40 +119,22 @@ class TestLaunchdAndEnvDirectory(unittest.TestCase):
                 err_messages = str(exc_info.exception)
                 self.assertIn("directory", err_messages.lower())
 
-    def test_tls_ca_and_hostname_validation(self) -> None:
-        """
-        Test TLS CA file path traversal prevention (CWE-22), missing file rejection,
-        and server hostname allowlist validation in Config and SSLContext creation.
-        """
+    def test_tls_ca_rejects_path_traversal(self) -> None:
+        """Test that TLS CA file paths outside the working tree are rejected (CWE-22)."""
         with tempfile.TemporaryDirectory() as tmpdir:
             tmp_path = Path(tmpdir)
             orig_dir = os.getcwd()
             os.chdir(tmp_path)
             try:
-                ca_file = tmp_path / "test_ca.pem"
-                ca_file.write_text("fake cert content")
-
                 outside_file = tmp_path.parent / "outside.pem"
-                outside_file.write_text("fake")
+                outside_file.write_text("fake cert content")
 
-                env_content = f"""
-PROTON_ENABLED=true
-PROTON_EMAIL=test@pm.me
-PROTON_IMAP_SERVER=127.0.0.1
-PROTON_IMAP_PORT=1143
-PROTON_APP_PASSWORD={_TEST_SECRET}
-PROTON_FOLDERS=INBOX
-PROTON_USE_SSL=true
-PROTON_TLS_CA_FILE={outside_file}
-"""
-                env_path = tmp_path / ".env"
-                env_path.write_text(env_content)
-
-                with patch.dict(os.environ, {}, clear=True):
-                    cfg = Config(str(env_path))
+                env_map = self._proton_env(PROTON_TLS_CA_FILE=str(outside_file))
+                with patch.dict(os.environ, env_map, clear=True):
+                    cfg = Config(env_file="nonexistent.env")
                     with self.assertRaises(ConfigurationError) as exc_info:
                         cfg.validate()
-                    errs1 = (
+                    errs = (
                         exc_info.exception.args[0]
                         if exc_info.exception.args
                         else [str(exc_info.exception)]
@@ -159,52 +143,60 @@ PROTON_TLS_CA_FILE={outside_file}
                         any(
                             "working tree" in err.lower()
                             or "stay within" in err.lower()
-                            for err in errs1
+                            for err in errs
                         )
                     )
+            finally:
+                os.chdir(orig_dir)
 
-                env_content_bad_host = f"""
-PROTON_ENABLED=true
-PROTON_EMAIL=test@pm.me
-PROTON_IMAP_SERVER=127.0.0.1
-PROTON_IMAP_PORT=1143
-PROTON_APP_PASSWORD={_TEST_SECRET}
-PROTON_FOLDERS=INBOX
-PROTON_USE_SSL=true
-PROTON_TLS_CA_FILE={ca_file.name}
-PROTON_TLS_SERVER_HOSTNAME=evil.example.com
-"""
-                env_path.write_text(env_content_bad_host)
-                with patch.dict(os.environ, {}, clear=True):
-                    cfg2 = Config(str(env_path))
-                    with self.assertRaises(ConfigurationError) as exc_info2:
-                        cfg2.validate()
-                    errs2 = (
-                        exc_info2.exception.args[0]
-                        if exc_info2.exception.args
-                        else [str(exc_info2.exception)]
+    def test_tls_hostname_rejects_disallowed_host(self) -> None:
+        """Test that TLS server hostnames not on the allowlist are rejected."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_path = Path(tmpdir)
+            orig_dir = os.getcwd()
+            os.chdir(tmp_path)
+            try:
+                ca_file = tmp_path / "test_ca.pem"
+                ca_file.write_text("fake cert content")
+
+                env_map = self._proton_env(
+                    PROTON_TLS_CA_FILE=ca_file.name,
+                    PROTON_TLS_SERVER_HOSTNAME="evil.example.com",
+                )
+                with patch.dict(os.environ, env_map, clear=True):
+                    cfg = Config(env_file="nonexistent.env")
+                    with self.assertRaises(ConfigurationError) as exc_info:
+                        cfg.validate()
+                    errs = (
+                        exc_info.exception.args[0]
+                        if exc_info.exception.args
+                        else [str(exc_info.exception)]
                     )
                     self.assertTrue(
-                        any("allowed server list" in err.lower() for err in errs2)
+                        any("allowed server list" in err.lower() for err in errs)
                     )
+            finally:
+                os.chdir(orig_dir)
 
-                env_content_valid = f"""
-PROTON_ENABLED=true
-PROTON_EMAIL=test@pm.me
-PROTON_IMAP_SERVER=127.0.0.1
-PROTON_IMAP_PORT=1143
-PROTON_APP_PASSWORD={_TEST_SECRET}
-PROTON_FOLDERS=INBOX
-PROTON_USE_SSL=true
-PROTON_TLS_CA_FILE={ca_file.name}
-PROTON_TLS_SERVER_HOSTNAME=127.0.0.1
-"""
-                env_path.write_text(env_content_valid)
-                with patch.dict(os.environ, {}, clear=True):
-                    cfg3 = Config(str(env_path))
-                    cfg3.validate()
+    def test_tls_pinning_builds_verified_ssl_context(self) -> None:
+        """Test that valid TLS pinning config successfully builds a verified SSLContext with SNI override."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_path = Path(tmpdir)
+            orig_dir = os.getcwd()
+            os.chdir(tmp_path)
+            try:
+                ca_file = tmp_path / "test_ca.pem"
+                ca_file.write_text("fake cert content")
 
-                    account = cfg3.email_accounts[0]
+                env_map = self._proton_env(
+                    PROTON_TLS_CA_FILE=ca_file.name,
+                    PROTON_TLS_SERVER_HOSTNAME="127.0.0.1",
+                )
+                with patch.dict(os.environ, env_map, clear=True):
+                    cfg = Config(env_file="nonexistent.env")
+                    cfg.validate()
+
+                    account = cfg.email_accounts[0]
                     self.assertEqual(account.tls_ca_file, ca_file.name)
                     self.assertEqual(account.tls_server_hostname, "127.0.0.1")
 
@@ -225,12 +217,13 @@ PROTON_TLS_SERVER_HOSTNAME=127.0.0.1
                     fake_sock = MagicMock()
                     ctx.wrap_socket(fake_sock, server_hostname="host.docker.internal")
                     mock_base_wrap_socket.assert_called_once_with(
-                        fake_sock, False, server_hostname="127.0.0.1"
+                        fake_sock, server_hostname="127.0.0.1"
                     )
             finally:
                 os.chdir(orig_dir)
 
     def test_imap_client_passes_tls_pinning(self) -> None:
+        """Test that IMAPClient correctly requests and passes TLS pinning settings to SSL context creation."""
         import unittest.mock as mock
 
         from src.modules.email_ingestion import IMAPClient

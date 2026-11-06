@@ -39,7 +39,6 @@ if [[ ! -f $ENV_FILE ]]; then
 	exit 1
 fi
 
-
 resolve_bin() {
 	local name="$1"
 	local candidate

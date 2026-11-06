@@ -250,36 +250,18 @@ def resolve_ca_path(ca_file: str) -> Path:
     return ca_path
 
 
-class SSLContextWrapper:
-    """
-    Delegate wrapper around ssl.SSLContext that allows pinning server_hostname
-    during wrap_socket (e.g. for Proton Mail Bridge at 127.0.0.1).
+class _PinnedHostnameSSLContext(ssl.SSLContext):
+    """SSLContext subclass that pins the TLS SNI and verification hostname."""
 
-    SECURITY STORY: Useful when connecting via localhost where the certificate CN
-    or SAN matches a specific IP or hostname, ensuring strict verification.
-    """
+    _pinned_server_hostname: str | None = None
 
-    def __init__(
-        self, context: ssl.SSLContext, pinned_server_hostname: Optional[str] = None
-    ):
-        """Retain the context and optional hostname override without validation."""
-        self._context = context
-        self._pinned_server_hostname = pinned_server_hostname
-
-    def wrap_socket(
-        self, sock: socket.socket, server_side: bool = False, *args: Any, **kwargs: Any
+    def wrap_socket(  # type: ignore[override]
+        self, sock: socket.socket, *args: Any, **kwargs: Any
     ) -> ssl.SSLSocket:
-        """Return the wrapped socket, overriding the hostname keyword when pinned.
-
-        Other arguments and errors pass through to the underlying context.
-        """
+        """Return the wrapped socket, overriding server_hostname when pinned."""
         if self._pinned_server_hostname:
             kwargs["server_hostname"] = self._pinned_server_hostname
-        return self._context.wrap_socket(sock, server_side, *args, **kwargs)
-
-    def __getattr__(self, name: str) -> Any:
-        """Read an attribute from the context, propagating AttributeError if absent."""
-        return getattr(self._context, name)
+        return super().wrap_socket(sock, *args, **kwargs)
 
 
 class NullByteInCAPathError(ValueError):
@@ -305,52 +287,36 @@ def validate_tls_ca_path(ca_file: str) -> Path:
     return resolved_ca
 
 
-def create_secure_ssl_context(
-    ca_file: Optional[str] = None,
-    server_hostname: Optional[str] = None,
-) -> ssl.SSLContext | SSLContextWrapper:
-    """
-    Create a client TLS context with optional custom trust and hostname override.
-
-    SECURITY STORY: Enforces TLS 1.2+, CERT_REQUIRED, and check_hostname=True.
-
-    Args:
-        ca_file: CA bundle path relative to the current working directory, or an
-            absolute path within it. The resolved path, including symlinks, must
-            stay within that directory. A nonempty value replaces default trust;
-            None or an empty string loads the default CA certificates.
-        server_hostname: Hostname for TLS SNI and certificate verification,
-            normalized and checked against the mail server allowlist. None or an
-            empty string leaves the caller's hostname unchanged.
-
-    Returns:
-        An SSLContext, or an SSLContextWrapper when a nonempty hostname is
-        supplied. The wrapper overrides the wrap_socket hostname keyword.
-
-    Raises:
-        ValueError: If the CA path contains a null byte or resolves outside the
-            current working directory, or the hostname is not allowlisted.
-        FileNotFoundError: If the resolved CA path is not a file.
-        OSError: If certificate loading fails, including ssl.SSLError for an
-            invalid CA bundle. Filesystem resolution errors also propagate.
-    """
-    context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
-    context.minimum_version = ssl.TLSVersion.TLSv1_2
-    context.check_hostname = True
-    context.verify_mode = ssl.CERT_REQUIRED
-
+def _configure_ssl_trust(context: ssl.SSLContext, ca_file: str | None) -> None:
+    """Configure SSL context trust store with optional pinned CA file."""
     if ca_file:
         resolved_ca = validate_tls_ca_path(ca_file)
         context.load_verify_locations(cafile=str(resolved_ca))
-        logger.info(f"Loaded pinned TLS CA bundle from {resolved_ca}")
+        logger.info("Loaded pinned TLS CA bundle from %s", resolved_ca)
     else:
         context.load_default_certs()
 
-    logger.debug("Created secure SSL context with TLS 1.2+ enforcement")
 
+def create_secure_ssl_context(
+    ca_file: str | None = None,
+    server_hostname: str | None = None,
+) -> ssl.SSLContext:
+    """Create a client TLS context with optional custom trust and hostname override.
+
+    SECURITY STORY: Enforces TLS 1.2+, CERT_REQUIRED, and check_hostname=True.
+    """
     if server_hostname:
-        server_hostname = validate_mail_server_host(server_hostname)
-        return SSLContextWrapper(context, pinned_server_hostname=server_hostname)
+        pinned_host = validate_mail_server_host(server_hostname)
+        context = _PinnedHostnameSSLContext(ssl.PROTOCOL_TLS_CLIENT)
+        context._pinned_server_hostname = pinned_host
+    else:
+        context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+
+    context.minimum_version = ssl.TLSVersion.TLSv1_2
+    context.check_hostname = True
+    context.verify_mode = ssl.CERT_REQUIRED
+    _configure_ssl_trust(context, ca_file)
+    logger.debug("Created secure SSL context with TLS 1.2+ enforcement")
     return context
 
 

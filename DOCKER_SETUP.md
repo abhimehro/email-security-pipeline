@@ -89,10 +89,6 @@ docker network inspect email-security-net
 
 ### Proton Mail Bridge Connection
 
-<!-- coderabbit-ai-generated:v1 -->
-
-<!-- coderabbit-ai-generated-section:v1:ae073809f928f734be4022f12fd1b572157cd6d56fd338a30075e01c5bbbfffa -->
-
 If using Proton Mail Bridge running on your host machine with implicit SSL
 (`PROTON_USE_SSL=true`), you can pin the local self-signed TLS certificate for
 secure verification:
@@ -100,6 +96,7 @@ secure verification:
 - Place your Bridge certificate (e.g. exported from Bridge) in
   `./data/proton-bridge-cert.pem` (mounted via `./data:/app/data`).
 - Configure in `.env` (use the IMAP port shown in Bridge):
+
   ```env
   PROTON_IMAP_SERVER=host.docker.internal
   PROTON_IMAP_PORT=1143
@@ -107,31 +104,25 @@ secure verification:
   PROTON_TLS_CA_FILE=data/proton-bridge-cert.pem
   PROTON_TLS_SERVER_HOSTNAME=127.0.0.1
   ```
+
 - `PROTON_IMAP_SERVER` is the connection address and must be reachable from the
-  container. Ensure Bridge listens on an interface reachable through
-  `host.docker.internal`; a host loopback-only listener is not reachable through
-  the Docker bridge network.
+  container. On macOS (Colima or Docker Desktop), `host.docker.internal`
+  forwards to the host's `127.0.0.1:1143`. Ensure Bridge listens on an interface
+  reachable through `host.docker.internal`; a host loopback-only listener is not
+  reachable through the Docker bridge network.
 - `PROTON_TLS_SERVER_HOSTNAME` controls certificate verification and TLS SNI,
   independently of the connection address. The certificate must include that
   hostname or IP (here `127.0.0.1`) in its subject alternative name (SAN).
-<!-- coderabbit-ai-generated:v1 -->
-
-<!-- coderabbit-ai-generated-section:v1:b4b6831f70cdc547bb4f37ea5d88626fa0fb553560da891b9c2dab80d7bd85e8 -->
-
 - On Linux, a loopback-only Bridge can instead be reached using host networking:
   in a local Compose configuration, set `network_mode: host` on the pipeline
   service and remove that service's `networks` entry. Set
   `PROTON_IMAP_SERVER=127.0.0.1` and use the IMAP port configured in Bridge.
   Keep the TLS CA and verification hostname settings above. Host networking
-  shares the host network namespace and removes Docker network isolation;
-  use it only when that tradeoff is acceptable. With bridge networking, the
+  shares the host network namespace and removes Docker network isolation; use it
+  only when that tradeoff is acceptable. With bridge networking, the
   reachable-interface requirement above still applies.
 - If Bridge uses STARTTLS mode, set `PROTON_USE_SSL=false`.
 
-<!-- /coderabbit-ai-generated:v1 -->
-
-
-<!-- /coderabbit-ai-generated:v1 -->
 ## Health Checks
 
 The container includes a health check that runs every 5 minutes:

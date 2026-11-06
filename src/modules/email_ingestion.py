@@ -25,7 +25,6 @@ from typing import Any, Dict, List, Optional, Tuple
 from ..utils.config import EmailAccountConfig
 from ..utils.sanitization import redact_email, sanitize_for_logging
 from ..utils.security_validators import (
-    SSLContextWrapper,
     calculate_max_email_size,
     create_secure_ssl_context,
 )
@@ -140,14 +139,7 @@ class IMAPClient:
                 f"(SSL={self.config.use_ssl})"
             )
 
-            # Create secure SSL context using our method (supporting CA pinning and server hostname)
-            if self.config.tls_ca_file or self.config.tls_server_hostname:
-                context = self._create_secure_ssl_context(
-                    ca_file=self.config.tls_ca_file,
-                    server_hostname=self.config.tls_server_hostname,
-                )
-            else:
-                context = self._create_secure_ssl_context()
+            context = self._build_ssl_context()
 
             if self.config.use_ssl:
                 self.connection = imaplib.IMAP4_SSL(
@@ -286,27 +278,19 @@ class IMAPClient:
         return diagnostics.diagnose_connection_issues()
 
     # Static methods for backward compatibility
+    def _build_ssl_context(self) -> ssl.SSLContext:
+        """Build the TLS context for this account, applying optional pinning."""
+        return self._create_secure_ssl_context(
+            ca_file=self.config.tls_ca_file,
+            server_hostname=self.config.tls_server_hostname,
+        )
+
     @staticmethod
     def _create_secure_ssl_context(
-        ca_file: Optional[str] = None,
-        server_hostname: Optional[str] = None,
-    ) -> ssl.SSLContext | SSLContextWrapper:
-        """
-        Create a secure SSL context (backward compatibility wrapper).
-
-        ca_file selects a CA bundle within the current working directory;
-        server_hostname selects an allowlisted TLS verification hostname.
-        Empty values use default trust and the caller's hostname, respectively.
-
-        Returns:
-            The context or hostname wrapper from create_secure_ssl_context.
-
-        Raises:
-            ValueError: If the CA path or hostname is rejected.
-            FileNotFoundError: If the CA path is not a file.
-            OSError: If certificate loading or filesystem resolution fails.
-
-        """
+        ca_file: str | None = None,
+        server_hostname: str | None = None,
+    ) -> ssl.SSLContext:
+        """Create a secure SSL context (backward compatibility wrapper)."""
         return create_secure_ssl_context(
             ca_file=ca_file,
             server_hostname=server_hostname,
