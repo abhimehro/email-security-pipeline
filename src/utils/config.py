@@ -6,7 +6,6 @@ Handles loading and validation of environment variables and settings.
 import logging
 import os
 from dataclasses import dataclass, field
-from pathlib import Path
 from typing import List, Optional
 from urllib.parse import urlparse
 
@@ -131,19 +130,23 @@ class Config:
 
     def __init__(self, env_file: str = ".env"):
         """
-        Initialize configuration from environment file.
+        Load configuration from environment variables and an optional env file.
+
+        Existing environment variables take precedence over values in the file.
+        A directory is not loaded; validate() reports it as a configuration error.
 
         Args:
-            env_file: Path to environment file (default: .env)
+            env_file: Path to environment file (default: .env).
+
+        Raises:
+            ValueError: If a numeric environment setting cannot be converted.
 
         """
         self._env_file = env_file
         # SECURITY & RELIABILITY: Only load .env if it is a file, NOT a directory.
         # python-dotenv silently ignores directory paths, which previously masked
         # .env directory corruption and resulted in confusing "No email accounts configured" errors.
-        if env_file and os.path.isdir(env_file):
-            pass
-        else:
+        if not (env_file and os.path.isdir(env_file)):
             load_dotenv(env_file)
 
         self.email_accounts = self._load_email_accounts()
@@ -157,7 +160,15 @@ class Config:
         prefix: str,
         defaults: tuple,
     ) -> EmailAccountConfig:
-        """Build an EmailAccountConfig from environment variables for one provider."""
+        """Build an enabled account from environment variables for one provider.
+
+        prefix selects the environment variable names; defaults contains the
+        fallback IMAP host, SMTP host, and IMAP port, in that order. Empty TLS
+        CA file and hostname settings become None. Validation is deferred.
+
+        Raises:
+            ValueError: If the configured IMAP port cannot be converted to int.
+        """
         imap_default, smtp_default, port_default = defaults
         return EmailAccountConfig(
             enabled=True,
@@ -318,7 +329,14 @@ class Config:
             )
 
     def _validate_email_accounts(self) -> List[str]:
-        """Validate email account configurations."""
+        """Return account validation errors, or an empty list when valid.
+
+        Require at least one account, credentials, folders, a positive IMAP port,
+        and allowlisted mail hosts. Optional TLS CA paths must resolve to files
+        within the current working directory; TLS hostnames must be allowlisted.
+        CA path errors and hostname validation failures become error messages.
+        Certificate contents are not checked.
+        """
         errors = []
         if not self.email_accounts:
             errors.append("No email accounts configured. Enable at least one account.")
@@ -411,7 +429,11 @@ class Config:
         return errors
 
     def _validate_system(self) -> List[str]:
-        """Validate system configurations."""
+        """Return system setting errors, including an env path that is a directory.
+
+        Require positive attachment and log rotation limits, a recognized log
+        level, and text or JSON log format. A missing env file is not an error.
+        """
         errors = []
         if self.system.max_attachment_size_mb <= 0:
             errors.append("MAX_ATTACHMENT_SIZE_MB must be greater than zero")

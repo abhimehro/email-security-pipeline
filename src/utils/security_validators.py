@@ -242,6 +242,14 @@ def is_safe_email(email: str) -> bool:
     return True
 
 
+def resolve_ca_path(ca_file: str) -> Path:
+    """Resolve a CA path and reject paths outside the current working tree."""
+    base_dir = Path.cwd().resolve()
+    ca_path = (base_dir / ca_file).resolve()
+    ca_path.relative_to(base_dir)
+    return ca_path
+
+
 class SSLContextWrapper:
     """
     Delegate wrapper around ssl.SSLContext that allows pinning server_hostname
@@ -254,17 +262,23 @@ class SSLContextWrapper:
     def __init__(
         self, context: ssl.SSLContext, pinned_server_hostname: Optional[str] = None
     ):
+        """Retain the context and optional hostname override without validation."""
         self._context = context
         self._pinned_server_hostname = pinned_server_hostname
 
     def wrap_socket(
         self, sock: socket.socket, server_side: bool = False, *args: Any, **kwargs: Any
     ) -> ssl.SSLSocket:
+        """Return the wrapped socket, overriding the hostname keyword when pinned.
+
+        Other arguments and errors pass through to the underlying context.
+        """
         if self._pinned_server_hostname:
             kwargs["server_hostname"] = self._pinned_server_hostname
         return self._context.wrap_socket(sock, server_side, *args, **kwargs)
 
     def __getattr__(self, name: str) -> Any:
+        """Read an attribute from the context, propagating AttributeError if absent."""
         return getattr(self._context, name)
 
 
@@ -280,10 +294,8 @@ def validate_tls_ca_path(ca_file: str) -> Path:
     """
     if "\0" in ca_file:
         raise NullByteInCAPathError("Null byte in CA file path")
-    base_dir = Path.cwd().resolve()
-    resolved_ca = (base_dir / ca_file).resolve()
     try:
-        resolved_ca.relative_to(base_dir)
+        resolved_ca = resolve_ca_path(ca_file)
     except ValueError as err:
         raise ValueError(
             f"CA file path '{ca_file}' must stay within working tree"
@@ -298,11 +310,29 @@ def create_secure_ssl_context(
     server_hostname: Optional[str] = None,
 ) -> ssl.SSLContext | SSLContextWrapper:
     """
-    Create a secure SSL context with modern TLS settings and optional custom CA / hostname pinning.
+    Create a client TLS context with optional custom trust and hostname override.
 
     SECURITY STORY: Enforces TLS 1.2+, CERT_REQUIRED, and check_hostname=True.
-    If ca_file is provided, pins trust exclusively to that certificate authority bundle.
-    If server_hostname is provided, pins the TLS SNI and validation hostname.
+
+    Args:
+        ca_file: CA bundle path relative to the current working directory, or an
+            absolute path within it. The resolved path, including symlinks, must
+            stay within that directory. A nonempty value replaces default trust;
+            None or an empty string loads the default CA certificates.
+        server_hostname: Hostname for TLS SNI and certificate verification,
+            normalized and checked against the mail server allowlist. None or an
+            empty string leaves the caller's hostname unchanged.
+
+    Returns:
+        An SSLContext, or an SSLContextWrapper when a nonempty hostname is
+        supplied. The wrapper overrides the wrap_socket hostname keyword.
+
+    Raises:
+        ValueError: If the CA path contains a null byte or resolves outside the
+            current working directory, or the hostname is not allowlisted.
+        FileNotFoundError: If the resolved CA path is not a file.
+        OSError: If certificate loading fails, including ssl.SSLError for an
+            invalid CA bundle. Filesystem resolution errors also propagate.
     """
     context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
     context.minimum_version = ssl.TLSVersion.TLSv1_2
