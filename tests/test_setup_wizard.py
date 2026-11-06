@@ -2,6 +2,7 @@ import os
 import subprocess  # nosec B404
 import sys
 import unittest
+from dataclasses import dataclass
 from pathlib import Path
 from unittest.mock import MagicMock, mock_open, patch
 
@@ -12,6 +13,15 @@ from src.utils.setup_wizard import (
     main,
     run_setup_wizard,
 )
+
+
+@dataclass
+class EdgeCaseConfig:
+    inputs: list
+    connect_success: bool = True
+    read_effect: object = None
+    write_success: bool = True
+    expected: bool = False
 
 
 class TestSetupWizard(unittest.TestCase):
@@ -322,9 +332,7 @@ OUTLOOK_APP_PASSWORD=password
         self.assertTrue(found_redacted)
         self.assertTrue(found_tip)
 
-    def _run_edge_case(
-        self, inputs, connect_success, read_effect, write_success, expected
-    ):
+    def _run_edge_case(self, config: EdgeCaseConfig):
         with patch("pathlib.Path.exists", return_value=True), patch(
             "builtins.open"
         ) as mock_open_func, patch("os.open", return_value=123), patch(
@@ -334,41 +342,55 @@ OUTLOOK_APP_PASSWORD=password
         ), patch(
             "getpass.getpass", return_value="password"
         ), patch(
-            "builtins.input", side_effect=inputs
+            "builtins.input", side_effect=config.inputs
         ), patch(
             "src.utils.setup_wizard.IMAPConnection"
         ) as mock_imap, patch(
-            "src.utils.setup_wizard._write_config_file", return_value=write_success
+            "src.utils.setup_wizard._write_config_file", return_value=config.write_success
         ):
 
-            mock_imap.return_value.connect.return_value = connect_success
+            mock_imap.return_value.connect.return_value = config.connect_success
 
-            if read_effect:
-                mock_open_func.side_effect = read_effect
+            if config.read_effect:
+                mock_open_func.side_effect = config.read_effect
             else:
                 mock_open_func.return_value.__enter__.return_value.read.return_value = (
                     self.example_content
                 )
 
             result = run_setup_wizard(config_file=".env", template_file=".env.example")
-            self.assertEqual(result, expected)
+            self.assertEqual(result, config.expected)
 
     def test_keyboard_interrupt(self):
-        self._run_edge_case([KeyboardInterrupt()], True, None, True, False)
+        self._run_edge_case(EdgeCaseConfig(inputs=[KeyboardInterrupt()]))
 
     def test_eof_error(self):
-        self._run_edge_case(["1", EOFError()], True, None, True, False)
+        self._run_edge_case(EdgeCaseConfig(inputs=["1", EOFError()]))
 
     def test_template_read_error(self):
         self._run_edge_case(
-            ["1", "test@gmail.com", "y"], True, Exception("Read error"), True, False
+            EdgeCaseConfig(
+                inputs=["1", "test@gmail.com", "y"],
+                read_effect=Exception("Read error"),
+            )
         )
 
     def test_write_config_error(self):
-        self._run_edge_case(["1", "test@gmail.com", "y"], True, None, False, False)
+        self._run_edge_case(
+            EdgeCaseConfig(
+                inputs=["1", "test@gmail.com", "y"],
+                write_success=False,
+            )
+        )
 
     def test_skip_verification(self):
-        self._run_edge_case(["1", "test@gmail.com", "n"], False, None, True, True)
+        self._run_edge_case(
+            EdgeCaseConfig(
+                inputs=["1", "test@gmail.com", "n"],
+                connect_success=False,
+                expected=True,
+            )
+        )
 
 
 class TestSetupWizardCLI(unittest.TestCase):
