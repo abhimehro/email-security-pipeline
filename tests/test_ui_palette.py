@@ -191,6 +191,7 @@ class TestPaletteUI(TestCase):
 
     def test_print_configuration_summary_unconfigured_accounts_cyan_env(self) -> None:
         from io import StringIO
+
         from src.main import EmailSecurityPipeline
         from src.utils.colors import Colors
 
@@ -198,7 +199,9 @@ class TestPaletteUI(TestCase):
         pipeline.config.email_accounts = []
 
         with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
-            with patch("src.main.Colors.colorize", wraps=Colors.colorize) as mock_colorize:
+            with patch(
+                "src.main.Colors.colorize", wraps=Colors.colorize
+            ) as mock_colorize:
                 pipeline._print_configuration_summary()
 
                 # Verify .env, README.md, and OUTLOOK_TROUBLESHOOTING.md were colorized with Colors.CYAN
@@ -209,13 +212,16 @@ class TestPaletteUI(TestCase):
     def test_app_runner_fallback_instructions_cyan_files(self) -> None:
         """Test _print_fallback_instructions in AppRunner colorizes .env and .env.example with Colors.CYAN."""
         from io import StringIO
+
         from src.app_runner import AppRunner
         from src.utils.colors import Colors
 
-        runner = AppRunner([ "main.py", ".env" ])
+        runner = AppRunner(["main.py", ".env"])
 
         with patch("sys.stdout", new_callable=StringIO):
-            with patch("src.app_runner.Colors.colorize", wraps=Colors.colorize) as mock_colorize:
+            with patch(
+                "src.app_runner.Colors.colorize", wraps=Colors.colorize
+            ) as mock_colorize:
                 runner._print_fallback_instructions()
 
                 mock_colorize.assert_any_call(".env", Colors.CYAN)
@@ -223,33 +229,39 @@ class TestPaletteUI(TestCase):
 
     def test_check_mail_connectivity_print_status_symbols(self):
         """Test print_status in check_mail_connectivity uses ✔ and ✖ symbols correctly."""
-        from io import StringIO
-        import sys
         import os
+        import sys
+        from io import StringIO
 
         # Ensure scripts directory is in sys.path
-        scripts_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "scripts"))
+        scripts_dir = os.path.abspath(
+            os.path.join(os.path.dirname(__file__), "..", "scripts")
+        )
         if scripts_dir not in sys.path:
             sys.path.insert(0, scripts_dir)
 
         import check_mail_connectivity
 
         with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
-            check_mail_connectivity.print_status("IMAP", "imap.gmail.com", 993, True, True)
+            check_mail_connectivity.print_status(
+                "IMAP", "imap.gmail.com", 993, True, True
+            )
             output = mock_stdout.getvalue()
             self.assertIn("✔", output)
             self.assertIn("OK", output)
 
         with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
-            check_mail_connectivity.print_status("IMAP", "imap.gmail.com", 993, True, False, "Auth failed")
+            check_mail_connectivity.print_status(
+                "IMAP", "imap.gmail.com", 993, True, False, "Auth failed"
+            )
             output = mock_stdout.getvalue()
             self.assertIn("✖", output)
             self.assertIn("ERROR", output)
 
     def test_diagnose_docker_connectivity_empty_state(self):
         """Test diagnose_docker_connectivity.py main() when no providers are enabled."""
-        from io import StringIO
         import os
+        from io import StringIO
 
         import diagnose_docker_connectivity
 
@@ -275,6 +287,7 @@ class TestPaletteUI(TestCase):
     def test_diagnose_docker_connectivity_pending_visual_indicators(self):
         """Test test_connection in diagnose_docker_connectivity includes pending indicators."""
         from io import StringIO
+
         import diagnose_docker_connectivity
         from diagnose_docker_connectivity import ConnectionConfig
 
@@ -304,21 +317,26 @@ class TestPaletteUI(TestCase):
 
     def test_check_mail_connectivity_empty_state_remediation(self) -> None:
         """Test main in check_mail_connectivity outputs setup wizard guidance and cyan config keys when no providers are enabled."""
-        from io import StringIO
-        import sys
         import os
+        import sys
+        from io import StringIO
 
-        scripts_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "scripts"))
+        scripts_dir = os.path.abspath(
+            os.path.join(os.path.dirname(__file__), "..", "scripts")
+        )
         if scripts_dir not in sys.path:
             sys.path.insert(0, scripts_dir)
 
         import check_mail_connectivity
+
         Colors = check_mail_connectivity.Colors
 
         with patch("os.getenv", return_value="false"):
             with (
                 patch("sys.stdout", new_callable=StringIO) as mock_stdout,
-                patch.object(Colors, "colorize", wraps=Colors.colorize) as mock_colorize,
+                patch.object(
+                    Colors, "colorize", wraps=Colors.colorize
+                ) as mock_colorize,
             ):
                 check_mail_connectivity.main([])
                 output = mock_stdout.getvalue()
@@ -331,11 +349,13 @@ class TestPaletteUI(TestCase):
 
     def test_check_mail_connectivity_error_and_tip_styling(self) -> None:
         """Test check_imap and check_smtp in check_mail_connectivity style error details with RED and tips with YELLOW."""
-        from io import StringIO
-        import sys
         import os
+        import sys
+        from io import StringIO
 
-        scripts_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "scripts"))
+        scripts_dir = os.path.abspath(
+            os.path.join(os.path.dirname(__file__), "..", "scripts")
+        )
         if scripts_dir not in sys.path:
             sys.path.insert(0, scripts_dir)
 
@@ -383,3 +403,33 @@ class TestPaletteUI(TestCase):
             self.assertIn("Error:", output)
             self.assertIn("💡 Tip:", output)
             self.assertIn("Check server configuration.", output)
+
+    def test_select_provider_empty_input_uses_advertised_default(self) -> None:
+        """Pressing Enter picks the default provider shown in the prompt hint."""
+        from io import StringIO
+
+        from src.utils import setup_wizard
+
+        with (
+            patch("src.utils.setup_wizard._styled_input", return_value="") as mock_in,
+            patch("sys.stdout", new_callable=StringIO),
+        ):
+            choice = setup_wizard._select_provider()
+
+        self.assertEqual(choice, "1")
+        self.assertEqual(choice, setup_wizard.DEFAULT_PROVIDER_CHOICE)
+        mock_in.assert_called_once()
+        prompt = mock_in.call_args.args[0]
+        self.assertIn("[1-4, default: 1]", prompt)
+
+    def test_select_provider_explicit_choice_overrides_default(self) -> None:
+        """An explicit selection still wins over the default."""
+        from io import StringIO
+
+        from src.utils import setup_wizard
+
+        with (
+            patch("src.utils.setup_wizard._styled_input", return_value="proton"),
+            patch("sys.stdout", new_callable=StringIO),
+        ):
+            self.assertEqual(setup_wizard._select_provider(), "2")

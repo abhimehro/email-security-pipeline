@@ -40,9 +40,7 @@ def _get_high_risk_recommendations(
         recs.append("⚠ HIGH RISK: Move to spam folder immediately")
 
     if nlp_result.social_engineering_indicators:
-        recs.append(
-            "🎣 Potential phishing: Do not click links or provide credentials"
-        )
+        recs.append("🎣 Potential phishing: Do not click links or provide credentials")
 
     if media_result.file_type_warnings:
         recs.append("📎 Dangerous attachment detected: Do not open attachments")
@@ -64,14 +62,10 @@ def _get_medium_risk_recommendations(
         recs.append("🔗 Suspicious URLs detected: Verify links before clicking")
 
     if nlp_result.authority_impersonation:
-        recs.append(
-            "👤 Authority impersonation suspected: Verify sender identity"
-        )
+        recs.append("👤 Authority impersonation suspected: Verify sender identity")
 
     if nlp_result.urgency_markers:
-        recs.append(
-            "⏰ Urgency tactics detected: Take time to verify before acting"
-        )
+        recs.append("⏰ Urgency tactics detected: Take time to verify before acting")
     return recs
 
 
@@ -85,9 +79,7 @@ def generate_recommendations(
     recommendations.extend(
         _get_high_risk_recommendations(spam_result, nlp_result, media_result)
     )
-    recommendations.extend(
-        _get_medium_risk_recommendations(spam_result, nlp_result)
-    )
+    recommendations.extend(_get_medium_risk_recommendations(spam_result, nlp_result))
 
     if not recommendations:
         recommendations.append(DEFAULT_CLEAN_RECOMMENDATION)

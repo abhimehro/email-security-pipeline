@@ -89,14 +89,50 @@ docker network inspect email-security-net
 
 ### Proton Mail Bridge Connection
 
-If using Proton Mail Bridge running on your host machine, the container uses
-`host.docker.internal` to reach services on your Mac:
+If using Proton Mail Bridge running on your host machine with implicit SSL
+(`PROTON_USE_SSL=true`), you can pin the local self-signed TLS certificate for
+secure verification:
 
-- Bridge runs on host: `127.0.0.1:1143`
-- Container connects via: `host.docker.internal:1143`
-- Configured in `docker-compose.yml` with `extra_hosts`
-- Set `PROTON_IMAP_SERVER=host.docker.internal` in `.env`
-- If Bridge uses STARTTLS mode, set `PROTON_USE_SSL=false`
+- Place your Bridge certificate (e.g. exported from Bridge) in
+  `./data/proton-bridge-cert.pem` (mounted via `./data:/app/data`).
+- Configure in `.env` (use the IMAP port shown in Bridge):
+
+  ```env
+  PROTON_IMAP_SERVER=host.docker.internal
+  PROTON_IMAP_PORT=1143
+  PROTON_USE_SSL=true
+  PROTON_TLS_CA_FILE=data/proton-bridge-cert.pem
+  PROTON_TLS_SERVER_HOSTNAME=127.0.0.1
+  ```
+
+<!-- coderabbit-ai-generated:v1 -->
+
+<!-- coderabbit-ai-generated-section:v1:521affa1ae31a580c5df61d7f189ee9e7941d909024e2d4e956f38f25c07d7e9 -->
+
+- `PROTON_IMAP_SERVER` is the connection address and must be reachable from the
+  container. Colima reachability of a host loopback-only Bridge through
+  `host.docker.internal` has not been verified for this guide. Test connectivity
+  from the pipeline container with your Colima version and network configuration
+  before relying on it; do not assume it forwards to host `127.0.0.1:1143`.
+  Docker Desktop uses its own host networking mechanism; its behavior does not
+  establish Colima reachability. On native Linux with bridge networking, Bridge
+  must listen on a host interface reachable from the container, rather than
+  only on host loopback.
+- `PROTON_TLS_SERVER_HOSTNAME` controls certificate verification independently
+  of the connection address. TLS SNI is sent only for DNS names, not IP literals.
+  The certificate must include that hostname or IP (here `127.0.0.1`) in its
+  subject alternative name (SAN).
+
+<!-- /coderabbit-ai-generated:v1 -->
+- On Linux, a loopback-only Bridge can instead be reached using host networking:
+  in a local Compose configuration, set `network_mode: host` on the pipeline
+  service and remove that service's `networks` entry. Set
+  `PROTON_IMAP_SERVER=127.0.0.1` and use the IMAP port configured in Bridge.
+  Keep the TLS CA and verification hostname settings above. Host networking
+  shares the host network namespace and removes Docker network isolation; use it
+  only when that tradeoff is acceptable. With bridge networking, the
+  reachable-interface requirement above still applies.
+- If Bridge uses STARTTLS mode, set `PROTON_USE_SSL=false`.
 
 ## Health Checks
 
@@ -260,7 +296,7 @@ pytest
 pytest --cov=src --cov-report=html
 
 # Specific test file
-pytest tests/test_threat_detection.py -v
+pytest tests/test_threat_scoring.py -v
 ```
 
 ### Limitations

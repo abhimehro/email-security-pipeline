@@ -30,6 +30,12 @@ print_info() { echo -e "${BLUE}ℹ${NC} $1"; }
 
 print_header "Checking Prerequisites"
 
+if [[ -d "${PIPELINE_DIR}/.env" ]]; then
+	print_error ".env is a directory, not a file (often created by Docker bind-mounts when .env is missing)"
+	print_info "Fix with: rmdir .env && cp .env.example .env"
+	exit 1
+fi
+
 if [[ ! -f "${PIPELINE_DIR}/.env" ]]; then
 	print_error ".env file not found"
 	print_info "Copy .env.example to .env and update credentials first"
@@ -77,6 +83,8 @@ data['ProgramArguments'] = ['/bin/zsh', str(wrapper)]
 data['WorkingDirectory'] = str(repo)
 data['StandardOutPath'] = str(Path.home() / 'Library/Logs/email-security-pipeline/pipeline.out')
 data['StandardErrorPath'] = str(Path.home() / 'Library/Logs/email-security-pipeline/pipeline.err')
+data['KeepAlive'] = {'SuccessfulExit': False}
+data.pop('Disabled', None)
 data.setdefault('EnvironmentVariables', {})['HOME'] = str(Path.home())
 data['EnvironmentVariables']['PATH'] = '/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin'
 with plist_path.open('wb') as f:
