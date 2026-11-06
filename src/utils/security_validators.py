@@ -255,6 +255,10 @@ class _PinnedHostnameSSLContext(ssl.SSLContext):
 
     _pinned_server_hostname: str | None = None
 
+    def set_pinned_hostname(self, hostname: str) -> None:
+        """Set the pinned TLS verification and SNI hostname."""
+        self._pinned_server_hostname = hostname
+
     def wrap_socket(  # type: ignore[override]
         self, sock: socket.socket, *args: Any, **kwargs: Any
     ) -> ssl.SSLSocket:
@@ -308,10 +312,9 @@ def create_secure_ssl_context(
     if server_hostname:
         pinned_host = validate_mail_server_host(server_hostname)
         context = _PinnedHostnameSSLContext(ssl.PROTOCOL_TLS_CLIENT)
-        context._pinned_server_hostname = pinned_host
+        context.set_pinned_hostname(pinned_host)
     else:
         context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
-
     context.minimum_version = ssl.TLSVersion.TLSv1_2
     context.check_hostname = True
     context.verify_mode = ssl.CERT_REQUIRED

@@ -154,6 +154,12 @@ class TestConfigValidation:
         ):
             return Config(env_file="nonexistent.env")
 
+    def _assert_invalid_config(self, config: Config, expected_error: str) -> None:
+        """Assert that config.validate() raises ConfigurationError containing expected_error."""
+        with pytest.raises(ConfigurationError) as exc_info:
+            config.validate()
+        assert any(expected_error in err for err in exc_info.value.args[0])
+
     def test_valid_config_passes(self):
         config = self._create_valid_config()
         assert config.validate() is True
@@ -161,131 +167,76 @@ class TestConfigValidation:
     def test_validate_no_accounts_configured(self):
         with patch.dict(os.environ, {}, clear=True):
             config = Config(env_file="nonexistent.env")
-            with pytest.raises(ConfigurationError) as exc_info:
-                config.validate()
-            assert any(
-                "No email accounts configured" in err for err in exc_info.value.args[0]
-            )
+            self._assert_invalid_config(config, "No email accounts configured")
 
     def test_validate_missing_credentials(self):
         config = self._create_valid_config()
         config.email_accounts[0].app_password = ""
-        with pytest.raises(ConfigurationError) as exc_info:
-            config.validate()
-        assert any(
-            "Missing credentials for gmail account" in err
-            for err in exc_info.value.args[0]
-        )
+        self._assert_invalid_config(config, "Missing credentials for gmail account")
 
     def test_validate_invalid_email_format(self):
         config = self._create_valid_config()
         config.email_accounts[0].email = "invalid-email"
-        with pytest.raises(ConfigurationError) as exc_info:
-            config.validate()
-        assert any(
-            "Invalid email format for gmail account" in err
-            for err in exc_info.value.args[0]
-        )
+        self._assert_invalid_config(config, "Invalid email format for gmail account")
 
     def test_validate_no_folders(self):
         config = self._create_valid_config()
         config.email_accounts[0].folders = []
-        with pytest.raises(ConfigurationError) as exc_info:
-            config.validate()
-        assert any(
-            "No folders configured for gmail account" in err
-            for err in exc_info.value.args[0]
-        )
+        self._assert_invalid_config(config, "No folders configured for gmail account")
 
     def test_validate_invalid_imap_port(self):
         config = self._create_valid_config()
         config.email_accounts[0].imap_port = 0
-        with pytest.raises(ConfigurationError) as exc_info:
-            config.validate()
-        assert any(
-            "Invalid IMAP port for gmail account" in err
-            for err in exc_info.value.args[0]
-        )
+        self._assert_invalid_config(config, "Invalid IMAP port for gmail account")
 
     def test_validate_disallowed_mail_server(self):
         config = self._create_valid_config()
         config.email_accounts[0].imap_server = "malicious.evil.com"
-        with pytest.raises(ConfigurationError) as exc_info:
-            config.validate()
-        assert any(
-            "IMAP server for gmail account" in err for err in exc_info.value.args[0]
-        )
+        self._assert_invalid_config(config, "IMAP server for gmail account")
 
     def test_validate_disallowed_smtp_server(self):
         config = self._create_valid_config()
         config.email_accounts[0].smtp_server = "malicious.evil.com"
-        with pytest.raises(ConfigurationError) as exc_info:
-            config.validate()
-        assert any(
-            "SMTP server for gmail account" in err for err in exc_info.value.args[0]
-        )
+        self._assert_invalid_config(config, "SMTP server for gmail account")
 
     def test_validate_webhook_enabled_without_url(self):
         config = self._create_valid_config()
         config.alerts.webhook_enabled = True
         config.alerts.webhook_url = ""
-        with pytest.raises(ConfigurationError) as exc_info:
-            config.validate()
-        assert any(
-            "Webhook enabled but no URL provided" in err
-            for err in exc_info.value.args[0]
-        )
+        self._assert_invalid_config(config, "Webhook enabled but no URL provided")
 
     def test_validate_webhook_url_must_be_https(self):
         config = self._create_valid_config()
         config.alerts.webhook_enabled = True
         config.alerts.webhook_url = "http://example.com/webhook"
-        with pytest.raises(ConfigurationError) as exc_info:
-            config.validate()
-        assert any(
-            "Webhook URL must use HTTPS" in err for err in exc_info.value.args[0]
-        )
+        self._assert_invalid_config(config, "Webhook URL must use HTTPS")
 
     def test_validate_webhook_url_ssrf_failure(self):
         config = self._create_valid_config()
         config.alerts.webhook_enabled = True
         config.alerts.webhook_url = "https://127.0.0.1/webhook"
-        with pytest.raises(ConfigurationError) as exc_info:
-            config.validate()
-        assert any(
-            "Webhook URL SSRF check failed" in err for err in exc_info.value.args[0]
-        )
+        self._assert_invalid_config(config, "Webhook URL SSRF check failed")
 
     def test_validate_slack_webhook_without_url(self):
         config = self._create_valid_config()
         config.alerts.slack_enabled = True
         config.alerts.slack_webhook = ""
-        with pytest.raises(ConfigurationError) as exc_info:
-            config.validate()
-        assert any(
-            "Slack alerts enabled but no webhook URL provided" in err
-            for err in exc_info.value.args[0]
+        self._assert_invalid_config(
+            config, "Slack alerts enabled but no webhook URL provided"
         )
 
     def test_validate_slack_webhook_must_be_https(self):
         config = self._create_valid_config()
         config.alerts.slack_enabled = True
         config.alerts.slack_webhook = "http://hooks.slack.com/services/test"
-        with pytest.raises(ConfigurationError) as exc_info:
-            config.validate()
-        assert any(
-            "Slack webhook URL must use HTTPS" in err for err in exc_info.value.args[0]
-        )
+        self._assert_invalid_config(config, "Slack webhook URL must use HTTPS")
 
     def test_validate_slack_webhook_invalid_host(self):
         config = self._create_valid_config()
         config.alerts.slack_enabled = True
         config.alerts.slack_webhook = "https://not-slack.com/services/test"
-        with pytest.raises(ConfigurationError) as exc_info:
-            config.validate()
-        assert any(
-            "Slack webhook URL must be a valid Slack hooks endpoint" in err
-            for err in exc_info.value.args[0]
+        self._assert_invalid_config(
+            config, "Slack webhook URL must be a valid Slack hooks endpoint"
         )
 
     def test_validate_threat_threshold_order(self):
@@ -293,56 +244,37 @@ class TestConfigValidation:
         config.alerts.threat_low = 80.0
         config.alerts.threat_medium = 50.0
         config.alerts.threat_high = 20.0
-        with pytest.raises(ConfigurationError) as exc_info:
-            config.validate()
-        assert any(
-            "Threat thresholds must satisfy LOW < MEDIUM < HIGH" in err
-            for err in exc_info.value.args[0]
+        self._assert_invalid_config(
+            config, "Threat thresholds must satisfy LOW < MEDIUM < HIGH"
         )
 
     def test_validate_system_max_attachment_size(self):
         config = self._create_valid_config()
         config.system.max_attachment_size_mb = 0
-        with pytest.raises(ConfigurationError) as exc_info:
-            config.validate()
-        assert any(
-            "MAX_ATTACHMENT_SIZE_MB must be greater than zero" in err
-            for err in exc_info.value.args[0]
+        self._assert_invalid_config(
+            config, "MAX_ATTACHMENT_SIZE_MB must be greater than zero"
         )
 
     def test_validate_system_log_level(self):
         config = self._create_valid_config()
         config.system.log_level = "NONEXISTENT_LEVEL"
-        with pytest.raises(ConfigurationError) as exc_info:
-            config.validate()
-        assert any(
-            "Invalid log level: NONEXISTENT_LEVEL" in err
-            for err in exc_info.value.args[0]
-        )
+        self._assert_invalid_config(config, "Invalid log level: NONEXISTENT_LEVEL")
 
     def test_validate_system_log_format(self):
         config = self._create_valid_config()
         config.system.log_format = "yaml"
-        with pytest.raises(ConfigurationError) as exc_info:
-            config.validate()
-        assert any("Invalid log format: yaml" in err for err in exc_info.value.args[0])
+        self._assert_invalid_config(config, "Invalid log format: yaml")
 
     def test_validate_system_log_rotation_size(self):
         config = self._create_valid_config()
         config.system.log_rotation_size_mb = 0
-        with pytest.raises(ConfigurationError) as exc_info:
-            config.validate()
-        assert any(
-            "LOG_ROTATION_SIZE_MB must be greater than zero" in err
-            for err in exc_info.value.args[0]
+        self._assert_invalid_config(
+            config, "LOG_ROTATION_SIZE_MB must be greater than zero"
         )
 
     def test_validate_system_log_rotation_keep_files(self):
         config = self._create_valid_config()
         config.system.log_rotation_keep_files = 0
-        with pytest.raises(ConfigurationError) as exc_info:
-            config.validate()
-        assert any(
-            "LOG_ROTATION_KEEP_FILES must be greater than zero" in err
-            for err in exc_info.value.args[0]
+        self._assert_invalid_config(
+            config, "LOG_ROTATION_KEEP_FILES must be greater than zero"
         )
