@@ -20,6 +20,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 from src.modules.alert_system import AlertSystem, ThreatReport
 from src.utils.config import AlertConfig
 
+MOCK_SLACK_WEBHOOK = "https://hooks.slack.com/services/TEST"
+
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -32,7 +34,7 @@ def _make_config(*, console=False, webhook=False, slack=False, threat_low=10):
     cfg.webhook_enabled = webhook
     cfg.webhook_url = "https://example.com/webhook" if webhook else ""
     cfg.slack_enabled = slack
-    cfg.slack_webhook = "https://hooks.slack.com/services/TEST" if slack else ""
+    cfg.slack_webhook = MOCK_SLACK_WEBHOOK if slack else ""
     cfg.threat_low = threat_low
     cfg.threat_medium = 50
     cfg.threat_high = 80
@@ -591,9 +593,7 @@ class TestProcessSingleAlertWithRetry(unittest.IsolatedAsyncioTestCase):
 
     def _make_config(self, webhook=False):
         config = MagicMock()
-        config.slack_webhook = (
-            "https://hooks.slack.com/services/T0000/B0000/XXXX" if webhook else None
-        )
+        config.slack_webhook = MOCK_SLACK_WEBHOOK if webhook else None
         return config
 
     def _make_report(self, email_id="test"):

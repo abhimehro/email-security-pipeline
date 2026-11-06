@@ -13,6 +13,7 @@ import logging
 import re
 import socket
 import ssl
+from pathlib import Path
 from typing import Any, List, Optional, Tuple
 from urllib.parse import urlparse
 
@@ -241,30 +242,83 @@ def is_safe_email(email: str) -> bool:
     return True
 
 
-def create_secure_ssl_context() -> ssl.SSLContext:
+def resolve_ca_path(ca_file: str) -> Path:
+    """Resolve a CA path and reject paths outside the current working tree."""
+    base_dir = Path.cwd().resolve()
+    ca_path = (base_dir / ca_file).resolve()
+    ca_path.relative_to(base_dir)
+    return ca_path
+
+
+class _PinnedHostnameSSLContext(ssl.SSLContext):
+    """SSLContext subclass that pins the TLS SNI and verification hostname."""
+
+    _pinned_server_hostname: str | None = None
+
+    def set_pinned_hostname(self, hostname: str) -> None:
+        """Set the pinned TLS verification and SNI hostname."""
+        self._pinned_server_hostname = hostname
+
+    def wrap_socket(  # type: ignore[override]
+        self, sock: socket.socket, *args: Any, **kwargs: Any
+    ) -> ssl.SSLSocket:
+        """Return the wrapped socket, overriding server_hostname when pinned."""
+        if self._pinned_server_hostname:
+            kwargs["server_hostname"] = self._pinned_server_hostname
+        return super().wrap_socket(sock, *args, **kwargs)
+
+
+class NullByteInCAPathError(ValueError):
+    """A TLS CA path contains a null byte."""
+
+
+def validate_tls_ca_path(ca_file: str) -> Path:
+    """Resolve a CA file inside the working tree.
+
+    Raises ValueError for invalid paths, FileNotFoundError for missing files or
+    directories, and OSError for other filesystem failures.
     """
-    Create a secure SSL context with modern TLS settings.
+    if "\0" in ca_file:
+        raise NullByteInCAPathError("Null byte in CA file path")
+    try:
+        resolved_ca = resolve_ca_path(ca_file)
+    except ValueError as err:
+        raise ValueError(
+            f"CA file path '{ca_file}' must stay within working tree"
+        ) from err
+    if not resolved_ca.is_file():
+        raise FileNotFoundError(f"CA file not found: {resolved_ca}")
+    return resolved_ca
 
-    SECURITY STORY: This enforces TLS 1.2+ to protect against attacks on
-    older protocols like SSLv3 (POODLE) and TLS 1.0/1.1 (BEAST, CRIME).
-    We also set secure cipher suites and enable hostname checking to
-    prevent man-in-the-middle attacks.
 
-    Returns:
-        Configured SSL context with security best practices
+def _configure_ssl_trust(context: ssl.SSLContext, ca_file: str | None) -> None:
+    """Configure SSL context trust store with optional pinned CA file."""
+    if ca_file:
+        resolved_ca = validate_tls_ca_path(ca_file)
+        context.load_verify_locations(cafile=str(resolved_ca))
+        logger.info("Loaded pinned TLS CA bundle from %s", resolved_ca)
+    else:
+        context.load_default_certs()
 
+
+def create_secure_ssl_context(
+    ca_file: str | None = None,
+    server_hostname: str | None = None,
+) -> ssl.SSLContext:
+    """Create a client TLS context with optional custom trust and hostname override.
+
+    SECURITY STORY: Enforces TLS 1.2+, CERT_REQUIRED, and check_hostname=True.
     """
-    # Create SSL context with TLS 1.2+ (protects against SSLv3/TLS1.0/1.1 attacks)
-    context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+    if server_hostname:
+        pinned_host = validate_mail_server_host(server_hostname)
+        context = _PinnedHostnameSSLContext(ssl.PROTOCOL_TLS_CLIENT)
+        context.set_pinned_hostname(pinned_host)
+    else:
+        context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
     context.minimum_version = ssl.TLSVersion.TLSv1_2
-
-    # Enable hostname checking (prevents MITM attacks)
     context.check_hostname = True
     context.verify_mode = ssl.CERT_REQUIRED
-
-    # Load default CA certificates for verification
-    context.load_default_certs()
-
+    _configure_ssl_trust(context, ca_file)
     logger.debug("Created secure SSL context with TLS 1.2+ enforcement")
     return context
 
