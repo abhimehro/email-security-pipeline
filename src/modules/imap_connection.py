@@ -90,8 +90,12 @@ class IMAPConnection:
         attacks (SSLv3 POODLE, TLS 1.0 BEAST, etc.). We also set a 30-second
         timeout to prevent indefinite hangs (DoS protection).
 
+        Use the account's optional CA bundle and verification hostname with
+        implicit TLS or STARTTLS, then authenticate.
+
         Returns:
-            True if connection successful, False otherwise
+            True after login; False for caught TLS configuration, connection,
+            or authentication errors.
 
         """
         try:
@@ -100,9 +104,11 @@ class IMAPConnection:
                 f"(SSL={self.config.use_ssl})"
             )
 
-            # Create secure SSL context (TLS 1.2+ enforced)
-            context = create_secure_ssl_context()
-
+            # Create secure SSL context (TLS 1.2+ enforced, with optional pinned CA / server hostname)
+            context = create_secure_ssl_context(
+                ca_file=self.config.tls_ca_file,
+                server_hostname=self.config.tls_server_hostname,
+            )
             # Initialize client based on SSL configuration
             self.connection = self._create_imap_client(context)
 
