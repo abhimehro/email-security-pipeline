@@ -17,6 +17,7 @@ interface to a complex subsystem (IMAP + parsing + security).
 
 import imaplib
 import logging
+import ssl
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Tuple
@@ -24,6 +25,7 @@ from typing import Any, Dict, List, Optional, Tuple
 from ..utils.config import EmailAccountConfig
 from ..utils.sanitization import redact_email, sanitize_for_logging
 from ..utils.security_validators import (
+    SSLContextWrapper,
     calculate_max_email_size,
     create_secure_ssl_context,
 )
@@ -284,7 +286,7 @@ class IMAPClient:
     def _create_secure_ssl_context(
         ca_file: Optional[str] = None,
         server_hostname: Optional[str] = None,
-    ):
+    ) -> ssl.SSLContext | SSLContextWrapper:
         """
         Create a secure SSL context (backward compatibility wrapper).
         """

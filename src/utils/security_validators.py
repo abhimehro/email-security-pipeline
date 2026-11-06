@@ -257,19 +257,46 @@ class SSLContextWrapper:
         self._context = context
         self._pinned_server_hostname = pinned_server_hostname
 
-    def wrap_socket(self, sock, server_side=False, *args, **kwargs):
+    def wrap_socket(
+        self, sock: socket.socket, server_side: bool = False, *args: Any, **kwargs: Any
+    ) -> ssl.SSLSocket:
         if self._pinned_server_hostname:
             kwargs["server_hostname"] = self._pinned_server_hostname
         return self._context.wrap_socket(sock, server_side, *args, **kwargs)
 
-    def __getattr__(self, name):
+    def __getattr__(self, name: str) -> Any:
         return getattr(self._context, name)
+
+
+class NullByteInCAPathError(ValueError):
+    """A TLS CA path contains a null byte."""
+
+
+def validate_tls_ca_path(ca_file: str) -> Path:
+    """Resolve a CA file inside the working tree.
+
+    Raises ValueError for invalid paths, FileNotFoundError for missing files or
+    directories, and OSError for other filesystem failures.
+    """
+    if "\0" in ca_file:
+        raise NullByteInCAPathError("Null byte in CA file path")
+    base_dir = Path.cwd().resolve()
+    resolved_ca = (base_dir / ca_file).resolve()
+    try:
+        resolved_ca.relative_to(base_dir)
+    except ValueError as err:
+        raise ValueError(
+            f"CA file path '{ca_file}' must stay within working tree"
+        ) from err
+    if not resolved_ca.is_file():
+        raise FileNotFoundError(f"CA file not found: {resolved_ca}")
+    return resolved_ca
 
 
 def create_secure_ssl_context(
     ca_file: Optional[str] = None,
     server_hostname: Optional[str] = None,
-) -> ssl.SSLContext:
+) -> ssl.SSLContext | SSLContextWrapper:
     """
     Create a secure SSL context with modern TLS settings and optional custom CA / hostname pinning.
 
@@ -283,18 +310,7 @@ def create_secure_ssl_context(
     context.verify_mode = ssl.CERT_REQUIRED
 
     if ca_file:
-        if "\0" in ca_file:
-            raise ValueError("Null byte in CA file path")
-        base_dir = Path.cwd().resolve()
-        resolved_ca = (base_dir / ca_file).resolve()
-        try:
-            resolved_ca.relative_to(base_dir)
-        except ValueError as err:
-            raise ValueError(
-                f"CA file path '{ca_file}' must stay within working tree"
-            ) from err
-        if not resolved_ca.is_file():
-            raise FileNotFoundError(f"CA file not found: {resolved_ca}")
+        resolved_ca = validate_tls_ca_path(ca_file)
         context.load_verify_locations(cafile=str(resolved_ca))
         logger.info(f"Loaded pinned TLS CA bundle from {resolved_ca}")
     else:

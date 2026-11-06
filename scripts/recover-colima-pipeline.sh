@@ -13,6 +13,19 @@ export PATH=/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/Users/speedybee
 REPO="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$REPO"
 
+REBUILD=0
+TEST_ALERT=0
+for arg in "$@"; do
+	case "$arg" in
+	--rebuild) REBUILD=1 ;;
+	--test-alert) TEST_ALERT=1 ;;
+	-h | --help)
+		sed -n '1,20p' "$0"
+		exit 0
+		;;
+	esac
+done
+
 # SECURITY & OPERATIONAL RELIABILITY: Fail fast if .env is a directory or missing.
 ENV_FILE="$REPO/.env"
 if [[ -d $ENV_FILE ]]; then
@@ -26,18 +39,6 @@ if [[ ! -f $ENV_FILE ]]; then
 	exit 1
 fi
 
-REBUILD=0
-TEST_ALERT=0
-for arg in "$@"; do
-	case "$arg" in
-	--rebuild) REBUILD=1 ;;
-	--test-alert) TEST_ALERT=1 ;;
-	-h | --help)
-		sed -n '1,20p' "$0"
-		exit 0
-		;;
-	esac
-done
 
 resolve_bin() {
 	local name="$1"

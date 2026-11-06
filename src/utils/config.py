@@ -13,10 +13,12 @@ from urllib.parse import urlparse
 from dotenv import load_dotenv
 
 from .security_validators import (
+    NullByteInCAPathError,
     _normalize_mail_server_host,
     is_safe_email,
     is_safe_webhook_url,
     validate_mail_server_host,
+    validate_tls_ca_path,
 )
 
 
@@ -335,27 +337,24 @@ class Config:
             if account.imap_port <= 0:
                 errors.append(f"Invalid IMAP port for {account.provider} account")
             if account.tls_ca_file:
-                if "\0" in account.tls_ca_file:
+                try:
+                    validate_tls_ca_path(account.tls_ca_file)
+                except NullByteInCAPathError:
                     errors.append(
                         f"Invalid TLS CA file path for {account.provider} account: contains null bytes"
                     )
-                else:
-                    try:
-                        base_dir = Path.cwd().resolve()
-                        ca_path = (base_dir / account.tls_ca_file).resolve()
-                        ca_path.relative_to(base_dir)
-                        if not ca_path.is_file():
-                            errors.append(
-                                f"TLS CA file does not exist or is not a file for {account.provider} account: {account.tls_ca_file}"
-                            )
-                    except ValueError:
-                        errors.append(
-                            f"TLS CA file path must stay within working tree for {account.provider} account: {account.tls_ca_file}"
-                        )
-                    except Exception as e:
-                        errors.append(
-                            f"Invalid TLS CA file path for {account.provider} account: {e}"
-                        )
+                except FileNotFoundError:
+                    errors.append(
+                        f"TLS CA file does not exist or is not a file for {account.provider} account: {account.tls_ca_file}"
+                    )
+                except ValueError:
+                    errors.append(
+                        f"TLS CA file path must stay within working tree for {account.provider} account: {account.tls_ca_file}"
+                    )
+                except OSError as e:
+                    errors.append(
+                        f"Invalid TLS CA file path for {account.provider} account: {e}"
+                    )
             if account.tls_server_hostname:
                 try:
                     validate_mail_server_host(account.tls_server_hostname)

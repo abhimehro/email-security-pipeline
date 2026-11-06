@@ -9,7 +9,7 @@ export PATH=/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:${HOME}/.local/b
 
 PROJECT_DIR="${PROJECT_DIR:-${0:A:h:h}}"
 COMPOSE_FILE="${COMPOSE_FILE:-$PROJECT_DIR/docker-compose.yml}"
-ENV_FILE="${ENV_FILE:-$PROJECT_DIR/.env}"
+ENV_FILE="$PROJECT_DIR/.env"
 DOCKER_CONTEXT="colima"
 # Colima cold-start on Apple Virtualization can exceed 3 minutes after a crash.
 READY_ATTEMPTS=150 # 150 * 2s = 300s

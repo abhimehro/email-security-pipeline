@@ -11,6 +11,7 @@ SECURITY & OPERATIONAL RATIONALE:
 import os
 import plistlib
 import secrets
+import shutil
 import ssl
 import subprocess  # nosec B404
 import tempfile
@@ -30,6 +31,9 @@ class TestLaunchdAndEnvDirectory(unittest.TestCase):
         Test that start-email-security-pipeline.sh fails fast with exit 1 and prints
         'is a directory' when .env is a directory, without invoking Docker.
         """
+        zsh = shutil.which("zsh")
+        if zsh is None:
+            self.skipTest("zsh is unavailable")
         with tempfile.TemporaryDirectory() as tmpdir:
             tmp_path = Path(tmpdir)
             env_dir = tmp_path / ".env"
@@ -40,7 +44,7 @@ class TestLaunchdAndEnvDirectory(unittest.TestCase):
                 / "launchd/start-email-security-pipeline.sh"
             )
             result = subprocess.run(  # nosec B603
-                ["/bin/zsh", str(script_path)],
+                [zsh, str(script_path)],
                 env={**os.environ, "PROJECT_DIR": str(tmp_path), "HOME": str(tmp_path)},
                 capture_output=True,
                 text=True,
@@ -56,6 +60,9 @@ class TestLaunchdAndEnvDirectory(unittest.TestCase):
         Test that start-email-security-pipeline.sh fails fast with exit 1 and prints
         'not found' when .env does not exist, leaving .env non-existent.
         """
+        zsh = shutil.which("zsh")
+        if zsh is None:
+            self.skipTest("zsh is unavailable")
         with tempfile.TemporaryDirectory() as tmpdir:
             tmp_path = Path(tmpdir)
             env_file = tmp_path / ".env"
@@ -66,7 +73,7 @@ class TestLaunchdAndEnvDirectory(unittest.TestCase):
                 / "launchd/start-email-security-pipeline.sh"
             )
             result = subprocess.run(  # nosec B603
-                ["/bin/zsh", str(script_path)],
+                [zsh, str(script_path)],
                 env={**os.environ, "PROJECT_DIR": str(tmp_path), "HOME": str(tmp_path)},
                 capture_output=True,
                 text=True,
