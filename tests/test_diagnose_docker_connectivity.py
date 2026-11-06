@@ -129,3 +129,51 @@ def test_non_outlook_imap_error_has_no_outlook_tip(
     out = capsys.readouterr().out
     assert "IMAP Error: LOGIN failed" in out
     assert "OAuth2" not in out
+
+
+def test_help_exits_zero_without_loading_env(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """--help prints usage and exits 0 before any .env load or IMAP test."""
+    with (
+        patch("diagnose_docker_connectivity.load_dotenv") as mock_load,
+        patch.object(diagnose_docker_connectivity, "test_connection") as mock_test,
+        pytest.raises(SystemExit) as exc_info,
+    ):
+        diagnose_docker_connectivity.main(["--help"])
+
+    assert exc_info.value.code == 0
+    mock_load.assert_not_called()
+    mock_test.assert_not_called()
+    out = capsys.readouterr().out
+    assert "usage: diagnose_docker_connectivity.py" in out
+    assert "Diagnostic script to test email connectivity" in out
+
+
+def test_unknown_argument_exits_with_usage_error(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """Unknown flags fail with argparse's usage error instead of running checks."""
+    with (
+        patch("diagnose_docker_connectivity.load_dotenv") as mock_load,
+        pytest.raises(SystemExit) as exc_info,
+    ):
+        diagnose_docker_connectivity.main(["--bogus"])
+
+    assert exc_info.value.code == 2
+    mock_load.assert_not_called()
+    assert "unrecognized arguments: --bogus" in capsys.readouterr().err
+
+
+def test_empty_argv_runs_diagnostics(monkeypatch: pytest.MonkeyPatch) -> None:
+    """main([]) keeps the normal run path and exit status."""
+    _disable_all_providers(monkeypatch)
+
+    with (
+        patch("diagnose_docker_connectivity.load_dotenv") as mock_load,
+        pytest.raises(SystemExit) as exc_info,
+    ):
+        diagnose_docker_connectivity.main([])
+
+    mock_load.assert_called_once_with(".env")
+    assert exc_info.value.code == 1
