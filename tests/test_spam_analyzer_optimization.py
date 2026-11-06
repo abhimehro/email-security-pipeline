@@ -61,3 +61,28 @@ def test_shorteners_still_caught(spam_analyzer):
     score, suspicious = spam_analyzer._check_urls(urls)
     assert score == 1.0  # 0.5 * 2
     assert len(suspicious) == 2
+
+
+def test_hidden_text_font_size(spam_analyzer):
+    html = "<html><span style='font-size: 1px'>tiny hidden text</span></html>"
+    score, indicators = spam_analyzer._check_hidden_text(html)
+    assert score == 2.0
+    assert "Hidden text detected" in indicators
+
+
+def test_hidden_text_color_matching_bg(spam_analyzer):
+    html = (
+        "<html><span style='color: #fff; background: #fff'>invisible text</span></html>"
+    )
+    score, indicators = spam_analyzer._check_hidden_text(html)
+    assert score == 2.0
+    assert "Hidden text detected" in indicators
+
+
+def test_clean_html_styled_no_hidden_text(spam_analyzer):
+    html = (
+        "<html><span style='font-size: 14px; color: #333333;'>normal text</span></html>"
+    )
+    score, indicators = spam_analyzer._check_hidden_text(html)
+    assert score == 0.0
+    assert len(indicators) == 0
