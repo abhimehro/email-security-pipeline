@@ -1,7 +1,5 @@
 """Functional tests for PR automation scripts and the load_gh_token helper."""
 
-from __future__ import annotations
-
 import os
 import shutil
 import subprocess  # nosec: B404
