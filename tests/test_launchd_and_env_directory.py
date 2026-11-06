@@ -16,6 +16,7 @@ import ssl
 import subprocess  # nosec B404
 import tempfile
 import unittest
+from itertools import product
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -57,11 +58,14 @@ class TestLaunchdAndEnvDirectory(unittest.TestCase):
             ("directory", "is a directory"),
             ("missing", "not found"),
         ]
-        for setup_type, expected_msg in scenarios:
+        for (setup_type, expected_msg), relative, absolute_compose in product(
+            scenarios, (False, True), (False, True)
+        ):
             with self.subTest(
-                setup_type=setup_type
+                setup_type=setup_type, relative=relative, absolute_compose=absolute_compose
             ), tempfile.TemporaryDirectory() as tmpdir:
-                tmp_path = Path(tmpdir)
+                tmp_path = Path(tmpdir) / "project"
+                tmp_path.mkdir()
                 env_path = tmp_path / ".env"
                 if setup_type == "directory":
                     env_path.mkdir()
@@ -72,15 +76,22 @@ class TestLaunchdAndEnvDirectory(unittest.TestCase):
                     [zsh, str(script_path)],
                     env={
                         **os.environ,
-                        "PROJECT_DIR": str(tmp_path),
+                        "PROJECT_DIR": tmp_path.name if relative else str(tmp_path),
+                        "COMPOSE_FILE": (
+                            str(Path(tmpdir) / "external-compose.yml")
+                            if absolute_compose
+                            else "docker-compose.yml"
+                        ),
                         "HOME": str(tmp_path),
                     },
+                    cwd=tmpdir,
                     capture_output=True,
                     text=True,
                     check=False,
                 )
 
                 self.assertEqual(result.returncode, 1)
+                self.assertIn(str(env_path.resolve()), result.stderr)
                 self.assertTrue(
                     expected_msg in result.stderr or expected_msg in result.stdout
                 )

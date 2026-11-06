@@ -8,6 +8,7 @@ export HOME="${HOME:-/Users/speedybee}"
 export PATH=/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:${HOME}/.local/bin:/usr/bin:/bin:/usr/sbin:/sbin
 
 PROJECT_DIR="${PROJECT_DIR:-${0:A:h:h}}"
+PROJECT_DIR="${PROJECT_DIR:A}"
 COMPOSE_FILE="${COMPOSE_FILE:-$PROJECT_DIR/docker-compose.yml}"
 ENV_FILE="$PROJECT_DIR/.env"
 DOCKER_CONTEXT="colima"

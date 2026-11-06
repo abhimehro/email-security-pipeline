@@ -1,5 +1,6 @@
 """Keep configuration and runtime CA path validation aligned."""
 
+from pathlib import Path
 from unittest.mock import patch
 
 import pytest
@@ -13,7 +14,9 @@ from src.utils.security_validators import (
 
 
 @pytest.mark.parametrize("kind", ["null", "outside", "symlink", "missing", "directory"])
-def test_invalid_ca_paths_rejected_by_both_callers(tmp_path, monkeypatch, kind):
+def test_invalid_ca_paths_rejected_by_both_callers(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, kind: str
+) -> None:
     monkeypatch.chdir(tmp_path)
     outside = tmp_path.parent / "outside-ca.pem"
     outside.write_text("fixture")
@@ -50,7 +53,9 @@ def test_invalid_ca_paths_rejected_by_both_callers(tmp_path, monkeypatch, kind):
 
 
 @pytest.mark.parametrize("absolute", [False, True])
-def test_valid_ca_path_is_resolved_and_loaded(tmp_path, monkeypatch, absolute):
+def test_valid_ca_path_is_resolved_and_loaded(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, absolute: bool
+) -> None:
     monkeypatch.chdir(tmp_path)
     cert = tmp_path / "ca.pem"
     cert.write_text("fixture")

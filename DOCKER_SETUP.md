@@ -105,14 +105,25 @@ secure verification:
   PROTON_TLS_SERVER_HOSTNAME=127.0.0.1
   ```
 
+<!-- coderabbit-ai-generated:v1 -->
+
+<!-- coderabbit-ai-generated-section:v1:521affa1ae31a580c5df61d7f189ee9e7941d909024e2d4e956f38f25c07d7e9 -->
+
 - `PROTON_IMAP_SERVER` is the connection address and must be reachable from the
-  container. On macOS (Colima or Docker Desktop), `host.docker.internal`
-  forwards to the host's `127.0.0.1:1143`. Ensure Bridge listens on an interface
-  reachable through `host.docker.internal`; a host loopback-only listener is not
-  reachable through the Docker bridge network.
-- `PROTON_TLS_SERVER_HOSTNAME` controls certificate verification and TLS SNI,
-  independently of the connection address. The certificate must include that
-  hostname or IP (here `127.0.0.1`) in its subject alternative name (SAN).
+  container. Colima reachability of a host loopback-only Bridge through
+  `host.docker.internal` has not been verified for this guide. Test connectivity
+  from the pipeline container with your Colima version and network configuration
+  before relying on it; do not assume it forwards to host `127.0.0.1:1143`.
+  Docker Desktop uses its own host networking mechanism; its behavior does not
+  establish Colima reachability. On native Linux with bridge networking, Bridge
+  must listen on a host interface reachable from the container, rather than
+  only on host loopback.
+- `PROTON_TLS_SERVER_HOSTNAME` controls certificate verification independently
+  of the connection address. TLS SNI is sent only for DNS names, not IP literals.
+  The certificate must include that hostname or IP (here `127.0.0.1`) in its
+  subject alternative name (SAN).
+
+<!-- /coderabbit-ai-generated:v1 -->
 - On Linux, a loopback-only Bridge can instead be reached using host networking:
   in a local Compose configuration, set `network_mode: host` on the pipeline
   service and remove that service's `networks` entry. Set
