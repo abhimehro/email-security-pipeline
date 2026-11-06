@@ -122,10 +122,14 @@ class IMAPClient:
 
     def connect(self) -> bool:
         """
-        Establish connection to IMAP server.
+        Connect and authenticate using implicit TLS or STARTTLS.
+
+        Use the account's optional CA bundle and verification hostname. On
+        successful login, share the connection with the connection manager.
 
         Returns:
-            True if connection successful
+            True after login; False for caught TLS configuration, connection,
+            or authentication errors.
 
         """
         try:
@@ -287,6 +291,19 @@ class IMAPClient:
     ):
         """
         Create a secure SSL context (backward compatibility wrapper).
+
+        ca_file selects a CA bundle within the current working directory;
+        server_hostname selects an allowlisted TLS verification hostname.
+        Empty values use default trust and the caller's hostname, respectively.
+
+        Returns:
+            The context or hostname wrapper from create_secure_ssl_context.
+
+        Raises:
+            ValueError: If the CA path or hostname is rejected.
+            FileNotFoundError: If the CA path is not a file.
+            OSError: If certificate loading or filesystem resolution fails.
+
         """
         return create_secure_ssl_context(
             ca_file=ca_file,

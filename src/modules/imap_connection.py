@@ -90,8 +90,12 @@ class IMAPConnection:
         attacks (SSLv3 POODLE, TLS 1.0 BEAST, etc.). We also set a 30-second
         timeout to prevent indefinite hangs (DoS protection).
 
+        Use the account's optional CA bundle and verification hostname with
+        implicit TLS or STARTTLS, then authenticate.
+
         Returns:
-            True if connection successful, False otherwise
+            True after login; False for caught TLS configuration, connection,
+            or authentication errors.
 
         """
         try:
