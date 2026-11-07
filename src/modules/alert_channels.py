@@ -172,6 +172,14 @@ def _redact_discord_webhook(parsed: Any) -> Optional[Any]:
     return _redact_webhook_by_platform(parsed, "/api/webhooks/", "discord.com")
 
 
+def _has_url_secret_triggers(url: str) -> bool:
+    """Check if URL contains potential credential or webhook tokens."""
+    for trigger in ("@", "/services/", "/api/webhooks/"):
+        if trigger in url:
+            return True
+    return False
+
+
 def redact_url_secrets(url: str) -> str:
     """
     Redact sensitive information from URL (query params and specific paths).
@@ -185,7 +193,7 @@ def redact_url_secrets(url: str) -> str:
 
         # ⚡ BOLT: Fast path for URLs without embedded credentials or webhook paths.
         # Bypasses urlparse(), netloc splitting, and platform webhook checks on clean URLs (~25x faster).
-        if "@" not in url and "/services/" not in url and "/api/webhooks/" not in url:
+        if not _has_url_secret_triggers(url):
             return url
 
         parsed = urlparse(url)
