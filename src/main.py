@@ -15,7 +15,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src.app_runner import AppRunner
-from src.modules.alert_system import AlertSystem, generate_threat_report
+from src.modules.alert_report import generate_threat_report
+from src.modules.alert_system import AlertSystem
 from src.modules.email_ingestion import EmailIngestionConfig, EmailIngestionManager
 from src.modules.media_analyzer import MediaAuthenticityAnalyzer
 from src.modules.nlp_analyzer import NLPThreatAnalyzer
@@ -501,7 +502,10 @@ class EmailSecurityPipeline:
 
         # Documentation footer
         print(
-            f"\n📚 {Colors.colorize('For help, see README.md or OUTLOOK_TROUBLESHOOTING.md', Colors.GREY)}\n"
+            f"\n📚 {Colors.colorize('For help, see ', Colors.GREY)}"
+            + f"{Colors.colorize('README.md', Colors.CYAN)}"
+            + f"{Colors.colorize(' or ', Colors.GREY)}"
+            + f"{Colors.colorize('OUTLOOK_TROUBLESHOOTING.md', Colors.CYAN)}\n"
         )
 
 

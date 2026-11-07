@@ -235,9 +235,10 @@ class AppRunner:
     def _print_fallback_instructions(self) -> None:
         """Helper to consistently print fallback instructions and command across error paths."""
         print(
-            Colors.colorize(
-                "Please create a .env file based on .env.example", Colors.YELLOW
-            )
+            Colors.colorize("Please create a ", Colors.YELLOW)
+            + Colors.colorize(".env", Colors.CYAN)
+            + Colors.colorize(" file based on ", Colors.YELLOW)
+            + Colors.colorize(".env.example", Colors.CYAN)
         )
         command = f'cp .env.example "{self.config_file}"'
         print(
@@ -393,8 +394,10 @@ class AppRunner:
                 )
             )
             print(
-                Colors.colorize(
-                    "IMPORTANT: Please edit .env with your actual credentials before proceeding.",
+                Colors.colorize("IMPORTANT: Please edit ", Colors.YELLOW)
+                + Colors.colorize(".env", Colors.CYAN)
+                + Colors.colorize(
+                    " with your actual credentials before proceeding.",
                     Colors.YELLOW,
                 )
             )
