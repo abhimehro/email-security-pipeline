@@ -183,6 +183,12 @@ class TestRedactUrlSecrets(unittest.TestCase):
         expected = "https://ptb.discord.com/api/webhooks/1234567890/[REDACTED]"
         self.assertEqual(redact_url_secrets(url), expected)
 
+    def test_discord_webhook_helper_direct(self):
+        parsed = urlparse("https://discord.com/api/webhooks/123/TOKEN")
+        res = _redact_discord_webhook(parsed)
+        self.assertIsNotNone(res)
+        self.assertTrue(res.path.endswith("[REDACTED]"))
+
     def test_redact_webhook_by_platform_not_matching(self):
         parsed = urlparse("https://otherdomain.com/services/T1/B2/token")
         self.assertIsNone(
@@ -195,6 +201,10 @@ class TestRedactUrlSecrets(unittest.TestCase):
         self.assertIn("token=%5BREDACTED%5D", redacted)
         self.assertIn("code=xyz", redacted)
         self.assertIn("state=ok", redacted)
+
+    def test_clean_url_fast_path(self):
+        url = "https://example.com/path/to/page"
+        self.assertEqual(redact_url_secrets(url), url)
 
     def test_malformed_url_exception_fallback(self):
         with patch(
@@ -248,6 +258,14 @@ class TestRedactSensitiveUrlParams(unittest.TestCase):
 
     def test_clean_urls_unchanged(self):
         url = "https://example.com/search?q=security&page=1"
+        self.assertEqual(redact_sensitive_url_params(url), url)
+
+    def test_parameter_free_url_fast_path(self):
+        url = "https://example.com/about/us"
+        self.assertEqual(redact_sensitive_url_params(url), url)
+
+    def test_url_with_empty_query_string(self):
+        url = "https://example.com/test?"
         self.assertEqual(redact_sensitive_url_params(url), url)
 
     def test_exception_fallback(self):
