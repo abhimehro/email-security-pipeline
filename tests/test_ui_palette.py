@@ -433,3 +433,43 @@ class TestPaletteUI(TestCase):
             patch("sys.stdout", new_callable=StringIO),
         ):
             self.assertEqual(setup_wizard._select_provider(), "2")
+
+    def test_test_config_help_flag_exits_cleanly(self) -> None:
+        """Test that test_config.py -h/--help exits cleanly with status 0 and usage."""
+        from io import StringIO
+
+        import test_config
+
+        for flag in ["--help", "-h"]:
+            with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
+                with self.assertRaises(SystemExit) as cm:
+                    test_config.main([flag])
+                self.assertEqual(cm.exception.code, 0)
+                output = mock_stdout.getvalue()
+                self.assertIn("usage: test_config.py", output)
+                self.assertIn("--test-connections", output)
+
+    def test_test_config_parses_test_connections_flag(self) -> None:
+        """Test that test_config.py main parses --test-connections correctly."""
+        import test_config
+
+        patches = [
+            patch("test_config.test_config_loading", return_value=True),
+            patch("test_config.test_module_imports", return_value=True),
+            patch("test_config.test_analyzer_initialization", return_value=True),
+            patch("test_config.test_folder_parsing", return_value=True),
+            patch("test_config.test_diagnostics_script", return_value=True),
+        ]
+        with (
+            patches[0],
+            patches[1],
+            patches[2],
+            patches[3],
+            patches[4],
+            patch(
+                "test_config.test_imap_connections", return_value=True
+            ) as mock_imap,
+        ):
+            exit_code = test_config.main(["--test-connections"])
+            self.assertEqual(exit_code, 0)
+            mock_imap.assert_called_once_with(True)
