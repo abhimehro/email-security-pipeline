@@ -615,6 +615,7 @@
 
 **Merged pull requests:**
 
+- 🎨 Palette: add help flag support to test\_config.py [\#1860](https://github.com/abhimehro/email-security-pipeline/pull/1860) ([abhimehro](https://github.com/abhimehro))
 - chore: add WATCHDOG advisor config [\#1856](https://github.com/abhimehro/email-security-pipeline/pull/1856) ([abhimehro](https://github.com/abhimehro))
 - fix: harden launchd .env validation, pin Proton Bridge TLS, and upgrade Trunk [\#1855](https://github.com/abhimehro/email-security-pipeline/pull/1855) ([abhimehro](https://github.com/abhimehro))
 - chore\(deps\): bump ruby/setup-ruby from 1.335.0 to 1.336.0 [\#1847](https://github.com/abhimehro/email-security-pipeline/pull/1847) ([dependabot[bot]](https://github.com/apps/dependabot))
@@ -653,6 +654,7 @@
 - 🎨 Palette: Add visual pending states to Docker connectivity diagnostics [\#1775](https://github.com/abhimehro/email-security-pipeline/pull/1775) ([abhimehro](https://github.com/abhimehro))
 - 🎨 Palette: Highlight documentation and configuration file references in CLI output [\#1772](https://github.com/abhimehro/email-security-pipeline/pull/1772) ([abhimehro](https://github.com/abhimehro))
 - ⚡ Bolt: optimize email address fast-path check with set isdisjoint [\#1763](https://github.com/abhimehro/email-security-pipeline/pull/1763) ([abhimehro](https://github.com/abhimehro))
+- 🎨 Palette: Add standard --help flag support to setup wizard CLI [\#1761](https://github.com/abhimehro/email-security-pipeline/pull/1761) ([abhimehro](https://github.com/abhimehro))
 - 🎨 Palette: Standardize CLI colorization and highlight config keys in connectivity script [\#1758](https://github.com/abhimehro/email-security-pipeline/pull/1758) ([abhimehro](https://github.com/abhimehro))
 - 🎨 Palette: Actionable empty state feedback in Docker connectivity diagnostics [\#1745](https://github.com/abhimehro/email-security-pipeline/pull/1745) ([abhimehro](https://github.com/abhimehro))
 - ⚡ Bolt: Fast-path clean email address header parsing in EmailParser.\_format\_addresses [\#1744](https://github.com/abhimehro/email-security-pipeline/pull/1744) ([abhimehro](https://github.com/abhimehro))
