@@ -302,5 +302,61 @@ class TestConsoleAlert(unittest.TestCase):
         self.assertNotIn("█" * 51, output)
 
 
+class TestSpamIndicatorRows(unittest.TestCase):
+    """Unit tests for spam_indicator_rows in alert_console."""
+
+    def test_empty_indicators_returns_empty_list(self) -> None:
+        """Empty indicators list produces empty row output."""
+        from src.modules.alert_console import spam_indicator_rows
+
+        self.assertEqual(spam_indicator_rows([], 5), [])
+
+    def test_indicators_within_max_spam_limit(self) -> None:
+        """Indicators within limit return formatted tuples with indent level 3."""
+        from src.modules.alert_console import spam_indicator_rows
+        from src.utils.colors import Colors
+
+        items = ["High link density", "Suspicious subject keywords"]
+        rows = spam_indicator_rows(items, 5)
+
+        expected = [
+            (f"{Colors.colorize('•', Colors.GREY)} High link density", 3),
+            (f"{Colors.colorize('•', Colors.GREY)} Suspicious subject keywords", 3),
+        ]
+        self.assertEqual(rows, expected)
+
+    def test_indicators_exceeding_max_spam_truncated(self) -> None:
+        """Indicators list is truncated to max_spam items."""
+        from src.modules.alert_console import spam_indicator_rows
+
+        items = [f"Indicator {i}" for i in range(10)]
+        rows = spam_indicator_rows(items, 3)
+
+        self.assertEqual(len(rows), 3)
+        for i, (text, indent) in enumerate(rows):
+            self.assertEqual(indent, 3)
+            self.assertIn(f"Indicator {i}", text)
+
+    def test_indicators_zero_limit(self) -> None:
+        """Zero max_spam returns an empty list."""
+        from src.modules.alert_console import spam_indicator_rows
+
+        items = ["Indicator 1", "Indicator 2"]
+        self.assertEqual(spam_indicator_rows(items, 0), [])
+
+    def test_indicator_bullet_formatting_and_indentation(self) -> None:
+        """Row includes grey bullet prefix and exactly indent=3."""
+        from src.modules.alert_console import spam_indicator_rows
+        from src.utils.colors import Colors
+
+        bullet = Colors.colorize("•", Colors.GREY)
+        rows = spam_indicator_rows(["Phishing trigger"], 1)
+
+        self.assertEqual(len(rows), 1)
+        text, indent = rows[0]
+        self.assertEqual(indent, 3)
+        self.assertEqual(text, f"{bullet} Phishing trigger")
+
+
 if __name__ == "__main__":
     unittest.main()
