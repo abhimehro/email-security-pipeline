@@ -322,8 +322,7 @@ class NLPThreatAnalyzer:
             self.device = None
 
     def analyze(self, email_data: EmailData) -> NLPAnalysisResult:
-        """
-        Perform NLP analysis on email content.
+        """Perform NLP analysis on email content.
 
         Args:
             email_data: Email to analyze
@@ -332,12 +331,6 @@ class NLPThreatAnalyzer:
             NLPAnalysisResult
 
         """
-        threat_score = 0.0
-        social_engineering = []
-        urgency_markers = []
-        authority_impersonation = []
-        psychological_triggers = []
-
         # Iterate over parts to avoid large string concatenation
         parts = [email_data.subject, email_data.body_text]
 
@@ -345,6 +338,53 @@ class NLPThreatAnalyzer:
         matches_by_category, exclamation_count, caps_count = self._scan_text_patterns(
             parts
         )
+
+        # Evaluate rule-based indicators
+        (
+            rule_score,
+            social_engineering,
+            urgency_markers,
+            authority_impersonation,
+            psychological_triggers,
+        ) = self._evaluate_rule_indicators(
+            matches_by_category, exclamation_count, caps_count, email_data.sender
+        )
+
+        # Integration of Transformer Model Predictions into Threat Scoring
+        ml_score, ml_indicators = self._evaluate_ml_indicators(email_data)
+
+        total_score = rule_score + ml_score
+        social_engineering.extend(ml_indicators)
+
+        # Calculate risk level
+        risk_level = self._calculate_risk_level(total_score)
+
+        self.logger.debug(
+            f"NLP analysis complete: score={total_score:.2f}, risk={risk_level}"
+        )
+
+        return NLPAnalysisResult(
+            threat_score=total_score,
+            social_engineering_indicators=social_engineering,
+            urgency_markers=urgency_markers,
+            authority_impersonation=authority_impersonation,
+            psychological_triggers=psychological_triggers,
+            risk_level=risk_level,
+        )
+
+    def _evaluate_rule_indicators(
+        self,
+        matches_by_category: Dict,
+        exclamation_count: int,
+        caps_count: int,
+        sender: str,
+    ) -> Tuple[float, List[str], List[str], List[str], List[str]]:
+        """Evaluate rule-based pattern indicators and scores."""
+        threat_score = 0.0
+        social_engineering = []
+        urgency_markers = []
+        authority_impersonation = []
+        psychological_triggers = []
 
         # Check for social engineering
         if self.config.check_social_engineering:
@@ -365,7 +405,7 @@ class NLPThreatAnalyzer:
         # Check for authority impersonation
         if self.config.check_authority_impersonation:
             score, indicators = self._detect_authority_impersonation(
-                email_data.sender, matches_by_category["AU"]
+                sender, matches_by_category["AU"]
             )
             threat_score += score
             authority_impersonation.extend(indicators)
@@ -378,27 +418,21 @@ class NLPThreatAnalyzer:
             threat_score += score
             psychological_triggers.extend(indicators)
 
-        # Integration of Transformer Model Predictions into Threat Scoring
+        return (
+            threat_score,
+            social_engineering,
+            urgency_markers,
+            authority_impersonation,
+            psychological_triggers,
+        )
+
+    def _evaluate_ml_indicators(
+        self, email_data: EmailData
+    ) -> Tuple[float, List[str]]:
+        """Evaluate ML/transformer indicators if model is available."""
         if self.model and self.tokenizer:
-            ml_score, ml_indicators = self._run_transformer_analysis(email_data)
-            threat_score += ml_score
-            social_engineering.extend(ml_indicators)
-
-        # Calculate risk level
-        risk_level = self._calculate_risk_level(threat_score)
-
-        self.logger.debug(
-            f"NLP analysis complete: score={threat_score:.2f}, risk={risk_level}"
-        )
-
-        return NLPAnalysisResult(
-            threat_score=threat_score,
-            social_engineering_indicators=social_engineering,
-            urgency_markers=urgency_markers,
-            authority_impersonation=authority_impersonation,
-            psychological_triggers=psychological_triggers,
-            risk_level=risk_level,
-        )
+            return self._run_transformer_analysis(email_data)
+        return 0.0, []
 
     def _scan_text_patterns(self, parts: List[Optional[str]]) -> Tuple[Dict, int, int]:
         """Scan text parts for patterns and statistics."""
