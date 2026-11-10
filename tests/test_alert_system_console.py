@@ -302,5 +302,71 @@ class TestConsoleAlert(unittest.TestCase):
         self.assertNotIn("█" * 51, output)
 
 
+class TestSafeConsoleUrl(unittest.TestCase):
+    """Unit tests for safe_console_url in src.modules.alert_console."""
+
+    def test_clean_url_unchanged(self):
+        """Clean URLs without sensitive params or escape codes remain unchanged."""
+        from src.modules.alert_console import safe_console_url
+
+        url = "https://example.com/path/to/page?page=1&sort=desc"
+        self.assertEqual(safe_console_url(url), url)
+
+    def test_redacts_sensitive_query_parameters(self):
+        """Sensitive query parameters are redacted."""
+        from src.modules.alert_console import safe_console_url
+
+        url = "https://example.com/api?token=secret123&user=alice&apikey=xyz"
+        result = safe_console_url(url)
+        self.assertNotIn("secret123", result)
+        self.assertNotIn("xyz", result)
+        self.assertIn("token=[REDACTED]", result)
+        self.assertIn("apikey=[REDACTED]", result)
+        self.assertIn("user=alice", result)
+
+    def test_replaces_percent_encoded_redacted_tokens(self):
+        """Percent-encoded redacted tokens (%5bREDACTED%5d) are replaced with [REDACTED]."""
+        from src.modules.alert_console import safe_console_url
+
+        url = "https://example.com/?auth=%5bREDACTED%5d&key=%5BREDACTED%5D"
+        result = safe_console_url(url)
+        self.assertNotIn("%5bREDACTED%5d", result)
+        self.assertNotIn("%5BREDACTED%5D", result)
+        self.assertIn("auth=[REDACTED]", result)
+        self.assertIn("key=[REDACTED]", result)
+
+    def test_strips_ansi_escape_sequences(self):
+        """ANSI terminal escape sequences embedded in URLs are removed."""
+        from src.modules.alert_console import safe_console_url
+
+        url = "https://evil.example.com/" + chr(27) + "[31mevil" + chr(27) + "[0m?token=secret"
+        result = safe_console_url(url)
+        self.assertNotIn(chr(27), result)
+        self.assertNotIn("secret", result)
+        self.assertIn("https://evil.example.com/evil?token=[REDACTED]", result)
+
+    def test_sanitizes_csv_formula_injection(self):
+        """URLs prefixed with CSV formula triggers are prefixed with a quote."""
+        from src.modules.alert_console import safe_console_url
+
+        for prefix in ("=", "+", "-", "@"):
+            url = f"{prefix}https://evil.example.com"
+            result = safe_console_url(url)
+            self.assertTrue(result.startswith("'"), msg=f"Failed for prefix: {prefix}")
+            self.assertEqual(result, f"'{url}")
+
+    def test_handles_empty_and_control_characters(self):
+        """Empty string returns empty, and control characters/whitespace are normalized."""
+        from src.modules.alert_console import safe_console_url
+
+        self.assertEqual(safe_console_url(""), "")
+        dirty_url = "https://example.com/" + chr(10) + chr(13) + chr(9) + "resource"
+        result = safe_console_url(dirty_url)
+        self.assertNotIn(chr(10), result)
+        self.assertNotIn(chr(13), result)
+        self.assertNotIn(chr(9), result)
+        self.assertEqual(result, "https://example.com/   resource")
+
+
 if __name__ == "__main__":
     unittest.main()
