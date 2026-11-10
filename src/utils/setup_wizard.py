@@ -84,36 +84,24 @@ def _styled_input(prompt: str) -> str:
     return val
 
 
-def _test_connection(email: str, app_password: str, provider_choice: str) -> bool:
-    """
-    Test the connection with provided credentials.
-    Returns True if successful, False otherwise.
-    """
-    if not (EmailAccountConfig and IMAPConnection and Spinner):
-        return True  # Cannot verify, assume valid to proceed
+def _get_provider_connection_config(
+    email: str, app_password: str, provider_choice: str
+) -> "EmailAccountConfig | None":
+    """Construct connection configuration for the chosen provider."""
+    if not EmailAccountConfig:
+        return None
 
-    print()  # Add visual spacing before verification
+    provider_settings = {
+        "1": ("imap.gmail.com", 993, "gmail", True),
+        "2": ("127.0.0.1", 1143, "proton", True),
+        "3": ("outlook.office365.com", 993, "outlook", True),
+    }
 
-    # Defaults based on provider
-    if provider_choice == "1":  # Gmail
-        imap_server = "imap.gmail.com"
-        imap_port = 993
-        provider = "gmail"
-        use_ssl = True
-    elif provider_choice == "2":  # Proton
-        imap_server = "127.0.0.1"
-        imap_port = 1143
-        provider = "proton"
-        use_ssl = True
-    elif provider_choice == "3":  # Outlook
-        imap_server = "outlook.office365.com"
-        imap_port = 993
-        provider = "outlook"
-        use_ssl = True
-    else:
-        return True  # Should not happen based on caller
+    if provider_choice not in provider_settings:
+        return None
 
-    config = EmailAccountConfig(
+    imap_server, imap_port, provider, use_ssl = provider_settings[provider_choice]
+    return EmailAccountConfig(
         enabled=True,
         email=email,
         imap_server=imap_server,
@@ -124,21 +112,36 @@ def _test_connection(email: str, app_password: str, provider_choice: str) -> boo
         use_ssl=use_ssl,
     )
 
+
+def _verify_imap_connection(config: "EmailAccountConfig") -> bool:
+    """Execute the network connection test to verify IMAP credentials."""
+    import logging
+
+    logging.disable(logging.CRITICAL)
     try:
-        success = False
+        conn = IMAPConnection(config)
+        success = conn.connect()
+        if success:
+            conn.disconnect()
+        return bool(success)
+    finally:
+        logging.disable(logging.NOTSET)
+
+
+def _test_connection(email: str, app_password: str, provider_choice: str) -> bool:
+    """Test the connection with provided credentials."""
+    if not (EmailAccountConfig and IMAPConnection and Spinner):
+        return True  # Cannot verify, assume valid to proceed
+
+    config = _get_provider_connection_config(email, app_password, provider_choice)
+    if config is None:
+        return True  # Unrecognized provider choice, assume valid to proceed
+
+    print()  # Add visual spacing before verification
+
+    try:
         with Spinner("Verifying credentials...") as spinner:
-            # Suppress logging during check to avoid clutter
-            import logging
-
-            logging.disable(logging.CRITICAL)
-            try:
-                conn = IMAPConnection(config)
-                success = conn.connect()
-                if success:
-                    conn.disconnect()
-            finally:
-                logging.disable(logging.NOTSET)
-
+            success = _verify_imap_connection(config)
             if success:
                 spinner.success("Connection successful!")
             else:
@@ -152,9 +155,7 @@ def _test_connection(email: str, app_password: str, provider_choice: str) -> boo
         return True
 
     except Exception as e:
-        # We don't have access to the spinner here easily if the exception is outside,
-        # but in most cases errors happen inside the context manager. If it happens
-        # outside, we just print as before.
+        # Mask credentials in any uncaught error message before printing
         error_msg = str(e).replace(app_password, "***") if app_password else str(e)
         print(
             Colors.colorize(
