@@ -61,3 +61,40 @@ def test_shorteners_still_caught(spam_analyzer):
     score, suspicious = spam_analyzer._check_urls(urls)
     assert score == 1.0  # 0.5 * 2
     assert len(suspicious) == 2
+
+
+@pytest.mark.parametrize(
+    "html_body,expected_score,expected_indicator",
+    [
+        ("<html><body><p>Clean text without styling</p></body></html>", 0.0, False),
+        (
+            "<html><body style='font-size: 14px; color: #333333;'><p>Styled</p></body></html>",
+            0.0,
+            False,
+        ),
+        (
+            "<html><body><span style='font-size: 1px'>Hidden micro font</span></body></html>",
+            2.0,
+            True,
+        ),
+        (
+            "<html><body><span style='color: #ffffff; background-color: #ffffff;'>Hidden color</span></body></html>",
+            2.0,
+            True,
+        ),
+        (
+            "<html><body><span style='color: #ffffff; font-size: 16px;'>Visible white text on dark</span></body></html>",
+            0.0,
+            False,
+        ),
+    ],
+)
+def test_hidden_text_decoupled_patterns(
+    spam_analyzer, html_body, expected_score, expected_indicator
+):
+    score, indicators = spam_analyzer._check_hidden_text(html_body.lower())
+    assert score == expected_score
+    if expected_indicator:
+        assert "Hidden text detected" in indicators
+    else:
+        assert indicators == []
