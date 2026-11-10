@@ -302,5 +302,68 @@ class TestConsoleAlert(unittest.TestCase):
         self.assertNotIn("█" * 51, output)
 
 
+class TestSpamHeaderIssueRows(unittest.TestCase):
+    """Unit tests for spam_header_issue_rows in alert_console."""
+
+    def test_empty_header_issues_returns_empty_list(self):
+        """Empty header issues input should return an empty list of rows."""
+        from src.modules.alert_console import spam_header_issue_rows
+
+        rows = spam_header_issue_rows([], 5)
+        self.assertEqual(rows, [])
+
+    def test_header_issues_under_max_limit(self):
+        """Header issues count below max limit should include all issues."""
+        from src.modules.alert_console import spam_header_issue_rows
+
+        issues = ["SPF failure detected", "DKIM signature invalid"]
+        rows = spam_header_issue_rows(issues, 5)
+
+        self.assertEqual(len(rows), 3)
+        self.assertEqual(rows[0][1], 3)
+        self.assertIn("Header Issues:", rows[0][0])
+        self.assertEqual(rows[1][1], 5)
+        self.assertIn("SPF failure detected", rows[1][0])
+        self.assertEqual(rows[2][1], 5)
+        self.assertIn("DKIM signature invalid", rows[2][0])
+
+    def test_header_issues_exceeding_max_limit_truncated(self):
+        """Header issues exceeding max limit should be sliced to max_header items."""
+        from src.modules.alert_console import spam_header_issue_rows
+
+        issues = ["Issue 1", "Issue 2", "Issue 3", "Issue 4"]
+        rows = spam_header_issue_rows(issues, 2)
+
+        self.assertEqual(len(rows), 3)
+        self.assertIn("Header Issues:", rows[0][0])
+        self.assertIn("Issue 1", rows[1][0])
+        self.assertIn("Issue 2", rows[2][0])
+
+    def test_header_issues_with_zero_max_limit(self):
+        """Zero max limit should output only the title header row and zero issues."""
+        from src.modules.alert_console import spam_header_issue_rows
+
+        issues = ["Issue 1", "Issue 2"]
+        rows = spam_header_issue_rows(issues, 0)
+
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0][1], 3)
+        self.assertIn("Header Issues:", rows[0][0])
+
+    def test_header_issues_content_and_colors_disabled(self):
+        """Formatted rows without ANSI colors verify literal text and bullets."""
+        from src.modules.alert_console import spam_header_issue_rows
+
+        issues = ["Missing Message-ID"]
+        with patch("src.utils.colors.Colors.ENABLED", False):
+            rows = spam_header_issue_rows(issues, 5)
+
+        expected = [
+            ("Header Issues:", 3),
+            ("• Missing Message-ID", 5),
+        ]
+        self.assertEqual(rows, expected)
+
+
 if __name__ == "__main__":
     unittest.main()
