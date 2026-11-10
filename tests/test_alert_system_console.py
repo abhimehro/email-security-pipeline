@@ -302,5 +302,97 @@ class TestConsoleAlert(unittest.TestCase):
         self.assertNotIn("█" * 51, output)
 
 
+class TestPrintAlertHeader(unittest.TestCase):
+    """Unit tests for print_alert_header in alert_console."""
+
+    def _render_header(
+        self,
+        risk_level: str,
+        render_config,
+        colors_enabled: bool = False,
+        bold_code: str = "",
+        reset_code: str = "",
+    ) -> str:
+        """Invoke print_alert_header and capture its stdout."""
+        from src.modules.alert_console import print_alert_header
+        from src.utils.colors import Colors
+
+        captured = StringIO()
+        with (
+            patch("sys.stdout", captured),
+            patch.object(Colors, "ENABLED", colors_enabled),
+            patch.object(Colors, "BOLD", bold_code),
+            patch.object(Colors, "RESET", reset_code),
+        ):
+            print_alert_header(risk_level, render_config)
+        return captured.getvalue()
+
+    def test_print_alert_header_standard_output(self):
+        """Header prints expected top border, title, risk label, symbol, and separator."""
+        from src.modules.alert_report import RenderConfig
+
+        config = RenderConfig(width=80, risk_color="", risk_symbol="🔴")
+        output = self._render_header("high", config, colors_enabled=False)
+        lines = output.splitlines()
+
+        self.assertEqual(lines[0], "")
+        self.assertEqual(lines[1], "┌" + "─" * 78 + "┐")
+        self.assertIn("🚨 SECURITY ALERT", lines[2])
+        self.assertIn("HIGH RISK 🔴", lines[2])
+        self.assertEqual(lines[3], "├" + "─" * 78 + "┤")
+
+    def test_print_alert_header_narrow_width_clamps_padding(self):
+        """Narrow card widths clamp padding_len to a minimum of 1 space without errors."""
+        from src.modules.alert_report import RenderConfig
+
+        config = RenderConfig(width=20, risk_color="", risk_symbol="💥")
+        output = self._render_header("critical", config, colors_enabled=False)
+        lines = output.splitlines()
+
+        self.assertEqual(lines[1], "┌" + "─" * 18 + "┐")
+        self.assertIn("🚨 SECURITY ALERT CRITICAL RISK 💥", lines[2])
+        self.assertEqual(lines[3], "├" + "─" * 18 + "┤")
+
+    def test_print_alert_header_case_insensitivity_and_symbols(self):
+        """Risk levels are uppercase-formatted and match the corresponding risk symbol."""
+        from src.modules.alert_report import RenderConfig
+
+        scenarios = [
+            ("low", "🟢", "LOW RISK"),
+            ("critical", "💥", "CRITICAL RISK"),
+            ("Medium", "🟡", "MEDIUM RISK"),
+        ]
+        for level, symbol, expected_label in scenarios:
+            config = RenderConfig(width=70, risk_color="", risk_symbol=symbol)
+            output = self._render_header(level, config, colors_enabled=False)
+            self.assertIn(f"{expected_label} {symbol}", output)
+
+    def test_print_alert_header_colorization(self):
+        """ANSI color and bold codes are applied when Colors are enabled."""
+        from src.modules.alert_report import RenderConfig
+
+        risk_color = "\033[91m"
+        bold_code = "\033[1m"
+        reset_code = "\033[0m"
+        config = RenderConfig(width=60, risk_color=risk_color, risk_symbol="🔴")
+        output = self._render_header(
+            "high",
+            config,
+            colors_enabled=True,
+            bold_code=bold_code,
+            reset_code=reset_code,
+        )
+
+        expected_top = f"{risk_color}┌{'─'*58}┐{reset_code}"
+        expected_sep = f"{risk_color}├{'─'*58}┤{reset_code}"
+        expected_title = f"{bold_code}🚨 SECURITY ALERT{reset_code}"
+        expected_label = f"{risk_color}{bold_code}HIGH RISK{reset_code}"
+
+        self.assertIn(expected_top, output)
+        self.assertIn(expected_sep, output)
+        self.assertIn(expected_title, output)
+        self.assertIn(expected_label, output)
+
+
 if __name__ == "__main__":
     unittest.main()
