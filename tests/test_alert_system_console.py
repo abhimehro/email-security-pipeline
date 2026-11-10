@@ -302,5 +302,69 @@ class TestConsoleAlert(unittest.TestCase):
         self.assertNotIn("█" * 51, output)
 
 
+class TestPrintAnalysisSectionHeader(unittest.TestCase):
+    """Unit tests for print_analysis_section_header in alert_console."""
+
+    @staticmethod
+    def _render_header(
+        title: str, analysis_data: dict, risk_color: str, colors_enabled: bool = False
+    ) -> str:
+        """Render header via print_analysis_section_header and capture stdout."""
+        from src.modules.alert_console import print_analysis_section_header
+
+        captured = StringIO()
+        with (
+            patch("sys.stdout", captured),
+            patch("src.utils.colors.Colors.ENABLED", colors_enabled),
+        ):
+            print_analysis_section_header(title, analysis_data, risk_color)
+        return captured.getvalue()
+
+    def test_known_risk_levels_without_colors(self) -> None:
+        """Test formatting of known risk levels (high, medium, low) without colors."""
+        scenarios = (
+            ("high", "🔴"),
+            ("medium", "🟡"),
+            ("low", "🟢"),
+        )
+        for risk_level, expected_symbol in scenarios:
+            output = self._render_header(
+                "📧 SPAM", {"risk_level": risk_level}, "", colors_enabled=False
+            )
+            expected = f"│  📧 SPAM: {risk_level.upper()} {expected_symbol}\n"
+            self.assertEqual(output, expected)
+
+    def test_missing_risk_level_defaults_to_unknown(self) -> None:
+        """When risk_level is omitted, defaults to unknown with neutral symbol."""
+        output = self._render_header("🧠 NLP", {}, "", colors_enabled=False)
+        self.assertEqual(output, "│  🧠 NLP: UNKNOWN ⚪\n")
+
+    def test_custom_or_unrecognized_risk_level(self) -> None:
+        """Unrecognized risk level strings are uppercased and use neutral symbol."""
+        output = self._render_header(
+            "📎 MEDIA", {"risk_level": "critical"}, "", colors_enabled=False
+        )
+        self.assertEqual(output, "│  📎 MEDIA: CRITICAL ⚪\n")
+
+    def test_colorized_output_structure(self) -> None:
+        """When Colors.ENABLED is True, verify color codes and risk_color border."""
+        from src.utils.colors import Colors
+
+        output = self._render_header(
+            "📧 SPAM",
+            {"risk_level": "high"},
+            Colors.RED,
+            colors_enabled=True,
+        )
+        # Left border should be colored with risk_color
+        self.assertIn(Colors.colorize("│", Colors.RED), output)
+        # Title should be bolded
+        self.assertIn(Colors.colorize("📧 SPAM:", Colors.BOLD), output)
+        # Risk level should be uppercase and colored in RED
+        self.assertIn(Colors.colorize("HIGH", Colors.RED), output)
+        # Symbol included
+        self.assertIn("🔴", output)
+
+
 if __name__ == "__main__":
     unittest.main()
