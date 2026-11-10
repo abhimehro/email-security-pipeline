@@ -206,3 +206,70 @@ def test_sender_display_name_extraction(spam_analyzer, clean_email):
     )
     assert score >= 1.0
     assert "Suspicious display name format" in indicators
+
+
+@pytest.mark.parametrize(
+    ("text_input", "html_input", "expected_urls"),
+    [
+        (
+            "visit http://example.com/one for info",
+            "",
+            ["http://example.com/one"],
+        ),
+        (
+            "",
+            '<html><a href="https://example.org/two">link</a></html>',
+            ["https://example.org/two"],
+        ),
+        (
+            "see http://example.com/text",
+            "<div>and https://example.org/html</div>",
+            ["http://example.com/text", "https://example.org/html"],
+        ),
+        (
+            "clean email body without links",
+            "<div>clean html body</div>",
+            [],
+        ),
+    ],
+)
+def test_extract_urls(spam_analyzer, text_input, html_input, expected_urls):
+    """Verify URL extraction handles text-only, HTML-only, mixed, and link-free bodies."""
+    extracted = spam_analyzer._extract_urls(text_input.lower(), html_input.lower())
+    assert extracted == expected_urls
+
+
+def test_analyze_url_threats_enabled_vs_disabled(spam_analyzer):
+    """Verify URL threat checking respects the spam_check_urls configuration flag."""
+    urls = ["http://bit.ly/suspicious"]
+
+    # When enabled, returns the score and detected suspicious URLs
+    spam_analyzer.config.spam_check_urls = True
+    score, suspicious = spam_analyzer._analyze_url_threats(urls)
+    assert score > 0.0
+    assert len(suspicious) == 1
+
+    # When disabled, returns early with 0 score and empty list
+    spam_analyzer.config.spam_check_urls = False
+    disabled_score, disabled_suspicious = spam_analyzer._analyze_url_threats(urls)
+    assert disabled_score == 0.0
+    assert disabled_suspicious == []
+
+
+def test_analyze_header_threats_enabled_vs_disabled(spam_analyzer):
+    """Verify header threat checking respects the spam_check_headers configuration flag."""
+    failing_headers = {"received-spf": "fail"}
+
+    # When enabled, returns the score and detected header issues
+    spam_analyzer.config.spam_check_headers = True
+    score, issues = spam_analyzer._analyze_header_threats(failing_headers)
+    assert score > 0.0
+    assert "SPF check failed" in issues
+
+    # When disabled, returns early with 0 score and empty list
+    spam_analyzer.config.spam_check_headers = False
+    disabled_score, disabled_issues = spam_analyzer._analyze_header_threats(
+        failing_headers
+    )
+    assert disabled_score == 0.0
+    assert disabled_issues == []

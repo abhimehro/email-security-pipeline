@@ -192,28 +192,18 @@ class SpamAnalyzer:
         """
         score = 0.0
         indicators = []
-        suspicious_urls = []
-        header_issues = []
 
         # Analyze subject line
         subject_score, subject_indicators = self._analyze_subject(email_data.subject)
         score += subject_score
         indicators.extend(subject_indicators)
 
-        # Extract URLs once for both body analysis and URL checking
-        # Optimization: Pre-compute lowercased bodies once to avoid redundant memory
-        # allocations and expensive lower() calls across multiple analysis methods.
+        # Pre-compute lowercased bodies once to avoid redundant lower() calls
         text_lower = email_data.body_text.lower()
         html_lower = email_data.body_html.lower() if email_data.body_html else ""
 
-        # ⚡ BOLT: Fast-path string check avoids regex engine overhead
-        # 'http' is a prerequisite for matching 'https?://', skipping the regex search
-        # provides significant speedup on clean emails.
-        extracted_urls = []
-        if "http" in text_lower:
-            extracted_urls = self.URL_EXTRACTION_PATTERN.findall(text_lower)
-        if html_lower and "http" in html_lower:
-            extracted_urls.extend(self.URL_EXTRACTION_PATTERN.findall(html_lower))
+        # Extract URLs once for both body analysis and URL checking
+        extracted_urls = self._extract_urls(text_lower, html_lower)
         link_count = len(extracted_urls)
 
         # Analyze body content
@@ -224,16 +214,12 @@ class SpamAnalyzer:
         indicators.extend(body_indicators)
 
         # Check for suspicious URLs
-        if self.config.spam_check_urls:
-            url_score, found_urls = self._check_urls(extracted_urls)
-            score += url_score
-            suspicious_urls.extend(found_urls)
+        url_score, suspicious_urls = self._analyze_url_threats(extracted_urls)
+        score += url_score
 
         # Analyze headers
-        if self.config.spam_check_headers:
-            header_score, issues = self._analyze_headers(email_data.headers)
-            score += header_score
-            header_issues.extend(issues)
+        header_score, header_issues = self._analyze_header_threats(email_data.headers)
+        score += header_score
 
         # Check sender reputation
         sender_score, sender_indicators = self._check_sender(
@@ -256,6 +242,60 @@ class SpamAnalyzer:
             header_issues=header_issues,
             risk_level=risk_level,
         )
+
+    def _extract_urls(self, text_lower: str, html_lower: str) -> List[str]:
+        """
+        Extract URLs from email body text and HTML.
+
+        Args:
+            text_lower: Lowercased plain text body
+            html_lower: Lowercased HTML body
+
+        Returns:
+            List of extracted URL strings
+
+        """
+        # ⚡ BOLT: Fast-path string check avoids regex engine overhead
+        # 'http' is a prerequisite for matching 'https?://', skipping the regex search
+        # provides significant speedup on clean emails.
+        extracted_urls = []
+        if "http" in text_lower:
+            extracted_urls = self.URL_EXTRACTION_PATTERN.findall(text_lower)
+        if html_lower and "http" in html_lower:
+            extracted_urls.extend(self.URL_EXTRACTION_PATTERN.findall(html_lower))
+        return extracted_urls
+
+    def _analyze_url_threats(self, urls: List[str]) -> Tuple[float, List[str]]:
+        """
+        Analyze extracted URLs for threats if URL checking is enabled.
+
+        Args:
+            urls: List of URL strings to check
+
+        Returns:
+            Tuple of (url_score, list of suspicious URLs)
+
+        """
+        if not self.config.spam_check_urls:
+            return 0.0, []
+        return self._check_urls(urls)
+
+    def _analyze_header_threats(
+        self, headers: Dict[str, Union[str, List[str]]]
+    ) -> Tuple[float, List[str]]:
+        """
+        Analyze email headers for threats if header checking is enabled.
+
+        Args:
+            headers: Email header dictionary
+
+        Returns:
+            Tuple of (header_score, list of header issues)
+
+        """
+        if not self.config.spam_check_headers:
+            return 0.0, []
+        return self._analyze_headers(headers)
 
     def _analyze_subject(self, subject: str) -> Tuple[float, List[str]]:
         """Analyze subject line for spam indicators."""
