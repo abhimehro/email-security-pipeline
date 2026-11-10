@@ -6,7 +6,7 @@ deepfake indicator heuristics, and risk level calculations.
 
 from concurrent.futures import TimeoutError as FuturesTimeoutError
 from datetime import datetime
-from typing import NamedTuple
+from typing import Any, List, NamedTuple, Optional
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -35,6 +35,22 @@ class ProcessAttachmentCase(NamedTuple):
     should_run_deepfake: bool
 
 
+class DeepfakeThreatErrorCase(NamedTuple):
+    """Encapsulates future exception and expected error strings in result."""
+
+    raised_error: Exception
+    expected_errors: List[str]
+
+
+class FrameExtractionCase(NamedTuple):
+    """Encapsulates frame extraction mocks and expected score/indicators."""
+
+    extracted_frames: List[Any]
+    frame_analysis_return: tuple
+    expected_score: float
+    expected_indicators: List[str]
+
+
 def _make_config(**kwargs) -> AnalysisConfig:
     """Build AnalysisConfig with default test values."""
     defaults = {
@@ -60,7 +76,7 @@ def _make_config(**kwargs) -> AnalysisConfig:
     return AnalysisConfig(**defaults)
 
 
-def _make_email_data(attachments=None) -> EmailData:
+def _make_email_data(attachments: Optional[list] = None) -> EmailData:
     """Build EmailData with default test values."""
     return EmailData(
         message_id="msg-123",
@@ -76,6 +92,16 @@ def _make_email_data(attachments=None) -> EmailData:
         account_email="me@example.com",
         folder="INBOX",
     )
+
+
+def _assert_zero_risk_result(result: MediaAnalysisResult) -> None:
+    """Assert result has zero threat score, low risk, and empty detections."""
+    assert result.threat_score == 0.0
+    assert result.risk_level == "low"
+    assert result.file_type_warnings == []
+    assert result.potential_deepfakes == []
+    assert result.size_anomalies == []
+    assert result.suspicious_attachments == []
 
 
 @pytest.fixture
@@ -134,13 +160,7 @@ def test_analyze_fast_path_empty_or_disabled(check_attachments, attachments):
     try:
         email_data = _make_email_data(attachments=attachments)
         result = analyzer_inst.analyze(email_data)
-
-        assert result.threat_score == 0.0
-        assert result.risk_level == "low"
-        assert result.suspicious_attachments == []
-        assert result.file_type_warnings == []
-        assert result.size_anomalies == []
-        assert result.potential_deepfakes == []
+        _assert_zero_risk_result(result)
     finally:
         analyzer_inst.shutdown()
 
@@ -155,11 +175,7 @@ def test_analyze_clean_attachments(analyzer):
     }
     email_data = _make_email_data(attachments=[clean_attachment])
     result = analyzer.analyze(email_data)
-
-    assert result.threat_score == 0.0
-    assert result.risk_level == "low"
-    assert result.file_type_warnings == []
-    assert result.potential_deepfakes == []
+    _assert_zero_risk_result(result)
 
 
 def test_analyze_threshold_early_termination(analyzer):
@@ -265,30 +281,26 @@ def test_process_attachment_parallel_guards(case):
         analyzer_inst.shutdown()
 
 
-def test_analyze_deepfake_threat_timeout(analyzer):
-    """Verify TimeoutError in deepfake threat analysis is recorded in errors."""
+@pytest.mark.parametrize(
+    "case",
+    [
+        DeepfakeThreatErrorCase(
+            raised_error=FuturesTimeoutError(),
+            expected_errors=["Deepfake analysis timed out: test.mp4"],
+        ),
+        DeepfakeThreatErrorCase(
+            raised_error=RuntimeError("Executor failure"),
+            expected_errors=[],
+        ),
+    ],
+)
+def test_analyze_deepfake_threat_error_handling(analyzer, case):
+    """Verify exceptions and timeouts during deepfake threat analysis."""
     with patch.object(
         analyzer._deepfake_executor, "submit"
     ) as mock_submit:
         mock_future = MagicMock()
-        mock_future.result.side_effect = FuturesTimeoutError()
-        mock_submit.return_value = mock_future
-
-        result = analyzer._analyze_deepfake_threat(
-            "test.mp4", b"data", "video/mp4"
-        )
-
-        assert result["score"] == 0.0
-        assert "Deepfake analysis timed out: test.mp4" in result["errors"]
-
-
-def test_analyze_deepfake_threat_exception(analyzer):
-    """Verify unexpected exceptions in _analyze_deepfake_threat are logged cleanly."""
-    with patch.object(
-        analyzer._deepfake_executor, "submit"
-    ) as mock_submit:
-        mock_future = MagicMock()
-        mock_future.result.side_effect = RuntimeError("Executor failure")
+        mock_future.result.side_effect = case.raised_error
         mock_submit.return_value = mock_future
 
         result = analyzer._analyze_deepfake_threat(
@@ -297,6 +309,7 @@ def test_analyze_deepfake_threat_exception(analyzer):
 
         assert result["score"] == 0.0
         assert result["indicators"] == []
+        assert result["errors"] == case.expected_errors
 
 
 def test_check_deepfake_indicators_non_media(analyzer):
@@ -323,41 +336,44 @@ def test_check_deepfake_indicators_small_video_heuristic(analyzer):
         analyzer_inst.shutdown()
 
 
-def test_check_deepfake_indicators_video_frame_pipeline(analyzer):
-    """Verify video frame extraction and video frame analysis interaction."""
-    fake_frames = [MagicMock(), MagicMock()]
+@pytest.mark.parametrize(
+    "case",
+    [
+        FrameExtractionCase(
+            extracted_frames=[MagicMock(), MagicMock()],
+            frame_analysis_return=(2.5, ["Facial anomaly detected"]),
+            expected_score=2.5,
+            expected_indicators=["Facial anomaly detected"],
+        ),
+        FrameExtractionCase(
+            extracted_frames=[],
+            frame_analysis_return=(0.0, []),
+            expected_score=0.0,
+            expected_indicators=[],
+        ),
+    ],
+)
+def test_check_deepfake_indicators_frame_extraction(analyzer, case):
+    """Verify frame extraction handling when frames are found vs empty."""
     with (
         patch.object(
-            analyzer, "_extract_frames_from_video", return_value=fake_frames
+            analyzer,
+            "_extract_frames_from_video",
+            return_value=case.extracted_frames,
         ),
         patch.object(
             analyzer,
             "_analyze_video_frames",
-            return_value=(2.5, ["Facial anomaly detected"]),
+            return_value=case.frame_analysis_return,
         ),
     ):
-        # Provide >100KB data so small video heuristic does not fire
         video_data = b"\x00" * (105 * 1024)
         score, indicators = analyzer._check_deepfake_indicators(
             "sample.mp4", video_data, "video/mp4"
         )
 
-        assert score == 2.5
-        assert "Facial anomaly detected" in indicators
-
-
-def test_check_deepfake_indicators_no_frames_extracted(analyzer):
-    """Verify logging and empty indicators when frame extraction yields no frames."""
-    with patch.object(
-        analyzer, "_extract_frames_from_video", return_value=[]
-    ):
-        video_data = b"\x00" * (105 * 1024)
-        score, indicators = analyzer._check_deepfake_indicators(
-            "corrupt.mp4", video_data, "video/mp4"
-        )
-
-        assert score == 0.0
-        assert indicators == []
+        assert score == case.expected_score
+        assert indicators == case.expected_indicators
 
 
 @pytest.mark.parametrize(
