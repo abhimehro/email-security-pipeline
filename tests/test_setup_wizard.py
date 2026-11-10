@@ -322,6 +322,79 @@ OUTLOOK_APP_PASSWORD=password
         self.assertTrue(found_redacted)
         self.assertTrue(found_tip)
 
+    def test_get_provider_connection_config_valid(self):
+        """Test provider configuration creation for all valid choices."""
+        from src.utils.setup_wizard import _get_provider_connection_config
+
+        cases = [
+            ("1", "imap.gmail.com", 993, "gmail"),
+            ("2", "127.0.0.1", 1143, "proton"),
+            ("3", "outlook.office365.com", 993, "outlook"),
+        ]
+        for choice, expected_server, expected_port, expected_provider in cases:
+            cfg = _get_provider_connection_config(
+                "user@example.com", "secret", choice
+            )
+            self.assertIsNotNone(cfg)
+            self.assertEqual(cfg.imap_server, expected_server)
+            self.assertEqual(cfg.imap_port, expected_port)
+            self.assertEqual(cfg.provider, expected_provider)
+            self.assertTrue(cfg.use_ssl)
+
+    def test_get_provider_connection_config_invalid(self):
+        """Test provider configuration creation for unknown choices."""
+        from src.utils.setup_wizard import _get_provider_connection_config
+
+        for invalid_choice in ("0", "4", "invalid", ""):
+            cfg = _get_provider_connection_config(
+                "user@example.com", "secret", invalid_choice
+            )
+            self.assertIsNone(cfg)
+
+    @patch("src.utils.setup_wizard.IMAPConnection")
+    def test_verify_imap_connection_success(self, mock_imap_conn):
+        """Test _verify_imap_connection when connect() succeeds."""
+        from src.utils.config import EmailAccountConfig
+        from src.utils.setup_wizard import _verify_imap_connection
+
+        mock_instance = mock_imap_conn.return_value
+        mock_instance.connect.return_value = True
+
+        cfg = EmailAccountConfig(
+            enabled=True,
+            email="u@example.com",
+            imap_server="imap.example.com",
+            imap_port=993,
+            app_password="pass",
+            folders=["INBOX"],
+            provider="gmail",
+            use_ssl=True,
+        )
+        self.assertTrue(_verify_imap_connection(cfg))
+        mock_instance.disconnect.assert_called_once()
+
+    @patch("src.utils.setup_wizard.IMAPConnection")
+    def test_verify_imap_connection_failure(self, mock_imap_conn):
+        """Test _verify_imap_connection when connect() returns False."""
+        from src.utils.config import EmailAccountConfig
+        from src.utils.setup_wizard import _verify_imap_connection
+
+        mock_instance = mock_imap_conn.return_value
+        mock_instance.connect.return_value = False
+
+        cfg = EmailAccountConfig(
+            enabled=True,
+            email="u@example.com",
+            imap_server="imap.example.com",
+            imap_port=993,
+            app_password="pass",
+            folders=["INBOX"],
+            provider="gmail",
+            use_ssl=True,
+        )
+        self.assertFalse(_verify_imap_connection(cfg))
+        mock_instance.disconnect.assert_not_called()
+
     def _run_edge_case(
         self, inputs, connect_success, read_effect, write_success, expected
     ):
