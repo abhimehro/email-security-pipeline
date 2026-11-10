@@ -21,6 +21,24 @@ from src.utils.gh_token_cli import (
 )
 
 
+class VariableScenario(NamedTuple):
+    """Encapsulates test parameters and expected results for write_requested_variable."""
+
+    var_name: str
+    store: dict[str, str]
+    expected_code: int
+    expected_out: str
+    expected_err: str
+
+
+class FormatScenario(NamedTuple):
+    """Encapsulates test parameters and expected results for format writers."""
+
+    writer_func: Callable[[dict[str, str]], None]
+    variables: dict[str, str]
+    expected_out: str
+
+
 class MainScenario(NamedTuple):
     """Encapsulates test parameters and expected outcomes for main() CLI runs."""
 
@@ -72,63 +90,73 @@ def test_build_parser_missing_required_env_file() -> None:
 
 
 @pytest.mark.parametrize(
-    ("var_name", "store", "expected_code", "expected_out", "expected_err"),
+    "scenario",
     [
-        ("TOKEN", {"TOKEN": "secret123", "USER": "alice"}, 0, "secret123", ""),
-        (
-            "MISSING",
-            {"TOKEN": "secret123"},
-            1,
-            "",
-            "error: variable 'MISSING' not found in .env",
+        VariableScenario(
+            var_name="TOKEN",
+            store={"TOKEN": "secret123", "USER": "alice"},
+            expected_code=0,
+            expected_out="secret123",
+            expected_err="",
+        ),
+        VariableScenario(
+            var_name="MISSING",
+            store={"TOKEN": "secret123"},
+            expected_code=1,
+            expected_out="",
+            expected_err="error: variable 'MISSING' not found in .env",
         ),
     ],
 )
 def test_write_requested_variable(
     capsys: pytest.CaptureFixture[str],
-    var_name: str,
-    store: dict[str, str],
-    expected_code: int,
-    expected_out: str,
-    expected_err: str,
+    scenario: VariableScenario,
 ) -> None:
     """Verify write_requested_variable handling of existing and missing keys."""
-    exit_code = write_requested_variable(var_name, store, Path(".env"))
+    exit_code = write_requested_variable(
+        scenario.var_name, scenario.store, Path(".env")
+    )
     captured = capsys.readouterr()
-    assert exit_code == expected_code
-    assert captured.out == expected_out
-    if expected_err:
-        assert expected_err in captured.err
+    assert exit_code == scenario.expected_code
+    assert captured.out == scenario.expected_out
+    if scenario.expected_err:
+        assert scenario.expected_err in captured.err
     else:
         assert captured.err == ""
 
 
 @pytest.mark.parametrize(
-    ("writer_func", "variables", "expected_out"),
+    "scenario",
     [
-        (write_exports, {}, ""),
-        (
-            write_exports,
-            {"VAR1": "val1", "VAR2": "it's special"},
-            "export VAR1='val1'\nexport VAR2='it'\"'\"'s special'\n",
+        FormatScenario(
+            writer_func=write_exports,
+            variables={},
+            expected_out="",
         ),
-        (write_assignments, {}, ""),
-        (
-            write_assignments,
-            {"A": "1", "B": "test value"},
-            "A=1\nB=test value\n",
+        FormatScenario(
+            writer_func=write_exports,
+            variables={"VAR1": "val1", "VAR2": "it's special"},
+            expected_out="export VAR1='val1'\nexport VAR2='it'\"'\"'s special'\n",
+        ),
+        FormatScenario(
+            writer_func=write_assignments,
+            variables={},
+            expected_out="",
+        ),
+        FormatScenario(
+            writer_func=write_assignments,
+            variables={"A": "1", "B": "test value"},
+            expected_out="A=1\nB=test value\n",
         ),
     ],
 )
 def test_format_writers(
     capsys: pytest.CaptureFixture[str],
-    writer_func: Callable[[dict[str, str]], None],
-    variables: dict[str, str],
-    expected_out: str,
+    scenario: FormatScenario,
 ) -> None:
     """Verify write_exports and write_assignments for empty and formatted mappings."""
-    writer_func(variables)
-    assert capsys.readouterr().out == expected_out
+    scenario.writer_func(scenario.variables)
+    assert capsys.readouterr().out == scenario.expected_out
 
 
 @pytest.mark.parametrize(
