@@ -214,11 +214,11 @@ class SpamAnalyzer:
         indicators.extend(body_indicators)
 
         # Check for suspicious URLs
-        url_score, suspicious_urls = self._analyze_url_threats(extracted_urls)
+        url_score, suspicious_urls = self._collect_url_threats(extracted_urls)
         score += url_score
 
         # Analyze headers
-        header_score, header_issues = self._analyze_header_threats(email_data.headers)
+        header_score, header_issues = self._collect_header_threats(email_data.headers)
         score += header_score
 
         # Check sender reputation
@@ -228,13 +228,69 @@ class SpamAnalyzer:
         score += sender_score
         indicators.extend(sender_indicators)
 
-        # Determine risk level
-        risk_level = self._calculate_risk_level(score)
+        return self._build_analysis_result(
+            score=score,
+            indicators=indicators,
+            suspicious_urls=suspicious_urls,
+            header_issues=header_issues,
+        )
 
+    def _collect_url_threats(self, urls: List[str]) -> Tuple[float, List[str]]:
+        """
+        Check for suspicious URLs if enabled in configuration.
+
+        Args:
+            urls: Extracted URL strings
+
+        Returns:
+            Tuple of (url_score, list of suspicious URLs)
+
+        """
+        if not self.config.spam_check_urls:
+            return 0.0, []
+        return self._check_urls(urls)
+
+    def _collect_header_threats(
+        self, headers: Dict[str, Union[str, List[str]]]
+    ) -> Tuple[float, List[str]]:
+        """
+        Check email headers for anomalies if enabled in configuration.
+
+        Args:
+            headers: Email header dictionary
+
+        Returns:
+            Tuple of (header_score, list of header issues)
+
+        """
+        if not self.config.spam_check_headers:
+            return 0.0, []
+        return self._analyze_headers(headers)
+
+    def _build_analysis_result(
+        self,
+        score: float,
+        indicators: List[str],
+        suspicious_urls: List[str],
+        header_issues: List[str],
+    ) -> SpamAnalysisResult:
+        """
+        Construct and log final SpamAnalysisResult.
+
+        Args:
+            score: Accumulated spam score
+            indicators: Detected spam indicators
+            suspicious_urls: List of flagged URLs
+            header_issues: List of detected header anomalies
+
+        Returns:
+            SpamAnalysisResult with calculated risk level
+
+        """
+        risk_level = self._calculate_risk_level(score)
         self.logger.debug(
             f"Spam analysis complete: score={score:.2f}, risk={risk_level}"
         )
-
         return SpamAnalysisResult(
             score=score,
             indicators=indicators,
@@ -264,38 +320,6 @@ class SpamAnalyzer:
         if html_lower and "http" in html_lower:
             extracted_urls.extend(self.URL_EXTRACTION_PATTERN.findall(html_lower))
         return extracted_urls
-
-    def _analyze_url_threats(self, urls: List[str]) -> Tuple[float, List[str]]:
-        """
-        Analyze extracted URLs for threats if URL checking is enabled.
-
-        Args:
-            urls: List of URL strings to check
-
-        Returns:
-            Tuple of (url_score, list of suspicious URLs)
-
-        """
-        if not self.config.spam_check_urls:
-            return 0.0, []
-        return self._check_urls(urls)
-
-    def _analyze_header_threats(
-        self, headers: Dict[str, Union[str, List[str]]]
-    ) -> Tuple[float, List[str]]:
-        """
-        Analyze email headers for threats if header checking is enabled.
-
-        Args:
-            headers: Email header dictionary
-
-        Returns:
-            Tuple of (header_score, list of header issues)
-
-        """
-        if not self.config.spam_check_headers:
-            return 0.0, []
-        return self._analyze_headers(headers)
 
     def _analyze_subject(self, subject: str) -> Tuple[float, List[str]]:
         """Analyze subject line for spam indicators."""
