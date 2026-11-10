@@ -47,6 +47,7 @@
 
 **Closed issues:**
 
+- Daily QA & Agentic Review — 2026-11-09 [\#1865](https://github.com/abhimehro/email-security-pipeline/issues/1865)
 - Daily QA & Agentic Review — 2026-11-05 [\#1854](https://github.com/abhimehro/email-security-pipeline/issues/1854)
 - Daily QA & Agentic Review — 2026-11-04 [\#1853](https://github.com/abhimehro/email-security-pipeline/issues/1853)
 - Daily QA & Agentic Review — 2026-11-03 [\#1851](https://github.com/abhimehro/email-security-pipeline/issues/1851)
@@ -66,6 +67,7 @@
 - Daily QA & Agentic Review — 2026-10-11 [\#1746](https://github.com/abhimehro/email-security-pipeline/issues/1746)
 - Daily QA & Agentic Review — 2026-10-10 [\#1742](https://github.com/abhimehro/email-security-pipeline/issues/1742)
 - Daily QA & Agentic Review — 2026-10-09 [\#1739](https://github.com/abhimehro/email-security-pipeline/issues/1739)
+- PR lifecycle: needs human decision [\#1733](https://github.com/abhimehro/email-security-pipeline/issues/1733)
 - PR sweep escalation: \#1701 conflicting alert-console empty-state PR [\#1718](https://github.com/abhimehro/email-security-pipeline/issues/1718)
 - PR sweep escalation: \#1672 gh\_token\_cli help \(credential-adjacent surface\) [\#1716](https://github.com/abhimehro/email-security-pipeline/issues/1716)
 - PR sweep escalation: \#1666 dependabot workflow bump \(sensitive path\) [\#1715](https://github.com/abhimehro/email-security-pipeline/issues/1715)
@@ -615,6 +617,7 @@
 
 **Merged pull requests:**
 
+- ⚡ Bolt: optimize URL redaction with fast-path checks [\#1866](https://github.com/abhimehro/email-security-pipeline/pull/1866) ([abhimehro](https://github.com/abhimehro))
 - 🎨 Palette: add help flag support to test\_config.py [\#1860](https://github.com/abhimehro/email-security-pipeline/pull/1860) ([abhimehro](https://github.com/abhimehro))
 - chore: add WATCHDOG advisor config [\#1856](https://github.com/abhimehro/email-security-pipeline/pull/1856) ([abhimehro](https://github.com/abhimehro))
 - fix: harden launchd .env validation, pin Proton Bridge TLS, and upgrade Trunk [\#1855](https://github.com/abhimehro/email-security-pipeline/pull/1855) ([abhimehro](https://github.com/abhimehro))
