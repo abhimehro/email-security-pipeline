@@ -302,5 +302,70 @@ class TestConsoleAlert(unittest.TestCase):
         self.assertNotIn("█" * 51, output)
 
 
+class TestPrintAlertRow(unittest.TestCase):
+    """Unit tests for print_alert_row helper function in alert_console."""
+
+    def test_default_indent(self) -> None:
+        """print_alert_row with default indent produces left border and two spaces."""
+        from src.modules.alert_console import print_alert_row
+        from src.utils.colors import Colors
+
+        captured = StringIO()
+        with (
+            patch("sys.stdout", captured),
+            patch.object(Colors, "ENABLED", False),
+        ):
+            print_alert_row("Sample alert text", Colors.RED)
+
+        self.assertEqual(captured.getvalue(), "│  Sample alert text\n")
+
+    def test_custom_indent(self) -> None:
+        """print_alert_row with custom indent produces 2 + indent spaces."""
+        from src.modules.alert_console import print_alert_row
+        from src.utils.colors import Colors
+
+        captured = StringIO()
+        with (
+            patch("sys.stdout", captured),
+            patch.object(Colors, "ENABLED", False),
+        ):
+            print_alert_row("Indented line", Colors.YELLOW, indent=4)
+
+        # 2 default + 4 custom indent = 6 spaces
+        self.assertEqual(captured.getvalue(), "│      Indented line\n")
+
+    def test_empty_text(self) -> None:
+        """print_alert_row with empty text renders border and spacing without errors."""
+        from src.modules.alert_console import print_alert_row
+        from src.utils.colors import Colors
+
+        captured = StringIO()
+        with (
+            patch("sys.stdout", captured),
+            patch.object(Colors, "ENABLED", False),
+        ):
+            print_alert_row("", Colors.GREEN)
+
+        self.assertEqual(captured.getvalue(), "│  \n")
+
+    def test_colors_enabled(self) -> None:
+        """print_alert_row wraps the border character with ANSI color codes when enabled."""
+        from src.modules.alert_console import print_alert_row
+        from src.utils.colors import Colors
+
+        test_color = "\033[91m"
+        reset_code = "\033[0m"
+        captured = StringIO()
+        with (
+            patch("sys.stdout", captured),
+            patch.object(Colors, "ENABLED", True),
+            patch.object(Colors, "RESET", reset_code),
+        ):
+            print_alert_row("Colored border text", test_color, indent=1)
+
+        expected = f"{test_color}│{reset_code}   Colored border text\n"
+        self.assertEqual(captured.getvalue(), expected)
+
+
 if __name__ == "__main__":
     unittest.main()
