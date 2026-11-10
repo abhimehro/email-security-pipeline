@@ -305,24 +305,15 @@ class TestConsoleAlert(unittest.TestCase):
 class TestPrintAlertHeader(unittest.TestCase):
     """Unit tests for print_alert_header in alert_console."""
 
-    def _render_header(
-        self,
-        risk_level: str,
-        render_config,
-        colors_enabled: bool = False,
-        bold_code: str = "",
-        reset_code: str = "",
-    ) -> str:
-        """Invoke print_alert_header and capture its stdout."""
+    def _render_header(self, risk_level: str, render_config) -> str:
+        """Invoke print_alert_header without colors and capture its stdout."""
         from src.modules.alert_console import print_alert_header
         from src.utils.colors import Colors
 
         captured = StringIO()
         with (
             patch("sys.stdout", captured),
-            patch.object(Colors, "ENABLED", colors_enabled),
-            patch.object(Colors, "BOLD", bold_code),
-            patch.object(Colors, "RESET", reset_code),
+            patch.object(Colors, "ENABLED", False),
         ):
             print_alert_header(risk_level, render_config)
         return captured.getvalue()
@@ -332,7 +323,7 @@ class TestPrintAlertHeader(unittest.TestCase):
         from src.modules.alert_report import RenderConfig
 
         config = RenderConfig(width=80, risk_color="", risk_symbol="🔴")
-        output = self._render_header("high", config, colors_enabled=False)
+        output = self._render_header("high", config)
         lines = output.splitlines()
 
         self.assertEqual(lines[0], "")
@@ -346,7 +337,7 @@ class TestPrintAlertHeader(unittest.TestCase):
         from src.modules.alert_report import RenderConfig
 
         config = RenderConfig(width=20, risk_color="", risk_symbol="💥")
-        output = self._render_header("critical", config, colors_enabled=False)
+        output = self._render_header("critical", config)
         lines = output.splitlines()
 
         self.assertEqual(lines[1], "┌" + "─" * 18 + "┐")
@@ -364,24 +355,29 @@ class TestPrintAlertHeader(unittest.TestCase):
         ]
         for level, symbol, expected_label in scenarios:
             config = RenderConfig(width=70, risk_color="", risk_symbol=symbol)
-            output = self._render_header(level, config, colors_enabled=False)
+            output = self._render_header(level, config)
             self.assertIn(f"{expected_label} {symbol}", output)
 
     def test_print_alert_header_colorization(self):
         """ANSI color and bold codes are applied when Colors are enabled."""
+        from src.modules.alert_console import print_alert_header
         from src.modules.alert_report import RenderConfig
+        from src.utils.colors import Colors
 
         risk_color = "\033[91m"
         bold_code = "\033[1m"
         reset_code = "\033[0m"
         config = RenderConfig(width=60, risk_color=risk_color, risk_symbol="🔴")
-        output = self._render_header(
-            "high",
-            config,
-            colors_enabled=True,
-            bold_code=bold_code,
-            reset_code=reset_code,
-        )
+
+        captured = StringIO()
+        with (
+            patch("sys.stdout", captured),
+            patch.object(Colors, "ENABLED", True),
+            patch.object(Colors, "BOLD", bold_code),
+            patch.object(Colors, "RESET", reset_code),
+        ):
+            print_alert_header("high", config)
+        output = captured.getvalue()
 
         expected_top = f"{risk_color}┌{'─'*58}┐{reset_code}"
         expected_sep = f"{risk_color}├{'─'*58}┤{reset_code}"
