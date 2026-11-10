@@ -198,7 +198,7 @@ class TestPaletteUI(TestCase):
         pipeline = EmailSecurityPipeline()
         pipeline.config.email_accounts = []
 
-        with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
+        with patch("sys.stdout", new_callable=StringIO):
             with patch(
                 "src.main.Colors.colorize", wraps=Colors.colorize
             ) as mock_colorize:
@@ -433,3 +433,47 @@ class TestPaletteUI(TestCase):
             patch("sys.stdout", new_callable=StringIO),
         ):
             self.assertEqual(setup_wizard._select_provider(), "2")
+
+    def test_test_config_help_flag_exits_cleanly(self) -> None:
+        """Test test_config.main prints usage and exits cleanly with 0 on help flags."""
+        from io import StringIO
+        import test_config
+
+        for flag in ["-h", "--help"]:
+            with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
+                with self.assertRaises(SystemExit) as cm:
+                    test_config.main([flag])
+                self.assertEqual(cm.exception.code, 0)
+                output = mock_stdout.getvalue()
+                self.assertIn("usage: test_config.py", output)
+                self.assertIn("--test-connections", output)
+
+    def test_test_config_test_connections_flag_delegation(self) -> None:
+        """Test test_config.main passes test_connections flag to test_imap_connections."""
+        import test_config
+
+        with (
+            patch("test_config.test_config_loading", return_value=True),
+            patch("test_config.test_module_imports", return_value=True),
+            patch("test_config.test_analyzer_initialization", return_value=True),
+            patch("test_config.test_folder_parsing", return_value=True),
+            patch("test_config.test_imap_connections", return_value=True) as mock_imap,
+            patch("test_config.test_diagnostics_script", return_value=True),
+            patch("sys.stdout"),
+        ):
+            code = test_config.main([])
+            self.assertEqual(code, 0)
+            mock_imap.assert_called_with(False)
+
+        with (
+            patch("test_config.test_config_loading", return_value=True),
+            patch("test_config.test_module_imports", return_value=True),
+            patch("test_config.test_analyzer_initialization", return_value=True),
+            patch("test_config.test_folder_parsing", return_value=True),
+            patch("test_config.test_imap_connections", return_value=True) as mock_imap,
+            patch("test_config.test_diagnostics_script", return_value=True),
+            patch("sys.stdout"),
+        ):
+            code = test_config.main(["--test-connections"])
+            self.assertEqual(code, 0)
+            mock_imap.assert_called_with(True)

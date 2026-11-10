@@ -4,11 +4,12 @@ Configuration Test Script
 Tests the email security pipeline configuration and basic functionality.
 """
 
+import argparse
 import json
 import subprocess
 import sys
 from pathlib import Path
-from typing import Optional
+from typing import List, Optional
 
 from src.utils.colors import Colors
 
@@ -477,15 +478,23 @@ def test_diagnostics_script():
         return False
 
 
-def main():
+def main(argv: Optional[List[str]] = None):
     """Run all tests."""
+    parser = argparse.ArgumentParser(
+        prog="test_config.py",
+        description="Test the email security pipeline configuration and basic functionality.",
+    )
+    parser.add_argument(
+        "--test-connections",
+        action="store_true",
+        help="Enable live IMAP connection tests against configured accounts",
+    )
+    args = parser.parse_args(argv)
+
     print("\n" + "=" * 60)
     print("Email Security Pipeline - Configuration Test")
     print("=" * 60)
     print()
-
-    # Check for command line arguments
-    test_connections = "--test-connections" in sys.argv
 
     results = []
 
@@ -494,7 +503,7 @@ def main():
     results.append(("Module Imports", test_module_imports()))
     results.append(("Analyzer Initialization", test_analyzer_initialization()))
     results.append(("Folder Parsing", test_folder_parsing()))
-    results.append(("IMAP Connections", test_imap_connections(test_connections)))
+    results.append(("IMAP Connections", test_imap_connections(args.test_connections)))
     results.append(("Diagnostics Script", test_diagnostics_script()))
 
     # Summary
