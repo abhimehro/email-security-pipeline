@@ -12,7 +12,7 @@ from .nlp_analyzer import NLPAnalysisResult
 from .spam_analyzer import SpamAnalysisResult
 
 # Common prefixes for recommendations to strip during display to prevent duplication
-RECOMMENDATION_PREFIXES = ["⚠ ", "🎣 ", "🔗 ", "⏰ ", "📎 ", "👤 ", "🎭 "]
+RECOMMENDATION_PREFIXES = ["⚠ ", "⚠️ ", "🎣 ", "🔗 ", "⏰ ", "📎 ", "👤 ", "🎭 "]
 
 # Pre-allocated tuple for fast C-level execution of startswith()
 RECOMMENDATION_PREFIXES_TUPLE = tuple(RECOMMENDATION_PREFIXES)
