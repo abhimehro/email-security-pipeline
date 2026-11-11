@@ -103,12 +103,6 @@ def sanitize_for_slack(text: str) -> str:
     return text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 
 
-def sanitize_url_for_display(url: str) -> str:
-    """Redact sensitive tokens/parameters from a URL for safe console display."""
-    redacted = redact_url_secrets(url)
-    return REDACTED_URL_PATTERN.sub("[REDACTED]", redacted)
-
-
 def sanitize_error_message(error: str) -> str:
     """
     Sanitize exception messages to prevent leaking sensitive URLs/tokens.
