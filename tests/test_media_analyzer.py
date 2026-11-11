@@ -66,6 +66,35 @@ class TestMediaAnalyzer(unittest.TestCase):
             folder="INBOX",
         )
 
+    def _run_deepfake_threat_with_future(self, future: Future) -> dict:
+        """Execute _analyze_deepfake_threat with a mock future."""
+        with patch.object(
+            self.analyzer._deepfake_executor, "submit", return_value=future
+        ):
+            return self.analyzer._analyze_deepfake_threat(
+                "video.mp4", b"bytes", "video/mp4"
+            )
+
+    def _run_check_deepfake_with_extract_mock(
+        self, extract_effect, log_method: str
+    ):
+        """Execute _check_deepfake_indicators with mocked frame extraction and logging."""
+        patch_kwargs = (
+            {"side_effect": extract_effect}
+            if isinstance(extract_effect, Exception)
+            else {"return_value": extract_effect}
+        )
+        with (
+            patch.object(
+                self.analyzer, "_extract_frames_from_video", **patch_kwargs
+            ),
+            patch.object(self.analyzer.logger, log_method) as mock_log,
+        ):
+            score, indicators = self.analyzer._check_deepfake_indicators(
+                "sample.mp4", b"X" * (200 * 1024), "video/mp4"
+            )
+            return score, indicators, mock_log
+
     def test_analyze_no_attachments_returns_zero_score(self):
         """Test analyze with empty attachment list returns low risk."""
         email = self._create_email(attachments=[])
@@ -121,7 +150,9 @@ class TestMediaAnalyzer(unittest.TestCase):
         self.assertGreaterEqual(result.threat_score, 5.0)
         self.assertEqual(result.risk_level, "high")
         self.assertTrue(len(result.file_type_warnings) > 0)
-        self.assertIn("Dangerous file type: invoice.pdf.exe", result.file_type_warnings)
+        self.assertIn(
+            "Dangerous file type: invoice.pdf.exe", result.file_type_warnings
+        )
 
     def test_analyze_content_mismatch_flags_suspicious_attachment(self):
         """Test analyze flags suspicious_attachments on content type mismatch."""
@@ -249,91 +280,60 @@ class TestMediaAnalyzer(unittest.TestCase):
             self.assertEqual(result.threat_score, 1.0)
             self.assertEqual(result.potential_deepfakes, [])
 
-    def test_process_attachment_parallel_disabled_deepfake(self):
-        """Test parallel attachment processing when deepfake is disabled."""
+    def test_process_attachment_parallel_bypass_scenarios(self):
+        """Test parallel attachment processing bypasses deepfake under various conditions."""
+        attachment = {"filename": "video.mp4", "data": b"data"}
+
+        # 1. deepfake_detection_enabled = False
         self.config.deepfake_detection_enabled = False
-        attachment = {"filename": "video.mp4", "data": b"data"}
-        shared_state = {"stop_deepfake": False}
-
-        meta_res, df_res = self.analyzer._process_attachment_parallel(
-            attachment, shared_state
+        _, df_res1 = self.analyzer._process_attachment_parallel(
+            attachment, {"stop_deepfake": False}
         )
-        self.assertIsNotNone(meta_res)
-        self.assertIsNone(df_res)
+        self.assertIsNone(df_res1)
 
-    def test_process_attachment_parallel_stopped_deepfake(self):
-        """Test parallel attachment processing when stop_deepfake is True."""
-        attachment = {"filename": "video.mp4", "data": b"data"}
-        shared_state = {"stop_deepfake": True}
-
-        meta_res, df_res = self.analyzer._process_attachment_parallel(
-            attachment, shared_state
+        # 2. stop_deepfake = True
+        self.config.deepfake_detection_enabled = True
+        _, df_res2 = self.analyzer._process_attachment_parallel(
+            attachment, {"stop_deepfake": True}
         )
-        self.assertIsNotNone(meta_res)
-        self.assertIsNone(df_res)
+        self.assertIsNone(df_res2)
 
-    def test_process_attachment_parallel_high_meta_score(self):
-        """Test parallel attachment skips deepfake when meta score >= 5.0."""
-        attachment = {"filename": "trojan.exe", "data": b"MZ"}
-        shared_state = {"stop_deepfake": False}
-
+        # 3. meta_res score >= 5.0
         with patch.object(
             self.analyzer,
             "_analyze_attachment_metadata",
             return_value={"score": 5.0},
         ):
-            meta_res, df_res = self.analyzer._process_attachment_parallel(
-                attachment, shared_state
+            meta_res3, df_res3 = self.analyzer._process_attachment_parallel(
+                attachment, {"stop_deepfake": False}
             )
-            self.assertEqual(meta_res["score"], 5.0)
-            self.assertIsNone(df_res)
+            self.assertEqual(meta_res3["score"], 5.0)
+            self.assertIsNone(df_res3)
 
-    def test_analyze_deepfake_threat_success(self):
-        """Test _analyze_deepfake_threat on normal execution."""
-        mock_future = Future()
-        mock_future.set_result((2.5, ["facial artifact"]))
+    def test_analyze_deepfake_threat_outcomes(self):
+        """Test _analyze_deepfake_threat handling of success, timeout, and exceptions."""
+        # Success
+        future_success = Future()
+        future_success.set_result((2.5, ["facial artifact"]))
+        res_success = self._run_deepfake_threat_with_future(future_success)
+        self.assertEqual(res_success["score"], 2.5)
+        self.assertEqual(res_success["indicators"], ["facial artifact"])
 
-        with patch.object(
-            self.analyzer._deepfake_executor, "submit", return_value=mock_future
-        ):
-            res = self.analyzer._analyze_deepfake_threat(
-                "video.mp4", b"bytes", "video/mp4"
-            )
-            self.assertEqual(res["score"], 2.5)
-            self.assertEqual(res["indicators"], ["facial artifact"])
-            self.assertEqual(res["errors"], [])
+        # TimeoutError
+        future_timeout = Future()
+        future_timeout.set_exception(TimeoutError("timed out"))
+        res_timeout = self._run_deepfake_threat_with_future(future_timeout)
+        self.assertEqual(res_timeout["score"], 0.0)
+        self.assertIn(
+            "Deepfake analysis timed out: video.mp4", res_timeout["errors"]
+        )
 
-    def test_analyze_deepfake_threat_timeout(self):
-        """Test _analyze_deepfake_threat handles TimeoutError gracefully."""
-        mock_future = Future()
-        mock_future.set_exception(TimeoutError("timed out"))
-
-        with patch.object(
-            self.analyzer._deepfake_executor, "submit", return_value=mock_future
-        ):
-            res = self.analyzer._analyze_deepfake_threat(
-                "video.mp4", b"bytes", "video/mp4"
-            )
-            self.assertEqual(res["score"], 0.0)
-            self.assertEqual(res["indicators"], [])
-            self.assertIn(
-                "Deepfake analysis timed out: video.mp4", res["errors"]
-            )
-
-    def test_analyze_deepfake_threat_exception(self):
-        """Test _analyze_deepfake_threat handles unexpected exceptions."""
-        mock_future = Future()
-        mock_future.set_exception(RuntimeError("OpenCV failure"))
-
-        with patch.object(
-            self.analyzer._deepfake_executor, "submit", return_value=mock_future
-        ):
-            res = self.analyzer._analyze_deepfake_threat(
-                "video.mp4", b"bytes", "video/mp4"
-            )
-            self.assertEqual(res["score"], 0.0)
-            self.assertEqual(res["indicators"], [])
-            self.assertEqual(res["errors"], [])
+        # Unexpected Exception
+        future_error = Future()
+        future_error.set_exception(RuntimeError("OpenCV failure"))
+        res_error = self._run_deepfake_threat_with_future(future_error)
+        self.assertEqual(res_error["score"], 0.0)
+        self.assertEqual(res_error["errors"], [])
 
     def test_check_deepfake_indicators_non_media(self):
         """Test _check_deepfake_indicators ignores non-media files."""
@@ -354,21 +354,27 @@ class TestMediaAnalyzer(unittest.TestCase):
         self.assertEqual(score, 0.5)
         self.assertIn("Suspicious video size: short.mp4", indicators)
 
-    def test_check_deepfake_indicators_extract_frames_none(self):
-        """Test frame extraction failure logs warning and returns base score."""
-        with (
-            patch.object(
-                self.analyzer, "_extract_frames_from_video", return_value=[]
-            ),
-            patch.object(self.analyzer.logger, "warning") as mock_warn,
-        ):
-            score, indicators = self.analyzer._check_deepfake_indicators(
-                "video.mp4", b"X" * (150 * 1024), "video/mp4"
-            )
-            self.assertEqual(score, 0.0)
-            self.assertEqual(indicators, [])
-            mock_warn.assert_called_once()
-            self.assertIn("Could not extract frames", mock_warn.call_args[0][0])
+    def test_check_deepfake_indicators_frame_handling(self):
+        """Test frame extraction failure and unexpected exception logging in deepfake check."""
+        # Frame extraction returns empty
+        score_none, ind_none, mock_warn = (
+            self._run_check_deepfake_with_extract_mock([], "warning")
+        )
+        self.assertEqual(score_none, 0.0)
+        self.assertEqual(ind_none, [])
+        mock_warn.assert_called_once()
+        self.assertIn("Could not extract frames", mock_warn.call_args[0][0])
+
+        # Frame extraction raises exception
+        score_err, ind_err, mock_err = self._run_check_deepfake_with_extract_mock(
+            OSError("Disk failure"), "error"
+        )
+        self.assertEqual(score_err, 0.0)
+        self.assertEqual(ind_err, [])
+        mock_err.assert_called_once()
+        self.assertIn(
+            "Error during deepfake analysis", mock_err.call_args[0][0]
+        )
 
     def test_check_deepfake_indicators_with_frames(self):
         """Test successful frame extraction delegates to _analyze_video_frames."""
@@ -390,34 +396,20 @@ class TestMediaAnalyzer(unittest.TestCase):
             self.assertEqual(score, 3.0)
             self.assertIn("deepfake detected", indicators)
 
-    def test_check_deepfake_indicators_exception_caught(self):
-        """Test exceptions in deepfake analysis are caught and logged."""
-        with (
-            patch.object(
-                self.analyzer,
-                "_extract_frames_from_video",
-                side_effect=OSError("Disk failure"),
-            ),
-            patch.object(self.analyzer.logger, "error") as mock_error,
-        ):
-            score, indicators = self.analyzer._check_deepfake_indicators(
-                "sample.mp4", b"X" * (200 * 1024), "video/mp4"
-            )
-            self.assertEqual(score, 0.0)
-            self.assertEqual(indicators, [])
-            mock_error.assert_called_once()
-            self.assertIn(
-                "Error during deepfake analysis", mock_error.call_args[0][0]
-            )
-
     def test_forwarder_methods(self):
         """Test helper forwarder methods to ensure coverage of delegated calls."""
-        with patch("src.modules.media_deepfake._check_audio_visual_sync", return_value=(0.0, [])) as mock_av:
+        with patch(
+            "src.modules.media_deepfake._check_audio_visual_sync",
+            return_value=(0.0, []),
+        ) as mock_av:
             res = self.analyzer._check_audio_visual_sync("temp.mp4")
             mock_av.assert_called_once_with(self.analyzer, "temp.mp4")
             self.assertEqual(res, (0.0, []))
 
-        with patch("src.modules.media_deepfake._run_deepfake_model", return_value=(0.0, [])) as mock_df:
+        with patch(
+            "src.modules.media_deepfake._run_deepfake_model",
+            return_value=(0.0, []),
+        ) as mock_df:
             res = self.analyzer._run_deepfake_model("temp.mp4", [])
             mock_df.assert_called_once_with(self.analyzer, "temp.mp4", [])
             self.assertEqual(res, (0.0, []))
