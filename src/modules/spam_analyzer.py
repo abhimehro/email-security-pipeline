@@ -369,20 +369,28 @@ class SpamAnalyzer:
 
         return score, indicators
 
+    def _has_hidden_font(self, html_lower: str) -> bool:
+        """Check for 0-2px font sizing hiding content."""
+        if "font-size:" not in html_lower:
+            return False
+        return bool(self.HIDDEN_FONT_PATTERN.search(html_lower))
+
+    def _has_hidden_color(self, html_lower: str) -> bool:
+        """Check for white-on-white text hiding content."""
+        if "color:" not in html_lower:
+            return False
+        if "background" not in html_lower:
+            return False
+        return bool(self.HIDDEN_COLOR_PATTERN.search(html_lower))
+
     def _is_hidden_text(self, html_lower: str) -> bool:
         """Check if HTML content exhibits hidden font or matching color/background."""
         # ⚡ BOLT: Decoupled alternation optimization with fast substring pre-checks.
         # Checking prefix guards before invoking regex avoids running regex against
         # the entire document when only benign styling attributes are present.
-        if "font-size:" in html_lower and self.HIDDEN_FONT_PATTERN.search(
-            html_lower
-        ):
+        if self._has_hidden_font(html_lower):
             return True
-        if (
-            "color:" in html_lower
-            and "background" in html_lower
-            and self.HIDDEN_COLOR_PATTERN.search(html_lower)
-        ):
+        if self._has_hidden_color(html_lower):
             return True
         return False
 
