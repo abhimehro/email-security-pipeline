@@ -621,6 +621,7 @@
 **Merged pull requests:**
 
 - 🧹 reduce arguments for \_run\_edge\_case in setup wizard tests [\#1905](https://github.com/abhimehro/email-security-pipeline/pull/1905) ([abhimehro](https://github.com/abhimehro))
+- 🧹 refactor long analyze method in NLPThreatAnalyzer [\#1876](https://github.com/abhimehro/email-security-pipeline/pull/1876) ([abhimehro](https://github.com/abhimehro))
 - ⚡ Bolt: optimize URL redaction with fast-path checks [\#1866](https://github.com/abhimehro/email-security-pipeline/pull/1866) ([abhimehro](https://github.com/abhimehro))
 - 🎨 Palette: add help flag support to test\_config.py [\#1860](https://github.com/abhimehro/email-security-pipeline/pull/1860) ([abhimehro](https://github.com/abhimehro))
 - chore: add WATCHDOG advisor config [\#1856](https://github.com/abhimehro/email-security-pipeline/pull/1856) ([abhimehro](https://github.com/abhimehro))
