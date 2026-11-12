@@ -112,6 +112,11 @@ class SpamAnalyzer:
     MONEY_PATTERN = re.compile(r"\$\d+|\d+\s*(dollar|usd|euro)")
     IMG_TAG_PATTERN = re.compile(r"<img\b")
     # Use bounded quantifiers to prevent ReDoS (Regular Expression Denial of Service)
+    # ⚡ BOLT: Decoupled into distinct patterns with specific substring pre-checks
+    HIDDEN_FONT_PATTERN = re.compile(r"font-size:\s*[0-2]px")
+    HIDDEN_COLOR_PATTERN = re.compile(
+        r"color:\s*#fff.{0,100}background.{0,100}#fff"
+    )
     HIDDEN_TEXT_PATTERN = re.compile(
         r"font-size:\s*[0-2]px|color:\s*#fff.{0,100}background.{0,100}#fff"
     )
@@ -364,19 +369,37 @@ class SpamAnalyzer:
 
         return score, indicators
 
+    def _has_hidden_font(self, html_lower: str) -> bool:
+        """Check for 0-2px font sizing hiding content."""
+        if "font-size:" not in html_lower:
+            return False
+        return bool(self.HIDDEN_FONT_PATTERN.search(html_lower))
+
+    def _has_hidden_color(self, html_lower: str) -> bool:
+        """Check for white-on-white text hiding content."""
+        if "color:" not in html_lower:
+            return False
+        if "background" not in html_lower:
+            return False
+        return bool(self.HIDDEN_COLOR_PATTERN.search(html_lower))
+
+    def _is_hidden_text(self, html_lower: str) -> bool:
+        """Check if HTML content exhibits hidden font or matching color/background."""
+        # ⚡ BOLT: Decoupled alternation optimization with fast substring pre-checks.
+        # Checking prefix guards before invoking regex avoids running regex against
+        # the entire document when only benign styling attributes are present.
+        if self._has_hidden_font(html_lower):
+            return True
+        if self._has_hidden_color(html_lower):
+            return True
+        return False
+
     def _check_hidden_text(self, html_lower: str) -> Tuple[float, List[str]]:
         """Helper to check for hidden text in HTML body."""
-        score = 0.0
-        indicators = []
         # Look for text with very small font or matching background color
-        # Optimization: Fast substring pre-check avoids executing complex regex on clean HTML.
-        # Using the C-level 'in' operator on a lowercased string is significantly faster
-        # (~20x) than re.compile(..., re.IGNORECASE) despite memory allocation overhead.
-        if "font-size:" in html_lower or "color:" in html_lower:
-            if self.HIDDEN_TEXT_PATTERN.search(html_lower):
-                score += 2.0
-                indicators.append("Hidden text detected")
-        return score, indicators
+        if self._is_hidden_text(html_lower):
+            return 2.0, ["Hidden text detected"]
+        return 0.0, []
 
     def _check_urls(self, urls: List[str]) -> Tuple[float, List[str]]:
         """Check for suspicious URLs."""
