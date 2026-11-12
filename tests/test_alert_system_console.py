@@ -302,5 +302,67 @@ class TestConsoleAlert(unittest.TestCase):
         self.assertNotIn("█" * 51, output)
 
 
+class TestSpamIndicatorRows(unittest.TestCase):
+    """Unit tests for spam_indicator_rows helper function."""
+
+    def test_empty_indicators_returns_empty_list(self):
+        """Empty indicators list returns an empty list."""
+        from src.modules.alert_console import spam_indicator_rows
+
+        rows = spam_indicator_rows([], max_spam=5)
+        self.assertEqual(rows, [])
+
+    def test_indicators_within_limit(self):
+        """Indicators within max_spam limit are all returned with indent 3."""
+        from src.modules.alert_console import spam_indicator_rows
+        from src.utils.colors import Colors
+
+        indicators = ["Excessive exclamation marks", "Spam words detected"]
+        rows = spam_indicator_rows(indicators, max_spam=5)
+
+        self.assertEqual(len(rows), 2)
+        bullet = Colors.colorize("•", Colors.GREY)
+        for i, indicator in enumerate(indicators):
+            text, indent = rows[i]
+            self.assertEqual(text, f"{bullet} {indicator}")
+            self.assertEqual(indent, 3)
+
+    def test_indicators_exceeding_limit_truncated(self):
+        """Indicators exceeding max_spam limit are truncated to max_spam."""
+        from src.modules.alert_console import spam_indicator_rows
+
+        indicators = [f"Indicator {i}" for i in range(10)]
+        rows = spam_indicator_rows(indicators, max_spam=3)
+
+        self.assertEqual(len(rows), 3)
+        self.assertTrue(rows[0][0].endswith("Indicator 0"))
+        self.assertTrue(rows[1][0].endswith("Indicator 1"))
+        self.assertTrue(rows[2][0].endswith("Indicator 2"))
+
+    def test_max_spam_zero(self):
+        """Zero max_spam returns an empty list."""
+        from src.modules.alert_console import spam_indicator_rows
+
+        indicators = ["Spam indicator 1", "Spam indicator 2"]
+        self.assertEqual(spam_indicator_rows(indicators, max_spam=0), [])
+
+    def test_colorized_bullet_formatting(self):
+        """Row items contain grey bullet and expected indentation."""
+        from src.modules.alert_console import spam_indicator_rows
+        from src.utils.colors import Colors
+
+        with (
+            patch.object(Colors, "ENABLED", True),
+            patch.object(Colors, "GREY", "\033[90m"),
+            patch.object(Colors, "RESET", "\033[0m"),
+        ):
+            rows = spam_indicator_rows(["Suspicious phrase"], max_spam=1)
+            self.assertEqual(len(rows), 1)
+            text, indent = rows[0]
+            self.assertEqual(indent, 3)
+            self.assertIn("Suspicious phrase", text)
+            self.assertIn("\033[90m•\033[0m", text)
+
+
 if __name__ == "__main__":
     unittest.main()
