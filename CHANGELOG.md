@@ -47,6 +47,8 @@
 
 **Closed issues:**
 
+- Daily QA & Agentic Review — 2026-11-11 [\#1914](https://github.com/abhimehro/email-security-pipeline/issues/1914)
+- Daily QA & Agentic Review — 2026-11-10 [\#1897](https://github.com/abhimehro/email-security-pipeline/issues/1897)
 - Daily QA & Agentic Review — 2026-11-09 [\#1865](https://github.com/abhimehro/email-security-pipeline/issues/1865)
 - Daily QA & Agentic Review — 2026-11-05 [\#1854](https://github.com/abhimehro/email-security-pipeline/issues/1854)
 - Daily QA & Agentic Review — 2026-11-04 [\#1853](https://github.com/abhimehro/email-security-pipeline/issues/1853)
@@ -65,6 +67,7 @@
 - Daily QA & Agentic Review — 2026-10-13 [\#1759](https://github.com/abhimehro/email-security-pipeline/issues/1759)
 - Daily QA & Agentic Review — 2026-10-12 [\#1755](https://github.com/abhimehro/email-security-pipeline/issues/1755)
 - Daily QA & Agentic Review — 2026-10-11 [\#1746](https://github.com/abhimehro/email-security-pipeline/issues/1746)
+- \[repo-automation\] Weekly Retrospective - 2026-10-11 [\#1743](https://github.com/abhimehro/email-security-pipeline/issues/1743)
 - Daily QA & Agentic Review — 2026-10-10 [\#1742](https://github.com/abhimehro/email-security-pipeline/issues/1742)
 - Daily QA & Agentic Review — 2026-10-09 [\#1739](https://github.com/abhimehro/email-security-pipeline/issues/1739)
 - PR lifecycle: needs human decision [\#1733](https://github.com/abhimehro/email-security-pipeline/issues/1733)
@@ -617,6 +620,7 @@
 
 **Merged pull requests:**
 
+- 🧹 reduce arguments for \_run\_edge\_case in setup wizard tests [\#1905](https://github.com/abhimehro/email-security-pipeline/pull/1905) ([abhimehro](https://github.com/abhimehro))
 - ⚡ Bolt: optimize URL redaction with fast-path checks [\#1866](https://github.com/abhimehro/email-security-pipeline/pull/1866) ([abhimehro](https://github.com/abhimehro))
 - 🎨 Palette: add help flag support to test\_config.py [\#1860](https://github.com/abhimehro/email-security-pipeline/pull/1860) ([abhimehro](https://github.com/abhimehro))
 - chore: add WATCHDOG advisor config [\#1856](https://github.com/abhimehro/email-security-pipeline/pull/1856) ([abhimehro](https://github.com/abhimehro))
