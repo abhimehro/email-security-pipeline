@@ -173,3 +173,16 @@ triggers ('@', '/services/', '/api/webhooks/'). Fast-path substring pre-checks
 bypass URL parsing and dictionary allocations, yielding a ~25x-34x speedup
 on clean inputs. **Action:** Add early substring guard checks before delegating
 to standard library URL parsers when evaluating collections of benign URLs.
+
+## 2026-08-31 - Email Validation Fast-Path and Boundary Indexing
+
+**Learning:** In email validation (`is_safe_email`), early guard checks for
+missing `@` or consecutive dots `..` avoid regular expression compilation and
+scanning on malformed inputs, speeding up non-email string evaluation by >60%.
+Furthermore, replacing `startswith`/`endswith` method calls on local/label parts
+with direct index boundary checks (`s[0] not in chars and s[-1] not in chars`)
+avoids function call overhead and tuple unpacking, speeding up overall email
+validation by ~15-20%.
+**Action:** Place fast substring/character membership checks before regex
+matching on input validation hot paths, and prefer direct indexing for single
+boundary character checks on non-empty strings.

@@ -183,6 +183,9 @@ def sanitize_filename(filename: str) -> str:
 # Maximum length for a valid email address (RFC 5321)
 _MAX_EMAIL_LENGTH = 254
 
+# Characters not permitted at start/end of email address components
+_EMAIL_BOUNDARY_CHARS = (".", "-")
+
 # Whitelist pattern for an email address.
 # Local part allows letters, digits, dots, underscores, percent, plus, and hyphens.
 # Domain part follows hostname-style ASCII characters (letters, digits, dots,
@@ -194,14 +197,22 @@ _SAFE_EMAIL_PATTERN = re.compile(r"^[a-zA-Z0-9._%+-]+@[A-Za-z0-9.-]+\.[a-zA-Z]{2
 
 def _is_safe_label(label: str) -> bool:
     """Return True if a domain label does not start/end with '.' or '-'."""
-    return bool(label) and not (
-        label.startswith((".", "-")) or label.endswith((".", "-"))
+    # ⚡ BOLT: Direct indexing is faster than startswith/endswith tuple calls
+    return (
+        bool(label)
+        and label[0] not in _EMAIL_BOUNDARY_CHARS
+        and label[-1] not in _EMAIL_BOUNDARY_CHARS
     )
 
 
 def _is_safe_local(local: str) -> bool:
     """Return True if the local part does not start/end with '.' or '-'."""
-    return not (local.startswith((".", "-")) or local.endswith((".", "-")))
+    # ⚡ BOLT: Direct indexing is faster than startswith/endswith tuple calls
+    return (
+        bool(local)
+        and local[0] not in _EMAIL_BOUNDARY_CHARS
+        and local[-1] not in _EMAIL_BOUNDARY_CHARS
+    )
 
 
 def is_safe_email(email: str) -> bool:
@@ -223,8 +234,9 @@ def is_safe_email(email: str) -> bool:
     if not isinstance(email, str) or len(email) > _MAX_EMAIL_LENGTH:
         return False
 
-    # Reject consecutive dots anywhere in the address.
-    if ".." in email:
+    # ⚡ BOLT: Fast-path guards for missing '@' or consecutive dots '..'
+    # before regex evaluation avoid regex engine overhead on invalid inputs.
+    if "@" not in email or ".." in email:
         return False
 
     if not _SAFE_EMAIL_PATTERN.match(email):
