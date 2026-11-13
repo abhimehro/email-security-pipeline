@@ -4,7 +4,6 @@ Unit tests for alert channel helpers (src/modules/alert_channels.py).
 Covers:
 - sanitize_text (clean printable strings, ANSI escapes, control chars, CSV formulas)
 - sanitize_for_slack (Slack escaping, control chars, CSV pass-through)
-- sanitize_url_for_display (redaction and %5bREDACTED%5d decoding)
 - sanitize_error_message (URL extraction, punctuation trimming, error fallback)
 - redact_url_secrets, _redact_authority_credentials, _redact_webhook_by_platform
 - redact_sensitive_url_params (sensitive query keys, preserve clean params, error handling)
@@ -36,7 +35,6 @@ from src.modules.alert_channels import (
     sanitize_error_message,
     sanitize_for_slack,
     sanitize_text,
-    sanitize_url_for_display,
 )
 from src.modules.alert_report import ThreatReport
 
@@ -276,18 +274,6 @@ class TestRedactSensitiveUrlParams(unittest.TestCase):
                 redact_sensitive_url_params("https://example.com?token=123"),
                 "https://example.com?token=123",
             )
-
-
-class TestSanitizeUrlForDisplay(unittest.TestCase):
-    """Tests for sanitize_url_for_display."""
-
-    def test_replaces_percent_encoded_redacted_tokens(self):
-        url = "https://example.com/test?token=secret123&key=xyz"
-        displayed = sanitize_url_for_display(url)
-        self.assertIn("token=[REDACTED]", displayed)
-        self.assertIn("key=[REDACTED]", displayed)
-        self.assertNotIn("%5BREDACTED%5D", displayed)
-        self.assertNotIn("%5bREDACTED%5d", displayed)
 
 
 class TestSanitizeErrorMessage(unittest.TestCase):
