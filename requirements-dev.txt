@@ -5,5 +5,5 @@
 # NOTE: pytest is also in requirements-ci.txt; keep both lists in sync
 # NOTE: unittest-xml-reporting (xmlrunner) intentionally absent due to Python 3.13 incompatibility
 
-pytest==9.1.1
+pytest==9.2.0
 pytest-cov==7.1.0
