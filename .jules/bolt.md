@@ -173,3 +173,16 @@ triggers ('@', '/services/', '/api/webhooks/'). Fast-path substring pre-checks
 bypass URL parsing and dictionary allocations, yielding a ~25x-34x speedup
 on clean inputs. **Action:** Add early substring guard checks before delegating
 to standard library URL parsers when evaluating collections of benign URLs.
+
+## 2026-09-05 - Alternating regex decoupling for targeted fast paths
+
+**Learning:** Combining multiple distinct regex branches with distinct literal
+prefixes into a single alternation pattern (e.g. `font-size:...|color:...`)
+prevents the regex engine from using a single literal prefix check and forces
+scanning across the entire string when a broad pre-filter matches. Decoupling
+the branches into separate compiled patterns guarded by targeted substring
+checks (`'font-size:' in text` and `'color:' in text and '#fff' in text`)
+skips regex evaluation on partially matching or clean inputs, providing a ~70%
+speedup on styled HTML. **Action:** Decouple alternating regexes whose branches
+have distinct literal prefixes and guard each branch with targeted substring
+checks.
