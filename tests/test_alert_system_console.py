@@ -302,5 +302,86 @@ class TestConsoleAlert(unittest.TestCase):
         self.assertNotIn("█" * 51, output)
 
 
+class TestPrintNlpDetails(unittest.TestCase):
+    """Unit tests for print_nlp_details in alert_console."""
+
+    def _render_nlp(
+        self,
+        nlp_data: dict,
+        risk_color: str = "",
+        max_nlp: int = 3,
+        colors_enabled: bool = False,
+    ) -> str:
+        """Capture output of print_nlp_details."""
+        from src.modules.alert_console import print_nlp_details
+
+        captured = StringIO()
+        with (
+            patch("src.utils.colors.Colors.ENABLED", colors_enabled),
+            patch("sys.stdout", captured),
+        ):
+            print_nlp_details(nlp_data, risk_color, max_nlp)
+        return captured.getvalue()
+
+    def test_clean_nlp_shows_success_message(self) -> None:
+        """Clean NLP dictionary shows success indicator and message."""
+        output = self._render_nlp({})
+        self.assertIn("No NLP threats detected", output)
+        self.assertIn("✔", output)
+
+    def test_all_indicator_types_rendered(self) -> None:
+        """All four NLP indicator categories render with titles and bullets."""
+        nlp_data = {
+            "social_engineering_indicators": ["Phishing attempt detected"],
+            "urgency_markers": ["Immediate action required"],
+            "authority_impersonation": ["Impersonating executive"],
+            "psychological_triggers": ["Fear of account closure"],
+        }
+        output = self._render_nlp(nlp_data, max_nlp=3)
+        self.assertNotIn("No NLP threats detected", output)
+        self.assertIn("Social Engineering:", output)
+        self.assertIn("Phishing attempt detected", output)
+        self.assertIn("Urgency Markers:", output)
+        self.assertIn("Immediate action required", output)
+        self.assertIn("Authority Impersonation:", output)
+        self.assertIn("Impersonating executive", output)
+        self.assertIn("Psychological Triggers:", output)
+        self.assertIn("Fear of account closure", output)
+        self.assertEqual(output.count("•"), 4)
+
+    def test_max_nlp_limits_items_per_category(self) -> None:
+        """Indicators exceeding max_nlp are truncated."""
+        nlp_data = {
+            "urgency_markers": [
+                "Urgent 1",
+                "Urgent 2",
+                "Urgent 3",
+                "Urgent 4",
+                "Urgent 5",
+            ],
+        }
+        output = self._render_nlp(nlp_data, max_nlp=2)
+        self.assertIn("Urgent 1", output)
+        self.assertIn("Urgent 2", output)
+        self.assertNotIn("Urgent 3", output)
+        self.assertNotIn("Urgent 4", output)
+        self.assertNotIn("Urgent 5", output)
+        self.assertEqual(output.count("•"), 2)
+
+    def test_partial_indicators_only_renders_present_categories(self) -> None:
+        """Categories that are empty or omitted are not displayed."""
+        nlp_data = {
+            "social_engineering_indicators": ["Wire transfer request"],
+            "urgency_markers": [],
+        }
+        output = self._render_nlp(nlp_data, max_nlp=3)
+        self.assertIn("Social Engineering:", output)
+        self.assertIn("Wire transfer request", output)
+        self.assertNotIn("Urgency Markers:", output)
+        self.assertNotIn("Authority Impersonation:", output)
+        self.assertNotIn("Psychological Triggers:", output)
+        self.assertNotIn("No NLP threats detected", output)
+
+
 if __name__ == "__main__":
     unittest.main()
