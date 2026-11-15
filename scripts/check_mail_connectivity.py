@@ -6,6 +6,7 @@ No messages are fetched or sent; we only attempt to open sockets and issue
 minimal capability/NOOP commands.
 """
 
+import argparse
 import imaplib
 import os
 import smtplib
@@ -64,7 +65,7 @@ class ConnectionConfig:
 
 
 def print_header(text):
-    print(f"\n{Colors.BOLD}{Colors.colorize(text, Colors.BLUE)}{Colors.RESET}")
+    print(f"\n{Colors.colorize(text, Colors.BLUE + Colors.BOLD)}")
 
 
 def print_pending(protocol, host, port, use_ssl):
@@ -77,8 +78,8 @@ def print_status(protocol, host, port, use_ssl, success, message=None):
     # Clear line to prevent artifacts
     print(" " * 80, end="\r")
 
-    symbol = "✅" if success else "❌"
     color = Colors.GREEN if success else Colors.RED
+    symbol = Colors.colorize("✔", color) if success else Colors.colorize("✖", color)
     status = (
         Colors.colorize("OK", color) if success else Colors.colorize("ERROR", color)
     )
@@ -87,18 +88,19 @@ def print_status(protocol, host, port, use_ssl, success, message=None):
     print(f"  {symbol} {protocol:<4} ({host}:{port}, {ssl_str}) -> {status}")
 
     if not success and message:
-        print(f"    {Colors.colorize('Error:', Colors.RED)} {message}")
+        print(
+            f"    {Colors.colorize('Error:', Colors.RED)} {Colors.colorize(str(message), Colors.RED)}"
+        )
 
 
 def print_summary(results):
     if not results:
         return
 
-    print(f"\n{Colors.BOLD}Connectivity Summary{Colors.RESET}")
+    print(f"\n{Colors.colorize('Connectivity Summary', Colors.BOLD)}")
     print("=" * 65)
-    print(
-        f"{Colors.BOLD}{'Provider':<15} {'Protocol':<10} {'Host:Port':<25} {'Status':<10}{Colors.RESET}"
-    )
+    header = f"{'Provider':<15} {'Protocol':<10} {'Host:Port':<25} {'Status':<10}"
+    print(Colors.colorize(header, Colors.BOLD))
     print("-" * 65)
 
     for res in results:
@@ -148,7 +150,9 @@ def check_imap(config: ConnectionConfig):
         print_status("IMAP", config.host, config.port, config.use_ssl, False, str(e))
         result["error"] = str(e)
         if config.help_text:
-            print(f"    {Colors.colorize('💡 Tip:', Colors.YELLOW)} {config.help_text}")
+            print(
+                f"    {Colors.colorize('💡 Tip:', Colors.YELLOW)} {Colors.colorize(config.help_text, Colors.YELLOW)}"
+            )
 
     return result
 
@@ -184,7 +188,9 @@ def check_smtp(config: ConnectionConfig):
         print_status("SMTP", config.host, config.port, config.use_ssl, False, str(e))
         result["error"] = str(e)
         if config.help_text:
-            print(f"    {Colors.colorize('💡 Tip:', Colors.YELLOW)} {config.help_text}")
+            print(
+                f"    {Colors.colorize('💡 Tip:', Colors.YELLOW)} {Colors.colorize(config.help_text, Colors.YELLOW)}"
+            )
 
     return result
 
@@ -300,8 +306,13 @@ def _check_proton() -> List[dict]:
     return results
 
 
-def main():
-    print(f"\n{Colors.BOLD}🔍 Checking Email Connectivity...{Colors.RESET}")
+def main(argv: Optional[List[str]] = None) -> None:
+    parser = argparse.ArgumentParser(
+        description="Lightweight IMAP/SMTP connectivity check using .env values."
+    )
+    parser.parse_args(argv)
+
+    print(f"\n{Colors.colorize('🔍 Checking Email Connectivity...', Colors.BOLD)}")
 
     results = []
     results.extend(_check_gmail())
@@ -313,13 +324,17 @@ def main():
 
     if not results:
         print(
-            f"\n{Colors.colorize('⚠️  No email providers enabled in .env', Colors.YELLOW)}"
+            f"\n{Colors.colorize('⚠  No email providers enabled in .env', Colors.YELLOW)}"
         )
+        gmail_key = Colors.colorize("GMAIL_ENABLED=true", Colors.CYAN)
+        outlook_key = Colors.colorize("OUTLOOK_ENABLED=true", Colors.CYAN)
+        proton_key = Colors.colorize("PROTON_ENABLED=true", Colors.CYAN)
+        print(f"   Please set {gmail_key}, {outlook_key}, or {proton_key}")
         print(
-            f"   Please set {Colors.BOLD}GMAIL_ENABLED=true{Colors.RESET}, {Colors.BOLD}OUTLOOK_ENABLED=true{Colors.RESET}, or {Colors.BOLD}PROTON_ENABLED=true{Colors.RESET}"
+            f"   {Colors.colorize('To configure interactively, run:', Colors.YELLOW)} {Colors.colorize('python src/utils/setup_wizard.py', Colors.CYAN)}\n"
         )
     else:
-        print(f"\n{Colors.BOLD}✨ Done.{Colors.RESET}\n")
+        print(f"\n{Colors.colorize('✨ Done.', Colors.BOLD)}\n")
 
 
 if __name__ == "__main__":

@@ -15,7 +15,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src.app_runner import AppRunner
-from src.modules.alert_system import AlertSystem, generate_threat_report
+from src.modules.alert_report import generate_threat_report
+from src.modules.alert_system import AlertSystem
 from src.modules.email_ingestion import EmailIngestionConfig, EmailIngestionManager
 from src.modules.media_analyzer import MediaAuthenticityAnalyzer
 from src.modules.nlp_analyzer import NLPThreatAnalyzer
@@ -410,16 +411,15 @@ class EmailSecurityPipeline:
         # Log detailed metrics at debug level
         self.logger.debug(f"Detailed metrics: {summary}")
 
-    def _print_configuration_summary(self):
-        """Print a summary of the current configuration."""
-        print(f"\n{Colors.colorize('📊 System Configuration:', Colors.BOLD)}")
-
-        # Accounts
+    def _print_summary_accounts(self) -> None:
+        """Print summary of configured email accounts."""
         print(f"  📧 {Colors.colorize('Monitored Accounts:', Colors.CYAN)}")
         if not self.config.email_accounts:
             print(f"    - {Colors.colorize('⚠ No accounts configured', Colors.YELLOW)}")
             print(
-                f"      {Colors.colorize('→ Add credentials to your .env file to start processing emails.', Colors.GREY)}"
+                f"      {Colors.colorize('→ Add credentials to your ', Colors.GREY)}"
+                + f"{Colors.colorize('.env', Colors.CYAN)}"
+                + f"{Colors.colorize(' file to start processing emails.', Colors.GREY)}"
             )
         else:
             for account in self.config.email_accounts:
@@ -430,7 +430,8 @@ class EmailSecurityPipeline:
                 )
                 print(f"    - {account.provider.title()}: {account.email} ({status})")
 
-        # Analysis
+    def _print_summary_analysis(self) -> None:
+        """Print summary of active analysis layers."""
         print(f"  🔍 {Colors.colorize('Analysis Layers:', Colors.CYAN)}")
         print(
             f"    - Spam Detection:   {Colors.colorize('✔ Active', Colors.GREEN)} "
@@ -453,7 +454,8 @@ class EmailSecurityPipeline:
         )
         print(f"    - Media Check:      {media_status} (Deepfake: {deepfake_status})")
 
-        # Alerts
+    def _print_summary_alerts(self) -> None:
+        """Print summary of enabled alert channels."""
         print(f"  🔔 {Colors.colorize('Alert Channels:', Colors.CYAN)}")
         channels = []
         if self.config.alerts.console:
@@ -472,9 +474,13 @@ class EmailSecurityPipeline:
                 f"    - {Colors.colorize('⚠ No alert channels configured', Colors.YELLOW)}"
             )
             print(
-                f"      {Colors.colorize('→ Enable alerts in your .env file to receive notifications.', Colors.GREY)}"
+                f"      {Colors.colorize('→ Enable alerts in your ', Colors.GREY)}"
+                + f"{Colors.colorize('.env', Colors.CYAN)}"
+                + f"{Colors.colorize(' file to receive notifications.', Colors.GREY)}"
             )
 
+    def _print_summary_system(self) -> None:
+        """Print summary of system settings."""
         print(f"  ⚙️ {Colors.colorize('System:', Colors.CYAN)}")
         print(f"    - Log Level:  {self.config.system.log_level}")
         print(f"    - Log Format: {self.config.system.log_format}")
@@ -486,9 +492,20 @@ class EmailSecurityPipeline:
         print(f"    - Metrics:    {metrics_status}")
         print(f"    - Interval:   {self.config.system.check_interval}s")
 
+    def _print_configuration_summary(self) -> None:
+        """Print a summary of the current configuration."""
+        print(f"\n{Colors.colorize('📊 System Configuration:', Colors.BOLD)}")
+        self._print_summary_accounts()
+        self._print_summary_analysis()
+        self._print_summary_alerts()
+        self._print_summary_system()
+
         # Documentation footer
         print(
-            f"\n📚 {Colors.colorize('For help, see README.md or OUTLOOK_TROUBLESHOOTING.md', Colors.GREY)}\n"
+            f"\n📚 {Colors.colorize('For help, see ', Colors.GREY)}"
+            + f"{Colors.colorize('README.md', Colors.CYAN)}"
+            + f"{Colors.colorize(' or ', Colors.GREY)}"
+            + f"{Colors.colorize('OUTLOOK_TROUBLESHOOTING.md', Colors.CYAN)}\n"
         )
 
 

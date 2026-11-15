@@ -1,3 +1,4 @@
+import argparse
 import getpass
 import os
 import re
@@ -50,6 +51,9 @@ except ImportError:
 OUTLOOK_AUTH_ERROR_TIP = Colors.colorize(
     "Tip: Personal Outlook accounts NO LONGER support App Passwords.", Colors.YELLOW
 )
+
+# Provider chosen when the user just presses Enter at the provider prompt.
+DEFAULT_PROVIDER_CHOICE = "1"  # Gmail (Recommended)
 
 
 def _is_valid_email(email: str) -> bool:
@@ -199,12 +203,16 @@ def _select_provider() -> str:
                 "\n"
                 + Colors.colorize("? ", Colors.CYAN)
                 + Colors.colorize("Select provider ", Colors.BOLD)
-                + Colors.colorize("[1-4]", Colors.GREY)
+                + Colors.colorize(
+                    f"[1-4, default: {DEFAULT_PROVIDER_CHOICE}]", Colors.GREY
+                )
                 + Colors.colorize(": ", Colors.BOLD)
             )
             choice = _styled_input(prompt).lower()
             if choice in ("q", "quit", "exit"):
                 raise KeyboardInterrupt()
+            if choice == "":
+                choice = DEFAULT_PROVIDER_CHOICE
             if choice in choices_map:
                 return choices_map[choice]
             print(
@@ -621,8 +629,13 @@ def run_setup_wizard(
         return False
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
     """CLI entry point for setup.sh and other automation."""
+    parser = argparse.ArgumentParser(
+        description="Interactive setup wizard for the Email Security Pipeline."
+    )
+    parser.parse_args(argv)
+
     if not sys.stdin.isatty():
         print(
             Colors.colorize(

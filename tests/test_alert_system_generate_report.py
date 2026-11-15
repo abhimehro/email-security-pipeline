@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, patch
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.modules.alert_system import ThreatReport, generate_threat_report
+from src.modules.alert_report import ThreatReport, generate_threat_report
 from src.modules.email_ingestion import EmailData
 from src.modules.media_analyzer import MediaAnalysisResult
 from src.modules.nlp_analyzer import NLPAnalysisResult

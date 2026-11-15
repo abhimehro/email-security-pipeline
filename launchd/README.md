@@ -102,19 +102,25 @@ and waits up to 300s.
 Make sure the plist includes Homebrew in `PATH` and that the wrapper uses the
 `colima` context explicitly.
 
-### After uninstalling Docker Desktop
+### `failed to read .../.env: is a directory`
 
-If `docker compose` stops working, make sure `~/.docker/config.json` includes
-the Homebrew plugin directory:
-
-```json
-{
-  "cliPluginsExtraDirs": ["/opt/homebrew/lib/docker/cli-plugins"]
-}
-```
-
-And verify:
+Occurs if Docker bind-mounted a missing `.env` file and auto-created an empty
+`.env/` directory on the host. `start-email-security-pipeline.sh` fails fast
+before Docker runs. Recovery:
 
 ```bash
-docker compose version
+rmdir .env
+cp .env.example .env
+# configure your credentials in .env
 ```
+
+### LaunchAgent restarting every 60s (infinite restart loop)
+
+If the LaunchAgent keeps relaunching every minute, ensure
+`~/Library/LaunchAgents/com.abhimehrotra.email-security-pipeline.plist` uses
+`<key>KeepAlive</key><dict><key>SuccessfulExit</key><false/></dict>`
+(automatically configured by `./install_daemon.sh`) rather than `<true/>`. Since
+`docker compose up -d` is a one-shot detached launch, `SuccessfulExit: false`
+prevents restarting after a successful exit 0.
+
+### After uninstalling Docker Desktop

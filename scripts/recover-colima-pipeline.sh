@@ -26,6 +26,19 @@ for arg in "$@"; do
 	esac
 done
 
+# SECURITY & OPERATIONAL RELIABILITY: Fail fast if .env is a directory or missing.
+ENV_FILE="$REPO/.env"
+if [[ -d $ENV_FILE ]]; then
+	print -r -- "ERROR: Configuration path $ENV_FILE is a directory, not a file (often auto-created by Docker when bind-mounting a missing .env)." >&2
+	print -r -- "Remove the empty directory and create a valid .env file." >&2
+	exit 1
+fi
+
+if [[ ! -f $ENV_FILE ]]; then
+	print -r -- "ERROR: Configuration file $ENV_FILE not found. Copy .env.example to .env first." >&2
+	exit 1
+fi
+
 resolve_bin() {
 	local name="$1"
 	local candidate

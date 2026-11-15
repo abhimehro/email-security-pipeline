@@ -623,18 +623,36 @@ def daily_report_lines(
     return lines
 
 
+def should_publish_status_issue(section: dict[str, Any], status: str) -> bool:
+    """Return whether the daily report should be published as an issue."""
+    if not section.get("publish_issue", True):
+        return False
+    return status != "success" or section.get("publish_on_success", True)
+
+
 def run_daily_status_report(config: dict[str, Any]) -> dict[str, Any]:
     results = load_task_results()
-    summary = (
-        f"Daily automation completed with overall status {overall_status(results)}."
-    )
+    overall = overall_status(results)
+    summary = f"Daily automation completed with overall status {overall}."
     section = config.get("status_report", {})
     title = f"{config.get('reporting', {}).get('daily_issue_prefix', '[repo-automation] Daily Status Report')} - {iso_day()}"
     body = "\n".join(daily_report_lines(config, results))
-    body, issue_url, error = append_publication_result(
-        body, title=title, labels=section.get("labels", []), noun="daily issue"
-    )
-    status = "failure" if error else overall_status(results)
+    if should_publish_status_issue(section, overall):
+        body, issue_url, error = append_publication_result(
+            body, title=title, labels=section.get("labels", []), noun="daily issue"
+        )
+    else:
+        reason = (
+            "publication is disabled by configuration"
+            if not section.get("publish_issue", True)
+            else "there are no actionable findings"
+        )
+        body += (
+            "\n## Publication\n"
+            f"- Daily issue publication skipped because {reason}.\n"
+        )
+        issue_url, error = "", None
+    status = "failure" if error else overall
     return write_result(
         "daily-status-report",
         (status, summary),

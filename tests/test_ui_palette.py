@@ -27,6 +27,17 @@ class TestPaletteUI(TestCase):
                 CountdownTimer.wait(1, "Testing (Press Ctrl+C to stop)")
                 mock_timer_cls.assert_called_with(1, "Testing (Press Ctrl+C to stop)")
 
+    def test_countdown_initial_frame_includes_hint(self):
+        """Test that CountdownTimer.start() includes CTRL_C_HINT in the initial static frame in TTY mode."""
+        with patch("sys.stdout") as mock_stdout:
+            mock_stdout.isatty.return_value = True
+
+            timer = CountdownTimer(duration=0, message="Waiting")
+            timer.start()
+
+            writes = self._get_writes(mock_stdout)
+            self.assertIn("(Press Ctrl+C to stop)", writes)
+
     def test_countdown_cursor_hide_show_in_tty(self):
         """Test cursor is hidden and restored when isatty is True for CountdownTimer."""
         with patch("sys.stdout") as mock_stdout:
@@ -177,3 +188,288 @@ class TestPaletteUI(TestCase):
                 # Check actual output for fallback safety (no ANSI code directly interpolated)
                 output = mock_stdout.getvalue()
                 self.assertIn("📊 System Configuration:", output)
+
+    def test_print_configuration_summary_unconfigured_accounts_cyan_env(self) -> None:
+        from io import StringIO
+
+        from src.main import EmailSecurityPipeline
+        from src.utils.colors import Colors
+
+        pipeline = EmailSecurityPipeline()
+        pipeline.config.email_accounts = []
+
+        with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
+            with patch(
+                "src.main.Colors.colorize", wraps=Colors.colorize
+            ) as mock_colorize:
+                pipeline._print_configuration_summary()
+
+                # Verify .env, README.md, and OUTLOOK_TROUBLESHOOTING.md were colorized with Colors.CYAN
+                mock_colorize.assert_any_call(".env", Colors.CYAN)
+                mock_colorize.assert_any_call("README.md", Colors.CYAN)
+                mock_colorize.assert_any_call("OUTLOOK_TROUBLESHOOTING.md", Colors.CYAN)
+
+    def test_app_runner_fallback_instructions_cyan_files(self) -> None:
+        """Test _print_fallback_instructions in AppRunner colorizes .env and .env.example with Colors.CYAN."""
+        from io import StringIO
+
+        from src.app_runner import AppRunner
+        from src.utils.colors import Colors
+
+        runner = AppRunner(["main.py", ".env"])
+
+        with patch("sys.stdout", new_callable=StringIO):
+            with patch(
+                "src.app_runner.Colors.colorize", wraps=Colors.colorize
+            ) as mock_colorize:
+                runner._print_fallback_instructions()
+
+                mock_colorize.assert_any_call(".env", Colors.CYAN)
+                mock_colorize.assert_any_call(".env.example", Colors.CYAN)
+
+    def test_check_mail_connectivity_print_status_symbols(self):
+        """Test print_status in check_mail_connectivity uses ✔ and ✖ symbols correctly."""
+        import os
+        import sys
+        from io import StringIO
+
+        # Ensure scripts directory is in sys.path
+        scripts_dir = os.path.abspath(
+            os.path.join(os.path.dirname(__file__), "..", "scripts")
+        )
+        if scripts_dir not in sys.path:
+            sys.path.insert(0, scripts_dir)
+
+        import check_mail_connectivity
+
+        with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
+            check_mail_connectivity.print_status(
+                "IMAP", "imap.gmail.com", 993, True, True
+            )
+            output = mock_stdout.getvalue()
+            self.assertIn("✔", output)
+            self.assertIn("OK", output)
+
+        with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
+            check_mail_connectivity.print_status(
+                "IMAP", "imap.gmail.com", 993, True, False, "Auth failed"
+            )
+            output = mock_stdout.getvalue()
+            self.assertIn("✖", output)
+            self.assertIn("ERROR", output)
+
+    def test_diagnose_docker_connectivity_empty_state(self):
+        """Test diagnose_docker_connectivity.py main() when no providers are enabled."""
+        import os
+        from io import StringIO
+
+        import diagnose_docker_connectivity
+
+        with patch.dict(
+            os.environ,
+            {
+                "GMAIL_ENABLED": "false",
+                "OUTLOOK_ENABLED": "false",
+                "PROTON_ENABLED": "false",
+            },
+            clear=True,
+        ):
+            with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
+                with patch("dotenv.load_dotenv"):
+                    with self.assertRaises(SystemExit) as cm:
+                        diagnose_docker_connectivity.main()
+
+                    self.assertEqual(cm.exception.code, 1)
+                    output = mock_stdout.getvalue()
+                    self.assertIn("No email providers enabled in .env", output)
+                    self.assertIn("python src/utils/setup_wizard.py", output)
+
+    def test_diagnose_docker_connectivity_pending_visual_indicators(self):
+        """Test test_connection in diagnose_docker_connectivity includes pending indicators."""
+        from io import StringIO
+
+        import diagnose_docker_connectivity
+        from diagnose_docker_connectivity import ConnectionConfig
+
+        config = ConnectionConfig(
+            label="GmailTest",
+            host="imap.gmail.com",
+            port=993,
+            email="test@gmail.com",
+            password="pass",
+            use_ssl=True,
+            verify_ssl=True,
+        )
+
+        mock_imap = MagicMock()
+        mock_imap.list.return_value = ("OK", [b"INBOX"])
+
+        with patch("imaplib.IMAP4_SSL", return_value=mock_imap):
+            with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
+                res = diagnose_docker_connectivity.test_connection(config)
+                self.assertTrue(res)
+                output = mock_stdout.getvalue()
+                self.assertIn("⏳ Connecting to imap.gmail.com:993 with SSL", output)
+                self.assertIn("⏳ Logging in as test@gmail.com", output)
+                self.assertIn("⏳ Listing folders", output)
+                self.assertIn("✔ Connection established", output)
+                self.assertIn("✔ SUCCESS - Authentication successful!", output)
+
+    def test_check_mail_connectivity_empty_state_remediation(self) -> None:
+        """Test main in check_mail_connectivity outputs setup wizard guidance and cyan config keys when no providers are enabled."""
+        import os
+        import sys
+        from io import StringIO
+
+        scripts_dir = os.path.abspath(
+            os.path.join(os.path.dirname(__file__), "..", "scripts")
+        )
+        if scripts_dir not in sys.path:
+            sys.path.insert(0, scripts_dir)
+
+        import check_mail_connectivity
+
+        Colors = check_mail_connectivity.Colors
+
+        with patch("os.getenv", return_value="false"):
+            with (
+                patch("sys.stdout", new_callable=StringIO) as mock_stdout,
+                patch.object(
+                    Colors, "colorize", wraps=Colors.colorize
+                ) as mock_colorize,
+            ):
+                check_mail_connectivity.main([])
+                output = mock_stdout.getvalue()
+                self.assertIn("python src/utils/setup_wizard.py", output)
+                self.assertIn("To configure interactively, run:", output)
+                self.assertIn("⚠  No email providers enabled in .env", output)
+                mock_colorize.assert_any_call("GMAIL_ENABLED=true", Colors.CYAN)
+                mock_colorize.assert_any_call("OUTLOOK_ENABLED=true", Colors.CYAN)
+                mock_colorize.assert_any_call("PROTON_ENABLED=true", Colors.CYAN)
+
+    def test_check_mail_connectivity_error_and_tip_styling(self) -> None:
+        """Test check_imap and check_smtp in check_mail_connectivity style error details with RED and tips with YELLOW."""
+        import os
+        import sys
+        from io import StringIO
+
+        scripts_dir = os.path.abspath(
+            os.path.join(os.path.dirname(__file__), "..", "scripts")
+        )
+        if scripts_dir not in sys.path:
+            sys.path.insert(0, scripts_dir)
+
+        import check_mail_connectivity
+        from check_mail_connectivity import ConnectionConfig, check_imap, check_smtp
+
+        Colors = check_mail_connectivity.Colors
+        config = ConnectionConfig(
+            provider_name="TestProvider",
+            host="invalid.host.test",
+            port=993,
+            use_ssl=True,
+            user="user@test.com",
+            password="pass",
+            help_text="Check server configuration.",
+        )
+
+        # Keep the colors distinct even when non-TTY output disables ANSI codes.
+        with (
+            patch("sys.stdout", new_callable=StringIO) as mock_stdout,
+            patch.object(Colors, "RED", "\033[91m"),
+            patch.object(Colors, "YELLOW", "\033[93m"),
+            patch.object(Colors, "colorize", wraps=Colors.colorize) as mock_colorize,
+        ):
+            res_imap = check_imap(config)
+            output = mock_stdout.getvalue()
+            self.assertFalse(res_imap["success"])
+            mock_colorize.assert_any_call(res_imap["error"], Colors.RED)
+            mock_colorize.assert_any_call(config.help_text, Colors.YELLOW)
+            self.assertIn("Error:", output)
+            self.assertIn("💡 Tip:", output)
+            self.assertIn("Check server configuration.", output)
+
+        with (
+            patch("sys.stdout", new_callable=StringIO) as mock_stdout,
+            patch.object(Colors, "RED", "\033[91m"),
+            patch.object(Colors, "YELLOW", "\033[93m"),
+            patch.object(Colors, "colorize", wraps=Colors.colorize) as mock_colorize,
+        ):
+            res_smtp = check_smtp(config)
+            output = mock_stdout.getvalue()
+            self.assertFalse(res_smtp["success"])
+            mock_colorize.assert_any_call(res_smtp["error"], Colors.RED)
+            mock_colorize.assert_any_call(config.help_text, Colors.YELLOW)
+            self.assertIn("Error:", output)
+            self.assertIn("💡 Tip:", output)
+            self.assertIn("Check server configuration.", output)
+
+    def test_select_provider_empty_input_uses_advertised_default(self) -> None:
+        """Pressing Enter picks the default provider shown in the prompt hint."""
+        from io import StringIO
+
+        from src.utils import setup_wizard
+
+        with (
+            patch("src.utils.setup_wizard._styled_input", return_value="") as mock_in,
+            patch("sys.stdout", new_callable=StringIO),
+        ):
+            choice = setup_wizard._select_provider()
+
+        self.assertEqual(choice, "1")
+        self.assertEqual(choice, setup_wizard.DEFAULT_PROVIDER_CHOICE)
+        mock_in.assert_called_once()
+        prompt = mock_in.call_args.args[0]
+        self.assertIn("[1-4, default: 1]", prompt)
+
+    def test_select_provider_explicit_choice_overrides_default(self) -> None:
+        """An explicit selection still wins over the default."""
+        from io import StringIO
+
+        from src.utils import setup_wizard
+
+        with (
+            patch("src.utils.setup_wizard._styled_input", return_value="proton"),
+            patch("sys.stdout", new_callable=StringIO),
+        ):
+            self.assertEqual(setup_wizard._select_provider(), "2")
+
+    def test_test_config_help_flag_exits_cleanly(self) -> None:
+        """Test that test_config.py -h/--help exits cleanly with status 0 and usage."""
+        from io import StringIO
+
+        import test_config
+
+        for flag in ["--help", "-h"]:
+            with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
+                with self.assertRaises(SystemExit) as cm:
+                    test_config.main([flag])
+                self.assertEqual(cm.exception.code, 0)
+                output = mock_stdout.getvalue()
+                self.assertIn("usage: test_config.py", output)
+                self.assertIn("--test-connections", output)
+
+    def test_test_config_parses_test_connections_flag(self) -> None:
+        """Test that test_config.py main parses --test-connections correctly."""
+        import test_config
+
+        patches = [
+            patch("test_config.test_config_loading", return_value=True),
+            patch("test_config.test_module_imports", return_value=True),
+            patch("test_config.test_analyzer_initialization", return_value=True),
+            patch("test_config.test_folder_parsing", return_value=True),
+            patch("test_config.test_diagnostics_script", return_value=True),
+        ]
+        with (
+            patches[0],
+            patches[1],
+            patches[2],
+            patches[3],
+            patches[4],
+            patch(
+                "test_config.test_imap_connections", return_value=True
+            ) as mock_imap,
+        ):
+            exit_code = test_config.main(["--test-connections"])
+            self.assertEqual(exit_code, 0)
+            mock_imap.assert_called_once_with(True)

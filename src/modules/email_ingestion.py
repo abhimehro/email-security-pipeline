@@ -17,6 +17,7 @@ interface to a complex subsystem (IMAP + parsing + security).
 
 import imaplib
 import logging
+import ssl
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Tuple
@@ -122,10 +123,14 @@ class IMAPClient:
 
     def connect(self) -> bool:
         """
-        Establish connection to IMAP server.
+        Connect and authenticate using implicit TLS or STARTTLS.
+
+        Use the account's optional CA bundle and verification hostname. On
+        successful login, share the connection with the connection manager.
 
         Returns:
-            True if connection successful
+            True after login; False for caught TLS configuration, connection,
+            or authentication errors.
 
         """
         try:
@@ -134,8 +139,7 @@ class IMAPClient:
                 f"(SSL={self.config.use_ssl})"
             )
 
-            # Create secure SSL context using our method (for backward compat with tests)
-            context = self._create_secure_ssl_context()
+            context = self._build_ssl_context()
 
             if self.config.use_ssl:
                 self.connection = imaplib.IMAP4_SSL(
@@ -274,12 +278,23 @@ class IMAPClient:
         return diagnostics.diagnose_connection_issues()
 
     # Static methods for backward compatibility
+    def _build_ssl_context(self) -> ssl.SSLContext:
+        """Build the TLS context for this account, applying optional pinning."""
+        return self._create_secure_ssl_context(
+            ca_file=self.config.tls_ca_file,
+            server_hostname=self.config.tls_server_hostname,
+        )
+
     @staticmethod
-    def _create_secure_ssl_context():
-        """
-        Create a secure SSL context (backward compatibility wrapper).
-        """
-        return create_secure_ssl_context()
+    def _create_secure_ssl_context(
+        ca_file: str | None = None,
+        server_hostname: str | None = None,
+    ) -> ssl.SSLContext:
+        """Create a secure SSL context (backward compatibility wrapper)."""
+        return create_secure_ssl_context(
+            ca_file=ca_file,
+            server_hostname=server_hostname,
+        )
 
     @staticmethod
     def _decode_part_payload(part):

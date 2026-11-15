@@ -232,6 +232,75 @@ class TestConsoleAlert(unittest.TestCase):
         self.assertIn("SPF check failed", output)
         self.assertNotIn("No suspicious patterns", output)
 
+    def test_render_alert_dynamic_terminal_width(self):
+        """Test render_alert respects dynamic terminal width limits (clamped 60 to 100)."""
+        from src.modules.alert_console import render_alert
+
+        report = _make_clean_report(
+            overall_threat_score=75.0,
+            risk_level="high",
+        )
+
+        # Test small width (clamped to 60) -> border line length = 58 chars + 2 corners = 60
+        captured = StringIO()
+        with patch("src.modules.alert_console.get_terminal_width", return_value=40):
+            with patch("sys.stdout", captured):
+                render_alert(report, {})
+        output = captured.getvalue()
+        self.assertIn("┌" + "─" * 58 + "┐", output)
+
+        # Test large width (clamped to 100) -> border line length = 98 chars + 2 corners = 100
+        captured = StringIO()
+        with patch("src.modules.alert_console.get_terminal_width", return_value=120):
+            with patch("sys.stdout", captured):
+                render_alert(report, {})
+        output = captured.getvalue()
+        self.assertIn("┌" + "─" * 98 + "┐", output)
+
+    def test_empty_recommendations_rendered_with_positive_feedback(self):
+        """Empty recommendations list should display '✔ No specific actions required'."""
+        from src.modules.alert_console import print_recommendations
+
+        captured = StringIO()
+        with patch("sys.stdout", captured):
+            print_recommendations([], 60, "\033[32m")
+        output = captured.getvalue()
+        self.assertIn("RECOMMENDATIONS", output)
+        self.assertIn("No specific actions required", output)
+
+    def test_threat_score_meter_scales_with_card_width(self) -> None:
+        """The threat-score meter length follows the card width (floor 20)."""
+        from src.modules.alert_console import print_threat_score
+
+        for width, expected_len in ((40, 20), (60, 30), (70, 40), (100, 70)):
+            captured = StringIO()
+            with (
+                patch("sys.stdout", captured),
+                patch("src.utils.colors.Colors.ENABLED", False),
+            ):
+                print_threat_score(50.0, "medium", width, "")
+            bar_line = captured.getvalue().splitlines()[1]
+            bar = bar_line.lstrip("│ ")
+            self.assertEqual(len(bar), expected_len, msg=f"width={width}")
+            self.assertEqual(bar.count("█"), expected_len // 2)
+
+    def test_render_alert_meter_uses_terminal_width(self) -> None:
+        """An in-range terminal width drives both the card and the meter."""
+        from src.modules.alert_console import render_alert
+
+        report = _make_clean_report(overall_threat_score=100.0, risk_level="high")
+        captured = StringIO()
+        with (
+            patch("src.modules.alert_console.get_terminal_width", return_value=80),
+            patch("src.utils.colors.Colors.ENABLED", False),
+            patch("sys.stdout", captured),
+        ):
+            render_alert(report, {})
+        output = captured.getvalue()
+        self.assertIn("┌" + "─" * 78 + "┐", output)
+        self.assertIn("█" * 50, output)
+        self.assertNotIn("█" * 51, output)
+
 
 if __name__ == "__main__":
     unittest.main()

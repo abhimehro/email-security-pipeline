@@ -143,3 +143,33 @@ iterations compared to ~0.39s when re-using a pre-allocated pool. **Action:**
 Always pre-allocate `ThreadPoolExecutor` instances at the class level (e.g., in
 `__init__`) or globally and re-use them for hot-path concurrency, ensuring
 proper resource teardown in a `shutdown()` method.
+
+## 2026-08-29 - Avoid Repeated get_terminal_size Syscalls in Animation Loops
+
+**Learning:** Calling `shutil.get_terminal_size()` continuously inside tight
+rendering loops (such as terminal spinner or countdown frame updates) invokes
+blocking `ioctl` system calls on every frame, creating significant CPU/I/O
+overhead. Caching the column width before or per iteration yields a ~96%
+rendering speedup. **Action:** Always accept an optional `columns` parameter in
+terminal truncation helpers and query `shutil.get_terminal_size()` once prior to
+entering frame-based animation loops.
+
+## 2026-08-30 - Avoid intermediate list allocation in generator loops
+
+**Learning:** Iterating over a list comprehension that wraps a generator
+expression eagerly evaluates and allocates an entire intermediate list in memory
+before loop execution. Converting the outer bracket list comprehension to a
+generator expression streams items lazily, avoiding list memory allocation
+entirely while maintaining identical iteration semantics. **Action:** When a
+loop iterates directly over a filtered mapping comprehension, use a generator
+expression instead of a list comprehension to save memory allocations.
+
+## 2026-09-02 - Fast-path URL redaction checks
+
+**Learning:** Running `urlparse()`, `parse_qs()`, and netloc/path inspections
+on every clean URL during threat reporting creates substantial overhead.
+Most URLs in email pipelines have no query parameters ('?') or sensitive
+triggers ('@', '/services/', '/api/webhooks/'). Fast-path substring pre-checks
+bypass URL parsing and dictionary allocations, yielding a ~25x-34x speedup
+on clean inputs. **Action:** Add early substring guard checks before delegating
+to standard library URL parsers when evaluating collections of benign URLs.

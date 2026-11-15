@@ -74,6 +74,7 @@ automation:
   status_report:
     enabled: true
     publish_issue: true
+    publish_on_success: false
     labels:
       - name: automation:daily-status
         color: "1d76db"

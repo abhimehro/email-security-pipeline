@@ -12,10 +12,12 @@ from urllib.parse import urlparse
 from dotenv import load_dotenv
 
 from .security_validators import (
+    NullByteInCAPathError,
     _normalize_mail_server_host,
     is_safe_email,
     is_safe_webhook_url,
     validate_mail_server_host,
+    validate_tls_ca_path,
 )
 
 
@@ -37,13 +39,19 @@ class EmailAccountConfig:
     folders: List[str]
     provider: str
     use_ssl: bool
-    smtp_server: Optional[str] = None
+    smtp_server: str | None = None
+    tls_ca_file: str | None = None
+    tls_server_hostname: str | None = None
 
     def __post_init__(self):
         """Normalize server hostnames so comparisons and connections match."""
         self.imap_server = _normalize_mail_server_host(self.imap_server)
         if self.smtp_server is not None:
             self.smtp_server = _normalize_mail_server_host(self.smtp_server)
+        if self.tls_server_hostname is not None:
+            self.tls_server_hostname = _normalize_mail_server_host(
+                self.tls_server_hostname
+            )
 
 
 @dataclass
@@ -122,13 +130,24 @@ class Config:
 
     def __init__(self, env_file: str = ".env"):
         """
-        Initialize configuration from environment file.
+        Load configuration from environment variables and an optional env file.
+
+        Existing environment variables take precedence over values in the file.
+        A directory is not loaded; validate() reports it as a configuration error.
 
         Args:
-            env_file: Path to environment file (default: .env)
+            env_file: Path to environment file (default: .env).
+
+        Raises:
+            ValueError: If a numeric environment setting cannot be converted.
 
         """
-        load_dotenv(env_file)
+        self._env_file = env_file
+        # SECURITY & RELIABILITY: Only load .env if it is a file, NOT a directory.
+        # python-dotenv silently ignores directory paths, which previously masked
+        # .env directory corruption and resulted in confusing "No email accounts configured" errors.
+        if not (env_file and os.path.isdir(env_file)):
+            load_dotenv(env_file)
 
         self.email_accounts = self._load_email_accounts()
         self.analysis = self._load_analysis_config()
@@ -141,7 +160,16 @@ class Config:
         prefix: str,
         defaults: tuple,
     ) -> EmailAccountConfig:
-        """Build an EmailAccountConfig from environment variables for one provider."""
+        """Build an enabled account from environment variables for one provider.
+
+        prefix selects the environment variable names; defaults contains the
+        fallback IMAP host, SMTP host, and IMAP port, in that order. Empty TLS
+        CA file and hostname settings become None. Validation is deferred.
+
+        Raises:
+            ValueError: If the configured IMAP port cannot be converted to int.
+
+        """
         imap_default, smtp_default, port_default = defaults
         return EmailAccountConfig(
             enabled=True,
@@ -153,6 +181,8 @@ class Config:
             provider=provider,
             use_ssl=self._get_bool(f"{prefix}_USE_SSL", True),
             smtp_server=os.getenv(f"{prefix}_SMTP_SERVER") or smtp_default,
+            tls_ca_file=os.getenv(f"{prefix}_TLS_CA_FILE") or None,
+            tls_server_hostname=os.getenv(f"{prefix}_TLS_SERVER_HOSTNAME") or None,
         )
 
     def _load_email_accounts(self) -> List[EmailAccountConfig]:
@@ -299,8 +329,56 @@ class Config:
                 "SMTP", account.smtp_server, account.provider, errors
             )
 
+    def _append_tls_ca_error(
+        self, account: EmailAccountConfig, errors: List[str]
+    ) -> None:
+        """Validate account TLS CA file and append any errors."""
+        if not account.tls_ca_file:
+            return
+        try:
+            validate_tls_ca_path(account.tls_ca_file)
+        except NullByteInCAPathError:
+            errors.append(
+                f"Invalid TLS CA file path for {account.provider} "
+                "account: contains null bytes"
+            )
+        except FileNotFoundError:
+            errors.append(
+                f"TLS CA file does not exist or is not a file "
+                f"for {account.provider} account: {account.tls_ca_file}"
+            )
+        except ValueError:
+            errors.append(
+                f"TLS CA file path must stay within working tree "
+                f"for {account.provider} account: {account.tls_ca_file}"
+            )
+        except OSError as err:
+            errors.append(
+                f"Invalid TLS CA file path for {account.provider} " f"account: {err}"
+            )
+
+    def _add_account_tls_errors(
+        self, account: EmailAccountConfig, errors: List[str]
+    ) -> None:
+        """Validate account TLS CA and server hostname settings."""
+        self._append_tls_ca_error(account, errors)
+        if account.tls_server_hostname:
+            try:
+                validate_mail_server_host(account.tls_server_hostname)
+            except ValueError as err:
+                errors.append(
+                    f"Invalid TLS server hostname for {account.provider} account: {err}"
+                )
+
     def _validate_email_accounts(self) -> List[str]:
-        """Validate email account configurations."""
+        """Return account validation errors, or an empty list when valid.
+
+        Require at least one account, credentials, folders, a positive IMAP port,
+        and allowlisted mail hosts. Optional TLS CA paths must resolve to files
+        within the current working directory; TLS hostnames must be allowlisted.
+        CA path errors and hostname validation failures become error messages.
+        Certificate contents are not checked.
+        """
         errors = []
         if not self.email_accounts:
             errors.append("No email accounts configured. Enable at least one account.")
@@ -318,6 +396,7 @@ class Config:
                 errors.append(f"No folders configured for {account.provider} account")
             if account.imap_port <= 0:
                 errors.append(f"Invalid IMAP port for {account.provider} account")
+            self._add_account_tls_errors(account, errors)
             self._add_account_host_errors(account, errors)
         return errors
 
@@ -367,7 +446,11 @@ class Config:
         return errors
 
     def _validate_system(self) -> List[str]:
-        """Validate system configurations."""
+        """Return system setting errors, including an env path that is a directory.
+
+        Require positive attachment and log rotation limits, a recognized log
+        level, and text or JSON log format. A missing env file is not an error.
+        """
         errors = []
         if self.system.max_attachment_size_mb <= 0:
             errors.append("MAX_ATTACHMENT_SIZE_MB must be greater than zero")
@@ -385,6 +468,11 @@ class Config:
 
         if self.system.log_rotation_keep_files <= 0:
             errors.append("LOG_ROTATION_KEEP_FILES must be greater than zero")
+
+        if self._env_file and os.path.isdir(self._env_file):
+            errors.append(
+                f"Configuration path '{self._env_file}' is a directory, expected a file"
+            )
         return errors
 
     def validate(self) -> bool:

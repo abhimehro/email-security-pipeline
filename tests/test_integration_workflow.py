@@ -12,7 +12,8 @@ from unittest.mock import MagicMock, Mock, patch
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.modules.alert_system import AlertSystem, ThreatReport, generate_threat_report
+from src.modules.alert_report import generate_threat_report
+from src.modules.alert_system import AlertSystem, ThreatReport
 from src.modules.email_ingestion import EmailData
 from src.modules.media_analyzer import MediaAnalysisResult, MediaAuthenticityAnalyzer
 from src.modules.nlp_analyzer import NLPAnalysisResult, NLPThreatAnalyzer

@@ -169,7 +169,10 @@ def print_alert_metadata(
 def print_threat_score(score: float, risk_level: str, width: int, risk_color: str):
     """Print the threat score and progress bar."""
     score_val = min(max(score, 0), 100)
-    meter_len = 40
+    # Scale the meter with the card width. The offset keeps the legacy 40-cell
+    # meter on the former fixed 70-column card; the floor guards direct callers
+    # that pass a narrow width.
+    meter_len = max(20, width - 30)
     filled_len = int(score_val / 100 * meter_len)
     bar = "█" * filled_len + "░" * (meter_len - filled_len)
     meter_color = Colors.get_risk_color(risk_level)
@@ -403,20 +406,26 @@ def print_recommendations(recommendations: List[str], width: int, risk_color: st
     print_alert_row(Colors.colorize("RECOMMENDATIONS", Colors.BOLD), risk_color)
     print_alert_row("", risk_color)
 
-    for rec in recommendations:
-        # Compute uppercase before stripping prefixes so keyword matching matches
-        # the original implementation.
-        rec_upper = rec.upper()
-        rec = _strip_recommendation_prefix(rec)
-        color = _determine_recommendation_color(rec_upper)
-        icon = "►"
+    if not recommendations:
+        print_alert_row(
+            f"{Colors.colorize('✔', Colors.GREEN)} No specific actions required",
+            risk_color,
+        )
+    else:
+        for rec in recommendations:
+            # Compute uppercase before stripping prefixes so keyword matching matches
+            # the original implementation.
+            rec_upper = rec.upper()
+            rec = _strip_recommendation_prefix(rec)
+            color = _determine_recommendation_color(rec_upper)
+            icon = "►"
 
-        # Calculate available width for text
-        max_text_width = width - 8
+            # Calculate available width for text
+            max_text_width = width - 8
 
-        # Wrap text nicely
-        wrapped_lines = textwrap.wrap(rec, width=max_text_width)
-        _print_wrapped_lines(wrapped_lines, icon, color, risk_color)
+            # Wrap text nicely
+            wrapped_lines = textwrap.wrap(rec, width=max_text_width)
+            _print_wrapped_lines(wrapped_lines, icon, color, risk_color)
 
     # Bottom Border (└───┘)
     print(Colors.colorize(f"└{'─'*border_len}┘", risk_color))
@@ -426,7 +435,7 @@ def print_recommendations(recommendations: List[str], width: int, risk_color: st
 def render_alert(report: ThreatReport, limits: Dict[str, int]) -> None:
     """Render the full console alert card for a threat report."""
     # Configuration
-    width = 70
+    width = min(max(get_terminal_width(), 60), 100)
     risk_color = Colors.get_risk_color(report.risk_level)
     risk_symbol = Colors.get_risk_symbol(report.risk_level)
 

@@ -76,8 +76,8 @@ python3 -m pytest -v
 # Run a specific test file
 python3 -m pytest tests/test_spam_analyzer.py
 
-# Run with coverage (requires pytest-cov)
-python3 -m pip install pytest-cov
+# Run with coverage (pytest-cov is pinned in requirements-dev.txt)
+python3 -m pip install -r requirements-dev.txt
 python3 -m pytest --cov=src --cov-report=term-missing
 ```
 
