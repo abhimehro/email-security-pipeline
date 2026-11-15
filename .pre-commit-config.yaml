@@ -9,6 +9,7 @@ repos:
       - id: end-of-file-fixer
         exclude: ^patches/.*\.patch$
       - id: check-yaml
+        args: [--allow-multiple-documents]
       - id: check-added-large-files
         args: ["--maxkb=500"]
       - id: check-merge-conflict
