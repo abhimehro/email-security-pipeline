@@ -47,6 +47,9 @@
 
 **Closed issues:**
 
+- Daily QA & Agentic Review — 2026-11-14 [\#1920](https://github.com/abhimehro/email-security-pipeline/issues/1920)
+- Daily QA & Agentic Review — 2026-11-13 [\#1918](https://github.com/abhimehro/email-security-pipeline/issues/1918)
+- Daily QA & Agentic Review — 2026-11-12 [\#1916](https://github.com/abhimehro/email-security-pipeline/issues/1916)
 - Daily QA & Agentic Review — 2026-11-11 [\#1914](https://github.com/abhimehro/email-security-pipeline/issues/1914)
 - Daily QA & Agentic Review — 2026-11-10 [\#1897](https://github.com/abhimehro/email-security-pipeline/issues/1897)
 - Daily QA & Agentic Review — 2026-11-09 [\#1865](https://github.com/abhimehro/email-security-pipeline/issues/1865)
@@ -66,6 +69,7 @@
 - Daily QA & Agentic Review — 2026-10-14 [\#1762](https://github.com/abhimehro/email-security-pipeline/issues/1762)
 - Daily QA & Agentic Review — 2026-10-13 [\#1759](https://github.com/abhimehro/email-security-pipeline/issues/1759)
 - Daily QA & Agentic Review — 2026-10-12 [\#1755](https://github.com/abhimehro/email-security-pipeline/issues/1755)
+- PR sweep escalation: \#1736 gh-aw setup 0.89.21 -\> 0.91.3 \(workflow bump\) [\#1751](https://github.com/abhimehro/email-security-pipeline/issues/1751)
 - Daily QA & Agentic Review — 2026-10-11 [\#1746](https://github.com/abhimehro/email-security-pipeline/issues/1746)
 - \[repo-automation\] Weekly Retrospective - 2026-10-11 [\#1743](https://github.com/abhimehro/email-security-pipeline/issues/1743)
 - Daily QA & Agentic Review — 2026-10-10 [\#1742](https://github.com/abhimehro/email-security-pipeline/issues/1742)
@@ -96,6 +100,7 @@
 - \[PR sweep\] \#1633: AppRunner config path CYAN highlighting needs human decision [\#1678](https://github.com/abhimehro/email-security-pipeline/issues/1678)
 - \[PR sweep\] \#1643: Dynamic alert card width needs human decision [\#1677](https://github.com/abhimehro/email-security-pipeline/issues/1677)
 - \[PR sweep\] \#1650: Alert card recommendations empty state needs human decision [\#1676](https://github.com/abhimehro/email-security-pipeline/issues/1676)
+- \[PR sweep\] \#1656: Connectivity script ANSI styling refactor needs human decision [\#1675](https://github.com/abhimehro/email-security-pipeline/issues/1675)
 - \[PR sweep\] \#1661: Docker connectivity empty-state CLI needs human decision [\#1674](https://github.com/abhimehro/email-security-pipeline/issues/1674)
 - Daily QA & Agentic Review — 2026-09-29 [\#1673](https://github.com/abhimehro/email-security-pipeline/issues/1673)
 - \[repo-automation\] Daily Status Report - 2026-09-29 [\#1670](https://github.com/abhimehro/email-security-pipeline/issues/1670)
@@ -697,6 +702,7 @@
 - 🎨 Palette: Make alert card width adapt to terminal width [\#1643](https://github.com/abhimehro/email-security-pipeline/pull/1643) ([abhimehro](https://github.com/abhimehro))
 - 🎨 Palette: Refactor CountdownTimer cancellation message hint stripping [\#1639](https://github.com/abhimehro/email-security-pipeline/pull/1639) ([abhimehro](https://github.com/abhimehro))
 - ⚡ Bolt: optimize sanitize\_for\_logging fast paths [\#1638](https://github.com/abhimehro/email-security-pipeline/pull/1638) ([abhimehro](https://github.com/abhimehro))
+- chore\(devin\): add macOS pre-commit setup [\#1636](https://github.com/abhimehro/email-security-pipeline/pull/1636) ([abhimehro](https://github.com/abhimehro))
 - ⚡ Bolt: Add fast path to CSV formula injection sanitization [\#1623](https://github.com/abhimehro/email-security-pipeline/pull/1623) ([abhimehro](https://github.com/abhimehro))
 - chore\(deps\): sort requirements.txt alphabetically [\#1617](https://github.com/abhimehro/email-security-pipeline/pull/1617) ([abhimehro](https://github.com/abhimehro))
 - chore\(deps\): bump ruby/setup-ruby from 1.321.0 to 1.323.0 [\#1614](https://github.com/abhimehro/email-security-pipeline/pull/1614) ([dependabot[bot]](https://github.com/apps/dependabot))
