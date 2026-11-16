@@ -634,6 +634,7 @@
 
 **Merged pull requests:**
 
+- security\(ci\): pin remaining tag-based GitHub Actions to commit SHAs [\#1929](https://github.com/abhimehro/email-security-pipeline/pull/1929) ([abhimehro](https://github.com/abhimehro))
 - fix\(review\): revert \#1837 AlertSystem tests failing pytest on main [\#1928](https://github.com/abhimehro/email-security-pipeline/pull/1928) ([abhimehro](https://github.com/abhimehro))
 - 🧪 add unit tests for media analyzer [\#1909](https://github.com/abhimehro/email-security-pipeline/pull/1909) ([abhimehro](https://github.com/abhimehro))
 - ⚡ optimize regex prefix check in \_check\_hidden\_text [\#1908](https://github.com/abhimehro/email-security-pipeline/pull/1908) ([abhimehro](https://github.com/abhimehro))
