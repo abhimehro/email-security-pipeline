@@ -173,3 +173,15 @@ triggers ('@', '/services/', '/api/webhooks/'). Fast-path substring pre-checks
 bypass URL parsing and dictionary allocations, yielding a ~25x-34x speedup
 on clean inputs. **Action:** Add early substring guard checks before delegating
 to standard library URL parsers when evaluating collections of benign URLs.
+
+## 2026-09-03 - Decouple Alternating Regex Patterns with Prefix Guards
+
+**Learning:** When regex patterns combine branches with distinct literal
+prefixes (such as `font-size:\s*[0-2]px|color:\s*#fff...`), Python's regex
+engine cannot optimize with a unified literal prefix and scans character
+positions across the entire document. Decoupling the alternation into
+separate regex patterns guarded by their specific literal substring checks
+(`if prefix in text and pattern.search(text)`) avoids evaluating other
+branches across the document on benign or partially matching inputs.
+**Action:** Decouple alternation regexes into individual patterns with
+isolated literal substring pre-checks.

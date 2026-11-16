@@ -46,6 +46,17 @@ class ParseContext:
     current_total_size: int = 0
 
 
+@dataclass
+class BodyPartContext:
+    """Context for appending a body part with size limiting."""
+
+    parts: List[str]
+    current_len: int
+    new_part: str
+    body_type: str
+    safe_email_id: str
+
+
 logger = logging.getLogger(__name__)
 
 
@@ -415,41 +426,34 @@ class EmailParser:
 
     def _append_body_part(
         self,
-        parts: List[str],
-        current_len: int,
-        new_part: str,
-        body_type: str,
-        safe_email_id: str,
+        ctx: BodyPartContext,
     ) -> Tuple[List[str], int]:
         """
         Append body part with size checking and truncation.
 
         Args:
-            parts: List of body parts accumulated so far
-            current_len: Current total length
-            new_part: New part to append
-            body_type: "Body text" or "Body HTML" for logging
-            safe_email_id: Sanitized email ID for logging
+            ctx: BodyPartContext containing body parts, current length, new part,
+                body type, and sanitized email ID
 
         Returns:
             Tuple of (updated_parts, updated_len)
 
         """
-        remaining = self.max_body_size - current_len
+        remaining = self.max_body_size - ctx.current_len
 
-        if len(new_part) > remaining:
+        if len(ctx.new_part) > remaining:
             # Truncate to fit
-            new_part = new_part[:remaining]
-            parts.append(new_part)
-            new_len = current_len + len(new_part)
+            truncated_part = ctx.new_part[:remaining]
+            ctx.parts.append(truncated_part)
+            new_len = ctx.current_len + len(truncated_part)
             self.logger.warning(
-                f"{body_type} truncated to {self.max_body_size} bytes "
-                f"for email {safe_email_id}"
+                f"{ctx.body_type} truncated to {self.max_body_size} bytes "
+                f"for email {ctx.safe_email_id}"
             )
-            return parts, new_len
+            return ctx.parts, new_len
         else:
-            parts.append(new_part)
-            return parts, current_len + len(new_part)
+            ctx.parts.append(ctx.new_part)
+            return ctx.parts, ctx.current_len + len(ctx.new_part)
 
     def _add_body_content(
         self,
@@ -480,9 +484,14 @@ class EmailParser:
         current_len = body_dict[f"{key}_len"]
 
         if current_len < self.max_body_size:
-            parts, new_len = self._append_body_part(
-                body_dict[f"{key}_parts"], current_len, part_data, label, safe_email_id
+            part_ctx = BodyPartContext(
+                parts=body_dict[f"{key}_parts"],
+                current_len=current_len,
+                new_part=part_data,
+                body_type=label,
+                safe_email_id=safe_email_id,
             )
+            parts, new_len = self._append_body_part(part_ctx)
             body_dict[f"{key}_parts"] = parts
             body_dict[f"{key}_len"] = new_len
 
