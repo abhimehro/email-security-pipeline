@@ -117,6 +117,97 @@ class TestNLPAnalyzer(unittest.TestCase):
             NLPThreatAnalyzer(config)
             mock_init.assert_called_once()
 
+    def test_evaluate_rule_indicators_all_disabled(self):
+        """Verify _evaluate_rule_indicators returns zero and empty lists when flags are off."""
+        self.config.check_social_engineering = False
+        self.config.check_urgency_markers = False
+        self.config.check_authority_impersonation = False
+        self.config.check_psychological_triggers = False
+
+        matches = {
+            "SE": {"Account verification request": 2},
+            "UG": {"Time pressure": 1},
+            "AU": {"Authority title": ["ceo"]},
+            "PS": {"Reward temptation": 1},
+        }
+
+        score, se, ug, au, ps = self.analyzer._evaluate_rule_indicators(
+            matches, exclamation_count=5, caps_count=4, sender="ceo@example.com"
+        )
+        self.assertEqual(score, 0.0)
+        self.assertEqual(se, [])
+        self.assertEqual(ug, [])
+        self.assertEqual(au, [])
+        self.assertEqual(ps, [])
+
+    def test_evaluate_rule_indicators_all_enabled(self):
+        """Verify _evaluate_rule_indicators accumulates scores and indicators when flags are on."""
+        matches = {
+            "SE": {"Account verification request": 1},
+            "UG": {"Urgency keyword": 1},
+            "AU": {"Authority title": ["ceo"]},
+            "PS": {"Reward temptation": 1},
+        }
+
+        score, se, ug, au, ps = self.analyzer._evaluate_rule_indicators(
+            matches, exclamation_count=4, caps_count=5, sender="ceo@random.com"
+        )
+        self.assertGreater(score, 0.0)
+        self.assertEqual(len(se), 1)
+        self.assertGreater(len(ug), 0)
+        self.assertEqual(len(au), 1)
+        self.assertEqual(len(ps), 1)
+
+    def test_evaluate_ml_indicators_when_unloaded(self):
+        """Verify _evaluate_ml_indicators returns (0.0, []) when model/tokenizer are absent."""
+        self.analyzer.model = None
+        self.analyzer.tokenizer = None
+        email = EmailData(
+            message_id="test",
+            subject="Hello",
+            sender="user@example.com",
+            recipient="recipient@example.com",
+            date=datetime.now(),
+            body_text="World",
+            body_html="",
+            headers={},
+            attachments=[],
+            raw_email=None,
+            account_email="recipient@example.com",
+            folder="Inbox",
+        )
+        score, indicators = self.analyzer._evaluate_ml_indicators(email)
+        self.assertEqual(score, 0.0)
+        self.assertEqual(indicators, [])
+
+    def test_evaluate_ml_indicators_when_model_present(self):
+        """Verify _evaluate_ml_indicators delegates to _run_transformer_analysis."""
+        self.analyzer.model = object()
+        self.analyzer.tokenizer = object()
+        email = EmailData(
+            message_id="test",
+            subject="Hello",
+            sender="user@example.com",
+            recipient="recipient@example.com",
+            date=datetime.now(),
+            body_text="World",
+            body_html="",
+            headers={},
+            attachments=[],
+            raw_email=None,
+            account_email="recipient@example.com",
+            folder="Inbox",
+        )
+        with patch.object(
+            self.analyzer,
+            "_run_transformer_analysis",
+            return_value=(8.5, ["ML Threat Detected"]),
+        ) as mock_run:
+            score, indicators = self.analyzer._evaluate_ml_indicators(email)
+            mock_run.assert_called_once_with(email)
+            self.assertEqual(score, 8.5)
+            self.assertEqual(indicators, ["ML Threat Detected"])
+
 
 if __name__ == "__main__":
     unittest.main()
