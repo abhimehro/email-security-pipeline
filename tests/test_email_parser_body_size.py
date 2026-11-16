@@ -11,7 +11,7 @@ contracts so any accidental weakening is caught immediately.
 import unittest
 from unittest.mock import MagicMock, patch
 
-from src.modules.email_parser import EmailParser, EmailParserConfig
+from src.modules.email_parser import BodyPartContext, EmailParser, EmailParserConfig
 from src.utils.config import EmailAccountConfig
 
 # ---------------------------------------------------------------------------
@@ -59,13 +59,13 @@ class TestAppendBodyPart(unittest.TestCase):
     Tests for EmailParser._append_body_part.
 
     The method signature is:
-        _append_body_part(parts, current_len, new_part, body_type, safe_email_id)
+        _append_body_part(ctx: BodyPartContext)
             -> (updated_parts, updated_len)
 
     Key contract:
-        remaining = max_body_size - current_len
-        if len(new_part) > remaining  → truncate to remaining, log warning
-        else                          → append unchanged, no warning
+        remaining = max_body_size - ctx.current_len
+        if len(ctx.new_part) > remaining  → truncate to remaining, log warning
+        else                              → append unchanged, no warning
     """
 
     def setUp(self):
@@ -77,9 +77,14 @@ class TestAppendBodyPart(unittest.TestCase):
         """A part shorter than the remaining budget is appended as-is."""
         parts = []
         new_part = "x" * 40  # 40 bytes; remaining = 100 − 0 = 100
-        updated_parts, updated_len = self.parser._append_body_part(
-            parts, 0, new_part, "Body text", "test-id"
+        ctx = BodyPartContext(
+            parts=parts,
+            current_len=0,
+            new_part=new_part,
+            body_type="Body text",
+            safe_email_id="test-id",
         )
+        updated_parts, updated_len = self.parser._append_body_part(ctx)
         self.assertEqual(updated_parts, [new_part])
         self.assertEqual(updated_len, 40)
         self.parser.logger.warning.assert_not_called()
@@ -93,9 +98,14 @@ class TestAppendBodyPart(unittest.TestCase):
         """
         parts = []
         new_part = "y" * _SMALL_MAX  # len == remaining (100 − 0 = 100)
-        updated_parts, updated_len = self.parser._append_body_part(
-            parts, 0, new_part, "Body text", "test-id"
+        ctx = BodyPartContext(
+            parts=parts,
+            current_len=0,
+            new_part=new_part,
+            body_type="Body text",
+            safe_email_id="test-id",
         )
+        updated_parts, updated_len = self.parser._append_body_part(ctx)
         self.assertEqual(updated_parts, [new_part])
         self.assertEqual(updated_len, _SMALL_MAX)
         self.parser.logger.warning.assert_not_called()
@@ -111,9 +121,14 @@ class TestAppendBodyPart(unittest.TestCase):
         """
         parts = []
         new_part = "z" * (_SMALL_MAX + 1)  # 101 bytes; remaining = 100
-        updated_parts, updated_len = self.parser._append_body_part(
-            parts, 0, new_part, "Body text", "test-id"
+        ctx = BodyPartContext(
+            parts=parts,
+            current_len=0,
+            new_part=new_part,
+            body_type="Body text",
+            safe_email_id="test-id",
         )
+        updated_parts, updated_len = self.parser._append_body_part(ctx)
         self.assertEqual(len(updated_parts), 1)
         self.assertEqual(len(updated_parts[0]), _SMALL_MAX)  # exactly 100
         self.assertEqual(updated_len, _SMALL_MAX)
@@ -124,9 +139,14 @@ class TestAppendBodyPart(unittest.TestCase):
         current_len = 60
         remaining = _SMALL_MAX - current_len  # 40 bytes
         new_part = "a" * 500  # far exceeds remaining
-        updated_parts, updated_len = self.parser._append_body_part(
-            [], current_len, new_part, "Body HTML", "test-id"
+        ctx = BodyPartContext(
+            parts=[],
+            current_len=current_len,
+            new_part=new_part,
+            body_type="Body HTML",
+            safe_email_id="test-id",
         )
+        updated_parts, updated_len = self.parser._append_body_part(ctx)
         self.assertEqual(len(updated_parts[0]), remaining)
         self.assertEqual(updated_len, _SMALL_MAX)
         self.parser.logger.warning.assert_called_once()
@@ -139,12 +159,33 @@ class TestAppendBodyPart(unittest.TestCase):
         empty string and a warning is still logged.
         """
         parts = []
-        updated_parts, updated_len = self.parser._append_body_part(
-            parts, _SMALL_MAX, "overflow", "Body text", "test-id"
+        ctx = BodyPartContext(
+            parts=parts,
+            current_len=_SMALL_MAX,
+            new_part="overflow",
+            body_type="Body text",
+            safe_email_id="test-id",
         )
+        updated_parts, updated_len = self.parser._append_body_part(ctx)
         self.assertEqual(updated_parts, [""])
         self.assertEqual(updated_len, _SMALL_MAX)
         self.parser.logger.warning.assert_called_once()
+
+    def test_body_part_context_dataclass(self):
+        """Test BodyPartContext initialization and attributes."""
+        parts = ["hello"]
+        ctx = BodyPartContext(
+            parts=parts,
+            current_len=5,
+            new_part="world",
+            body_type="Body text",
+            safe_email_id="safe-123",
+        )
+        self.assertEqual(ctx.parts, ["hello"])
+        self.assertEqual(ctx.current_len, 5)
+        self.assertEqual(ctx.new_part, "world")
+        self.assertEqual(ctx.body_type, "Body text")
+        self.assertEqual(ctx.safe_email_id, "safe-123")
 
 
 # ---------------------------------------------------------------------------
