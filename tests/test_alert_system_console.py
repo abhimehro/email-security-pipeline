@@ -587,6 +587,175 @@ class TestSpamHeaderIssueRows(unittest.TestCase):
         self.assertEqual(rows, expected)
 
 
+class TestPrintAlertHeader(unittest.TestCase):
+    """Unit tests for print_alert_header in alert_console."""
+
+    def _render_header(self, risk_level: str, render_config) -> str:
+        """Invoke print_alert_header without colors and capture its stdout."""
+        from src.modules.alert_console import print_alert_header
+        from src.utils.colors import Colors
+
+        captured = StringIO()
+        with (
+            patch("sys.stdout", captured),
+            patch.object(Colors, "ENABLED", False),
+        ):
+            print_alert_header(risk_level, render_config)
+        return captured.getvalue()
+
+    def test_print_alert_header_standard_output(self):
+        """Header prints expected top border, title, risk label, symbol, and separator."""
+        from src.modules.alert_report import RenderConfig
+
+        config = RenderConfig(width=80, risk_color="", risk_symbol="🔴")
+        output = self._render_header("high", config)
+        lines = output.splitlines()
+
+        self.assertEqual(lines[0], "")
+        self.assertEqual(lines[1], "┌" + "─" * 78 + "┐")
+        self.assertIn("🚨 SECURITY ALERT", lines[2])
+        self.assertIn("HIGH RISK 🔴", lines[2])
+        self.assertEqual(lines[3], "├" + "─" * 78 + "┤")
+
+    def test_print_alert_header_narrow_width_clamps_padding(self):
+        """Narrow card widths clamp padding_len to a minimum of 1 space without errors."""
+        from src.modules.alert_report import RenderConfig
+
+        config = RenderConfig(width=20, risk_color="", risk_symbol="💥")
+        output = self._render_header("critical", config)
+        lines = output.splitlines()
+
+        self.assertEqual(lines[1], "┌" + "─" * 18 + "┐")
+        self.assertIn("🚨 SECURITY ALERT CRITICAL RISK 💥", lines[2])
+        self.assertEqual(lines[3], "├" + "─" * 18 + "┤")
+
+    def test_print_alert_header_case_insensitivity_and_symbols(self):
+        """Risk levels are uppercase-formatted and match the corresponding risk symbol."""
+        from src.modules.alert_report import RenderConfig
+
+        scenarios = [
+            ("low", "🟢", "LOW RISK"),
+            ("critical", "💥", "CRITICAL RISK"),
+            ("Medium", "🟡", "MEDIUM RISK"),
+        ]
+        for level, symbol, expected_label in scenarios:
+            config = RenderConfig(width=70, risk_color="", risk_symbol=symbol)
+            output = self._render_header(level, config)
+            self.assertIn(f"{expected_label} {symbol}", output)
+
+    def test_print_alert_header_colorization(self):
+        """ANSI color and bold codes are applied when Colors are enabled."""
+        from src.modules.alert_console import print_alert_header
+        from src.modules.alert_report import RenderConfig
+        from src.utils.colors import Colors
+
+        risk_color = "\033[91m"
+        bold_code = "\033[1m"
+        reset_code = "\033[0m"
+        config = RenderConfig(width=60, risk_color=risk_color, risk_symbol="🔴")
+
+        captured = StringIO()
+        with (
+            patch("sys.stdout", captured),
+            patch.object(Colors, "ENABLED", True),
+            patch.object(Colors, "BOLD", bold_code),
+            patch.object(Colors, "RESET", reset_code),
+        ):
+            print_alert_header("high", config)
+        output = captured.getvalue()
+
+        expected_top = f"{risk_color}┌{'─'*58}┐{reset_code}"
+        expected_sep = f"{risk_color}├{'─'*58}┤{reset_code}"
+        expected_title = f"{bold_code}🚨 SECURITY ALERT{reset_code}"
+        expected_label = f"{risk_color}{bold_code}HIGH RISK{reset_code}"
+
+        self.assertIn(expected_top, output)
+        self.assertIn(expected_sep, output)
+        self.assertIn(expected_title, output)
+        self.assertIn(expected_label, output)
+
+
+class TestPrintNlpDetails(unittest.TestCase):
+    """Unit tests for print_nlp_details in alert_console."""
+
+    def _render_nlp(
+        self,
+        nlp_data: dict,
+        risk_color: str = "",
+        max_nlp: int = 3,
+        colors_enabled: bool = False,
+    ) -> str:
+        """Capture output of print_nlp_details."""
+        from src.modules.alert_console import print_nlp_details
+
+        captured = StringIO()
+        with (
+            patch("src.utils.colors.Colors.ENABLED", colors_enabled),
+            patch("sys.stdout", captured),
+        ):
+            print_nlp_details(nlp_data, risk_color, max_nlp)
+        return captured.getvalue()
+
+    def test_clean_nlp_shows_success_message(self) -> None:
+        """Clean NLP dictionary shows success indicator and message."""
+        output = self._render_nlp({})
+        self.assertIn("No NLP threats detected", output)
+        self.assertIn("✔", output)
+
+    def test_all_indicator_types_rendered(self) -> None:
+        """All four NLP indicator categories render with titles and bullets."""
+        nlp_data = {
+            "social_engineering_indicators": ["Phishing attempt detected"],
+            "urgency_markers": ["Immediate action required"],
+            "authority_impersonation": ["Impersonating executive"],
+            "psychological_triggers": ["Fear of account closure"],
+        }
+        output = self._render_nlp(nlp_data, max_nlp=3)
+        self.assertNotIn("No NLP threats detected", output)
+        self.assertIn("Social Engineering:", output)
+        self.assertIn("Phishing attempt detected", output)
+        self.assertIn("Urgency Markers:", output)
+        self.assertIn("Immediate action required", output)
+        self.assertIn("Authority Impersonation:", output)
+        self.assertIn("Impersonating executive", output)
+        self.assertIn("Psychological Triggers:", output)
+        self.assertIn("Fear of account closure", output)
+        self.assertEqual(output.count("•"), 4)
+
+    def test_max_nlp_limits_items_per_category(self) -> None:
+        """Indicators exceeding max_nlp are truncated."""
+        nlp_data = {
+            "urgency_markers": [
+                "Urgent 1",
+                "Urgent 2",
+                "Urgent 3",
+                "Urgent 4",
+                "Urgent 5",
+            ],
+        }
+        output = self._render_nlp(nlp_data, max_nlp=2)
+        self.assertIn("Urgent 1", output)
+        self.assertIn("Urgent 2", output)
+        self.assertNotIn("Urgent 3", output)
+        self.assertNotIn("Urgent 4", output)
+        self.assertNotIn("Urgent 5", output)
+        self.assertEqual(output.count("•"), 2)
+
+    def test_partial_indicators_only_renders_present_categories(self) -> None:
+        """Categories that are empty or omitted are not displayed."""
+        nlp_data = {
+            "social_engineering_indicators": ["Wire transfer request"],
+            "urgency_markers": [],
+        }
+        output = self._render_nlp(nlp_data, max_nlp=3)
+        self.assertIn("Social Engineering:", output)
+        self.assertIn("Wire transfer request", output)
+        self.assertNotIn("Urgency Markers:", output)
+        self.assertNotIn("Authority Impersonation:", output)
+        self.assertNotIn("Psychological Triggers:", output)
+        self.assertNotIn("No NLP threats detected", output)
+
+
 class TestSafeConsoleUrl(unittest.TestCase):
     """Unit tests for safe_console_url in src.modules.alert_console."""
 
