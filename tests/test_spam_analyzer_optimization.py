@@ -61,3 +61,33 @@ def test_shorteners_still_caught(spam_analyzer):
     score, suspicious = spam_analyzer._check_urls(urls)
     assert score == 1.0  # 0.5 * 2
     assert len(suspicious) == 2
+
+
+@pytest.mark.parametrize(
+    "html_content,expected_detected",
+    [
+        ("<p style='font-size: 0px'>hidden text</p>", True),
+        ("<p style='font-size: 1px'>hidden text</p>", True),
+        ("<p style='font-size: 2px'>hidden text</p>", True),
+        ("<p style='font-size: 3px'>normal text</p>", False),
+        ("<p style='font-size: 14px'>normal text</p>", False),
+        ("<p style='color: #ffffff; background-color: #ffffff'>hidden</p>", True),
+        ("<p style='color: #fff; background: #fff'>hidden</p>", True),
+        ("<p style='color: #333333;'>normal text</p>", False),
+        ("<p style='color: #333333; background: #ffffff;'>normal text</p>", False),
+        ("<p style='background: #ffffff;'>normal text</p>", False),
+        ("<p>clean plain html without style</p>", False),
+        (
+            "<div style='font-size: 0px; color: #fff; background: #fff'>both</div>",
+            True,
+        ),
+    ],
+)
+def test_hidden_text_detection_cases(spam_analyzer, html_content, expected_detected):
+    score, indicators = spam_analyzer._check_hidden_text(html_content.lower())
+    if expected_detected:
+        assert score == 2.0
+        assert "Hidden text detected" in indicators
+    else:
+        assert score == 0.0
+        assert indicators == []
