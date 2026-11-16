@@ -2,7 +2,9 @@ import os
 import subprocess  # nosec B404
 import sys
 import unittest
+from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
 from unittest.mock import MagicMock, mock_open, patch
 
 from src.utils.setup_wizard import (
@@ -12,6 +14,17 @@ from src.utils.setup_wizard import (
     main,
     run_setup_wizard,
 )
+
+
+@dataclass
+class WizardEdgeCase:
+    """Encapsulates input parameters and expectations for setup wizard edge cases."""
+
+    inputs: list[Any]
+    expected: bool
+    connect_success: bool = True
+    read_effect: Any = None
+    write_success: bool = True
 
 
 class TestSetupWizard(unittest.TestCase):
@@ -322,9 +335,7 @@ OUTLOOK_APP_PASSWORD=password
         self.assertTrue(found_redacted)
         self.assertTrue(found_tip)
 
-    def _run_edge_case(
-        self, inputs, connect_success, read_effect, write_success, expected
-    ):
+    def _run_edge_case(self, scenario: WizardEdgeCase):
         with patch("pathlib.Path.exists", return_value=True), patch(
             "builtins.open"
         ) as mock_open_func, patch("os.open", return_value=123), patch(
@@ -334,41 +345,62 @@ OUTLOOK_APP_PASSWORD=password
         ), patch(
             "getpass.getpass", return_value="password"
         ), patch(
-            "builtins.input", side_effect=inputs
+            "builtins.input", side_effect=scenario.inputs
         ), patch(
             "src.utils.setup_wizard.IMAPConnection"
         ) as mock_imap, patch(
-            "src.utils.setup_wizard._write_config_file", return_value=write_success
+            "src.utils.setup_wizard._write_config_file",
+            return_value=scenario.write_success,
         ):
 
-            mock_imap.return_value.connect.return_value = connect_success
+            mock_imap.return_value.connect.return_value = scenario.connect_success
 
-            if read_effect:
-                mock_open_func.side_effect = read_effect
+            if scenario.read_effect:
+                mock_open_func.side_effect = scenario.read_effect
             else:
                 mock_open_func.return_value.__enter__.return_value.read.return_value = (
                     self.example_content
                 )
 
             result = run_setup_wizard(config_file=".env", template_file=".env.example")
-            self.assertEqual(result, expected)
+            self.assertEqual(result, scenario.expected)
 
     def test_keyboard_interrupt(self):
-        self._run_edge_case([KeyboardInterrupt()], True, None, True, False)
+        self._run_edge_case(
+            WizardEdgeCase(inputs=[KeyboardInterrupt()], expected=False)
+        )
 
     def test_eof_error(self):
-        self._run_edge_case(["1", EOFError()], True, None, True, False)
+        self._run_edge_case(
+            WizardEdgeCase(inputs=["1", EOFError()], expected=False)
+        )
 
     def test_template_read_error(self):
         self._run_edge_case(
-            ["1", "test@gmail.com", "y"], True, Exception("Read error"), True, False
+            WizardEdgeCase(
+                inputs=["1", "test@gmail.com", "y"],
+                read_effect=Exception("Read error"),
+                expected=False,
+            )
         )
 
     def test_write_config_error(self):
-        self._run_edge_case(["1", "test@gmail.com", "y"], True, None, False, False)
+        self._run_edge_case(
+            WizardEdgeCase(
+                inputs=["1", "test@gmail.com", "y"],
+                write_success=False,
+                expected=False,
+            )
+        )
 
     def test_skip_verification(self):
-        self._run_edge_case(["1", "test@gmail.com", "n"], False, None, True, True)
+        self._run_edge_case(
+            WizardEdgeCase(
+                inputs=["1", "test@gmail.com", "n"],
+                connect_success=False,
+                expected=True,
+            )
+        )
 
 
 class TestSetupWizardCLI(unittest.TestCase):
@@ -377,19 +409,19 @@ class TestSetupWizardCLI(unittest.TestCase):
     @patch("src.utils.setup_wizard.sys.stdin.isatty", return_value=False)
     def test_main_requires_tty(self, _mock_isatty):
         """CLI should fail immediately without a TTY."""
-        self.assertEqual(main(), 1)
+        self.assertEqual(main([]), 1)
 
     @patch("src.utils.setup_wizard.sys.stdin.isatty", return_value=True)
     @patch("src.utils.setup_wizard.run_setup_wizard", return_value=True)
     def test_main_success(self, _mock_wizard, _mock_isatty):
         """CLI should return 0 when the wizard succeeds."""
-        self.assertEqual(main(), 0)
+        self.assertEqual(main([]), 0)
 
     @patch("src.utils.setup_wizard.sys.stdin.isatty", return_value=True)
     @patch("src.utils.setup_wizard.run_setup_wizard", return_value=False)
     def test_main_failure(self, _mock_wizard, _mock_isatty):
         """CLI should return 1 when the wizard returns False."""
-        self.assertEqual(main(), 1)
+        self.assertEqual(main([]), 1)
 
     @patch("src.utils.setup_wizard.sys.stdin.isatty", return_value=True)
     @patch(
@@ -398,7 +430,7 @@ class TestSetupWizardCLI(unittest.TestCase):
     )
     def test_main_skip(self, _mock_wizard, _mock_isatty):
         """CLI should return 2 when the wizard is skipped."""
-        self.assertEqual(main(), 2)
+        self.assertEqual(main([]), 2)
 
     @patch("src.utils.setup_wizard.sys.stdin.isatty", return_value=True)
     @patch(
@@ -407,7 +439,7 @@ class TestSetupWizardCLI(unittest.TestCase):
     )
     def test_main_eof(self, _mock_wizard, _mock_isatty):
         """CLI should return 1 on unexpected EOF."""
-        self.assertEqual(main(), 1)
+        self.assertEqual(main([]), 1)
 
     def test_cli_module_invocation_requires_tty(self):
         """The real module invocation should fail cleanly without a TTY."""

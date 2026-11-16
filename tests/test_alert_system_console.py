@@ -302,5 +302,589 @@ class TestConsoleAlert(unittest.TestCase):
         self.assertNotIn("█" * 51, output)
 
 
+class TestPrintAlertMetadata(unittest.TestCase):
+    """Unit tests for print_alert_metadata."""
+
+    def _render_metadata(
+        self, report, width: int = 80, formatted_time: str = "2023-10-24"
+    ) -> str:
+        """Helper to invoke print_alert_metadata and capture stdout."""
+        from src.modules.alert_console import print_alert_metadata
+
+        captured = StringIO()
+        with patch("sys.stdout", captured), patch("src.utils.colors.Colors.colorize", side_effect=lambda text, color: text):
+            print_alert_metadata(
+                report, width=width, risk_color="", formatted_time=formatted_time
+            )
+        return captured.getvalue()
+
+    def test_print_alert_metadata_basic(self):
+        """Test basic metadata printing without truncation."""
+        report = _make_clean_report(
+            subject="Urgent invoice",
+            sender="finance@example.com",
+            recipient="accounting@example.com",
+        )
+        output = self._render_metadata(
+            report, formatted_time="Oct 24, 2023 at 10:00:00"
+        )
+
+        self.assertIn("Timestamp: Oct 24, 2023 at 10:00:00", output)
+        self.assertIn("Subject:   Urgent invoice", output)
+        self.assertIn("From:      finance@example.com", output)
+        self.assertIn("To:        accounting@example.com", output)
+
+    def test_print_alert_metadata_truncation(self):
+        """Test fields exceeding max_field_len (width - 15) are truncated with ellipsis."""
+        width = 40  # max_field_len = 25
+        long_subject = "A" * 30
+        report = _make_clean_report(
+            subject=long_subject,
+            sender="user@example.com",
+            recipient="target@example.com",
+        )
+        output = self._render_metadata(report, width=width)
+
+        # max_field_len is 25, so truncated to 25 - 3 = 22 characters + '...'
+        expected_subject = "A" * 22 + "..."
+        self.assertIn(f"Subject:   {expected_subject}", output)
+        self.assertNotIn(long_subject, output)
+
+    def test_print_alert_metadata_exact_boundary(self):
+        """Test fields exactly at max_field_len are not truncated."""
+        width = 40  # max_field_len = 25
+        exact_subject = "B" * 25
+        report = _make_clean_report(
+            subject=exact_subject,
+            sender="user@example.com",
+            recipient="target@example.com",
+        )
+        output = self._render_metadata(report, width=width)
+
+        self.assertIn(f"Subject:   {exact_subject}", output)
+        self.assertNotIn("...", output)
+
+    def test_print_alert_metadata_csv_sanitization(self):
+        """Test fields with formula injection prefixes are sanitized."""
+        report = _make_clean_report(
+            subject="=1+1",
+            sender="@danger.com",
+            recipient="+12345",
+        )
+        output = self._render_metadata(report)
+
+        # CSV safe sanitization prefixes formula chars (=, +, -, @) with single quote
+        self.assertIn("Subject:   '=1+1", output)
+        self.assertIn("From:      '@danger.com", output)
+        self.assertIn("To:        '+12345", output)
+
+    def test_print_alert_metadata_empty_or_none_fields(self):
+        """Test handling of empty and None fields without crashing."""
+        report_empty = _make_clean_report(
+            subject="",
+            sender="",
+            recipient="",
+        )
+        output_empty = self._render_metadata(report_empty)
+        self.assertIn("Subject:", output_empty)
+        self.assertIn("From:", output_empty)
+        self.assertIn("To:", output_empty)
+
+        report_none = _make_clean_report(
+            subject=None,
+            sender=None,
+            recipient=None,
+        )
+        output_none = self._render_metadata(report_none)
+        self.assertIn("Subject:", output_none)
+        self.assertIn("From:", output_none)
+        self.assertIn("To:", output_none)
+class TestSpamIndicatorRows(unittest.TestCase):
+    """Unit tests for spam_indicator_rows helper function."""
+
+    def test_empty_indicators_returns_empty_list(self):
+        """Empty indicators list returns an empty list."""
+        from src.modules.alert_console import spam_indicator_rows
+
+        rows = spam_indicator_rows([], max_spam=5)
+        self.assertEqual(rows, [])
+
+    def test_indicators_within_limit(self):
+        """Indicators within max_spam limit are all returned with indent 3."""
+        from src.modules.alert_console import spam_indicator_rows
+        from src.utils.colors import Colors
+
+        indicators = ["Excessive exclamation marks", "Spam words detected"]
+        rows = spam_indicator_rows(indicators, max_spam=5)
+
+        self.assertEqual(len(rows), 2)
+        bullet = Colors.colorize("•", Colors.GREY)
+        for i, indicator in enumerate(indicators):
+            text, indent = rows[i]
+            self.assertEqual(text, f"{bullet} {indicator}")
+            self.assertEqual(indent, 3)
+
+    def test_indicators_exceeding_limit_truncated(self):
+        """Indicators exceeding max_spam limit are truncated to max_spam."""
+        from src.modules.alert_console import spam_indicator_rows
+
+        indicators = [f"Indicator {i}" for i in range(10)]
+        rows = spam_indicator_rows(indicators, max_spam=3)
+
+        self.assertEqual(len(rows), 3)
+        self.assertTrue(rows[0][0].endswith("Indicator 0"))
+        self.assertTrue(rows[1][0].endswith("Indicator 1"))
+        self.assertTrue(rows[2][0].endswith("Indicator 2"))
+
+    def test_max_spam_zero(self):
+        """Zero max_spam returns an empty list."""
+        from src.modules.alert_console import spam_indicator_rows
+
+        indicators = ["Spam indicator 1", "Spam indicator 2"]
+        self.assertEqual(spam_indicator_rows(indicators, max_spam=0), [])
+
+    def test_colorized_bullet_formatting(self):
+        """Row items contain grey bullet and expected indentation."""
+        from src.modules.alert_console import spam_indicator_rows
+        from src.utils.colors import Colors
+
+        with (
+            patch.object(Colors, "ENABLED", True),
+            patch.object(Colors, "GREY", "\033[90m"),
+            patch.object(Colors, "RESET", "\033[0m"),
+        ):
+            rows = spam_indicator_rows(["Suspicious phrase"], max_spam=1)
+            self.assertEqual(len(rows), 1)
+            text, indent = rows[0]
+            self.assertEqual(indent, 3)
+            self.assertIn("Suspicious phrase", text)
+            self.assertIn("\033[90m•\033[0m", text)
+class TestPrintAlertRow(unittest.TestCase):
+    """Unit tests for print_alert_row helper function in alert_console."""
+
+    def test_default_indent(self) -> None:
+        """print_alert_row with default indent produces left border and two spaces."""
+        from src.modules.alert_console import print_alert_row
+        from src.utils.colors import Colors
+
+        captured = StringIO()
+        with (
+            patch("sys.stdout", captured),
+            patch.object(Colors, "ENABLED", False),
+        ):
+            print_alert_row("Sample alert text", Colors.RED)
+
+        self.assertEqual(captured.getvalue(), "│  Sample alert text\n")
+
+    def test_custom_indent(self) -> None:
+        """print_alert_row with custom indent produces 2 + indent spaces."""
+        from src.modules.alert_console import print_alert_row
+        from src.utils.colors import Colors
+
+        captured = StringIO()
+        with (
+            patch("sys.stdout", captured),
+            patch.object(Colors, "ENABLED", False),
+        ):
+            print_alert_row("Indented line", Colors.YELLOW, indent=4)
+
+        # 2 default + 4 custom indent = 6 spaces
+        self.assertEqual(captured.getvalue(), "│      Indented line\n")
+
+    def test_empty_text(self) -> None:
+        """print_alert_row with empty text renders border and spacing without errors."""
+        from src.modules.alert_console import print_alert_row
+        from src.utils.colors import Colors
+
+        captured = StringIO()
+        with (
+            patch("sys.stdout", captured),
+            patch.object(Colors, "ENABLED", False),
+        ):
+            print_alert_row("", Colors.GREEN)
+
+        self.assertEqual(captured.getvalue(), "│  \n")
+
+    def test_colors_enabled(self) -> None:
+        """print_alert_row wraps the border character with ANSI color codes when enabled."""
+        from src.modules.alert_console import print_alert_row
+        from src.utils.colors import Colors
+
+        test_color = "\033[91m"
+        reset_code = "\033[0m"
+        captured = StringIO()
+        with (
+            patch("sys.stdout", captured),
+            patch.object(Colors, "ENABLED", True),
+            patch.object(Colors, "RESET", reset_code),
+        ):
+            print_alert_row("Colored border text", test_color, indent=1)
+
+        expected = f"{test_color}│{reset_code}   Colored border text\n"
+        self.assertEqual(captured.getvalue(), expected)
+
+
+class TestSpamHeaderIssueRows(unittest.TestCase):
+    """Unit tests for spam_header_issue_rows in alert_console."""
+
+    def test_empty_header_issues_returns_empty_list(self):
+        """Empty header issues input should return an empty list of rows."""
+        from src.modules.alert_console import spam_header_issue_rows
+
+        rows = spam_header_issue_rows([], 5)
+        self.assertEqual(rows, [])
+
+    def test_header_issues_under_max_limit(self):
+        """Header issues count below max limit should include all issues."""
+        from src.modules.alert_console import spam_header_issue_rows
+
+        issues = ["SPF failure detected", "DKIM signature invalid"]
+        rows = spam_header_issue_rows(issues, 5)
+
+        self.assertEqual(len(rows), 3)
+        self.assertEqual(rows[0][1], 3)
+        self.assertIn("Header Issues:", rows[0][0])
+        self.assertEqual(rows[1][1], 5)
+        self.assertIn("SPF failure detected", rows[1][0])
+        self.assertEqual(rows[2][1], 5)
+        self.assertIn("DKIM signature invalid", rows[2][0])
+
+    def test_header_issues_exceeding_max_limit_truncated(self):
+        """Header issues exceeding max limit should be sliced to max_header items."""
+        from src.modules.alert_console import spam_header_issue_rows
+
+        issues = ["Issue 1", "Issue 2", "Issue 3", "Issue 4"]
+        rows = spam_header_issue_rows(issues, 2)
+
+        self.assertEqual(len(rows), 3)
+        self.assertIn("Header Issues:", rows[0][0])
+        self.assertIn("Issue 1", rows[1][0])
+        self.assertIn("Issue 2", rows[2][0])
+
+    def test_header_issues_with_zero_max_limit(self):
+        """Zero max limit should output only the title header row and zero issues."""
+        from src.modules.alert_console import spam_header_issue_rows
+
+        issues = ["Issue 1", "Issue 2"]
+        rows = spam_header_issue_rows(issues, 0)
+
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0][1], 3)
+        self.assertIn("Header Issues:", rows[0][0])
+
+    def test_header_issues_content_and_colors_disabled(self):
+        """Formatted rows without ANSI colors verify literal text and bullets."""
+        from src.modules.alert_console import spam_header_issue_rows
+
+        issues = ["Missing Message-ID"]
+        with patch("src.utils.colors.Colors.ENABLED", False):
+            rows = spam_header_issue_rows(issues, 5)
+
+        expected = [
+            ("Header Issues:", 3),
+            ("• Missing Message-ID", 5),
+        ]
+        self.assertEqual(rows, expected)
+
+
+class TestPrintAlertHeader(unittest.TestCase):
+    """Unit tests for print_alert_header in alert_console."""
+
+    def _render_header(self, risk_level: str, render_config) -> str:
+        """Invoke print_alert_header without colors and capture its stdout."""
+        from src.modules.alert_console import print_alert_header
+        from src.utils.colors import Colors
+
+        captured = StringIO()
+        with (
+            patch("sys.stdout", captured),
+            patch.object(Colors, "ENABLED", False),
+        ):
+            print_alert_header(risk_level, render_config)
+        return captured.getvalue()
+
+    def test_print_alert_header_standard_output(self):
+        """Header prints expected top border, title, risk label, symbol, and separator."""
+        from src.modules.alert_report import RenderConfig
+
+        config = RenderConfig(width=80, risk_color="", risk_symbol="🔴")
+        output = self._render_header("high", config)
+        lines = output.splitlines()
+
+        self.assertEqual(lines[0], "")
+        self.assertEqual(lines[1], "┌" + "─" * 78 + "┐")
+        self.assertIn("🚨 SECURITY ALERT", lines[2])
+        self.assertIn("HIGH RISK 🔴", lines[2])
+        self.assertEqual(lines[3], "├" + "─" * 78 + "┤")
+
+    def test_print_alert_header_narrow_width_clamps_padding(self):
+        """Narrow card widths clamp padding_len to a minimum of 1 space without errors."""
+        from src.modules.alert_report import RenderConfig
+
+        config = RenderConfig(width=20, risk_color="", risk_symbol="💥")
+        output = self._render_header("critical", config)
+        lines = output.splitlines()
+
+        self.assertEqual(lines[1], "┌" + "─" * 18 + "┐")
+        self.assertIn("🚨 SECURITY ALERT CRITICAL RISK 💥", lines[2])
+        self.assertEqual(lines[3], "├" + "─" * 18 + "┤")
+
+    def test_print_alert_header_case_insensitivity_and_symbols(self):
+        """Risk levels are uppercase-formatted and match the corresponding risk symbol."""
+        from src.modules.alert_report import RenderConfig
+
+        scenarios = [
+            ("low", "🟢", "LOW RISK"),
+            ("critical", "💥", "CRITICAL RISK"),
+            ("Medium", "🟡", "MEDIUM RISK"),
+        ]
+        for level, symbol, expected_label in scenarios:
+            config = RenderConfig(width=70, risk_color="", risk_symbol=symbol)
+            output = self._render_header(level, config)
+            self.assertIn(f"{expected_label} {symbol}", output)
+
+    def test_print_alert_header_colorization(self):
+        """ANSI color and bold codes are applied when Colors are enabled."""
+        from src.modules.alert_console import print_alert_header
+        from src.modules.alert_report import RenderConfig
+        from src.utils.colors import Colors
+
+        risk_color = "\033[91m"
+        bold_code = "\033[1m"
+        reset_code = "\033[0m"
+        config = RenderConfig(width=60, risk_color=risk_color, risk_symbol="🔴")
+
+        captured = StringIO()
+        with (
+            patch("sys.stdout", captured),
+            patch.object(Colors, "ENABLED", True),
+            patch.object(Colors, "BOLD", bold_code),
+            patch.object(Colors, "RESET", reset_code),
+        ):
+            print_alert_header("high", config)
+        output = captured.getvalue()
+
+        expected_top = f"{risk_color}┌{'─'*58}┐{reset_code}"
+        expected_sep = f"{risk_color}├{'─'*58}┤{reset_code}"
+        expected_title = f"{bold_code}🚨 SECURITY ALERT{reset_code}"
+        expected_label = f"{risk_color}{bold_code}HIGH RISK{reset_code}"
+
+        self.assertIn(expected_top, output)
+        self.assertIn(expected_sep, output)
+        self.assertIn(expected_title, output)
+        self.assertIn(expected_label, output)
+
+
+class TestPrintNlpDetails(unittest.TestCase):
+    """Unit tests for print_nlp_details in alert_console."""
+
+    def _render_nlp(
+        self,
+        nlp_data: dict,
+        risk_color: str = "",
+        max_nlp: int = 3,
+        colors_enabled: bool = False,
+    ) -> str:
+        """Capture output of print_nlp_details."""
+        from src.modules.alert_console import print_nlp_details
+
+        captured = StringIO()
+        with (
+            patch("src.utils.colors.Colors.ENABLED", colors_enabled),
+            patch("sys.stdout", captured),
+        ):
+            print_nlp_details(nlp_data, risk_color, max_nlp)
+        return captured.getvalue()
+
+    def test_clean_nlp_shows_success_message(self) -> None:
+        """Clean NLP dictionary shows success indicator and message."""
+        output = self._render_nlp({})
+        self.assertIn("No NLP threats detected", output)
+        self.assertIn("✔", output)
+
+    def test_all_indicator_types_rendered(self) -> None:
+        """All four NLP indicator categories render with titles and bullets."""
+        nlp_data = {
+            "social_engineering_indicators": ["Phishing attempt detected"],
+            "urgency_markers": ["Immediate action required"],
+            "authority_impersonation": ["Impersonating executive"],
+            "psychological_triggers": ["Fear of account closure"],
+        }
+        output = self._render_nlp(nlp_data, max_nlp=3)
+        self.assertNotIn("No NLP threats detected", output)
+        self.assertIn("Social Engineering:", output)
+        self.assertIn("Phishing attempt detected", output)
+        self.assertIn("Urgency Markers:", output)
+        self.assertIn("Immediate action required", output)
+        self.assertIn("Authority Impersonation:", output)
+        self.assertIn("Impersonating executive", output)
+        self.assertIn("Psychological Triggers:", output)
+        self.assertIn("Fear of account closure", output)
+        self.assertEqual(output.count("•"), 4)
+
+    def test_max_nlp_limits_items_per_category(self) -> None:
+        """Indicators exceeding max_nlp are truncated."""
+        nlp_data = {
+            "urgency_markers": [
+                "Urgent 1",
+                "Urgent 2",
+                "Urgent 3",
+                "Urgent 4",
+                "Urgent 5",
+            ],
+        }
+        output = self._render_nlp(nlp_data, max_nlp=2)
+        self.assertIn("Urgent 1", output)
+        self.assertIn("Urgent 2", output)
+        self.assertNotIn("Urgent 3", output)
+        self.assertNotIn("Urgent 4", output)
+        self.assertNotIn("Urgent 5", output)
+        self.assertEqual(output.count("•"), 2)
+
+    def test_partial_indicators_only_renders_present_categories(self) -> None:
+        """Categories that are empty or omitted are not displayed."""
+        nlp_data = {
+            "social_engineering_indicators": ["Wire transfer request"],
+            "urgency_markers": [],
+        }
+        output = self._render_nlp(nlp_data, max_nlp=3)
+        self.assertIn("Social Engineering:", output)
+        self.assertIn("Wire transfer request", output)
+        self.assertNotIn("Urgency Markers:", output)
+        self.assertNotIn("Authority Impersonation:", output)
+        self.assertNotIn("Psychological Triggers:", output)
+        self.assertNotIn("No NLP threats detected", output)
+
+
+class TestSafeConsoleUrl(unittest.TestCase):
+    """Unit tests for safe_console_url in src.modules.alert_console."""
+
+    def test_clean_url_unchanged(self):
+        """Clean URLs without sensitive params or escape codes remain unchanged."""
+        from src.modules.alert_console import safe_console_url
+
+        url = "https://example.com/path/to/page?page=1&sort=desc"
+        self.assertEqual(safe_console_url(url), url)
+
+    def test_redacts_sensitive_query_parameters(self):
+        """Sensitive query parameters are redacted."""
+        from src.modules.alert_console import safe_console_url
+
+        url = "https://example.com/api?token=secret123&user=alice&apikey=xyz"
+        result = safe_console_url(url)
+        self.assertNotIn("secret123", result)
+        self.assertNotIn("xyz", result)
+        self.assertIn("token=[REDACTED]", result)
+        self.assertIn("apikey=[REDACTED]", result)
+        self.assertIn("user=alice", result)
+
+    def test_replaces_percent_encoded_redacted_tokens(self):
+        """Percent-encoded redacted tokens (%5bREDACTED%5d) are replaced with [REDACTED]."""
+        from src.modules.alert_console import safe_console_url
+
+        url = "https://example.com/?auth=%5bREDACTED%5d&key=%5BREDACTED%5D"
+        result = safe_console_url(url)
+        self.assertNotIn("%5bREDACTED%5d", result)
+        self.assertNotIn("%5BREDACTED%5D", result)
+        self.assertIn("auth=[REDACTED]", result)
+        self.assertIn("key=[REDACTED]", result)
+
+    def test_strips_ansi_escape_sequences(self):
+        """ANSI terminal escape sequences embedded in URLs are removed."""
+        from src.modules.alert_console import safe_console_url
+
+        url = "https://evil.example.com/" + chr(27) + "[31mevil" + chr(27) + "[0m?token=secret"
+        result = safe_console_url(url)
+        self.assertNotIn(chr(27), result)
+        self.assertNotIn("secret", result)
+        self.assertIn("https://evil.example.com/evil?token=[REDACTED]", result)
+
+    def test_sanitizes_csv_formula_injection(self):
+        """URLs prefixed with CSV formula triggers are prefixed with a quote."""
+        from src.modules.alert_console import safe_console_url
+
+        for prefix in ("=", "+", "-", "@"):
+            url = f"{prefix}https://evil.example.com"
+            result = safe_console_url(url)
+            self.assertTrue(result.startswith("'"), msg=f"Failed for prefix: {prefix}")
+            self.assertEqual(result, f"'{url}")
+
+    def test_handles_empty_and_control_characters(self):
+        """Empty string returns empty, and control characters/whitespace are normalized."""
+        from src.modules.alert_console import safe_console_url
+
+        self.assertEqual(safe_console_url(""), "")
+        dirty_url = "https://example.com/" + chr(10) + chr(13) + chr(9) + "resource"
+        result = safe_console_url(dirty_url)
+        self.assertNotIn(chr(10), result)
+        self.assertNotIn(chr(13), result)
+        self.assertNotIn(chr(9), result)
+        self.assertEqual(result, "https://example.com/   resource")
+
+
+class TestPrintAnalysisSectionHeader(unittest.TestCase):
+    """Unit tests for print_analysis_section_header in alert_console."""
+
+    @staticmethod
+    def _render_header(
+        title: str, analysis_data: dict, risk_color: str, colors_enabled: bool = False
+    ) -> str:
+        """Render header via print_analysis_section_header and capture stdout."""
+        from src.modules.alert_console import print_analysis_section_header
+
+        captured = StringIO()
+        with (
+            patch("sys.stdout", captured),
+            patch("src.utils.colors.Colors.ENABLED", colors_enabled),
+        ):
+            print_analysis_section_header(title, analysis_data, risk_color)
+        return captured.getvalue()
+
+    def test_known_risk_levels_without_colors(self) -> None:
+        """Test formatting of known risk levels (high, medium, low) without colors."""
+        scenarios = (
+            ("high", "🔴"),
+            ("medium", "🟡"),
+            ("low", "🟢"),
+        )
+        for risk_level, expected_symbol in scenarios:
+            output = self._render_header(
+                "📧 SPAM", {"risk_level": risk_level}, "", colors_enabled=False
+            )
+            expected = f"│  📧 SPAM: {risk_level.upper()} {expected_symbol}\n"
+            self.assertEqual(output, expected)
+
+    def test_missing_risk_level_defaults_to_unknown(self) -> None:
+        """When risk_level is omitted, defaults to unknown with neutral symbol."""
+        output = self._render_header("🧠 NLP", {}, "", colors_enabled=False)
+        self.assertEqual(output, "│  🧠 NLP: UNKNOWN ⚪\n")
+
+    def test_custom_or_unrecognized_risk_level(self) -> None:
+        """Unrecognized risk level strings are uppercased and use neutral symbol."""
+        output = self._render_header(
+            "📎 MEDIA", {"risk_level": "critical"}, "", colors_enabled=False
+        )
+        self.assertEqual(output, "│  📎 MEDIA: CRITICAL ⚪\n")
+
+    def test_colorized_output_structure(self) -> None:
+        """When Colors.ENABLED is True, verify color codes and risk_color border."""
+        from src.utils.colors import Colors
+
+        output = self._render_header(
+            "📧 SPAM",
+            {"risk_level": "high"},
+            Colors.RED,
+            colors_enabled=True,
+        )
+        # Left border should be colored with risk_color
+        self.assertIn(Colors.colorize("│", Colors.RED), output)
+        # Title should be bolded
+        self.assertIn(Colors.colorize("📧 SPAM:", Colors.BOLD), output)
+        # Risk level should be uppercase and colored in RED
+        self.assertIn(Colors.colorize("HIGH", Colors.RED), output)
+        # Symbol included
+        self.assertIn("🔴", output)
+
+
 if __name__ == "__main__":
     unittest.main()
