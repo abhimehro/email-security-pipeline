@@ -302,6 +302,228 @@ class TestConsoleAlert(unittest.TestCase):
         self.assertNotIn("█" * 51, output)
 
 
+class TestPrintAlertMetadata(unittest.TestCase):
+    """Unit tests for print_alert_metadata."""
+
+    def _render_metadata(
+        self, report, width: int = 80, formatted_time: str = "2023-10-24"
+    ) -> str:
+        """Helper to invoke print_alert_metadata and capture stdout."""
+        from src.modules.alert_console import print_alert_metadata
+
+        captured = StringIO()
+        with patch("sys.stdout", captured), patch("src.utils.colors.Colors.colorize", side_effect=lambda text, color: text):
+            print_alert_metadata(
+                report, width=width, risk_color="", formatted_time=formatted_time
+            )
+        return captured.getvalue()
+
+    def test_print_alert_metadata_basic(self):
+        """Test basic metadata printing without truncation."""
+        report = _make_clean_report(
+            subject="Urgent invoice",
+            sender="finance@example.com",
+            recipient="accounting@example.com",
+        )
+        output = self._render_metadata(
+            report, formatted_time="Oct 24, 2023 at 10:00:00"
+        )
+
+        self.assertIn("Timestamp: Oct 24, 2023 at 10:00:00", output)
+        self.assertIn("Subject:   Urgent invoice", output)
+        self.assertIn("From:      finance@example.com", output)
+        self.assertIn("To:        accounting@example.com", output)
+
+    def test_print_alert_metadata_truncation(self):
+        """Test fields exceeding max_field_len (width - 15) are truncated with ellipsis."""
+        width = 40  # max_field_len = 25
+        long_subject = "A" * 30
+        report = _make_clean_report(
+            subject=long_subject,
+            sender="user@example.com",
+            recipient="target@example.com",
+        )
+        output = self._render_metadata(report, width=width)
+
+        # max_field_len is 25, so truncated to 25 - 3 = 22 characters + '...'
+        expected_subject = "A" * 22 + "..."
+        self.assertIn(f"Subject:   {expected_subject}", output)
+        self.assertNotIn(long_subject, output)
+
+    def test_print_alert_metadata_exact_boundary(self):
+        """Test fields exactly at max_field_len are not truncated."""
+        width = 40  # max_field_len = 25
+        exact_subject = "B" * 25
+        report = _make_clean_report(
+            subject=exact_subject,
+            sender="user@example.com",
+            recipient="target@example.com",
+        )
+        output = self._render_metadata(report, width=width)
+
+        self.assertIn(f"Subject:   {exact_subject}", output)
+        self.assertNotIn("...", output)
+
+    def test_print_alert_metadata_csv_sanitization(self):
+        """Test fields with formula injection prefixes are sanitized."""
+        report = _make_clean_report(
+            subject="=1+1",
+            sender="@danger.com",
+            recipient="+12345",
+        )
+        output = self._render_metadata(report)
+
+        # CSV safe sanitization prefixes formula chars (=, +, -, @) with single quote
+        self.assertIn("Subject:   '=1+1", output)
+        self.assertIn("From:      '@danger.com", output)
+        self.assertIn("To:        '+12345", output)
+
+    def test_print_alert_metadata_empty_or_none_fields(self):
+        """Test handling of empty and None fields without crashing."""
+        report_empty = _make_clean_report(
+            subject="",
+            sender="",
+            recipient="",
+        )
+        output_empty = self._render_metadata(report_empty)
+        self.assertIn("Subject:", output_empty)
+        self.assertIn("From:", output_empty)
+        self.assertIn("To:", output_empty)
+
+        report_none = _make_clean_report(
+            subject=None,
+            sender=None,
+            recipient=None,
+        )
+        output_none = self._render_metadata(report_none)
+        self.assertIn("Subject:", output_none)
+        self.assertIn("From:", output_none)
+        self.assertIn("To:", output_none)
+class TestSpamIndicatorRows(unittest.TestCase):
+    """Unit tests for spam_indicator_rows helper function."""
+
+    def test_empty_indicators_returns_empty_list(self):
+        """Empty indicators list returns an empty list."""
+        from src.modules.alert_console import spam_indicator_rows
+
+        rows = spam_indicator_rows([], max_spam=5)
+        self.assertEqual(rows, [])
+
+    def test_indicators_within_limit(self):
+        """Indicators within max_spam limit are all returned with indent 3."""
+        from src.modules.alert_console import spam_indicator_rows
+        from src.utils.colors import Colors
+
+        indicators = ["Excessive exclamation marks", "Spam words detected"]
+        rows = spam_indicator_rows(indicators, max_spam=5)
+
+        self.assertEqual(len(rows), 2)
+        bullet = Colors.colorize("•", Colors.GREY)
+        for i, indicator in enumerate(indicators):
+            text, indent = rows[i]
+            self.assertEqual(text, f"{bullet} {indicator}")
+            self.assertEqual(indent, 3)
+
+    def test_indicators_exceeding_limit_truncated(self):
+        """Indicators exceeding max_spam limit are truncated to max_spam."""
+        from src.modules.alert_console import spam_indicator_rows
+
+        indicators = [f"Indicator {i}" for i in range(10)]
+        rows = spam_indicator_rows(indicators, max_spam=3)
+
+        self.assertEqual(len(rows), 3)
+        self.assertTrue(rows[0][0].endswith("Indicator 0"))
+        self.assertTrue(rows[1][0].endswith("Indicator 1"))
+        self.assertTrue(rows[2][0].endswith("Indicator 2"))
+
+    def test_max_spam_zero(self):
+        """Zero max_spam returns an empty list."""
+        from src.modules.alert_console import spam_indicator_rows
+
+        indicators = ["Spam indicator 1", "Spam indicator 2"]
+        self.assertEqual(spam_indicator_rows(indicators, max_spam=0), [])
+
+    def test_colorized_bullet_formatting(self):
+        """Row items contain grey bullet and expected indentation."""
+        from src.modules.alert_console import spam_indicator_rows
+        from src.utils.colors import Colors
+
+        with (
+            patch.object(Colors, "ENABLED", True),
+            patch.object(Colors, "GREY", "\033[90m"),
+            patch.object(Colors, "RESET", "\033[0m"),
+        ):
+            rows = spam_indicator_rows(["Suspicious phrase"], max_spam=1)
+            self.assertEqual(len(rows), 1)
+            text, indent = rows[0]
+            self.assertEqual(indent, 3)
+            self.assertIn("Suspicious phrase", text)
+            self.assertIn("\033[90m•\033[0m", text)
+class TestPrintAlertRow(unittest.TestCase):
+    """Unit tests for print_alert_row helper function in alert_console."""
+
+    def test_default_indent(self) -> None:
+        """print_alert_row with default indent produces left border and two spaces."""
+        from src.modules.alert_console import print_alert_row
+        from src.utils.colors import Colors
+
+        captured = StringIO()
+        with (
+            patch("sys.stdout", captured),
+            patch.object(Colors, "ENABLED", False),
+        ):
+            print_alert_row("Sample alert text", Colors.RED)
+
+        self.assertEqual(captured.getvalue(), "│  Sample alert text\n")
+
+    def test_custom_indent(self) -> None:
+        """print_alert_row with custom indent produces 2 + indent spaces."""
+        from src.modules.alert_console import print_alert_row
+        from src.utils.colors import Colors
+
+        captured = StringIO()
+        with (
+            patch("sys.stdout", captured),
+            patch.object(Colors, "ENABLED", False),
+        ):
+            print_alert_row("Indented line", Colors.YELLOW, indent=4)
+
+        # 2 default + 4 custom indent = 6 spaces
+        self.assertEqual(captured.getvalue(), "│      Indented line\n")
+
+    def test_empty_text(self) -> None:
+        """print_alert_row with empty text renders border and spacing without errors."""
+        from src.modules.alert_console import print_alert_row
+        from src.utils.colors import Colors
+
+        captured = StringIO()
+        with (
+            patch("sys.stdout", captured),
+            patch.object(Colors, "ENABLED", False),
+        ):
+            print_alert_row("", Colors.GREEN)
+
+        self.assertEqual(captured.getvalue(), "│  \n")
+
+    def test_colors_enabled(self) -> None:
+        """print_alert_row wraps the border character with ANSI color codes when enabled."""
+        from src.modules.alert_console import print_alert_row
+        from src.utils.colors import Colors
+
+        test_color = "\033[91m"
+        reset_code = "\033[0m"
+        captured = StringIO()
+        with (
+            patch("sys.stdout", captured),
+            patch.object(Colors, "ENABLED", True),
+            patch.object(Colors, "RESET", reset_code),
+        ):
+            print_alert_row("Colored border text", test_color, indent=1)
+
+        expected = f"{test_color}│{reset_code}   Colored border text\n"
+        self.assertEqual(captured.getvalue(), expected)
+
+
 class TestSpamHeaderIssueRows(unittest.TestCase):
     """Unit tests for spam_header_issue_rows in alert_console."""
 
