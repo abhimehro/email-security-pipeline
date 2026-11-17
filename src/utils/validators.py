@@ -5,9 +5,26 @@ from typing import List
 from src.utils.config import Config
 
 
-def _is_placeholder_password(password: str) -> bool:
+# SECURITY: Generic placeholder keywords that indicate unset credentials.
+# Avoids storing actual secrets or provider-specific default passwords.
+_GENERIC_PLACEHOLDERS = frozenset(
+    {"changeme", "password", "default", "placeholder"}
+)
+
+
+def _is_placeholder_pattern(val: str) -> bool:
+    """Check if a normalized string matches dynamic placeholder patterns.
+
+    Identifies templates such as 'your-*-here' or 'your-*password*' without
+    relying on specific hardcoded secret strings.
     """
-    Check if a password matches placeholder patterns or is empty.
+    if val.startswith("your-") and val.endswith("-here"):
+        return True
+    return val.startswith("your-") and "password" in val
+
+
+def _is_placeholder_password(password: str) -> bool:
+    """Check if a password matches placeholder patterns or is empty.
 
     Avoids storing hardcoded default passwords in source code.
     """
@@ -15,12 +32,13 @@ def _is_placeholder_password(password: str) -> bool:
         return True
 
     val = str(password).strip().lower()
-    return val.startswith("your-") and val.endswith("-here")
+    if val in _GENERIC_PLACEHOLDERS:
+        return True
+    return _is_placeholder_pattern(val)
 
 
 def check_default_credentials(config: Config) -> List[str]:
-    """
-    Check if the configuration uses default example values.
+    """Check if the configuration uses default example values.
 
     Returns a list of error messages.
     """

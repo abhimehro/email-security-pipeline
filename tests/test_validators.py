@@ -1,3 +1,5 @@
+"""Unit tests for credential and configuration validators."""
+
 import unittest
 from unittest.mock import MagicMock, Mock
 
@@ -120,12 +122,36 @@ SCENARIOS = [
         None,
         ["Gmail account enabled but uses default password"],
     ),
+    (
+        "readme_placeholder_password",
+        True,
+        "safe@domain.org",
+        "your-app-password",
+        False,
+        None,
+        False,
+        None,
+        ["Gmail account enabled but uses default password"],
+    ),
+    (
+        "generic_placeholder_password",
+        True,
+        "safe@domain.org",
+        "changeme",
+        False,
+        None,
+        False,
+        None,
+        ["Gmail account enabled but uses default password"],
+    ),
 ]
 
 
 class TestValidators(unittest.TestCase):
+    """Test suite for credential validation routines."""
+
     def setUp(self):
-        # Create a mock config
+        """Set up mock configuration for validator tests."""
         self.config = MagicMock(spec=Config)
         self.config.email_accounts = []
         self.config.alerts = MagicMock(spec=AlertConfig)
@@ -133,6 +159,7 @@ class TestValidators(unittest.TestCase):
         self.config.alerts.slack_enabled = False
 
     def test_check_default_credentials(self):
+        """Test detection of default example credentials across providers."""
         for (
             name,
             acc_enabled,
@@ -167,11 +194,19 @@ class TestValidators(unittest.TestCase):
                 self.assertEqual(errors, expected)
 
     def test_is_placeholder_password(self):
+        """Test dynamic placeholder pattern matching for passwords."""
         self.assertTrue(_is_placeholder_password(""))
         self.assertTrue(_is_placeholder_password("   "))
         self.assertTrue(_is_placeholder_password("your-app-password-here"))
         self.assertTrue(_is_placeholder_password("your-bridge-password-here"))
         self.assertTrue(_is_placeholder_password("YOUR-PASSWORD-HERE"))
+        self.assertTrue(_is_placeholder_password("your-app-password"))
+        self.assertTrue(_is_placeholder_password("your-bridge-password"))
+        self.assertTrue(_is_placeholder_password("your-16-char-app-password"))
+        self.assertTrue(_is_placeholder_password("changeme"))
+        self.assertTrue(_is_placeholder_password("password"))
+        self.assertTrue(_is_placeholder_password("default"))
+        self.assertTrue(_is_placeholder_password("placeholder"))
         self.assertFalse(_is_placeholder_password("valid-app-token-1234"))
         self.assertFalse(_is_placeholder_password("my-secret-key"))
 
