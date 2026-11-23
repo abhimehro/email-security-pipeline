@@ -637,6 +637,7 @@
 
 **Merged pull requests:**
 
+- chore\(deps\): bump numpy from 2.5.4 to 2.5.5 [\#1938](https://github.com/abhimehro/email-security-pipeline/pull/1938) ([dependabot[bot]](https://github.com/apps/dependabot))
 - security\(ci\): pin remaining tag-based GitHub Actions to commit SHAs [\#1929](https://github.com/abhimehro/email-security-pipeline/pull/1929) ([abhimehro](https://github.com/abhimehro))
 - fix\(review\): revert \#1837 AlertSystem tests failing pytest on main [\#1928](https://github.com/abhimehro/email-security-pipeline/pull/1928) ([abhimehro](https://github.com/abhimehro))
 - 🧪 add unit tests for media analyzer [\#1909](https://github.com/abhimehro/email-security-pipeline/pull/1909) ([abhimehro](https://github.com/abhimehro))
