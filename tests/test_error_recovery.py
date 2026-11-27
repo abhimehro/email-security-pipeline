@@ -4,7 +4,6 @@ Tests error handling, connection recovery, and graceful degradation scenarios.
 """
 
 import imaplib
-import socket
 import ssl
 import sys
 import tempfile
@@ -56,7 +55,7 @@ class TestIMAPErrorRecovery(unittest.TestCase):
         """
         with patch("src.modules.email_ingestion.imaplib.IMAP4_SSL") as mock_imap:
             # Simulate connection timeout
-            mock_imap.side_effect = socket.timeout("Connection timed out")
+            mock_imap.side_effect = TimeoutError("Connection timed out")
 
             # Attempt to connect
             result = self.client.connect()
@@ -150,7 +149,8 @@ class TestIMAPErrorRecovery(unittest.TestCase):
         """
         SECURITY STORY: This tests handling of incomplete email downloads.
         If an email is too large or connection drops mid-transfer, we should
-        skip it rather than processing corrupted data which could bypass security checks.
+        skip it rather than processing corrupted data which could bypass
+        security checks.
         """
         self.client.connection = MagicMock()
 
@@ -258,7 +258,8 @@ class TestEmailIngestionManagerRecovery(unittest.TestCase):
 
     def test_partial_account_initialization_failure(self):
         """
-        SECURITY STORY: This tests graceful handling when some accounts fail to initialize.
+        SECURITY STORY: This tests graceful handling when some accounts fail to
+        initialize.
         In production, one account might have wrong credentials while others are fine.
         We should continue monitoring working accounts rather than failing completely.
 
@@ -284,7 +285,8 @@ class TestEmailIngestionManagerRecovery(unittest.TestCase):
 
     def test_single_account_fetch_failure_isolation(self):
         """
-        SECURITY STORY: This tests that fetch failures in one account don't affect others.
+        SECURITY STORY: This tests that fetch failures in one account don't affect
+        others.
         If account isolation fails, an attacker who compromises one account could
         potentially DoS the entire monitoring system by causing fetch errors.
         """
@@ -513,7 +515,8 @@ class TestMonitoringLoopErrorRecovery(unittest.TestCase):
                     "monitoring_loop_error"
                 )
 
-                # Verify that CountdownTimer.wait was called to pause for 30s before retrying
+                # Verify that CountdownTimer.wait was called to pause for 30s
+                # before retrying
                 from src.utils.colors import Colors
 
                 mock_timer.wait.assert_called_with(

@@ -18,7 +18,7 @@ class TestMainErrorHandling(unittest.TestCase):
         self.log_file = str(Path(self._log_dir.name) / "test.log")
 
     def test_analyze_email_error_handling(self):
-        """Test that _analyze_email correctly handles exceptions and records them to metrics."""
+        """Test that _analyze_email handles exceptions and records them to metrics."""
         with patch("src.main.Config") as mock_config, patch(
             "src.main.EmailIngestionManager"
         ), patch("src.main.SpamAnalyzer"), patch("src.main.NLPThreatAnalyzer"), patch(

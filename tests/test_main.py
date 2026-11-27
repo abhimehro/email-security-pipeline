@@ -19,9 +19,13 @@ def _create_mock_pipeline_config(
     log_format: str = "text",
     accounts: list | None = None,
 ):
-    """Helper to build a mock Config instance for EmailSecurityPipeline."""
+    """Helper to build a mock Config instance for EmailSecurityPipeline.
+
+    `log_file` is intentionally left unset here: the `mock_pipeline_deps`
+    fixture overrides it with a `tmp_path` location so tests never write into
+    the repo's `logs/` directory.
+    """
     mock_config = MagicMock()
-    mock_config.system.log_file = "logs/test.log"
     mock_config.system.log_level = "INFO"
     mock_config.system.log_format = log_format
     mock_config.system.log_rotation_size_mb = 10

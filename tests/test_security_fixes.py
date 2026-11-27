@@ -1,5 +1,6 @@
 import logging
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import MagicMock, patch
@@ -18,13 +19,19 @@ from src.modules.email_ingestion import EmailAccountConfig, IMAPClient
 
 class TestSecurityFixes(unittest.TestCase):
 
+    def setUp(self):
+        """Create an isolated log directory so tests never write into logs/."""
+        self._log_dir = tempfile.TemporaryDirectory()
+        self.addCleanup(self._log_dir.cleanup)
+        self.log_file = str(Path(self._log_dir.name) / "test.log")
+
     @patch("src.main.RotatingFileHandler")
     @patch("src.main.Config")
     def test_logging_uses_rotating_handler(self, mock_config, mock_rotating_handler):
         """Test that RotatingFileHandler is used with configurable size/count."""
         # Setup mock config with new rotation settings
         mock_config_instance = mock_config.return_value
-        mock_config_instance.system.log_file = "logs/test.log"
+        mock_config_instance.system.log_file = self.log_file
         mock_config_instance.system.log_level = "INFO"
         mock_config_instance.system.log_format = "text"
         mock_config_instance.system.log_rotation_size_mb = 10
@@ -52,7 +59,7 @@ class TestSecurityFixes(unittest.TestCase):
 
             # Verify RotatingFileHandler was initialized with configurable values
             mock_rotating_handler.assert_called_with(
-                "logs/test.log",
+                self.log_file,
                 maxBytes=10 * 1024 * 1024,  # 10MB in bytes
                 backupCount=5,
             )
