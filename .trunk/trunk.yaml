@@ -21,7 +21,7 @@ lint:
     - actionlint@1.7.12
     - bandit@1.9.4
     - black@26.10.1
-    - checkov@3.4.6
+    - checkov@3.4.11
     - deno@2.9.8
     - dotenv-linter@4.0.0
     - git-diff-check
@@ -34,7 +34,7 @@ lint:
     - taplo@0.10.0
     - terrascan@1.19.9
     - trivy@0.76.2
-    - trufflehog@3.100.0
+    - trufflehog@3.100.1
     - yamllint@1.38.0
 actions:
   definitions:
@@ -65,4 +65,4 @@ tools:
   enabled:
     - snyk@1.1295.0
     - trivy@0.76.2
-    - trufflehog@3.100.0
+    - trufflehog@3.100.1
