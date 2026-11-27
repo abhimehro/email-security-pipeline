@@ -7,6 +7,7 @@ import imaplib
 import socket
 import ssl
 import sys
+import tempfile
 import unittest
 from datetime import datetime
 from pathlib import Path
@@ -453,6 +454,12 @@ class TestGracefulDegradation(unittest.TestCase):
 class TestMonitoringLoopErrorRecovery(unittest.TestCase):
     """Test error handling and recovery in the main monitoring loop."""
 
+    def setUp(self):
+        """Create an isolated log directory so tests never write into logs/."""
+        self._log_dir = tempfile.TemporaryDirectory()
+        self.addCleanup(self._log_dir.cleanup)
+        self.log_file = str(Path(self._log_dir.name) / "test.log")
+
     @patch("src.main.RotatingFileHandler")
     @patch("src.main.Config")
     def test_monitoring_loop_error_handling(self, mock_config, mock_rotating_handler):
@@ -462,7 +469,7 @@ class TestMonitoringLoopErrorRecovery(unittest.TestCase):
         on a transient failure, records metrics properly, and attempts to recover.
         """
         mock_config_instance = mock_config.return_value
-        mock_config_instance.system.log_file = "logs/test.log"
+        mock_config_instance.system.log_file = self.log_file
         mock_config_instance.system.log_level = "INFO"
         mock_config_instance.system.log_format = "text"
         mock_config_instance.system.log_rotation_size_mb = 10

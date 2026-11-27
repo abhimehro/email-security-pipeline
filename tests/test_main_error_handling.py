@@ -1,4 +1,5 @@
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import MagicMock, patch
@@ -10,6 +11,12 @@ from src.main import EmailSecurityPipeline
 
 
 class TestMainErrorHandling(unittest.TestCase):
+    def setUp(self):
+        """Create an isolated log directory so tests never write into logs/."""
+        self._log_dir = tempfile.TemporaryDirectory()
+        self.addCleanup(self._log_dir.cleanup)
+        self.log_file = str(Path(self._log_dir.name) / "test.log")
+
     def test_analyze_email_error_handling(self):
         """Test that _analyze_email correctly handles exceptions and records them to metrics."""
         with patch("src.main.Config") as mock_config, patch(
@@ -22,7 +29,7 @@ class TestMainErrorHandling(unittest.TestCase):
 
             # Setup mock config
             mock_config_instance = mock_config.return_value
-            mock_config_instance.system.log_file = "logs/test.log"
+            mock_config_instance.system.log_file = self.log_file
             mock_config_instance.system.log_level = "INFO"
             mock_config_instance.system.log_format = "text"
             mock_config_instance.system.log_rotation_size_mb = 10
@@ -77,7 +84,7 @@ class TestMainErrorHandling(unittest.TestCase):
         ):
             # Setup mock config to avoid logging init errors
             mock_config_instance = mock_config.return_value
-            mock_config_instance.system.log_file = "logs/test.log"
+            mock_config_instance.system.log_file = self.log_file
             mock_config_instance.system.log_level = "INFO"
             mock_config_instance.system.log_format = "text"
             mock_config_instance.system.log_rotation_size_mb = 10
@@ -108,7 +115,7 @@ class TestMainErrorHandling(unittest.TestCase):
         ):
             # Setup mock config to avoid logging init errors
             mock_config_instance = mock_config.return_value
-            mock_config_instance.system.log_file = "logs/test.log"
+            mock_config_instance.system.log_file = self.log_file
             mock_config_instance.system.log_level = "INFO"
             mock_config_instance.system.log_format = "text"
             mock_config_instance.system.log_rotation_size_mb = 10
