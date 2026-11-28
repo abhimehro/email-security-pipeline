@@ -121,16 +121,10 @@ def _validate_signature_match(
     return 0.0, ""
 
 
-def _validate_missing_signature(self, filename: str) -> Tuple[float, str]:
-    """Check if missing signature violates strict extension rules."""
-    # Type not detected. Validate that if extension claims a known type, it matches.
-    # This prevents processing invalid/corrupt media files.
-    filename_lower = filename.lower().strip().replace("\0", "").rstrip(".")
-
-    # Lazily initialize strict validation configuration on the class so we don't
-    # rebuild it on every call. This keeps the mapping centralized and efficient.
-    cls = self.__class__
-
+def _ensure_strict_validation_config(
+    cls: type, media_exts: tuple
+) -> Tuple[Dict[str, str], Set[str], Tuple[str, ...]]:
+    """Ensure strict validation configuration is initialized on the class."""
     if not hasattr(cls, "_STRICT_VALIDATION_EXTS"):
         # Map extensions to their expected descriptions for error messages
         cls._STRICT_VALIDATION_EXTS = {
@@ -160,12 +154,10 @@ def _validate_missing_signature(self, filename: str) -> Tuple[float, str]:
 
     if not hasattr(cls, "_CRITICAL_MEDIA_EXTS"):
         # Treat all known media extensions (and WAV) as critical when their signatures are invalid,
-        # to prevent them from reaching deepfake/OpenCV processing. Use getattr so we degrade
-        # safely if MEDIA_EXTENSIONS is not defined on this instance.
-        media_exts = getattr(self, "MEDIA_EXTENSIONS", [])
+        # to prevent them from reaching deepfake/OpenCV processing.
         cls._CRITICAL_MEDIA_EXTS = {
             ext
-            for ext in cls._STRICT_VALIDATION_EXTS.keys()
+            for ext in cls._STRICT_VALIDATION_EXTS
             if ext in media_exts or ext == ".wav"
         }
 
@@ -175,8 +167,23 @@ def _validate_missing_signature(self, filename: str) -> Tuple[float, str]:
     # Fast path: C-level tuple endswith before Python-level iteration.
     exts_tuple = getattr(cls, "_STRICT_VALIDATION_EXTS_TUPLE", None)
     if exts_tuple is None:
-        exts_tuple = tuple(strict_validation_exts.keys())
+        exts_tuple = tuple(strict_validation_exts)
         setattr(cls, "_STRICT_VALIDATION_EXTS_TUPLE", exts_tuple)
+
+    return strict_validation_exts, critical_media_exts, exts_tuple
+
+
+def _validate_missing_signature(self, filename: str) -> Tuple[float, str]:
+    """Check if missing signature violates strict extension rules."""
+    # Type not detected. Validate that if extension claims a known type, it matches.
+    # This prevents processing invalid/corrupt media files.
+    filename_lower = filename.lower().strip().replace("\0", "").rstrip(".")
+
+    cls = self.__class__
+    media_exts = getattr(self, "MEDIA_EXTENSIONS", ())
+    strict_validation_exts, critical_media_exts, exts_tuple = (
+        _ensure_strict_validation_config(cls, media_exts)
+    )
 
     if filename_lower.endswith(exts_tuple):
         return _evaluate_missing_signature_match(
