@@ -3,7 +3,7 @@
 # Update via: grep-ci logs + verify locally before bumping
 
 numpy==2.5.5
-opencv-python-headless==4.13.0.92
+opencv-python-headless==5.1.0.95
 pyahocorasick==2.3.1
 python-dotenv==1.2.4
 requests==2.34.2
